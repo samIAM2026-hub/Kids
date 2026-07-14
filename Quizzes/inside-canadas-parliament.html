@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Inside Canada's Parliament</title>
+<style>
+  :root{
+    --parchment:#F3ECDD;
+    --parchment-2:#EAE0CA;
+    --parchment-3:#E2D5B8;
+    --ink:#23252E;
+    --ink-soft:#54534f;
+    --senate:#A8202E;
+    --commons:#1F5A45;
+    --verdigris:#5E8C7D;
+    --verdigris-dk:#3F6A5C;
+    --brass:#BB8E2C;
+    --brass-lt:#D9B65A;
+    --line:#cdbd97;
+    --shadow: 0 10px 30px rgba(35,37,46,.12);
+    --display:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,'Times New Roman',serif;
+    --body:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,'Helvetica Neue',Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:var(--body);color:var(--ink);background:var(--parchment);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:0 22px}
+
+  /* HERO */
+  header.hero{
+    position:relative;
+    background:radial-gradient(120% 90% at 50% -10%, rgba(94,140,125,.30), transparent 60%),linear-gradient(180deg,#2c4f44 0%, #244038 100%);
+    color:#f6efe1;text-align:center;padding:46px 22px 64px;overflow:hidden;
+  }
+  .skyline{position:absolute;left:0;right:0;bottom:-1px;height:120px;opacity:.5}
+  .crown-badge{font-family:var(--body);font-weight:800;letter-spacing:.16em;text-transform:uppercase;font-size:.7rem;color:var(--brass-lt);display:inline-block;margin-bottom:14px}
+  header.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(2rem,6vw,3.4rem);line-height:1.04;margin:0 auto 14px;max-width:15ch;letter-spacing:-.01em}
+  header.hero p.sub{max-width:50ch;margin:0 auto 26px;font-size:clamp(1rem,2.4vw,1.16rem);color:#e9e0cd}
+  .hero-cta{display:inline-flex;align-items:center;gap:10px;background:var(--brass);color:#241f0e;border:none;font-family:var(--body);font-weight:800;font-size:1.05rem;padding:14px 26px;border-radius:999px;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.28);transition:transform .15s ease, background .15s ease}
+  .hero-cta:hover{transform:translateY(-2px);background:var(--brass-lt)}
+  .hero-cta:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  .tower{font-size:2.6rem;line-height:1;margin-bottom:6px}
+
+  /* SECTIONS */
+  main{padding:18px 0 70px}
+  section.lesson{margin:46px 0}
+  .eyebrow{font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;color:var(--verdigris-dk);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+  .eyebrow .num{background:var(--verdigris);color:#fff;font-family:var(--display);font-weight:700;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:.95rem;letter-spacing:0}
+  h2.sect{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,4.4vw,2.3rem);line-height:1.1;margin:.1em 0 .5em;letter-spacing:-.01em}
+  p.lead{font-size:1.07rem;margin:.4em 0}
+  .term{color:var(--senate);font-weight:800}
+  .term-green{color:var(--commons);font-weight:800}
+
+  .callout{background:#fff;border:1px solid var(--line);border-left:6px solid var(--brass);border-radius:12px;padding:16px 18px;margin-top:18px;font-size:1.0rem}
+  .callout b{color:var(--brass)}
+
+  /* CHAMBER CONTRAST CARDS */
+  .cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+  .pcard{background:var(--parchment-2);border:1px solid var(--line);border-radius:16px;padding:20px 18px;cursor:pointer;transition:transform .15s ease, box-shadow .15s ease;position:relative;overflow:hidden;text-align:left;font-family:inherit}
+  .pcard:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  .pcard:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+  .pcard .ribbon{height:6px;border-radius:6px;margin-bottom:14px}
+  .pcard.crown .ribbon{background:var(--brass)}
+  .pcard.senate .ribbon{background:var(--senate)}
+  .pcard.commons .ribbon{background:var(--commons)}
+  .pcard .ico{font-size:2rem;line-height:1}
+  .pcard h3{font-family:var(--display);font-weight:700;margin:.5em 0 .2em;font-size:1.22rem}
+  .pcard .reveal{display:grid;grid-template-rows:0fr;transition:grid-template-rows .32s ease, margin .3s ease;font-size:.95rem}
+  .pcard .reveal > div{overflow:hidden}
+  .pcard.open .reveal{grid-template-rows:1fr;margin-top:8px}
+  .pcard .tap{font-size:.76rem;font-weight:800;color:var(--ink-soft);margin-top:10px;letter-spacing:.04em}
+  .pcard.open .tap{display:none}
+
+  /* NUMBERED ROLE ACCORDIONS */
+  .chamber-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:4px}
+  .chamber-head .pill{font-size:.74rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:4px 11px;border-radius:999px}
+  .pill-commons{background:#e0efe7;color:var(--commons)}
+  .pill-senate{background:#f6dfe1;color:var(--senate)}
+  .roles{display:grid;gap:10px;margin-top:18px}
+  .role{background:var(--parchment-2);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .roles.commons .role{border-left:5px solid var(--commons)}
+  .roles.senate .role{border-left:5px solid var(--senate)}
+  .role-head{width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:inherit;text-align:left}
+  .role-head:focus-visible{outline:3px solid var(--brass);outline-offset:-3px}
+  .role-num{flex:0 0 32px;width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-family:var(--display);font-weight:700;color:#fff;font-size:1rem}
+  .roles.commons .role-num{background:var(--commons)}
+  .roles.senate .role-num{background:var(--senate)}
+  .role-title{font-family:var(--display);font-weight:700;font-size:1.1rem;flex:1;line-height:1.2}
+  .role-chev{transition:transform .25s;color:var(--ink-soft);font-weight:800;font-size:1.1rem}
+  .role.open .role-chev{transform:rotate(90deg)}
+  .role-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
+  .role.open .role-body{grid-template-rows:1fr}
+  .role-body > div{overflow:hidden}
+  .role-body p{margin:0;padding:2px 18px 16px 62px;font-size:.96rem}
+
+  /* INTERACTIVE CHAMBER DIAGRAM */
+  .chamber{margin-top:20px}
+  .chamber-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:20px;align-items:start}
+  .chamber-figure{position:relative;width:100%;border-radius:18px;overflow:visible;border:1px solid var(--line);box-shadow:var(--shadow)}
+  .chamber-figure svg{display:block;width:100%;height:auto;border-radius:18px}
+  .marker{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;border:2px solid #fff;color:#fff;font-family:var(--display);font-weight:700;font-size:.9rem;cursor:pointer;display:grid;place-items:center;box-shadow:0 2px 7px rgba(0,0,0,.4);transition:transform .15s, box-shadow .15s;padding:0;line-height:1}
+  .chamber.commons .marker{background:var(--commons)}
+  .chamber.senate .marker{background:var(--senate)}
+  .marker:hover{transform:translate(-50%,-50%) scale(1.18);z-index:5}
+  .marker:focus-visible{outline:3px solid var(--brass);outline-offset:2px;z-index:6}
+  .marker.active{transform:translate(-50%,-50%) scale(1.3);box-shadow:0 0 0 4px rgba(217,182,90,.7);z-index:6}
+  .mlabel{position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:var(--body);font-size:.66rem;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s}
+  .marker:hover .mlabel{opacity:1}
+  .figure-hint{font-size:.78rem;color:var(--ink-soft);margin:8px 2px 0;font-weight:600}
+  .legend{display:grid;gap:7px;margin-bottom:14px}
+  .legend-chip{display:flex;align-items:center;gap:9px;background:var(--parchment-2);border:1px solid var(--line);border-radius:10px;padding:8px 11px;cursor:pointer;font-family:inherit;text-align:left;width:100%;font-size:.9rem;font-weight:700;transition:background .15s,border-color .15s;color:var(--ink)}
+  .legend-chip:hover{border-color:var(--verdigris)}
+  .legend-chip:focus-visible{outline:3px solid var(--brass);outline-offset:1px}
+  .legend-chip .lnum{flex:0 0 24px;width:24px;height:24px;border-radius:7px;display:grid;place-items:center;color:#fff;font-family:var(--display);font-weight:700;font-size:.82rem}
+  .chamber.commons .legend-chip .lnum{background:var(--commons)}
+  .chamber.senate .legend-chip .lnum{background:var(--senate)}
+  .chamber.commons .legend-chip.active{background:#fff;box-shadow:inset 0 0 0 2px var(--commons)}
+  .chamber.senate .legend-chip.active{background:#fff;box-shadow:inset 0 0 0 2px var(--senate)}
+  .chamber-detail{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;min-height:118px}
+  .chamber-detail h4{font-family:var(--display);font-weight:700;font-size:1.14rem;margin:.1em 0 .45em;display:flex;gap:9px;align-items:center;line-height:1.2}
+  .chamber-detail .dnum{flex:0 0 26px;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;font-family:var(--display);font-size:.84rem;font-weight:700}
+  .chamber.commons .chamber-detail .dnum{background:var(--commons)}
+  .chamber.senate .chamber-detail .dnum{background:var(--senate)}
+  .chamber-detail p{margin:0;font-size:.95rem}
+  .chamber-detail.empty{display:flex;align-items:center;justify-content:center;text-align:center;color:var(--ink-soft);font-weight:600}
+  @media (max-width:760px){.chamber-grid{grid-template-columns:1fr}}
+
+  /* BILL JOURNEY */
+  .journey{background:linear-gradient(180deg,#26443b,#1f3a32);border-radius:24px;padding:26px 20px 30px;color:#f3ecdd;box-shadow:var(--shadow)}
+  .journey h2.sect{color:#fff}
+  .journey .eyebrow{color:var(--brass-lt)}
+  .journey .eyebrow .num{background:var(--brass);color:#241f0e}
+  .journey .intro{color:#dcd3c0;margin-bottom:18px}
+  .track{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0 20px}
+  .stop{position:relative;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#f3ecdd;border-radius:12px;padding:10px 8px 8px;width:104px;cursor:pointer;transition:background .2s ease, transform .15s ease, border-color .2s;font-family:inherit;text-align:center}
+  .stop:hover{background:rgba(255,255,255,.16);transform:translateY(-2px)}
+  .stop:focus-visible{outline:3px solid var(--brass-lt);outline-offset:2px}
+  .stop .dot{width:30px;height:30px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;font-family:var(--display);font-weight:700;background:var(--brass);color:#241f0e;font-size:.95rem;transition:transform .2s ease}
+  .stop .nm{font-size:.72rem;font-weight:800;line-height:1.15}
+  .stop .where{font-size:.62rem;opacity:.7;margin-top:3px;letter-spacing:.03em}
+  .stop.active{background:rgba(217,182,90,.22);border-color:var(--brass-lt)}
+  .stop.active .dot{transform:scale(1.18)}
+  .stop.done .dot{background:var(--verdigris);color:#fff}
+  .scroll-token{font-size:1.4rem;display:block;height:22px;margin-top:2px;opacity:0;transition:opacity .25s}
+  .stop.active .scroll-token{opacity:1}
+  .stage-panel{background:var(--parchment);color:var(--ink);border-radius:16px;padding:20px;min-height:150px;position:relative}
+  .stage-panel .chamber-tag{display:inline-block;font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;margin-bottom:10px}
+  .chamber-commons{background:#e0efe7;color:var(--commons)}
+  .chamber-senate{background:#f6dfe1;color:var(--senate)}
+  .chamber-crown{background:#f5ead0;color:var(--brass)}
+  .stage-panel h3{font-family:var(--display);font-weight:700;font-size:1.4rem;margin:.1em 0 .35em}
+  .stage-panel p{margin:.2em 0}
+  .seal{position:absolute;top:14px;right:16px;width:74px;height:74px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #c8323f, #8d1722 70%);color:#fff;display:grid;place-items:center;text-align:center;font-family:var(--display);font-weight:700;font-size:.62rem;line-height:1.1;box-shadow:0 4px 10px rgba(0,0,0,.3);transform:scale(0) rotate(-18deg);opacity:0}
+  .seal.stamp{animation:stamp .5s cubic-bezier(.2,1.3,.5,1) forwards}
+  @keyframes stamp{0%{transform:scale(2.4) rotate(-18deg);opacity:0}60%{transform:scale(.85) rotate(-12deg);opacity:1}100%{transform:scale(1) rotate(-12deg);opacity:1}}
+  .journey-ctrls{display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+  .btn-ghost{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#f3ecdd;font-family:var(--body);font-weight:800;font-size:.95rem;padding:11px 20px;border-radius:999px;cursor:pointer;transition:background .15s}
+  .btn-ghost:hover{background:rgba(255,255,255,.2)}
+  .btn-ghost:focus-visible{outline:3px solid var(--brass-lt);outline-offset:2px}
+
+  /* LANDMARK CARDS */
+  .landgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:22px}
+
+  /* QUIZ */
+  .quiz-gate{text-align:center;background:var(--parchment-2);border:1px dashed var(--line);border-radius:20px;padding:34px 22px;margin-top:30px}
+  .quiz-gate h2{font-family:var(--display);font-weight:700;font-size:clamp(1.5rem,4vw,2.1rem);margin:.1em 0 .3em}
+  .quiz-gate p{max-width:52ch;margin:0 auto 18px;color:var(--ink-soft)}
+  .name-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+  .name-row input{font-family:var(--body);font-size:1rem;padding:12px 16px;border-radius:999px;border:2px solid var(--line);background:#fff;min-width:200px}
+  .name-row input:focus-visible{outline:3px solid var(--brass);outline-offset:1px;border-color:var(--brass)}
+  .btn-primary{background:var(--senate);color:#fff;border:none;font-family:var(--body);font-weight:800;font-size:1.05rem;padding:13px 28px;border-radius:999px;cursor:pointer;transition:transform .15s ease, background .15s}
+  .btn-primary:hover{transform:translateY(-2px);background:#8d1722}
+  .btn-primary:focus-visible{outline:3px solid var(--brass);outline-offset:3px}
+  #quiz{display:none;margin-top:30px}
+  .quiz-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+  .quiz-head .who{font-weight:800}
+  .pbar{height:12px;background:var(--parchment-3);border-radius:999px;overflow:hidden;margin-bottom:22px}
+  .pbar > span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--verdigris),var(--commons));transition:width .4s ease}
+  .qcard{background:var(--parchment-2);border:1px solid var(--line);border-radius:20px;padding:26px 22px;box-shadow:var(--shadow)}
+  .qcount{font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:.74rem;color:var(--verdigris-dk)}
+  .qtext{font-family:var(--display);font-weight:700;font-size:clamp(1.2rem,3vw,1.5rem);line-height:1.25;margin:.3em 0 1em}
+  .opts{display:grid;gap:11px}
+  .opt{text-align:left;background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px 16px;font-family:var(--body);font-size:1.0rem;font-weight:600;cursor:pointer;transition:border-color .15s, background .15s, transform .1s;display:flex;gap:12px;align-items:center}
+  .opt:hover:not(:disabled){border-color:var(--verdigris);transform:translateX(2px)}
+  .opt:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+  .opt .key{width:28px;height:28px;flex:0 0 28px;border-radius:8px;background:var(--parchment-3);display:grid;place-items:center;font-weight:800;font-family:var(--display)}
+  .opt.correct{border-color:var(--commons);background:#e3f1ea}
+  .opt.correct .key{background:var(--commons);color:#fff}
+  .opt.wrong{border-color:var(--senate);background:#f9e2e4}
+  .opt.wrong .key{background:var(--senate);color:#fff}
+  .opt:disabled{cursor:default}
+  .feedback{margin-top:16px;font-weight:700;min-height:26px;display:flex;align-items:center;gap:8px}
+  .feedback.good{color:var(--commons)}
+  .feedback.bad{color:var(--senate)}
+  .qnext{margin-top:18px;display:flex;justify-content:flex-end}
+  #results{display:none;margin-top:30px}
+  .scorecard{border-radius:24px;padding:34px 26px;text-align:center;color:#fff;box-shadow:var(--shadow)}
+  .scorecard.pass{background:linear-gradient(180deg,#26443b,#1f5a45)}
+  .scorecard.fail{background:linear-gradient(180deg,#8a3a2e,#7a2530)}
+  .scorecard .big{font-family:var(--display);font-weight:700;font-size:clamp(2.6rem,9vw,4.2rem);line-height:1;margin:.1em 0}
+  .scorecard .verdict{font-family:var(--display);font-weight:700;font-size:clamp(1.4rem,5vw,2rem);margin:.2em 0}
+  .scorecard .pct{font-weight:800;opacity:.9;letter-spacing:.04em}
+  .ribbon-medal{font-size:3rem;line-height:1}
+  .review{margin-top:24px;background:var(--parchment-2);border:1px solid var(--line);border-radius:18px;padding:20px}
+  .review h3{font-family:var(--display);font-weight:700;font-size:1.25rem;margin:0 0 12px}
+  .rev-item{padding:12px 0;border-bottom:1px solid var(--line);font-size:.96rem}
+  .rev-item:last-child{border-bottom:none}
+  .rev-item .q{font-weight:800}
+  .rev-item .a{color:var(--commons);font-weight:700}
+  .rev-item .y{color:var(--senate);font-weight:700}
+  .results-ctrls{display:flex;gap:12px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+
+  /* ROUND PICKER */
+  #rounds{display:none;margin-top:30px}
+  .rounds-summary{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;background:var(--parchment-2);border:1px solid var(--line);border-radius:14px;padding:14px 18px}
+  .rs-name{font-weight:700}
+  .rs-total{font-weight:800;color:var(--verdigris-dk)}
+  .rounds-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:18px 0}
+  .round-card{background:var(--parchment-2);border:1px solid var(--line);border-top:6px solid var(--verdigris);border-radius:18px;padding:20px 18px;display:flex;flex-direction:column;gap:10px;text-align:left}
+  .round-card.commons{border-top-color:var(--commons)}
+  .round-card.senate{border-top-color:var(--senate)}
+  .round-card.parliament{border-top-color:var(--brass)}
+  .rc-top{display:flex;align-items:center;justify-content:space-between}
+  .rc-emoji{font-size:1.6rem;line-height:1}
+  .rc-tag{font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+  .round-card h3{font-family:var(--display);font-weight:700;font-size:1.18rem;margin:0;line-height:1.15}
+  .rc-status{font-weight:700;font-size:.9rem;color:var(--ink-soft)}
+  .rc-status.ok{color:var(--commons)}
+  .rc-status.no{color:var(--senate)}
+  .rc-btn{margin-top:auto;width:100%;font-size:.98rem;padding:11px 16px}
+  .final-banner{border-radius:18px;padding:24px 20px;text-align:center;color:#fff;margin-bottom:18px;box-shadow:var(--shadow)}
+  .final-banner.pass{background:linear-gradient(180deg,#26443b,#1f5a45)}
+  .final-banner.fail{background:linear-gradient(180deg,#8a3a2e,#7a2530)}
+  .fb-medal{font-size:2.6rem;line-height:1}
+  .fb-title{font-family:var(--display);font-weight:700;font-size:clamp(1.3rem,4vw,1.7rem);margin:.2em 0}
+  .fb-sub{opacity:.92;max-width:46ch;margin:0 auto}
+  @media (max-width:680px){.rounds-grid{grid-template-columns:1fr}}
+
+  footer{text-align:center;padding:30px 22px 40px;color:var(--ink-soft);font-size:.85rem}
+
+  @media (max-width:620px){.cards3{grid-template-columns:1fr}.stop{width:96px}}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important;transition-duration:.05ms !important;scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="tower">🍁</div>
+  <span class="crown-badge">Parliament of Canada · Ottawa Visitor Guide</span>
+  <h1>Inside Canada's Parliament</h1>
+  <p class="sub">Step into the two law-making chambers, meet the people who make our laws, and discover the famous sights of Parliament Hill — then test yourself with the quiz, now in three quick rounds!</p>
+  <button class="hero-cta" onclick="document.getElementById('start').scrollIntoView()">Start exploring →</button>
+  <svg class="skyline" viewBox="0 0 920 120" preserveAspectRatio="none" aria-hidden="true">
+    <rect x="0" y="80" width="920" height="40" fill="#1c332c"/>
+    <rect x="120" y="40" width="40" height="80" fill="#1c332c"/>
+    <polygon points="140,18 122,42 158,42" fill="#1c332c"/>
+    <rect x="430" y="20" width="60" height="100" fill="#16291f"/>
+    <polygon points="460,-6 426,24 494,24" fill="#16291f"/>
+    <rect x="760" y="46" width="36" height="74" fill="#1c332c"/>
+    <polygon points="778,24 762,48 794,48" fill="#1c332c"/>
+  </svg>
+</header>
+
+<main class="wrap" id="start">
+
+  <!-- 1. WELCOME -->
+  <section class="lesson">
+    <div class="eyebrow"><span class="num">1</span> Welcome to Parliament Hill</div>
+    <h2 class="sect">The Seat of Canadian Democracy</h2>
+    <p class="lead"><b>Parliament Hill</b> in <span class="term">Ottawa</span> is the seat of Canadian democracy. Canada's Parliament buildings have served the country for more than <b>150 years</b>.</p>
+    <p class="lead">The main building, <b>Centre Block</b>, is the permanent home of the Senate, the House of Commons, and the <span class="term-green">Library of Parliament</span>. Right now it's closed for a big rehabilitation project to restore and modernize it.</p>
+    <div class="callout">🏗️ <b>Parliament is in temporary homes right now!</b> While Centre Block is being fixed up, the <span class="term-green">House of Commons</span> meets in an enclosed courtyard inside <b>West Block</b>, and the <span class="term">Senate</span> has moved to the <b>Senate of Canada Building</b> on Rideau Street — a former Ottawa train station that is more than 100 years old.</div>
+  </section>
+
+  <!-- 2. TWO CHAMBERS -->
+  <section class="lesson">
+    <div class="eyebrow"><span class="num">2</span> Where laws are made</div>
+    <h2 class="sect">The Two Law-Making Chambers</h2>
+    <p class="lead">Canada's Parliament has <b>two law-making chambers</b>. In both, members meet to <b>introduce, debate and vote on bills</b> (proposed laws) and to discuss issues that affect Canadians. Tap each card to learn more.</p>
+    <div class="cards3" id="cards3">
+      <button class="pcard commons" data-card>
+        <div class="ribbon"></div>
+        <div class="ico">🟩</div>
+        <h3>House of Commons</h3>
+        <div class="reveal"><div>Its members are <b>Members of Parliament (MPs)</b>, who are <b>elected</b> by Canadians. MPs represent the people in Canada's <b>338 constituencies</b>. The chamber is decorated in green.</div></div>
+        <div class="tap">Tap to open ▾</div>
+      </button>
+      <button class="pcard senate" data-card>
+        <div class="ribbon"></div>
+        <div class="ico">🟥</div>
+        <h3>The Senate</h3>
+        <div class="reveal"><div>Its members are <b>Senators</b>, who are <b>appointed</b> — not elected. The Senate has <b>105 seats</b>, shared by region so every part of Canada is represented. The chamber is decorated in red.</div></div>
+        <div class="tap">Tap to open ▾</div>
+      </button>
+      <button class="pcard crown" data-card>
+        <div class="ribbon"></div>
+        <div class="ico">👑</div>
+        <h3>The Crown</h3>
+        <div class="reveal"><div>In the Senate, the <b>thrones</b> behind the Speaker's Chair are used by the <b>Monarch or Governor General</b>. The Crown gives the final approval, called <b>Royal Assent</b>, that turns a bill into a law.</div></div>
+        <div class="tap">Tap to open ▾</div>
+      </button>
+    </div>
+  </section>
+
+  <!-- 3. HOUSE OF COMMONS ROLES -->
+  <section class="lesson">
+    <div class="eyebrow"><span class="num">3</span> Who's who in the green chamber</div>
+    <h2 class="sect">Inside the House of Commons</h2>
+    <div class="chamber-head"><span class="pill pill-commons">The Green Chamber</span></div>
+    <p class="lead">Here's the chamber laid out, just like in the visitor guide. Tap a numbered marker — or a name in the list — to see who's who.</p>
+    <div class="chamber commons">
+      <div class="chamber-grid">
+        <div>
+          <div class="chamber-figure" id="commonsFigure"></div>
+          <p class="figure-hint">Tip: government MPs sit to the Speaker's right, the opposition to the left.</p>
+        </div>
+        <div>
+          <div class="legend" id="commonsLegend"></div>
+          <div class="chamber-detail empty" id="commonsDetail">Tap a number on the chamber to learn what it is.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. SENATE ROLES -->
+  <section class="lesson">
+    <div class="eyebrow"><span class="num">4</span> Who's who in the red chamber</div>
+    <h2 class="sect">Inside the Senate</h2>
+    <div class="chamber-head"><span class="pill pill-senate">The Red Chamber</span></div>
+    <p class="lead">Now explore the red chamber the same way. Tap a numbered marker — or a name in the list — to learn more.</p>
+    <div class="chamber senate">
+      <div class="chamber-grid">
+        <div>
+          <div class="chamber-figure" id="senateFigure"></div>
+          <p class="figure-hint">Tip: the thrones behind the Speaker's chair are for the Monarch or Governor General.</p>
+        </div>
+        <div>
+          <div class="legend" id="senateLegend"></div>
+          <div class="chamber-detail empty" id="senateDetail">Tap a number on the chamber to learn what it is.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. BILL JOURNEY -->
+  <section class="lesson">
+    <div class="journey">
+      <div class="eyebrow"><span class="num">5</span> From idea to law</div>
+      <h2 class="sect">How a Bill Becomes a Law</h2>
+      <p class="intro">A <b>bill</b> is a proposed law. To become a real law, it must pass through <b>both chambers</b> and then receive <b>Royal Assent</b>. Tap any stop — or press play — to follow the journey.</p>
+      <div class="track" id="track"></div>
+      <div class="stage-panel" id="stagePanel" aria-live="polite">
+        <div class="seal" id="seal">ROYAL<br>ASSENT</div>
+        <span class="chamber-tag chamber-commons" id="chamberTag">House of Commons</span>
+        <h3 id="stageTitle">Tap a stop to begin</h3>
+        <p id="stageBody">Each stop is one step a bill takes before it can become a law.</p>
+      </div>
+      <div class="journey-ctrls">
+        <button class="btn-ghost" id="playBtn">▶ Play the whole journey</button>
+        <button class="btn-ghost" id="resetBtn">↺ Reset</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. LANDMARKS -->
+  <section class="lesson">
+    <div class="eyebrow"><span class="num">6</span> Famous sights</div>
+    <h2 class="sect">Around Parliament Hill</h2>
+    <p class="lead">Parliament Hill is full of history. Tap each card to discover a famous sight.</p>
+    <div class="landgrid" id="landgrid"></div>
+  </section>
+
+  <!-- QUIZ GATE -->
+  <div class="quiz-gate" id="quizGate">
+    <div style="font-size:2.4rem">📜✅</div>
+    <h2>Ready for the Quiz?</h2>
+    <p>The quiz is split into <b>3 short rounds</b> — the House of Commons, the Senate, and Around Parliament Hill — with <b>10 questions each</b>. Score <b>8 out of 10</b> to pass a round, and pass all three to earn your Parliament Pass. Type your name to begin!</p>
+    <div class="name-row"><input id="playerName" type="text" placeholder="Type your name" maxlength="20" aria-label="Your name" /></div>
+    <button class="btn-primary" id="startQuizBtn">Choose a round →</button>
+  </div>
+
+  <!-- ROUND PICKER -->
+  <div id="rounds"></div>
+
+  <!-- QUIZ -->
+  <div id="quiz">
+    <div class="quiz-head"><span class="who" id="quizWho"></span><span class="qcount" id="qScore">Score: 0</span></div>
+    <div class="pbar"><span id="pbarFill"></span></div>
+    <div class="qcard">
+      <div class="qcount" id="qNum">Question 1 of 10</div>
+      <div class="qtext" id="qText"></div>
+      <div class="opts" id="qOpts"></div>
+      <div class="feedback" id="qFeedback"></div>
+      <div class="qnext"><button class="btn-primary" id="nextBtn" style="display:none">Next →</button></div>
+    </div>
+  </div>
+
+  <div id="results"></div>
+</main>
+
+<footer>
+  Content from the official <b>Library of Parliament</b> visitor guides 🍁 · An interactive lesson about the Parliament of Canada.<br>
+  Three rounds of 10 questions — score 8/10 to pass each, and pass all three for your Parliament Pass. Retake any round as often as you like.
+</footer>
+
+<script>
+/* ============ DATA (from the Library of Parliament brochures) ============ */
+const COMMONS_ROLES = [
+  {n:"1", t:"Speaker", d:"The presiding officer of the House of Commons, who oversees its administration. All questions, speeches and debates are directed to the Speaker, who must stay impartial and make sure the rules, procedures and traditions of the House are followed. The Speaker balances letting the government do its business with making sure the opposition is heard."},
+  {n:"2", t:"Mace and Sergeant-at-Arms", d:"The Mace is a symbol of the authority of the House of Commons and of the Speaker. It is carried into the Chamber by the Sergeant-at-Arms during the Speaker's Parade and placed on the Clerk's Table. The Sergeant-at-Arms is responsible for security and keeps order in the Chamber, sitting opposite the Speaker near the entrance."},
+  {n:"3", t:"Prime Minister", d:"The Head of Government. The PM is also a political party leader, the Cabinet leader and a Member of Parliament (MP). The Prime Minister guides government policy, sets its agenda and chooses a Cabinet, mostly from the governing party's elected MPs. The PM sits to the right of the Speaker, in the 11th seat."},
+  {n:"4", t:"Hansard", d:"Hansard is the written record of the debates in the House of Commons. It is published in English and French after each sitting day, capturing the discussions and decisions."},
+  {n:"5", t:"Clerk", d:"The chief administrative officer of the House. The Clerk advises the Speaker on procedural matters, supports all parts of the legislative process, and has wide duties in running the House."},
+  {n:"6", t:"Pages", d:"Pages are university students from across Canada, hired to carry messages and deliver documents to Members of Parliament."},
+  {n:"7", t:"Members of Parliament (MPs)", d:"MPs are elected to represent the people in Canada's 338 constituencies and to debate issues that matter to Canadians. They take part in an ongoing process of proposing, studying, revising and voting on legislation. MPs are usually part of a political party but can be Independent. Government MPs sit to the Speaker's right; opposition MPs sit to the left."},
+  {n:"8", t:"Galleries", d:"The galleries let reporters, diplomats, guests of MPs and the public watch live proceedings. The Press Gallery is for accredited media; the Public Gallery is for visitors to witness democracy in action."},
+  {n:"9", t:"Leader of the Official Opposition", d:"The Official Opposition is usually the party with the second-highest number of elected MPs. It holds the government to account and challenges its policies. The Leader of the Official Opposition sits directly across from the Prime Minister and leads in debating and suggesting changes to government legislation."},
+];
+
+const SENATE_ROLES = [
+  {n:"1", t:"Speaker", d:"The presiding officer of the Senate, who oversees its administration and makes sure the rules, procedures and traditions of the Senate are followed. The thrones behind the Speaker's Chair are used by the Monarch or Governor General and their spouse."},
+  {n:"2", t:"Mace", d:"The Mace is the symbol of the Senate's authority — the Senate cannot hold proceedings without it. It is carried by the Mace Bearer during the Speaker's Parade and placed on the Clerk's Table pointing toward the Thrones. Once the Mace is laid on the Table, the Senate is officially in session."},
+  {n:"3", t:"Senators", d:"The Senate's 105 seats are distributed by region to ensure equal representation across the country. Senators are appointed by the Governor General, on the advice of the Prime Minister. They propose, review, amend and pass legislation, and conduct in-depth studies in committee."},
+  {n:"4", t:"Debates of the Senate (Hansard)", d:"Hansard is the written record of the debates in the Senate. It is published in English and French after each sitting day."},
+  {n:"5", t:"Pages", d:"Pages are university students from across Canada, hired to provide support and assistance to Senators in the Chamber and in committee meetings."},
+  {n:"6", t:"Galleries", d:"The galleries let reporters, guests of Senators and the public watch live proceedings in the Chamber."},
+  {n:"7", t:"Usher of the Black Rod", d:"The Usher of the Black Rod has ceremonial and administrative duties, including leading the Speaker's Parade and ensuring security. The Usher takes part in the Speech from the Throne and Royal Assent ceremonies. The Black Rod itself is an ebony stick used to knock on the House of Commons Chamber doors."},
+  {n:"8", t:"Clerk of the Senate and Clerk of the Parliaments", d:"Usually one person holds both roles. As Clerk of the Senate, they are the chief administrative officer of the Chamber, advising the Speaker and supporting the legislative process. As Clerk of the Parliaments, they are the keeper of all original Acts of Parliament."},
+];
+
+const STAGES = [
+  {n:"1", name:"Introduced", where:"Commons", tag:"chamber-commons", tagText:"House of Commons",
+   title:"A Bill Is Introduced", body:"A bill — a proposed law — is introduced in the House of Commons (bills can also start in the Senate). This puts the idea on the table for everyone to consider."},
+  {n:"2", name:"Debated", where:"Commons", tag:"chamber-commons", tagText:"House of Commons",
+   title:"The Bill Is Debated", body:"MPs debate the bill, drawing on the opinions of the people they represent, their political parties and their own views."},
+  {n:"3", name:"Voted", where:"Commons", tag:"chamber-commons", tagText:"House of Commons",
+   title:"MPs Vote", body:"MPs vote on the bill. If most vote yes, it passes the House of Commons and moves on to the other chamber."},
+  {n:"4", name:"The Senate", where:"Senate", tag:"chamber-senate", tagText:"The Senate",
+   title:"Off to the Senate", body:"Senators introduce, debate, review, amend and vote on the bill too — a careful second look. They also study bills in depth in committee."},
+  {n:"5", name:"Royal Assent", where:"Crown", tag:"chamber-crown", tagText:"The Crown", seal:true,
+   title:"Royal Assent", body:"Once both chambers agree on the bill, it receives Royal Assent — the Crown's final approval, given by the Governor General. The Usher of the Black Rod takes part in the Royal Assent ceremony."},
+  {n:"6", name:"An Act", where:"Crown", tag:"chamber-crown", tagText:"It's a Law!",
+   title:"It Becomes an Act of Parliament", body:"The bill is now a law, called an Act of Parliament. The Clerk of the Parliaments keeps all the original Acts of Parliament safe. 🎉"},
+];
+
+const LANDMARKS = [
+  {ico:"🗼", t:"The Peace Tower", d:"Built between 1919 and 1927, the Peace Tower is dedicated to the more than 65,000 Canadian soldiers who died in the First World War. It stands 92.2 metres (over 302 feet) tall and holds the Memorial Chamber and the carillon, a set of bells inaugurated on July 1, 1927."},
+  {ico:"🔥", t:"The Centennial Flame", d:"Prime Minister Lester B. Pearson lit the Centennial Flame on December 31, 1966, to mark Canada's 100th anniversary of Confederation. Natural gas feeds the flame above flowing water. Around it are the bronze shields of the provinces and territories — Nunavut's were added in 2017."},
+  {ico:"📚", t:"The Library of Parliament", d:"The Library preserves and protects Canada's legislative past, giving senators and MPs access to more than half a million books and documents. Built between 1859 and 1876, it is one of Canada's finest examples of Gothic Revival architecture."},
+  {ico:"🌊", t:"The Ottawa River", d:"The Ottawa River flows through the Capital Region, separating Ottawa and Gatineau. To the Kichespirini (an Algonquin people) it was, and still is, known as Kichi Zibi — 'the Great River.' For about 150 years the region was a hub of the lumber industry."},
+  {ico:"⛸️", t:"The Rideau Canal", d:"A UNESCO World Heritage Site and engineering masterpiece. It was planned after the War of 1812 to move troops and equipment safely between Montréal and Kingston. Today people paddle, boat and skate on it."},
+  {ico:"🌳", t:"Major's Hill Park", d:"The Capital's first park. It was once home to Lieutenant-Colonel John By, the man who oversaw the construction of the Rideau Canal. Today the Capital's parks are gathering places and festival sites."},
+];
+
+const QUESTIONS = [
+  {q:"The House of Commons and the Senate are Canada's two what kind of chambers?", o:["Law-making chambers","Courtrooms","Museums","Voting booths"], a:0},
+  {q:"While Centre Block is being fixed up, the House of Commons meets inside the courtyard of which building?", o:["West Block","East Block","the Library of Parliament","Château Laurier"], a:0},
+  {q:"Where has the Senate temporarily moved during the rehabilitation?", o:["The Senate of Canada Building","Major's Hill Park","The Peace Tower","Rideau Hall"], a:0},
+  {q:"The Senate of Canada Building was originally a what, over 100 years ago?", o:["A train station","A school","A hospital","A castle"], a:0},
+  {q:"Centre Block is the permanent home of the Senate, the House of Commons, and which third body?", o:["The Library of Parliament","The Supreme Court","The Royal Canadian Mint","City Hall"], a:0},
+  {q:"Who is the presiding officer that keeps order and makes sure the rules are followed in each chamber?", o:["The Speaker","A Page","The Mace Bearer","A reporter"], a:0},
+  {q:"A chamber is officially 'in session' once which object is laid on the Clerk's Table?", o:["The Mace","The Black Rod","A flag","A gavel"], a:0},
+  {q:"In the House of Commons, who carries the Mace in during the Speaker's Parade and looks after security?", o:["The Sergeant-at-Arms","The Prime Minister","A Senator","A Page"], a:0},
+  {q:"The Prime Minister is the Head of what?", o:["Government","The Senate","The Library","The Army"], a:0},
+  {q:"MPs are elected to represent the people in how many Canadian constituencies (according to the guide)?", o:["338","105","10","650"], a:0},
+  {q:"How do people become Members of Parliament (MPs)?", o:["They are elected","They are appointed by the King","They are chosen by the Speaker","They inherit the job"], a:0},
+  {q:"How many seats does the Senate have?", o:["105","338","50","12"], a:0},
+  {q:"How do people become Senators?", o:["Appointed by the Governor General, on the advice of the Prime Minister","Elected by voters","Chosen because they are the oldest MPs","They win a national contest"], a:0},
+  {q:"What is Hansard?", o:["The written record of the debates, published in English and French","A type of vote","The Speaker's chair","A famous bell"], a:0},
+  {q:"Who are the Pages?", o:["University students who carry messages and help in the Chamber","Retired judges","Elected MPs","Newspaper reporters"], a:0},
+  {q:"The Usher of the Black Rod uses an ebony stick to knock on which doors?", o:["The House of Commons Chamber doors","The Library doors","The Peace Tower doors","The front gates"], a:0},
+  {q:"As Clerk of the Parliaments, this person is the keeper of all the original what?", o:["Acts of Parliament","Library books","Maps of Ottawa","Tour tickets"], a:0},
+  {q:"Once both chambers agree on a bill, what final step makes it a law?", o:["Royal Assent","A newspaper story","A committee meeting","A coin toss"], a:0},
+  {q:"The Peace Tower is dedicated to the more than 65,000 Canadians who died in which war?", o:["The First World War","The War of 1812","The Cold War","The Hundred Years' War"], a:0},
+  {q:"The Rideau Canal — a UNESCO World Heritage Site — was planned after which war?", o:["The War of 1812","The First World War","The Seven Years' War","The American Civil War"], a:0},
+  {q:"In the House of Commons, where do government MPs traditionally sit?", o:["To the Speaker's right","To the Speaker's left","Up in the galleries","Behind the Speaker's chair"], a:0},
+  {q:"The Press Gallery in the House of Commons is reserved for whom?", o:["Accredited media reporters","Senators","Tour guides","The Prime Minister's family"], a:0},
+  {q:"The Leader of the Official Opposition sits directly across from whom?", o:["The Prime Minister","The Speaker","The Clerk","The Sergeant-at-Arms"], a:0},
+  {q:"The Senate's 105 seats are shared out by what, so every part of Canada is represented?", o:["By region","By age","By alphabet","By height"], a:0},
+  {q:"Besides Royal Assent, the Usher of the Black Rod also takes part in which ceremony?", o:["The Speech from the Throne","The opening of the Library","The lighting of the Centennial Flame","A hockey game"], a:0},
+  {q:"Who uses the two thrones behind the Senate Speaker's chair?", o:["The Monarch or Governor General","The Prime Minister and the Speaker","Two senior Senators","The Clerk and a Page"], a:0},
+  {q:"About how tall is the Peace Tower?", o:["92.2 metres (about 302 feet)","10 metres","50 metres","250 metres"], a:0},
+  {q:"Which Prime Minister lit the Centennial Flame in 1966?", o:["Lester B. Pearson","John A. Macdonald","Pierre Trudeau","Mark Carney"], a:0},
+  {q:"To the Kichespirini (an Algonquin people), the Ottawa River — Kichi Zibi — means what?", o:["The Great River","The Blue Water","The Long Lake","The Sleeping River"], a:0},
+  {q:"The Library of Parliament was built in which architectural style?", o:["Gothic Revival","Modern glass","Ancient Roman","Log cabin"], a:0},
+];
+
+const PASS_MARK = 24; // out of 30 (80%)
+
+/* ============ CHAMBER CONTRAST CARDS ============ */
+document.querySelectorAll('[data-card]').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('open')));
+
+/* ============ INTERACTIVE CHAMBER DIAGRAMS ============ */
+/* Marker positions are percentages over the chamber illustration.
+   Each marker's n maps to a numbered role in the brochure. */
+const COMMONS_MARKERS=[
+  {n:"1", x:50, y:25},  // Speaker
+  {n:"9", x:36, y:36},  // Leader of the Official Opposition (across from PM)
+  {n:"3", x:64, y:36},  // Prime Minister (govt front bench, Speaker's right)
+  {n:"2", x:50, y:46},  // Mace and Sergeant-at-Arms (Clerk's Table)
+  {n:"5", x:43, y:50},  // Clerk
+  {n:"6", x:57, y:53},  // Pages
+  {n:"7", x:21, y:60},  // MPs (left / opposition)
+  {n:"7", x:79, y:60},  // MPs (right / government)
+  {n:"8", x:11, y:14},  // Galleries (left)
+  {n:"8", x:89, y:14},  // Galleries (right)
+  {n:"4", x:50, y:85},  // Hansard (recording desk)
+];
+const SENATE_MARKERS=[
+  {n:"1", x:50, y:27},  // Speaker (thrones behind)
+  {n:"7", x:64, y:36},  // Usher of the Black Rod
+  {n:"2", x:50, y:46},  // Mace
+  {n:"8", x:43, y:50},  // Clerk of the Senate
+  {n:"5", x:57, y:53},  // Pages
+  {n:"3", x:21, y:60},  // Senators (left)
+  {n:"3", x:79, y:60},  // Senators (right)
+  {n:"6", x:72, y:14},  // Galleries
+  {n:"4", x:50, y:85},  // Debates of the Senate (Hansard)
+];
+
+function chamberSVG(t){
+  let benches="";
+  const rows=[160,196,232,268,304];
+  rows.forEach((y,i)=>{
+    benches+=`<rect x="${52+i*4}" y="${y}" width="${188-i*4}" height="26" rx="6" fill="${t.bench}"/>`;
+    benches+=`<rect x="${52+i*4}" y="${y}" width="${188-i*4}" height="7" rx="3" fill="${t.accent}"/>`;
+    benches+=`<rect x="${360}" y="${y}" width="${188-i*4}" height="26" rx="6" fill="${t.bench}"/>`;
+    benches+=`<rect x="${360}" y="${y}" width="${188-i*4}" height="7" rx="3" fill="${t.accent}"/>`;
+  });
+  // gallery seat ticks
+  let ticks="";
+  for(let i=0;i<22;i++){ ticks+=`<rect x="${44+i*24}" y="34" width="14" height="9" rx="2" fill="${t.tick}"/>`; }
+  const thrones = t.throne ? `<rect x="270" y="86" width="26" height="22" rx="4" fill="${t.throne}"/><rect x="304" y="86" width="26" height="22" rx="4" fill="${t.throne}"/>` : "";
+  return `<svg viewBox="0 0 600 480" role="img" aria-label="Stylized top-down diagram of the chamber">
+    <rect x="20" y="16" width="560" height="452" rx="20" fill="${t.floor}"/>
+    <rect x="20" y="16" width="560" height="74" rx="20" fill="${t.gallery}"/>
+    <rect x="20" y="74" width="560" height="16" fill="${t.gallery}"/>
+    ${ticks}
+    <rect x="262" y="150" width="76" height="286" fill="${t.aisle}"/>
+    ${thrones}
+    <rect x="244" y="104" width="112" height="46" rx="9" fill="${t.dais}"/>
+    <rect x="284" y="112" width="32" height="32" rx="5" fill="${t.daisDark}"/>
+    ${benches}
+    <rect x="260" y="198" width="80" height="46" rx="6" fill="${t.bench}"/>
+    <line x1="276" y1="236" x2="324" y2="206" stroke="#C9A227" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="324" cy="206" r="5" fill="#C9A227"/>
+    <rect x="262" y="392" width="76" height="34" rx="6" fill="${t.bench}"/>
+    <rect x="280" y="448" width="40" height="8" rx="4" fill="${t.dais}"/>
+  </svg>`;
+}
+
+const COMMONS_THEME={floor:"#e4efe9",gallery:"#d2e3da",tick:"#bcd3c8",aisle:"#cbe6d6",dais:"#1F5A45",daisDark:"#163f31",bench:"#9c6b3f",accent:"#1F5A45",tick2:""};
+const SENATE_THEME={floor:"#f4e0e1",gallery:"#ecd1d3",tick:"#dcb9bc",aisle:"#eccccd",dais:"#A8202E",daisDark:"#7a1722",bench:"#8a5a34",accent:"#A8202E",throne:"#7a1722"};
+
+function setupChamber(key, roles, markers, theme){
+  const fig=document.getElementById(key+'Figure');
+  fig.insertAdjacentHTML('afterbegin', chamberSVG(theme));
+  const roleByNum={}; roles.forEach(r=>roleByNum[r.n]=r);
+  markers.forEach(m=>{
+    const role=roleByNum[m.n];
+    const btn=document.createElement('button');
+    btn.className='marker'; btn.dataset.n=m.n;
+    btn.style.left=m.x+'%'; btn.style.top=m.y+'%';
+    btn.setAttribute('aria-label', m.n+' — '+role.t);
+    btn.innerHTML=`${m.n}<span class="mlabel">${role.t}</span>`;
+    btn.addEventListener('click',()=>selectRole(key,m.n));
+    fig.appendChild(btn);
+  });
+  const leg=document.getElementById(key+'Legend');
+  roles.forEach(r=>{
+    const c=document.createElement('button');
+    c.className='legend-chip'; c.dataset.n=r.n;
+    c.innerHTML=`<span class="lnum">${r.n}</span><span>${r.t}</span>`;
+    c.addEventListener('click',()=>selectRole(key,r.n));
+    leg.appendChild(c);
+  });
+}
+
+function selectRole(key,n){
+  const roles = (key==='commons') ? COMMONS_ROLES : SENATE_ROLES;
+  const role = roles.find(r=>r.n===n);
+  document.querySelectorAll('#'+key+'Figure .marker').forEach(el=>el.classList.toggle('active', el.dataset.n===n));
+  document.querySelectorAll('#'+key+'Legend .legend-chip').forEach(el=>el.classList.toggle('active', el.dataset.n===n));
+  const det=document.getElementById(key+'Detail');
+  det.classList.remove('empty');
+  det.innerHTML=`<h4><span class="dnum">${n}</span>${role.t}</h4><p>${role.d}</p>`;
+}
+
+setupChamber('commons', COMMONS_ROLES, COMMONS_MARKERS, COMMONS_THEME);
+setupChamber('senate', SENATE_ROLES, SENATE_MARKERS, SENATE_THEME);
+
+/* ============ LANDMARK CARDS ============ */
+const landgrid=document.getElementById('landgrid');
+LANDMARKS.forEach(l=>{
+  const b=document.createElement('button');
+  b.className='pcard';
+  b.innerHTML=`
+    <div class="ribbon" style="background:var(--verdigris)"></div>
+    <div class="ico">${l.ico}</div>
+    <h3>${l.t}</h3>
+    <div class="reveal"><div>${l.d}</div></div>
+    <div class="tap">Tap to open ▾</div>`;
+  b.addEventListener('click',()=>b.classList.toggle('open'));
+  landgrid.appendChild(b);
+});
+
+/* ============ BILL JOURNEY ============ */
+const track=document.getElementById('track');
+const seal=document.getElementById('seal');
+const chamberTag=document.getElementById('chamberTag');
+const stageTitle=document.getElementById('stageTitle');
+const stageBody=document.getElementById('stageBody');
+let playTimer=null;
+
+STAGES.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='stop';
+  b.setAttribute('aria-label','Stage '+s.n+': '+s.name);
+  b.innerHTML=`<div class="dot">${s.n}</div><div class="nm">${s.name}</div><div class="where">${s.where}</div><span class="scroll-token">📜</span>`;
+  b.addEventListener('click',()=>{stopPlay();showStage(i);});
+  track.appendChild(b);
+});
+
+function showStage(i){
+  const s=STAGES[i];
+  document.querySelectorAll('.stop').forEach((el,idx)=>{
+    el.classList.toggle('active', idx===i);
+    el.classList.toggle('done', idx<i);
+  });
+  chamberTag.className='chamber-tag '+s.tag;
+  chamberTag.textContent=s.tagText;
+  stageTitle.textContent=s.title;
+  stageBody.textContent=s.body;
+  seal.classList.remove('stamp');
+  if(s.seal){ void seal.offsetWidth; seal.classList.add('stamp'); }
+  else { seal.style.opacity=0; seal.style.transform='scale(0)'; }
+}
+document.getElementById('playBtn').addEventListener('click',function(){
+  stopPlay();
+  let i=0; showStage(0);
+  this.textContent='▶ Playing…';
+  playTimer=setInterval(()=>{ i++; if(i>=STAGES.length){stopPlay();return;} showStage(i); },2300);
+});
+function stopPlay(){
+  if(playTimer){clearInterval(playTimer);playTimer=null;}
+  document.getElementById('playBtn').textContent='▶ Play the whole journey';
+}
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  stopPlay();
+  document.querySelectorAll('.stop').forEach(el=>el.classList.remove('active','done'));
+  chamberTag.className='chamber-tag chamber-commons';chamberTag.textContent='House of Commons';
+  stageTitle.textContent='Tap a stop to begin';
+  stageBody.textContent='Each stop is one step a bill takes before it can become a law.';
+  seal.classList.remove('stamp');seal.style.opacity=0;seal.style.transform='scale(0)';
+});
+
+/* ============ QUIZ ENGINE (3 rounds) ============ */
+const ROUNDS=[
+  {key:'commons',    title:'The House of Commons',  emoji:'🟩', cls:'commons',    idxs:[1,5,7,8,9,10,14,20,21,22]},
+  {key:'senate',     title:'The Senate',            emoji:'🟥', cls:'senate',     idxs:[2,3,6,11,12,15,16,23,24,25]},
+  {key:'parliament', title:'Around Parliament Hill',emoji:'🍁', cls:'parliament', idxs:[0,4,13,17,18,19,26,27,28,29]},
+];
+const ROUND_PASS=8; // out of 10
+let order=[], current=0, score=0, playerName='', wrongList=[], activeRound=null;
+const roundScores={commons:null, senate:null, parliament:null};
+function shuffle(arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+document.getElementById('playerName').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('startQuizBtn').click(); });
+document.getElementById('startQuizBtn').addEventListener('click',()=>{
+  const nm=document.getElementById('playerName').value.trim();
+  playerName=nm?nm:'Friend';
+  document.getElementById('quizGate').style.display='none';
+  showRounds();
+});
+
+function showRounds(){
+  document.getElementById('quiz').style.display='none';
+  document.getElementById('results').style.display='none';
+  const total=Object.values(roundScores).reduce((a,b)=>a+(b||0),0);
+  const allDone=Object.values(roundScores).every(v=>v!==null);
+  let finalBanner='';
+  if(allDone){
+    const passedAll=ROUNDS.every(r=>roundScores[r.key]>=ROUND_PASS);
+    finalBanner=`<div class="final-banner ${passedAll?'pass':'fail'}">
+      <div class="fb-medal">${passedAll?'🏅':'💪'}</div>
+      <div class="fb-title">${passedAll?'Parliament Pass earned, '+escapeHTML(playerName)+'!':'Great effort, '+escapeHTML(playerName)+'!'}</div>
+      <div class="fb-sub">${passedAll
+        ? 'You passed all three rounds — '+total+'/30 overall. You really know Canada\u2019s Parliament! 🎉'
+        : 'You scored '+total+'/30 overall. Retry any round below to pass all three.'}</div>
+    </div>`;
+  }
+  const summary=`<div class="rounds-summary">
+      <span class="rs-name">Hi ${escapeHTML(playerName)}! Pick a round — 10 questions each, 8/10 to pass.</span>
+      <span class="rs-total">Total so far: ${total} / 30</span>
+    </div>`;
+  const cards=ROUNDS.map((r,i)=>{
+    const sc=roundScores[r.key];
+    let status='Not started yet', statusCls='', btn='Start round →';
+    if(sc!==null && sc>=ROUND_PASS){ status='✓ Passed · '+sc+'/10'; statusCls='ok'; btn='Play again'; }
+    else if(sc!==null){ status='Try again · '+sc+'/10'; statusCls='no'; btn='Retry round →'; }
+    return `<div class="round-card ${r.cls}">
+        <div class="rc-top"><span class="rc-emoji">${r.emoji}</span><span class="rc-tag">Round ${i+1}</span></div>
+        <h3>${r.title}</h3>
+        <div class="rc-status ${statusCls}">${status}</div>
+        <button class="btn-primary rc-btn" onclick="startRound('${r.key}')">${btn}</button>
+      </div>`;
+  }).join('');
+  const menu=document.getElementById('rounds');
+  menu.innerHTML = finalBanner + summary + `<div class="rounds-grid">${cards}</div>
+    <div class="results-ctrls"><button class="btn-ghost" style="background:var(--verdigris);color:#fff;border:none" onclick="document.getElementById('start').scrollIntoView()">↑ Review the lesson</button></div>`;
+  menu.style.display='block';
+  menu.scrollIntoView();
+}
+
+function startRound(key){
+  activeRound=ROUNDS.find(r=>r.key===key);
+  const qs=shuffle(activeRound.idxs).map(i=>QUESTIONS[i]);
+  order=qs.map(q=>{ const ix=shuffle(q.o.map((_,k)=>k)); return {q:q.q, opts:ix.map(k=>q.o[k]), correct:ix.indexOf(q.a)}; });
+  current=0;score=0;wrongList=[];
+  document.getElementById('rounds').style.display='none';
+  document.getElementById('results').style.display='none';
+  document.getElementById('quiz').style.display='block';
+  document.getElementById('quizWho').textContent=activeRound.emoji+' '+activeRound.title+' · '+playerName;
+  document.getElementById('quiz').scrollIntoView();
+  renderQuestion();
+}
+
+const LETTERS=['A','B','C','D'];
+function renderQuestion(){
+  const item=order[current];
+  document.getElementById('qNum').textContent=`Question ${current+1} of ${order.length}`;
+  document.getElementById('qScore').textContent=`Score: ${score}`;
+  document.getElementById('qText').textContent=item.q;
+  document.getElementById('pbarFill').style.width=(current/order.length*100)+'%';
+  const feed=document.getElementById('qFeedback');feed.textContent='';feed.className='feedback';
+  document.getElementById('nextBtn').style.display='none';
+  const opts=document.getElementById('qOpts');opts.innerHTML='';
+  item.opts.forEach((text,k)=>{
+    const btn=document.createElement('button');
+    btn.className='opt';
+    btn.innerHTML=`<span class="key">${LETTERS[k]}</span><span>${text}</span>`;
+    btn.addEventListener('click',()=>choose(k,btn));
+    opts.appendChild(btn);
+  });
+}
+function choose(k,btn){
+  const item=order[current];
+  const allBtns=document.querySelectorAll('#qOpts .opt');
+  allBtns.forEach(b=>b.disabled=true);
+  const feed=document.getElementById('qFeedback');
+  if(k===item.correct){
+    btn.classList.add('correct');score++;
+    feed.textContent='✅ Correct! Nice work.';feed.className='feedback good';
+  } else {
+    btn.classList.add('wrong');
+    allBtns[item.correct].classList.add('correct');
+    feed.textContent='❌ Not quite — the green answer is the right one.';feed.className='feedback bad';
+    wrongList.push({q:item.q, your:item.opts[k], right:item.opts[item.correct]});
+  }
+  document.getElementById('qScore').textContent=`Score: ${score}`;
+  const nb=document.getElementById('nextBtn');
+  nb.textContent=(current===order.length-1)?'See round results →':'Next →';
+  nb.style.display='inline-block';nb.focus();
+}
+document.getElementById('nextBtn').addEventListener('click',()=>{
+  current++;
+  if(current<order.length){renderQuestion();} else {showRoundResults();}
+});
+
+function showRoundResults(){
+  document.getElementById('quiz').style.display='none';
+  roundScores[activeRound.key]=score;
+  const passed=score>=ROUND_PASS;
+  const pct=Math.round(score/order.length*100);
+  const idx=ROUNDS.indexOf(activeRound);
+  const next=ROUNDS[idx+1];
+  let reviewHTML='';
+  if(wrongList.length){
+    reviewHTML=`<div class="review"><h3>Let's review these ${wrongList.length} 📚</h3>`+
+      wrongList.map(w=>`<div class="rev-item"><div class="q">${w.q}</div><div class="y">Your answer: ${w.your}</div><div class="a">Correct answer: ${w.right}</div></div>`).join('')+`</div>`;
+  } else {
+    reviewHTML=`<div class="review"><h3>Perfect round! 🌟</h3><p style="margin:0">You got every question right in this round. Amazing!</p></div>`;
+  }
+  let nextBtnHTML = next ? `<button class="btn-primary" onclick="startRound('${next.key}')">Next round: ${next.title} →</button>` : '';
+  const res=document.getElementById('results');
+  res.innerHTML=`
+    <div class="scorecard ${passed?'pass':'fail'}">
+      <div class="ribbon-medal">${passed?'🏅':'💪'}</div>
+      <div class="verdict">${activeRound.emoji} ${activeRound.title}</div>
+      <div class="big">${score} / ${order.length}</div>
+      <div class="pct">${pct}% &nbsp;·&nbsp; ${passed?'Passed! (8/10 needed)':'Pass mark is 8/10'}</div>
+      <p style="margin:16px auto 0;max-width:44ch">${passed
+        ? 'Nice work, '+escapeHTML(playerName)+'! You passed this round. 🎉'
+        : 'You got '+score+'/10 — you need 8 to pass. Look over the review, then give this round another try. You can do this!'}</p>
+    </div>
+    ${reviewHTML}
+    <div class="results-ctrls">
+      ${nextBtnHTML}
+      <button class="btn-ghost" style="background:var(--verdigris);color:#fff;border:none" onclick="showRounds()">↩ Back to all rounds</button>
+      <button class="btn-ghost" style="background:var(--brass);color:#241f0e;border:none" onclick="startRound('${activeRound.key}')">↺ Retry this round</button>
+    </div>`;
+  res.style.display='block';res.scrollIntoView();
+}
+function escapeHTML(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+</script>
+</body>
+</html>

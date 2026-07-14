@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vocabulary Quiz — Lesson 29</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #e6e9f5 0%, #c9cfe8 50%, #a9b2dd 100%);
+    min-height: 100vh;
+    color: #23233a;
+    padding: 20px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  header {
+    background: #3b3f7a;
+    border-radius: 18px;
+    padding: 26px 24px;
+    text-align: center;
+    color: #f2f3fb;
+    box-shadow: 0 8px 0 #262953;
+    margin-bottom: 18px;
+  }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 16px; opacity: 0.92; }
+  .bar {
+    background: #f2f3fb;
+    border-radius: 14px;
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 0 #c4c9e6;
+  }
+  .progress-track { flex: 1; height: 14px; background: #d5d9ef; border-radius: 10px; margin: 0 14px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0; background: #5a63c4; border-radius: 10px; transition: width .3s; }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 6px 0 #c4c9e6;
+    margin-bottom: 16px;
+  }
+  .qmeta { font-size: 13px; color: #5a63c4; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; }
+  .qtext { font-size: 20px; margin: 8px 0 16px; line-height: 1.45; }
+  .word { color: #3b3f7a; font-weight: bold; }
+  .opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: #f4f5fc;
+    border: 3px solid #cfd4ee;
+    border-radius: 12px;
+    padding: 13px 16px;
+    font-size: 17px;
+    font-family: inherit;
+    color: #23233a;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: transform .1s, background .15s, border-color .15s;
+  }
+  .opt:hover:not(:disabled) { transform: translateX(4px); border-color: #8b93d6; }
+  .opt:disabled { cursor: default; }
+  .opt.correct { background: #d7f0d3; border-color: #3a7d44; }
+  .opt.wrong { background: #f6d6d6; border-color: #c0392b; }
+  .feedback {
+    margin-top: 6px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 15px;
+    line-height: 1.5;
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.good { background: #e8f5e6; color: #2e6b34; }
+  .feedback.bad { background: #fbeaea; color: #a5352a; }
+  .btn {
+    background: #5a63c4;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 28px;
+    font-size: 18px;
+    font-family: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #3f479a;
+    transition: transform .1s;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #3f479a; }
+  .btn.next { background: #8a6d3b; box-shadow: 0 5px 0 #5b4636; display: none; margin-top: 6px; }
+  .center { text-align: center; }
+  .result {
+    background: #fff;
+    border-radius: 18px;
+    padding: 34px 24px;
+    text-align: center;
+    box-shadow: 0 6px 0 #c4c9e6;
+  }
+  .result .big { font-size: 60px; }
+  .result h2 { font-size: 27px; margin: 10px 0; color: #3b3f7a; }
+  .scoreline { font-size: 22px; margin: 14px 0; }
+  .stars { font-size: 32px; letter-spacing: 4px; margin: 10px 0; }
+  .hidden { display: none; }
+  footer { text-align: center; font-size: 13px; color: #40406a; margin-top: 10px; opacity: .85; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="ic">📖✏️</div>
+    <h1>Vocabulary Quiz · Lesson 29</h1>
+    <p>Match each word to its meaning</p>
+  </header>
+
+  <div class="bar">
+    <span id="qcount">Question 1 of 12</span>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <span id="scoreboard">✓ 0</span>
+  </div>
+
+  <div id="quizArea"></div>
+  <div id="resultArea" class="result hidden"></div>
+
+  <footer id="footer">For Warren · Passing score: 80%</footer>
+</div>
+
+<script>
+const questions = [
+  { ch:"Word 1 · toil",
+    q:"What does <span class='word'>toil</span> mean?",
+    options:["Hard work; to work hard","To feel deep sorrow","To make free from","To understand"],
+    answer:0,
+    why:"Toil = hard work, or to work hard (it can also mean to move with difficulty)." },
+
+  { ch:"Word 2 · blunder",
+    q:"Ben tripped and knocked over the whole display — a real <span class='word'>blunder</span>. What is a blunder?",
+    options:["A stupid mistake","A clever plan","A type of praise","A long rest"],
+    answer:0,
+    why:"Blunder = a stupid mistake (or to make one / to stumble clumsily)." },
+
+  { ch:"Word 3 · daze",
+    q:"After the fall, he wandered around in a <span class='word'>daze</span>. To daze someone means to —?",
+    options:["Confuse them","Cheer them up","Free them","Praise them"],
+    answer:0,
+    why:"Daze = to confuse — to make someone unable to think clearly." },
+
+  { ch:"Word 4 · mourn",
+    q:"Which word means to <span class='word'>grieve</span> — to feel or show sorrow?",
+    options:["mourn","commend","exempt","toil"],
+    answer:0,
+    why:"Mourn = to grieve; to feel or show sorrow, usually for someone who has died." },
+
+  { ch:"Word 5 · subside",
+    q:"After the storm, the floodwater slowly began to <span class='word'>subside</span>. This means it —?",
+    options:["Sank to a lower level; grew less","Rose higher and higher","Turned to ice","Caught fire"],
+    answer:0,
+    why:"Subside = to sink to a lower level, or to grow less." },
+
+  { ch:"Word 6 · maim",
+    q:"Which word means to <span class='word'>cripple or disable</span> — to cause someone to lose an arm or leg?",
+    options:["maim","mourn","daze","final"],
+    answer:0,
+    why:"Maim = to cripple or disable; to cause someone to lose a limb or the use of a body part." },
+
+  { ch:"Word 7 · comprehend",
+    q:"The instructions were so clear that everyone could <span class='word'>comprehend</span> them. Comprehend means —?",
+    options:["Understand","Ignore","Repeat","Praise"],
+    answer:0,
+    why:"Comprehend = to understand." },
+
+  { ch:"Word 8 · commend",
+    q:"The coach wanted to <span class='word'>commend</span> the team for their effort. Here, commend means to —?",
+    options:["Praise","Punish","Confuse","Cripple"],
+    answer:0,
+    why:"Commend = to praise (it can also mean to hand something over for safekeeping)." },
+
+  { ch:"Word 9 · final",
+    q:"Besides 'coming last,' the word <span class='word'>final</span> can also mean —?",
+    options:["Deciding (settling the matter for good)","Beginning","Confusing","Free from"],
+    answer:0,
+    why:"Final = coming last, or deciding — the thing that settles a matter once and for all." },
+
+  { ch:"Word 10 · exempt",
+    q:"Because she had already passed, Mia was <span class='word'>exempt</span> from the final test. Exempt means —?",
+    options:["Made free from; freed from","Forced to do","Praised for","Confused by"],
+    answer:0,
+    why:"Exempt = made free from something; freed from a duty or rule." },
+
+  { ch:"Word 11 · vain",
+    q:"A <span class='word'>vain</span> person is someone who —?",
+    options:["Has too much pride in their looks or abilities","Works very hard all day","Feels great sorrow","Understands everything quickly"],
+    answer:0,
+    why:"Vain = having too much pride in one's own ability, looks, and so on." },
+
+  { ch:"Word 12 · repetition",
+    q:"Saying the same line over and over is an example of <span class='word'>repetition</span>. Repetition is —?",
+    options:["The act of doing or saying something again","A sudden mistake","A feeling of sorrow","A hard day's work"],
+    answer:0,
+    why:"Repetition = the act of doing or saying something again." }
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+const passNeeded = Math.ceil(questions.length * 0.8);
+
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+const qcount = document.getElementById('qcount');
+const scoreboard = document.getElementById('scoreboard');
+const progress = document.getElementById('progress');
+document.getElementById('footer').textContent =
+  `For Warren · Passing score: 80% (${passNeeded} of ${questions.length})`;
+
+function render() {
+  answered = false;
+  const item = questions[current];
+  qcount.textContent = `Question ${current + 1} of ${questions.length}`;
+  scoreboard.textContent = `✓ ${score}`;
+  progress.style.width = `${(current / questions.length) * 100}%`;
+
+  let opts = item.options.map((o, i) =>
+    `<button class="opt" data-i="${i}" onclick="choose(${i})">${o}</button>`
+  ).join('');
+
+  quizArea.innerHTML = `
+    <div class="card">
+      <div class="qmeta">${item.ch}</div>
+      <div class="qtext">${item.q}</div>
+      ${opts}
+      <div class="feedback" id="fb"></div>
+      <div class="center"><button class="btn next" id="nextBtn" onclick="next()">Next →</button></div>
+    </div>`;
+}
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const item = questions[current];
+  const buttons = document.querySelectorAll('.opt');
+  buttons.forEach(b => b.disabled = true);
+  const fb = document.getElementById('fb');
+
+  if (i === item.answer) {
+    score++;
+    buttons[i].classList.add('correct');
+    fb.className = 'feedback good show';
+    fb.innerHTML = `✅ <strong>Correct!</strong> ${item.why}`;
+  } else {
+    buttons[i].classList.add('wrong');
+    buttons[item.answer].classList.add('correct');
+    fb.className = 'feedback bad show';
+    fb.innerHTML = `❌ <strong>Not quite.</strong> ${item.why}`;
+  }
+  scoreboard.textContent = `✓ ${score}`;
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function next() {
+  current++;
+  if (current < questions.length) {
+    render();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  quizArea.classList.add('hidden');
+  document.querySelector('.bar').classList.add('hidden');
+  resultArea.classList.remove('hidden');
+  progress.style.width = '100%';
+
+  const pct = Math.round((score / questions.length) * 100);
+  const passed = score >= passNeeded;
+  let stars, msg, emoji;
+  if (pct === 100) { stars = '⭐⭐⭐⭐⭐'; msg = "Perfect score! You know every word in Lesson 29."; emoji = '🏆'; }
+  else if (passed) { stars = '⭐⭐⭐⭐'; msg = "Excellent! You passed with room to spare."; emoji = '🎖️'; }
+  else if (pct >= 60) { stars = '⭐⭐⭐'; msg = "So close! You need 80% to pass — review the words and try again."; emoji = '📖'; }
+  else if (pct >= 40) { stars = '⭐⭐'; msg = "Good effort! You need 80% to pass. Study the list and give it another go."; emoji = '📚'; }
+  else { stars = '⭐'; msg = "Let's go over the words again and try once more."; emoji = '✏️'; }
+
+  const banner = passed
+    ? `<div style="background:#d7f0d3;color:#2e6b34;border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">🎉 PASSED! 🎉</div>`
+    : `<div style="background:#fbeaea;color:#a5352a;border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">Not passed yet — need 80%</div>`;
+
+  resultArea.innerHTML = `
+    <div class="big">${emoji}</div>
+    <h2>Quiz Complete!</h2>
+    ${banner}
+    <div class="stars">${stars}</div>
+    <div class="scoreline">You got <strong>${score}</strong> out of <strong>${questions.length}</strong> (${pct}%)</div>
+    <div style="font-size:15px;color:#6a6a90;margin:-4px 0 8px;">Passing score: 80% (${passNeeded} of ${questions.length})</div>
+    <p style="margin:10px 0 20px;font-size:17px;">${msg}</p>
+    <button class="btn" onclick="restart()">Try Again 🔄</button>`;
+}
+
+function restart() {
+  current = 0; score = 0; answered = false;
+  resultArea.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  document.querySelector('.bar').classList.remove('hidden');
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

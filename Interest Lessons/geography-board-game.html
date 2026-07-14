@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Passport Quest · Geography Board Game</title>
+<style>
+  :root{
+    --paper:#FAF6EF; --paper-2:#F1E9D9; --paper-3:#E7DBC2;
+    --ink:#22303A; --ink-soft:#5a6b74;
+    --ocean:#1E6E8C; --ocean-dk:#144E63;
+    --land:#4E8B57; --land-dk:#356140;
+    --sun:#E9A23B; --sun-lt:#F2C56B;
+    --coral:#E4693B; --line:#d9cbac;
+    --event:#7c5cbf;
+    --shadow:0 10px 30px rgba(34,48,58,.12);
+    --display:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,'Times New Roman',serif;
+    --body:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,'Helvetica Neue',Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--body);color:var(--ink);background:var(--paper);line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:var(--body)}
+
+  /* ---------- TOP BAR ---------- */
+  #topbar{display:none;align-items:center;gap:10px;padding:12px 18px;max-width:1180px;margin:0 auto}
+  #topbar.show{display:flex}
+  #topbar .ttl{flex:1;text-align:center;font-family:var(--display);font-weight:700;font-size:clamp(1.05rem,2.6vw,1.45rem)}
+  .chipbtn{background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 15px;font-weight:800;font-size:.9rem;cursor:pointer;color:var(--ink);box-shadow:0 3px 10px rgba(34,48,58,.08);transition:transform .15s}
+  .chipbtn:hover{transform:translateY(-2px)}
+
+  main{max-width:1180px;margin:0 auto;padding:0 18px 40px}
+  section{display:none}
+  section.active{display:block;animation:fadein .3s ease}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ---------- PROFILE SCREEN ---------- */
+  .hero{position:relative;background:radial-gradient(120% 90% at 50% -10%, rgba(30,110,140,.35), transparent 60%),linear-gradient(180deg,#1f6f8c 0%, #144e63 100%);color:#f5efe1;text-align:center;padding:40px 22px 58px;border-radius:0 0 26px 26px;overflow:hidden;margin:0 -18px}
+  .hero .kicker{font-weight:800;letter-spacing:.16em;text-transform:uppercase;font-size:.7rem;color:var(--sun-lt);display:block;margin-bottom:10px}
+  .hero h1{font-family:var(--display);font-weight:700;font-size:clamp(2rem,6vw,3.1rem);line-height:1.05;margin:0 auto 10px}
+  .hero p.sub{max-width:56ch;margin:0 auto;color:#e7f0f2;font-size:clamp(.95rem,2.2vw,1.1rem)}
+  .hero .globe{font-size:2.6rem;line-height:1;margin-bottom:6px}
+  .profgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;max-width:760px;margin:-26px auto 0;position:relative;z-index:2;padding:0 4px}
+  .prof{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow);text-align:center}
+  .prof.wide{grid-column:1/-1;background:linear-gradient(180deg,#fffdf7,#fdf3e3);border:2px solid var(--sun)}
+  .prof .face{font-size:52px;line-height:1}
+  .prof h2{font-family:var(--display);margin:6px 0 2px;font-size:1.5rem}
+  .prof .stats{color:var(--ink-soft);font-size:.88rem;min-height:22px;margin-bottom:10px}
+  .diffrow{display:flex;gap:8px;justify-content:center;margin-bottom:14px}
+  .diff{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 13px;font-weight:800;font-size:.82rem;cursor:pointer;color:var(--ink-soft)}
+  .diff.expl.sel{border-color:#d16ba5;background:linear-gradient(180deg,#fdf3fb,#f7e9f4);color:#a83b80}
+  .diff.nav.sel{border-color:var(--ocean);background:#e6f1f5;color:var(--ocean-dk)}
+  .bigbtn{display:block;width:100%;background:var(--sun);color:#2a1e05;border:none;font-weight:800;font-size:1.02rem;padding:13px;border-radius:999px;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.15);transition:transform .15s,background .15s;margin-top:8px}
+  .bigbtn:hover{transform:translateY(-2px);background:var(--sun-lt)}
+  .bigbtn.ghost{background:var(--paper-2);color:var(--ink);box-shadow:none;border:1px solid var(--line)}
+  .passlink{background:none;border:none;color:var(--ocean-dk);font-weight:700;font-size:.85rem;cursor:pointer;margin-top:10px;text-decoration:underline}
+  .howto{max-width:760px;margin:22px auto 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:4px 18px}
+  .howto summary{cursor:pointer;font-weight:800;padding:12px 0;color:var(--ink-soft)}
+  .howto li{margin:.4em 0;font-size:.95rem}
+  .backcourse{text-align:center;margin-top:22px}
+  .backcourse a{color:var(--ocean-dk);font-weight:700;font-size:.9rem}
+
+  /* ---------- GAME SCREEN ---------- */
+  .gamewrap{display:flex;gap:18px;align-items:flex-start}
+  .boardcard{flex:1;min-width:0;background:linear-gradient(180deg,#fffdf7,#f7efdd);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:12px}
+  .boardcard svg{width:100%;height:auto;display:block}
+  .sidebar{width:274px;flex:0 0 274px;display:flex;flex-direction:column;gap:14px}
+  .scard{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:16px;text-align:center}
+  #turnBanner{font-weight:800;font-size:1rem;margin-bottom:4px;min-height:24px}
+  #diceFace{font-size:80px;line-height:1;user-select:none;transition:transform .1s}
+  #rollBtn{width:100%;background:var(--sun);color:#2a1e05;border:none;font-weight:800;font-size:1.1rem;padding:13px;border-radius:999px;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.15);transition:transform .15s,background .15s,opacity .15s;margin-top:8px}
+  #rollBtn:hover:not(:disabled){transform:translateY(-2px);background:var(--sun-lt)}
+  #rollBtn:disabled{opacity:.45;cursor:default}
+  #galeSay{min-height:40px;font-size:.88rem;color:var(--ink-soft);margin-top:10px;font-style:italic}
+  .posline{display:flex;align-items:center;gap:8px;text-align:left;font-size:.92rem;font-weight:700;margin:4px 0;border-radius:10px;padding:3px 8px}
+  .posline.activeturn{background:#fdf3e3;border:1px solid var(--sun)}
+  .posline .who{font-size:22px}
+  .posline .where{color:var(--ink-soft);font-weight:600}
+  #turnCount{font-size:.82rem;color:var(--ink-soft);margin-top:6px}
+  .striplbl{font-weight:800;font-size:.72rem;letter-spacing:.05em;color:var(--ink-soft);margin:8px 0 5px;text-align:left}
+  .stampstrip{display:flex;justify-content:center;gap:7px;flex-wrap:wrap}
+  .stampslot{width:36px;height:36px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-size:19px;background:var(--paper)}
+  .stampslot .ph{font-size:11px;font-weight:800;color:var(--ink-soft)}
+  .stampslot.got{border:3px solid var(--land);background:#e3f1e8;animation:stamppop .5s ease}
+  @keyframes stamppop{0%{transform:scale(.3) rotate(-30deg)}70%{transform:scale(1.25) rotate(8deg)}100%{transform:scale(1)}}
+  .quitline{text-align:center}
+  .quitline button{background:none;border:none;color:var(--ink-soft);font-size:.82rem;cursor:pointer;text-decoration:underline}
+  @media (max-width:940px){
+    .gamewrap{flex-direction:column}
+    .sidebar{width:100%;flex:1 1 auto;flex-direction:row;flex-wrap:wrap}
+    .sidebar .scard{flex:1;min-width:200px}
+  }
+
+  /* board svg bits */
+  .tname{font-family:var(--body);font-size:10.5px;font-weight:700;fill:var(--ink-soft);text-anchor:middle}
+  .temoji{font-size:19px;text-anchor:middle;dominant-baseline:central}
+  .rowlbl{font-family:var(--display);font-weight:700;font-size:13px;fill:#b3a377;letter-spacing:.18em;text-anchor:middle}
+  .tok{transition:transform .22s ease}
+
+  /* ---------- MODALS ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(34,48,58,.5);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+  .overlay.show{display:flex}
+  .qcard{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;max-width:560px;width:100%;box-shadow:var(--shadow);max-height:92vh;overflow:auto;animation:cardin .25s ease}
+  @keyframes cardin{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+  .ribbon{display:inline-block;font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:.7rem;color:#fff;padding:5px 13px;border-radius:999px;margin-bottom:10px}
+  .whobadge{display:inline-block;font-weight:800;font-size:.8rem;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:4px 12px;margin:0 0 10px 8px}
+  .qtext{font-family:var(--display);font-weight:700;font-size:clamp(1.1rem,3vw,1.35rem);line-height:1.3;margin:.2em 0 .9em}
+  .opts{display:grid;gap:10px}
+  .opt{text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:13px;padding:12px 14px;font-size:1rem;font-weight:600;cursor:pointer;display:flex;gap:11px;align-items:center;transition:border-color .15s,background .15s,transform .1s;color:var(--ink)}
+  .opt:hover:not(:disabled){border-color:var(--ocean);transform:translateX(2px)}
+  .opt .key{width:27px;height:27px;flex:0 0 27px;border-radius:8px;background:var(--paper-3);display:grid;place-items:center;font-weight:800;font-family:var(--display)}
+  .opt.correct{border-color:var(--land);background:#e3f1e8}
+  .opt.correct .key{background:var(--land);color:#fff}
+  .opt.wrong{border-color:var(--coral);background:#fbe6de}
+  .opt.wrong .key{background:var(--coral);color:#fff}
+  .opt.hinted{opacity:.4;text-decoration:line-through}
+  .opt:disabled{cursor:default}
+  .feedback{margin-top:14px;font-weight:700;min-height:24px}
+  .feedback.good{color:var(--land-dk)} .feedback.bad{color:var(--coral)}
+  .qnext{margin-top:14px;display:flex;justify-content:flex-end}
+  .btn{background:var(--ocean);color:#fff;border:none;font-weight:800;font-size:1rem;padding:12px 24px;border-radius:999px;cursor:pointer;transition:transform .15s,background .15s}
+  .btn:hover{transform:translateY(-2px);background:var(--ocean-dk)}
+  .hintnote{background:#fdf3fb;border:1px solid #e9cfe4;border-radius:10px;padding:8px 12px;font-size:.85rem;color:#a83b80;font-weight:700;margin-bottom:10px}
+
+  /* event card */
+  .ecard{background:linear-gradient(180deg,#fffdf7,#f7efdd);border:2px solid var(--sun);border-radius:20px;padding:28px 24px;max-width:440px;width:100%;text-align:center;box-shadow:var(--shadow);animation:cardin .25s ease}
+  .ecard .eemoji{font-size:60px;line-height:1}
+  .ecard h3{font-family:var(--display);font-size:1.5rem;margin:10px 0 6px}
+  .ecard p{color:var(--ink-soft);margin:0 0 14px}
+  .echip{display:inline-block;background:var(--event);color:#fff;font-weight:800;border-radius:999px;padding:8px 18px;margin-bottom:16px}
+  .echip.good{background:var(--land)}
+  .echip.rest{background:var(--coral)}
+
+  /* win overlay */
+  .wincard{background:linear-gradient(180deg,#2f7d55,#356140);color:#fff;border-radius:22px;padding:32px 26px;max-width:520px;width:100%;text-align:center;box-shadow:var(--shadow);animation:cardin .3s ease}
+  .wincard h2{font-family:var(--display);font-size:clamp(1.7rem,5vw,2.4rem);margin:.2em 0}
+  .wincard .stamps{font-size:34px;letter-spacing:6px;margin:10px 0}
+  .wincard .statline{font-size:1rem;margin:.3em 0}
+  .wincard .medal{color:var(--sun-lt);font-weight:800}
+  .winbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+  .winbtns .bigbtn{width:auto;margin:0;padding:12px 22px}
+
+  /* ---------- PASSPORT ---------- */
+  .passbook{background:linear-gradient(180deg,#173a49,#0f2a35);border-radius:24px;color:#f2ede0;padding:28px 24px;box-shadow:var(--shadow);max-width:860px;margin:14px auto}
+  .passbook h2{font-family:var(--display);text-align:center;font-size:clamp(1.5rem,4vw,2.1rem);margin:0 0 4px}
+  .passbook .owner{text-align:center;color:var(--sun-lt);font-weight:800;margin-bottom:20px}
+  .passpages{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:20px}
+  .ppage{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:14px 8px;text-align:center}
+  .ppage .st{font-size:34px;filter:grayscale(1);opacity:.3}
+  .ppage.got .st{filter:none;opacity:1}
+  .ppage .cn{font-size:.78rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-top:6px}
+  .ppage .ct{font-size:.72rem;color:#bcd2d8}
+  .accrow{margin:8px 0}
+  .accrow .lbl{display:flex;justify-content:space-between;font-size:.82rem;font-weight:700;margin-bottom:3px}
+  .accbar{height:10px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden}
+  .accbar>span{display:block;height:100%;border-radius:999px}
+  .passtats{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:18px;text-align:center}
+  .pstat{background:rgba(255,255,255,.07);border-radius:12px;padding:10px 18px}
+  .pstat .n{font-family:var(--display);font-size:1.5rem;font-weight:700;color:var(--sun-lt)}
+  .pstat .l{font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#bcd2d8}
+  .passback{text-align:center;margin-top:8px}
+
+  /* ---------- TOAST & CONFETTI ---------- */
+  #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-90px);background:var(--ink);color:#fff;border-radius:999px;padding:10px 24px;font-weight:800;font-size:.98rem;z-index:99;transition:transform .35s ease;box-shadow:var(--shadow);max-width:90vw;text-align:center}
+  #toast.show{transform:translateX(-50%) translateY(0)}
+  .confetto{position:fixed;top:-20px;z-index:98;width:11px;height:11px;border-radius:3px;animation:confall 2.4s linear forwards;pointer-events:none}
+  @keyframes confall{to{transform:translateY(105vh) rotate(720deg);opacity:.6}}
+
+  @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms!important;transition-duration:.05ms!important}}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <button class="chipbtn" id="backBtn">⬅️ Quit &amp; Save</button>
+  <div class="ttl">🎲 Passport Quest</div>
+  <span class="chipbtn" id="profChip" style="cursor:default">🌸 Grace</span>
+  <button class="chipbtn" id="muteBtn">🔊</button>
+</div>
+
+<main>
+
+  <!-- ============ PROFILES ============ -->
+  <section id="profiles" class="active">
+    <div class="hero">
+      <div class="globe">🌍</div>
+      <span class="kicker">Geography Mini-Course · The Board Game</span>
+      <h1>Passport Quest</h1>
+      <p class="sub">Roll the dice and race around the world — from Vancouver, across every continent, and home again. Answer geography questions to zoom ahead and fill your passport with stamps! Play solo against Gale the Goose 🪿 or race each other head-to-head.</p>
+    </div>
+    <div class="profgrid">
+      <div class="prof" id="profGrace">
+        <div class="face">🌸</div><h2>Grace</h2>
+        <div class="stats" data-stats></div>
+        <div class="diffrow">
+          <button class="diff expl" data-d="explorer">👧 Little Explorer</button>
+          <button class="diff nav" data-d="navigator">🧭 Navigator</button>
+        </div>
+        <div data-btns></div>
+        <button class="passlink" data-pass>🛂 View my passport</button>
+      </div>
+      <div class="prof" id="profWarren">
+        <div class="face">⚡</div><h2>Warren</h2>
+        <div class="stats" data-stats></div>
+        <div class="diffrow">
+          <button class="diff expl" data-d="explorer">👧 Little Explorer</button>
+          <button class="diff nav" data-d="navigator">🧭 Navigator</button>
+        </div>
+        <div data-btns></div>
+        <button class="passlink" data-pass>🛂 View my passport</button>
+      </div>
+      <div class="prof wide" id="profVs">
+        <div class="face">🌸🤝⚡</div><h2>Play Together!</h2>
+        <div class="stats" data-stats>Grace vs Warren — take turns on the same computer. Each of you gets questions at your own level. First one home to Vancouver wins the race!</div>
+        <div data-btns></div>
+      </div>
+    </div>
+    <details class="howto">
+      <summary>🧭 How to play</summary>
+      <ul>
+        <li>🎲 <b>Roll the dice</b> and hop along the route from Vancouver, all the way around the world and back.</li>
+        <li>🔵🟢🟠 <b>Question tiles</b> ask about your geography lessons. Answer right and you zoom <b>2 extra tiles</b> ahead!</li>
+        <li>🟡 <b>Gold tiles</b> are bonus world-explorer questions — worth <b>3 extra tiles</b>.</li>
+        <li>🟣 <b>Chance tiles</b> hide travel cards: tailwinds, container ships, monsoons, souvenirs…</li>
+        <li>🛂 <b>Passport control!</b> Everyone must stop at the big stamp tiles. Answer a question about that continent to collect your stamp (you get the stamp either way!).</li>
+        <li>🪿 <b>Solo mode:</b> Gale the Goose races you home. Don't worry if she wins — geese cheat with wings.</li>
+        <li>🤝 <b>Play Together:</b> Grace and Warren take turns with the dice on the same computer. Each player answers questions at their own difficulty, collects their own stamps, and races to be first home. Gale referees!</li>
+        <li>🏠 Reach Vancouver with all 6 stamps to complete your journey!</li>
+      </ul>
+    </details>
+    <div class="backcourse"><a href="index.html">← Back to the Geography Course</a></div>
+  </section>
+
+  <!-- ============ GAME ============ -->
+  <section id="game">
+    <div class="gamewrap">
+      <div class="boardcard"><svg id="boardSvg" viewBox="0 0 1060 660" xmlns="http://www.w3.org/2000/svg"></svg></div>
+      <div class="sidebar">
+        <div class="scard">
+          <div id="turnBanner"></div>
+          <div id="diceFace">🎲</div>
+          <button id="rollBtn">Roll! 🎲</button>
+          <div id="galeSay">🪿 “HONK! Race you around the world!”</div>
+        </div>
+        <div class="scard" id="playersCard"></div>
+        <div class="scard">
+          <div style="font-weight:800;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px">🛂 Passport Stamps</div>
+          <div id="stampArea"></div>
+        </div>
+        <div class="quitline"><button id="quitBtn">Quit &amp; save journey</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PASSPORT ============ -->
+  <section id="passport">
+    <div class="passbook">
+      <h2>🛂 Official Junior Geographer Passport</h2>
+      <div class="owner" id="passOwner">🌸 Grace</div>
+      <div class="passpages" id="passPages"></div>
+      <div id="accBars"></div>
+      <div class="passtats" id="passStats"></div>
+    </div>
+    <div class="passback"><button class="btn" id="passBackBtn">⬅️ Back</button></div>
+  </section>
+
+</main>
+
+<!-- question modal -->
+<div class="overlay" id="qOverlay">
+  <div class="qcard">
+    <span class="ribbon" id="qRibbon">Lesson 1</span><span class="whobadge" id="qWho" style="display:none"></span>
+    <div id="qHintNote"></div>
+    <div class="qtext" id="qText"></div>
+    <div class="opts" id="qOpts"></div>
+    <div class="feedback" id="qFeed"></div>
+    <div class="qnext"><button class="btn" id="qGo" style="display:none">Continue →</button></div>
+  </div>
+</div>
+
+<!-- event modal -->
+<div class="overlay" id="eOverlay">
+  <div class="ecard">
+    <div class="eemoji" id="eEmoji">🌬️</div>
+    <h3 id="eTitle"></h3>
+    <p id="eFlavor"></p>
+    <div class="echip" id="eChip"></div>
+    <div><button class="btn" id="eGo">Continue →</button></div>
+  </div>
+</div>
+
+<!-- win modal -->
+<div class="overlay" id="wOverlay">
+  <div class="wincard">
+    <div style="font-size:54px" id="wBig">🎓</div>
+    <h2 id="wTitle">Journey Complete!</h2>
+    <div class="stamps" id="wStamps"></div>
+    <div class="statline" id="wTurns"></div>
+    <div class="statline" id="wAcc"></div>
+    <div class="statline medal" id="wMedals"></div>
+    <div class="winbtns">
+      <button class="bigbtn" id="wNew">🌍 New Journey</button>
+      <button class="bigbtn ghost" id="wPass">🛂 Passport</button>
+      <button class="bigbtn ghost" id="wHome">🏠 Home</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const rnd = n => Math.floor(Math.random() * n);
+
+/* ================= BOARD DATA ================= */
+// types: start q1 q2 q3 gold event stamp
+const TILES = [
+  {name:'Vancouver · START', emoji:'🏠', type:'start', fact:'Every great journey starts at home. Bon voyage!'},
+  {name:'San Francisco', emoji:'🌉', type:'q1'},
+  {name:'Grand Canyon', emoji:'🏜️', type:'gold', fact:'The Colorado River carved the Grand Canyon over millions of years!'},
+  {name:'Mexico City', emoji:'🇲🇽', type:'q2'},
+  {name:'Panama Canal', emoji:'🚢', type:'event', fact:'The Panama Canal is a shortcut between two oceans — ships skip sailing around all of South America!'},
+  {name:'Amazon Rainforest', emoji:'🌳', type:'q1'},
+  {name:'Machu Picchu', emoji:'⛰️', type:'gold', fact:'Machu Picchu is an ancient city hidden high in the Andes mountains of Peru.'},
+  {name:'Rio de Janeiro', emoji:'🎉', type:'stamp', cont:'SA', fact:'Rio sits between mountains and the Atlantic — sound familiar, Vancouver?'},
+  {name:'Buenos Aires', emoji:'🇦🇷', type:'q3'},
+  {name:'South Atlantic', emoji:'⛵', type:'event', fact:'Sailors have crossed the Atlantic on trade routes for centuries.'},
+  {name:'Antarctic Waters', emoji:'🐧', type:'q1'},
+  {name:'Cape Town', emoji:'🇿🇦', type:'q2'},
+  {name:'Victoria Falls', emoji:'💦', type:'gold', fact:'Victoria Falls is one of the biggest waterfalls on Earth — locals call it “the smoke that thunders.”'},
+  {name:'Serengeti', emoji:'🦁', type:'q2'},
+  {name:'Cairo & Pyramids', emoji:'🇪🇬', type:'stamp', cont:'AF', fact:'The pyramids were built near the Nile — the world’s longest river.'},
+  {name:'Mediterranean Sea', emoji:'🌊', type:'event', fact:'The Mediterranean connected ancient traders from three continents.'},
+  {name:'Athens', emoji:'🏛️', type:'q3'},
+  {name:'Rome', emoji:'🇮🇹', type:'q2'},
+  {name:'Paris & Eiffel Tower', emoji:'🗼', type:'stamp', cont:'EU', fact:'The Eiffel Tower was the tallest building in the world when it opened in 1889.'},
+  {name:'London', emoji:'🇬🇧', type:'q1'},
+  {name:'Istanbul', emoji:'🕌', type:'event', fact:'Istanbul sits on TWO continents at once — Europe and Asia!'},
+  {name:'Dubai', emoji:'🇦🇪', type:'q3'},
+  {name:'Mumbai', emoji:'🇮🇳', type:'q2'},
+  {name:'Mt. Everest', emoji:'🏔️', type:'gold', fact:'Mt. Everest is Earth’s highest mountain — it grows a tiny bit taller every year!'},
+  {name:'Beijing & Great Wall', emoji:'🇨🇳', type:'stamp', cont:'AS', fact:'The Great Wall of China is thousands of kilometres long.'},
+  {name:'Tokyo', emoji:'🇯🇵', type:'q3'},
+  {name:'Singapore', emoji:'🇸🇬', type:'event', fact:'Tiny Singapore became rich thanks to its perfect location on shipping routes.'},
+  {name:'Indonesian Islands', emoji:'🌋', type:'q1'},
+  {name:'Great Barrier Reef', emoji:'🐠', type:'gold', fact:'The Great Barrier Reef is so big it can be seen from space!'},
+  {name:'Sydney', emoji:'🇦🇺', type:'stamp', cont:'OC', fact:'Sydney grew around one of the world’s most beautiful natural harbours.'},
+  {name:'New Zealand', emoji:'🇳🇿', type:'q2'},
+  {name:'Fiji', emoji:'🇫🇯', type:'q3'},
+  {name:'Date Line', emoji:'🕐', type:'event', fact:'Cross the International Date Line and you jump a whole day forward or back!'},
+  {name:'Hawaii', emoji:'🌺', type:'q1'},
+  {name:'North Pacific', emoji:'🌊', type:'event', fact:'Container ships cross the North Pacific between Asia and the Port of Vancouver.'},
+  {name:'Tofino, BC', emoji:'🐋', type:'gold', fact:'Tofino on Vancouver Island is famous for whales, surf, and giant rainforest trees.'},
+  {name:'Vancouver · FINISH', emoji:'🍁', type:'stamp', cont:'NA', fact:'Home sweet home — between the ocean and the mountains!'}
+];
+const CONTS = { SA:{name:'South America', stamp:'🦜', city:'Rio de Janeiro'},
+                AF:{name:'Africa', stamp:'🦁', city:'Cairo'},
+                EU:{name:'Europe', stamp:'🗼', city:'Paris'},
+                AS:{name:'Asia', stamp:'🏯', city:'Beijing'},
+                OC:{name:'Oceania', stamp:'🐨', city:'Sydney'},
+                NA:{name:'North America', stamp:'🍁', city:'Vancouver'} };
+const CONT_ORDER = ['SA','AF','EU','AS','OC','NA'];
+const ROW_LABELS = ['THE AMERICAS','ATLANTIC & AFRICA','EUROPE & MIDDLE EAST','ASIA','OCEANIA & THE PACIFIC'];
+
+/* ================= QUESTION BANK ================= */
+/* {q, o:[...], a, e, lvl:'E'|'M'|'H', cont?}  E = 3 options, M/H = 4 */
+const BANK = {
+L1:[
+ {q:'How many continents are there?', o:['Five','Seven','Nine'], a:1, e:'Seven! North America, South America, Europe, Asia, Africa, Australia, and Antarctica.', lvl:'E'},
+ {q:'How many oceans are there?', o:['Three','Five','Seven'], a:1, e:'Five: Pacific, Atlantic, Indian, Southern, and Arctic.', lvl:'E'},
+ {q:'Which ocean touches Vancouver?', o:['Pacific','Atlantic','Indian'], a:0, e:'Vancouver sits on the Pacific — the biggest ocean on Earth!', lvl:'E'},
+ {q:'Is a mountain made by nature or by people?', o:['Nature','People','Robots'], a:0, e:'Nature! Mountains are physical geography.', lvl:'E'},
+ {q:'What do we call a picture of a place seen from above?', o:['A map','A selfie','A poster'], a:0, e:'A map! Maps help us find our way.', lvl:'E'},
+ {q:'Which map part shows North, South, East, and West?', o:['Compass rose','Legend','Title'], a:0, e:'The compass rose shows direction — North is usually up.', lvl:'E'},
+ {q:'What is the biggest ocean on Earth?', o:['Pacific','Atlantic','Arctic'], a:0, e:'The Pacific — and Vancouver sits right on it!', lvl:'E'},
+ {q:'Does Vancouver have the ocean AND mountains?', o:['Yes, both!','Only ocean','Only mountains'], a:0, e:'Yes! Vancouver sits between the Pacific and the North Shore Mountains.', lvl:'E'},
+ {q:'Geography is best described as…', o:['Memorizing every capital city','Where things are — AND why they are there','Drawing pretty mountains','Naming all the flags'], a:1, e:'Geography is the story of where — and why there!', lvl:'M'},
+ {q:'Which is an example of PHYSICAL geography?', o:['Bridges and towers','City bus routes','The North Shore Mountains and the Fraser River','Shopping malls'], a:2, e:'Physical geography is nature: mountains, rivers, coastlines, climate.', lvl:'M'},
+ {q:'Which is an example of HUMAN geography?', o:['A volcano erupting','Where people build homes and how they travel','A river flowing to the sea','Rain clouds forming'], a:1, e:'Human geography is about people: cities, travel, culture, trade.', lvl:'M'},
+ {q:'Which map part explains the symbols and colours?', o:['Compass rose','Scale','Legend (or key)','Title'], a:2, e:'The legend is the little box that decodes the map’s symbols.', lvl:'M'},
+ {q:'Which is a true geographic fact about Vancouver?', o:['It is in a desert','It sits between the ocean and the mountains','It is on the Atlantic coast','It almost never rains'], a:1, e:'Ocean on one side, mountains on the other — that shapes everything here.', lvl:'M'},
+ {q:'Why is a globe special compared to a flat map?', o:['It glows in the dark','It shows more countries','It keeps Earth’s true round shape without stretching it','It is easier to fold'], a:2, e:'A globe keeps Earth’s real shape — flat maps always stretch something.', lvl:'M'},
+ {q:'“Climate” means…', o:['Today’s weather','The usual weather of a place over many years','How cold the ocean is','The number of storms this week'], a:1, e:'Climate is the long-term pattern; weather is what’s happening today.', lvl:'M'},
+ {q:'What does a map’s scale tell you?', o:['Which way is north','How much real distance a map distance stands for','What the symbols mean','How old the map is'], a:1, e:'Scale is like “1 cm = 1 km” — it turns map distance into real distance.', lvl:'M'},
+ {q:'Canada is the ___ largest country in the world by area.', o:['2nd','5th','1st','10th'], a:0, e:'Canada is the 2nd-largest country — only Russia is bigger.', lvl:'M'},
+ {q:'Why can’t a flat map ever show Earth perfectly?', o:['Paper is too small','You can’t flatten a round ball without stretching it','Mapmakers keep secrets','Oceans keep moving'], a:1, e:'Peeling a sphere flat always stretches or squishes something.', lvl:'H'},
+ {q:'Which continent has no permanent residents — only visiting scientists?', o:['Antarctica','Australia','Africa','South America'], a:0, e:'Antarctica is too cold for cities — scientists visit in shifts.', lvl:'H'},
+ {q:'A geographer’s two big questions are…', o:['“Where is it?” and “Why is it there?”','“Who?” and “When?”','“How much?” and “How many?”','“What colour?” and “How big?”'], a:0, e:'Where — and why there. That’s the whole game of geography!', lvl:'H'},
+ {q:'A piece of land with water all around it is called…', o:['An island','A peninsula','A valley','A plain'], a:0, e:'An island! Vancouver Island is a giant one right next door.', lvl:'H'},
+ {q:'Cities usually grow where…', o:['Travel, water, or trade is easy','Mountains are steepest','Deserts are widest','Winters are coldest'], a:0, e:'People settle where life and trade are easiest — near water and routes.', lvl:'H'}
+],
+L2:[
+ {q:'Why do people in Vancouver need rain jackets?', o:['Because the climate is rainy','Because of fashion','Because it snows every day'], a:0, e:'Vancouver’s climate is mild and rainy — rain gear is a way of life!', lvl:'E'},
+ {q:'What famous fish comes from BC’s waters?', o:['Salmon','Clownfish','Goldfish'], a:0, e:'Salmon! It has fed people here for thousands of years.', lvl:'E'},
+ {q:'Where do cities like to grow?', o:['Flat land near water','Steep icy cliffs','The middle of a desert'], a:0, e:'Flat land near water makes building, farming, and trading easy.', lvl:'E'},
+ {q:'Natural resources are…', o:['Useful things from nature, like wood and fish','Toys from the store','Extra homework'], a:0, e:'Wood, fish, minerals, water — useful materials from the earth.', lvl:'E'},
+ {q:'Do big ships visit Vancouver because it is near the ocean?', o:['Yes — it has a big port!','No, ships never come','Only rowboats'], a:0, e:'Yes! The Port of Vancouver is Canada’s biggest.', lvl:'E'},
+ {q:'What do mountains do to travel?', o:['Make it harder','Make it faster','Nothing at all'], a:0, e:'Mountains block roads and railways — crossing them is hard work.', lvl:'E'},
+ {q:'What yummy berries grow in the Fraser Valley?', o:['Blueberries','Coconuts','Pineapples'], a:0, e:'The Fraser Valley’s rich delta soil grows blueberries and cranberries.', lvl:'E'},
+ {q:'A house in snowy mountains needs…', o:['A steep roof so snow slides off','A swimming pool','A sand floor'], a:0, e:'Steep roofs shed heavy snow — geography shapes even our houses!', lvl:'E'},
+ {q:'Why did Vancouver grow exactly where it did?', o:['Gold under the city','A deep, sheltered natural harbour','The warmest weather in Canada','Endless flat land'], a:1, e:'A deep, calm harbour made it the perfect spot for a port city.', lvl:'M'},
+ {q:'Vancouverites own rain jackets mostly because of…', o:['Fashion','Tradition','Climate','Luck'], a:2, e:'Climate! Mild and rainy means rain gear all winter.', lvl:'M'},
+ {q:'The friendliest place to build a big city is…', o:['High mountain peaks','Flat land near water that’s easy to reach','A dry desert','Thick jungle'], a:1, e:'Fresh water + flat land + easy reach = a city-friendly spot.', lvl:'M'},
+ {q:'“Natural resources” means…', o:['Money in the bank','City parks','Useful materials from the earth, like wood, fish, or minerals','Power lines'], a:2, e:'BC’s forests and salmon are classic natural resources.', lvl:'M'},
+ {q:'Why is housing in Vancouver scarce and expensive?', o:['Mountains and ocean leave less flat land to build on','Nobody builds houses','It rains too much','Houses float away'], a:0, e:'The city is boxed in by mountains and sea — so homes get taller and pricier.', lvl:'M'},
+ {q:'A “rain shadow” is when…', o:['Clouds make shadows on the ground','One side of a mountain range stays dry while the other gets the rain','Rain only falls at night','Umbrellas block the rain'], a:1, e:'Mountains catch the wet air — the far side (like the Okanagan) stays dry and sunny.', lvl:'M'},
+ {q:'Vancouver’s port created lots of jobs in…', o:['Shipping, trade, and trains','Skiing only','Space travel','Nothing much'], a:0, e:'Ships from Asia dock here, creating jobs in shipping, trade, and rail.', lvl:'M'},
+ {q:'Which force gives Vancouver ski hills AND hydro power?', o:['The Coast Mountains','The Fraser delta','The Gulf Islands','The rainforest ferns'], a:0, e:'The Coast Mountains catch snow for skiing and rain for hydro dams.', lvl:'M'},
+ {q:'The Fraser Valley delta is great for farming because…', o:['It has rich, flat soil','It never rains there','It sits high in the mountains','It is covered in sand'], a:0, e:'River deltas pile up rich soil — perfect for crops.', lvl:'M'},
+ {q:'Which chain reaction really starts with Vancouver’s sheltered harbour?', o:['Port → trade jobs → diverse food scene','Desert → camels → sandcastles','Volcano → lava → ash','Snow → igloos → penguins'], a:0, e:'The harbour brought ships, ships brought jobs and people, people brought amazing food.', lvl:'H'},
+ {q:'The Okanagan is dry and sunny mostly because…', o:['It sits in a mountain rain shadow','It has no clouds ever','It is near the equator','People removed the rain'], a:0, e:'Coastal mountains catch the rain; the Okanagan sits in the dry shadow behind them.', lvl:'H'},
+ {q:'Why isn’t every resource-rich place automatically rich?', o:['Resources must be reached, moved, and sold — geography can make that hard','Resources are worthless','Rich places never have resources','Money only grows in cities'], a:0, e:'Getting resources OUT (over mountains, across oceans) is the hard part.', lvl:'H'},
+ {q:'Ocean access plus immigration across the Pacific gave Vancouver…', o:['One of Canada’s most diverse food scenes','Fewer restaurants','No seafood at all','Colder winters'], a:0, e:'People and goods arriving by sea built an amazing, diverse food city.', lvl:'H'},
+ {q:'Mountain families and coast families live differently because…', o:['Land and weather nudge people’s choices','Laws force them to','They never meet','Television tells them to'], a:0, e:'Places set the rules; people play the game. Geography nudges every choice.', lvl:'H'}
+],
+L3:[
+ {q:'How do most toys travel across the ocean to us?', o:['On big ships','By balloon','By bicycle'], a:0, e:'Giant container ships carry most of the world’s goods.', lvl:'E'},
+ {q:'What do we call people moving to live in a new country?', o:['Migration','Vacation','Hibernation'], a:0, e:'Migration — lots of Vancouver families came here this way!', lvl:'E'},
+ {q:'Does Vancouver’s port connect Canada to countries across the Pacific?', o:['Yes — it’s Canada’s gateway to Asia!','No','Only to the moon'], a:0, e:'The Port of Vancouver links Canada to Asia across the Pacific.', lvl:'E'},
+ {q:'“Trade” means countries…', o:['Buying and selling goods with each other','Having a race','Taking naps'], a:0, e:'Countries trade goods — mostly carried by ship.', lvl:'E'},
+ {q:'Where do more than half the world’s people live?', o:['In cities','On boats','In treehouses'], a:0, e:'More than half of everyone on Earth now lives in cities!', lvl:'E'},
+ {q:'Which part of the world is warming the fastest?', o:['The Arctic','The equator','Your backyard'], a:0, e:'The Arctic is changing faster than anywhere else.', lvl:'E'},
+ {q:'Low, flat islands worry most about…', o:['Rising seas','Too many coconuts','Snowstorms'], a:0, e:'Rising sea levels are the biggest danger for low islands.', lvl:'E'},
+ {q:'What sometimes turns Vancouver’s summer sky hazy orange?', o:['Wildfire smoke','Dragon breath','Orange paint'], a:0, e:'BC wildfire smoke can drift hundreds of kilometres.', lvl:'E'},
+ {q:'“Trade” mostly means…', o:['Swapping hockey cards','Countries buying and selling goods with each other','Giving away gifts','Building roads'], a:1, e:'Countries buy and sell goods — mostly moved by ship.', lvl:'M'},
+ {q:'When people move to live in a new place, that’s called…', o:['Trading','Touring','Migration','Mapping'], a:2, e:'Migration built Vancouver into one of the most diverse cities on Earth.', lvl:'M'},
+ {q:'Why is Vancouver’s location valuable for Canada’s economy?', o:['It has the most sunshine','It’s a Pacific port that connects Canada to Asia','It’s the biggest city on Earth','It’s near the North Pole'], a:1, e:'It’s Canada’s Pacific gateway for trade with Asia.', lvl:'M'},
+ {q:'Who is most threatened by rising sea levels?', o:['Low-lying island countries','Mountain villages','Desert towns','Space stations'], a:0, e:'Low islands like the Maldives and Tuvalu are most at risk.', lvl:'M'},
+ {q:'How can a disaster far away affect a city like Vancouver?', o:['It can’t','It changes the time zone','It can cut roads, rail, and supply routes the city depends on','It makes it rain here'], a:2, e:'In a connected world, a cut route far away can empty shelves here.', lvl:'M'},
+ {q:'A geographer’s key question when reading the news is…', o:['“Who is famous?”','“Where is this — and why there?”','“How much does it cost?”','“When is lunch?”'], a:1, e:'Almost every big story has a WHERE hiding at its centre.', lvl:'M'},
+ {q:'BC has earthquake risk because…', o:['It sits near a tectonic plate boundary','Of heavy trucks','Of loud concerts','Of deep snow'], a:0, e:'BC sits near a plate boundary — that’s why schools do earthquake drills.', lvl:'M'},
+ {q:'BC’s 2021 heat dome and floods showed that…', o:['Highways and rail can be cut, briefly emptying store shelves','Weather never matters','Floods help traffic','Nothing ever changes'], a:0, e:'Geography, climate, transport, and trade all collided in one local story.', lvl:'M'},
+ {q:'China became “the world’s workshop” partly because…', o:['Its coastal factories and ports ship goods across the Pacific','It has no rivers','It is a tiny island','It is mostly desert'], a:0, e:'Coastal factories + big ports = goods shipped worldwide, including to Vancouver.', lvl:'H'},
+ {q:'Many borders in Africa were drawn by…', o:['Outsiders (European powers) — which still affects countries today','Rivers only','Migrating animals','Nobody'], a:0, e:'Borders drawn by outsiders long ago still cause challenges today.', lvl:'H'},
+ {q:'Which countries are among the most at risk from rising seas?', o:['The Maldives, Fiji, and Tuvalu','Canada, Russia, and Mongolia','Switzerland and Austria','None at all'], a:0, e:'Low-lying island nations face the rising ocean first.', lvl:'H'},
+ {q:'Most of Canada’s people live…', o:['In a thin band near the southern border and the coasts','In the far north','On mountaintops','Spread out evenly'], a:0, e:'Canadians cluster where the climate is warmer and trade is easier.', lvl:'H'},
+ {q:'Europe traded easily for centuries because of…', o:['Lots of coastline and navigable rivers','Its huge deserts','Being one giant country','Having no mountains'], a:0, e:'Coasts and rivers made moving goods between neighbours easy.', lvl:'H'},
+ {q:'As the Arctic warms, why is Canada so interested?', o:['New shipping routes and resources appear — along with big environmental worries','Nothing changes','Fewer ships can pass','Polar bears take over the ports'], a:0, e:'Melting ice opens routes and resources — and raises serious concerns.', lvl:'H'}
+],
+X:[
+ {q:'What is the capital of Canada?', o:['Ottawa','Vancouver','Toronto'], a:0, e:'Ottawa is the capital — even though Toronto and Vancouver are bigger cities!', lvl:'E', cont:'NA'},
+ {q:'Which animal hops all around Australia?', o:['Kangaroo','Penguin','Camel'], a:0, e:'Kangaroos live only in Australia and nearby islands.', lvl:'E', cont:'OC'},
+ {q:'Which huge desert is in Africa?', o:['The Sahara','The Arctic','The Amazon'], a:0, e:'The Sahara is the biggest hot desert on Earth.', lvl:'E', cont:'AF'},
+ {q:'The Amazon rainforest is on which continent?', o:['South America','Europe','Australia'], a:0, e:'The Amazon covers a huge part of South America.', lvl:'E', cont:'SA'},
+ {q:'Where do most penguins live?', o:['Antarctica and the far south','The Sahara','Hawaii'], a:0, e:'Penguins love the cold southern oceans.', lvl:'E'},
+ {q:'The Eiffel Tower is in which city?', o:['Paris','London','Rome'], a:0, e:'Paris, France — one of the most visited landmarks on Earth.', lvl:'E', cont:'EU'},
+ {q:'The Great Wall is in which country?', o:['China','Brazil','Egypt'], a:0, e:'The Great Wall of China is thousands of kilometres long.', lvl:'E', cont:'AS'},
+ {q:'Which flag is Canada’s?', o:['🇨🇦','🇺🇸','🇯🇵'], a:0, e:'The red maple leaf!', lvl:'E', cont:'NA'},
+ {q:'What is the capital of Japan?', o:['Tokyo','Beijing','Seoul','Bangkok'], a:0, e:'Tokyo is one of the biggest cities in the world.', lvl:'M', cont:'AS'},
+ {q:'What is the capital of France?', o:['Paris','Madrid','Berlin','Lisbon'], a:0, e:'Paris — city of the Eiffel Tower.', lvl:'M', cont:'EU'},
+ {q:'The Pyramids of Giza stand near which river?', o:['The Nile','The Amazon','The Fraser','The Thames'], a:0, e:'The Nile — the world’s longest river — made Egypt bloom.', lvl:'M', cont:'AF'},
+ {q:'Machu Picchu is an ancient city in which country?', o:['Peru','Mexico','Spain','India'], a:0, e:'Peru — high in the Andes mountains.', lvl:'M', cont:'SA'},
+ {q:'What is the capital of Australia?', o:['Canberra','Sydney','Melbourne','Perth'], a:0, e:'Tricky! It’s Canberra — not Sydney.', lvl:'M', cont:'OC'},
+ {q:'What is the capital of the United States?', o:['Washington, D.C.','New York','Los Angeles','Chicago'], a:0, e:'Washington, D.C. — New York is bigger, but not the capital.', lvl:'M', cont:'NA'},
+ {q:'Which is the largest continent?', o:['Asia','Africa','North America','Europe'], a:0, e:'Asia — home to more than half the world’s people.', lvl:'M', cont:'AS'},
+ {q:'Which ocean lies between Africa and Australia?', o:['Indian','Atlantic','Arctic','Southern'], a:0, e:'The Indian Ocean.', lvl:'M'},
+ {q:'Which flag is Japan’s?', o:['🇯🇵','🇨🇳','🇰🇷','🇧🇷'], a:0, e:'A red sun on white — Japan!', lvl:'M', cont:'AS'},
+ {q:'Which flag is Brazil’s?', o:['🇧🇷','🇦🇷','🇵🇹','🇲🇽'], a:0, e:'Green and gold with a blue globe — Brazil!', lvl:'M', cont:'SA'},
+ {q:'The Great Barrier Reef is off the coast of…', o:['Australia','Japan','Chile','Norway'], a:0, e:'It stretches along Australia’s northeast coast.', lvl:'M', cont:'OC'},
+ {q:'Which is the world’s longest river?', o:['The Nile','The Mississippi','The Danube','The Fraser'], a:0, e:'The Nile in Africa, at about 6,650 km.', lvl:'M', cont:'AF'},
+ {q:'What is the capital of China?', o:['Beijing','Shanghai','Hong Kong','Tokyo'], a:0, e:'Beijing — Shanghai is bigger, but Beijing is the capital.', lvl:'H', cont:'AS'},
+ {q:'Buenos Aires is the capital of which country?', o:['Argentina','Brazil','Chile','Peru'], a:0, e:'Argentina — way down in southern South America.', lvl:'H', cont:'SA'},
+ {q:'Which is the smallest ocean?', o:['Arctic','Indian','Atlantic','Pacific'], a:0, e:'The Arctic Ocean, up at the top of the world.', lvl:'H'},
+ {q:'Which European country is shaped like a boot?', o:['Italy','France','Greece','Poland'], a:0, e:'Italy — kicking the island of Sicily!', lvl:'H', cont:'EU'},
+ {q:'Mt. Everest sits on the border of Nepal and…', o:['China (Tibet)','India','Japan','Mongolia'], a:0, e:'Everest straddles Nepal and Tibet, China.', lvl:'H', cont:'AS'},
+ {q:'Which mountain range rises right beside Vancouver?', o:['The Coast Mountains','The Alps','The Andes','The Himalayas'], a:0, e:'The Coast Mountains — you can see them from downtown!', lvl:'H', cont:'NA'},
+ {q:'Istanbul is special because it sits on two…', o:['Continents — Europe and Asia','Oceans','Islands','Poles'], a:0, e:'Istanbul spans Europe and Asia across the Bosphorus strait.', lvl:'H', cont:'EU'}
+]};
+
+/* ================= EVENT DECK ================= */
+const EVENTS = [
+ {emoji:'🌬️', title:'Tailwind over the ocean', flavor:'A friendly wind fills your sails!', chip:'⏩ Sail ahead 2', fx:{move:2}},
+ {emoji:'🌊', title:'Ocean current boost', flavor:'The current carries your ship along.', chip:'⏩ Move ahead 3', fx:{move:3}},
+ {emoji:'🚢', title:'Container ship ride', flavor:'A Port of Vancouver captain waves you aboard!', chip:'⏩ Move ahead 3', fx:{move:3}},
+ {emoji:'🚄', title:'High-speed rail', flavor:'Zoom! Next stop: the next question tile.', chip:'⏩ Jump to the next question tile', fx:{nextQ:true}},
+ {emoji:'⛰️', title:'Rain-shadow shortcut', flavor:'Sunny, dry valley travel — you make great time.', chip:'🎲 Roll again right now!', fx:{again:true}},
+ {emoji:'🗺️', title:'Friendly local guide', flavor:'A local shows you the way — and shares a tip.', chip:'⏩ Ahead 2 + a hint on your next question', fx:{move:2, hint:true}},
+ {emoji:'🚨', title:'Earthquake drill', flavor:'Drop, cover, hold on! You knew exactly what to do.', chip:'⏩ Move ahead 1', fx:{move:1}},
+ {emoji:'🛂', title:'Passport spot-check', flavor:'A bonus question from the customs officer!', chip:'❓ Answer right to move ahead 2', fx:{bonusQ:true}},
+ {emoji:'🪿', title:'Flying with the geese', flavor:'Gale offers you a lift on her wing!', chip:'⏩ Catch up to the racer ahead (or ahead 2)', fx:{toRival:true}},
+ {emoji:'🔥', title:'Wildfire smoke', flavor:'Hazy skies — better to rest indoors today.', chip:'💤 Rest 1 turn', fx:{skip:1}},
+ {emoji:'🌋', title:'Volcanic ash cloud', flavor:'Flights are grounded until the sky clears.', chip:'💤 Rest 1 turn', fx:{skip:1}},
+ {emoji:'🌧️', title:'Monsoon downpour', flavor:'The road is flooded — back up a little.', chip:'◀️ Move back 1', fx:{move:-1}},
+ {emoji:'🛍️', title:'Souvenir shopping', flavor:'You lose track of time at the market…', chip:'◀️ Back 1, but you found a souvenir! 🎁', fx:{move:-1, souvenir:true}}
+];
+
+/* ================= SAVE / PROFILES ================= */
+const KEY = 'geoPassportQuestSave_v1';
+function defaultProfile(p){
+  return { name:p, emoji: p==='Grace' ? '🌸' : '⚡',
+    difficulty: p==='Grace' ? 'explorer' : 'navigator',
+    journeys:0, bestTurns:null, souvenirs:0, beatGale:0, vsWins:0,
+    stampCount:{SA:0,AF:0,EU:0,AS:0,OC:0,NA:0},
+    acc:{L1:{h:0,m:0},L2:{h:0,m:0},L3:{h:0,m:0},X:{h:0,m:0}},
+    current:null };
+}
+let SAVE;
+try{
+  SAVE = JSON.parse(localStorage.getItem(KEY)) || {};
+}catch(e){ SAVE = {}; }
+SAVE.profiles = SAVE.profiles || {};
+for (const p of ['Grace','Warren']){
+  SAVE.profiles[p] = Object.assign(defaultProfile(p), SAVE.profiles[p] || {});
+  // discard saved journeys from older game versions with a different shape
+  if (SAVE.profiles[p].current && !SAVE.profiles[p].current.players) SAVE.profiles[p].current = null;
+}
+SAVE.muted = !!SAVE.muted;
+SAVE.vs = (SAVE.vs && SAVE.vs.players) ? SAVE.vs : null;
+function save(){ localStorage.setItem(KEY, JSON.stringify(SAVE)); }
+
+/* ================= JOURNEY STATE ================= */
+let P = null;   // profile in focus (passport screen / solo player)
+let J = null;   // active journey
+function newRacer(profName){
+  return { prof:profName, pos:0, stamps:[], skipNext:0, hintNext:false,
+           nextRollBonus:0, rollAgain:false, souvenirs:0 };
+}
+function newJourney(mode, profNames){
+  return { mode, players: profNames.map(newRacer), active:0, turns:1,
+           galePos:0, galeWait:0, galeDone:false };
+}
+const A  = () => J.players[J.active];                 // active racer state
+const AP = () => SAVE.profiles[A().prof];             // active racer's profile
+const isVs = () => J && J.mode === 'vs';
+function saveJourney(){
+  if (!J) return;
+  if (isVs()) SAVE.vs = J; else SAVE.profiles[J.players[0].prof].current = J;
+  save();
+}
+
+/* ================= SOUND ================= */
+let audioCtx = null;
+function chime(freq, dur=0.12, type='sine', vol=0.11){
+  if (SAVE.muted) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+  }catch(e){}
+}
+const hopChime  = () => chime(500 + rnd(60), 0.06, 'sine', 0.06);
+const goodChime = () => { chime(620); setTimeout(()=>chime(780),90); };
+const winChime  = () => { chime(523); setTimeout(()=>chime(659),90); setTimeout(()=>chime(784,0.25),180); };
+const softBuzz  = () => chime(170, 0.1, 'triangle', 0.06);
+$('#muteBtn').addEventListener('click', () => {
+  SAVE.muted = !SAVE.muted; save();
+  $('#muteBtn').textContent = SAVE.muted ? '🔇' : '🔊';
+});
+
+/* ================= TOAST / CONFETTI ================= */
+let toastTimer = null;
+function toast(msg, ms=2600){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), ms);
+}
+function confetti(){
+  const colors = ['#E4693B','#E9A23B','#4E8B57','#1E6E8C','#7c5cbf','#d16ba5'];
+  for(let i=0;i<60;i++){
+    const c = document.createElement('div');
+    c.className = 'confetto';
+    c.style.left = rnd(100) + 'vw';
+    c.style.background = colors[rnd(colors.length)];
+    c.style.animationDelay = (Math.random()*0.6)+'s';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3200);
+  }
+}
+
+/* ================= SCREENS ================= */
+let currentScreen = 'profiles';
+function show(id){
+  $$('main section').forEach(s => s.classList.remove('active'));
+  $('#' + id).classList.add('active');
+  currentScreen = id;
+  $('#topbar').classList.toggle('show', id !== 'profiles');
+  if (id === 'profiles') renderProfiles();
+}
+
+/* ================= BOARD SVG ================= */
+const COLS = 8, GAP_X = 122, GAP_Y = 122, X0 = 100, Y0 = 84;
+function tileXY(i){
+  const row = Math.floor(i/COLS), col = i%COLS;
+  return { x: X0 + (row%2 ? COLS-1-col : col)*GAP_X, y: Y0 + row*GAP_Y };
+}
+const TYPE_FILL = { start:'#22303A', q1:'#1E6E8C', q2:'#4E8B57', q3:'#E4693B', gold:'#E9A23B', event:'#7c5cbf', stamp:'#ffffff' };
+function svgEl(tag, attrs){
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+function buildBoard(){
+  const svg = $('#boardSvg');
+  svg.innerHTML = '';
+  let d = '';
+  for (let i=0;i<TILES.length;i++){
+    const {x,y} = tileXY(i);
+    d += (i ? ' L ' : 'M ') + x + ' ' + y;
+  }
+  svg.appendChild(svgEl('path', {d, fill:'none', stroke:'#E7DBC2', 'stroke-width':16, 'stroke-linejoin':'round', 'stroke-linecap':'round'}));
+  svg.appendChild(svgEl('path', {d, fill:'none', stroke:'#E9A23B', 'stroke-width':3.5, 'stroke-dasharray':'1 11', 'stroke-linejoin':'round', 'stroke-linecap':'round'}));
+  const comp = svgEl('text', {x:1005, y:48, 'font-size':38, 'text-anchor':'middle'});
+  comp.textContent = '🧭'; svg.appendChild(comp);
+  ROW_LABELS.forEach((lbl,r) => {
+    const t = svgEl('text', {class:'rowlbl', x:530, y:Y0 + r*GAP_Y - 44});
+    t.textContent = '· ' + lbl + ' ·';
+    svg.appendChild(t);
+  });
+  TILES.forEach((tile,i) => {
+    const {x,y} = tileXY(i);
+    const g = svgEl('g', {id:'tile'+i});
+    const isStamp = tile.type === 'stamp';
+    if (isStamp){
+      g.appendChild(svgEl('circle', {cx:x, cy:y, r:30, fill:'none', stroke:'#E9A23B', 'stroke-width':3, 'stroke-dasharray':'5 5', id:'ring'+i}));
+    }
+    g.appendChild(svgEl('circle', {cx:x, cy:y, r:isStamp?24:20, fill:TYPE_FILL[tile.type], stroke:'#fff', 'stroke-width':3}));
+    const em = svgEl('text', {class:'temoji', x, y:y+1});
+    em.textContent = tile.emoji;
+    g.appendChild(em);
+    const nm = svgEl('text', {class:'tname', x, y:y+(isStamp?46:40)});
+    nm.textContent = tile.name;
+    g.appendChild(nm);
+    svg.appendChild(g);
+  });
+  // token B (gale in solo / second racer in vs) drawn first so token A sits on top
+  const gB = svgEl('g', {id:'tokB', class:'tok'});
+  gB.appendChild(svgEl('circle', {cx:0, cy:0, r:13, fill:'#fff', stroke:'#7c5cbf', 'stroke-width':2.5}));
+  const be = svgEl('text', {x:0, y:1, 'font-size':15, 'text-anchor':'middle', 'dominant-baseline':'central', id:'tokBFace'});
+  be.textContent = '🪿'; gB.appendChild(be);
+  svg.appendChild(gB);
+  const gA = svgEl('g', {id:'tokA', class:'tok'});
+  gA.appendChild(svgEl('circle', {cx:0, cy:0, r:14, fill:'#fff', stroke:'#E9A23B', 'stroke-width':3}));
+  const ae = svgEl('text', {x:0, y:1, 'font-size':16, 'text-anchor':'middle', 'dominant-baseline':'central', id:'tokAFace'});
+  ae.textContent = '🌸'; gA.appendChild(ae);
+  svg.appendChild(gA);
+}
+function setToken(id, i, offX, offY){
+  const {x,y} = tileXY(i);
+  document.getElementById(id).setAttribute('transform', `translate(${x+offX},${y+offY})`);
+}
+function refreshTokens(){
+  setToken('tokA', J.players[0].pos, -14, -18);
+  const bPos = isVs() ? J.players[1].pos : J.galePos;
+  setToken('tokB', bPos, 15, -16);
+}
+function refreshStampRings(){
+  // a stamp ring turns green once EVERY racer has collected it
+  TILES.forEach((t,i) => {
+    if (t.type === 'stamp'){
+      const ring = document.getElementById('ring'+i);
+      if (ring){
+        const all = J.players.every(p => p.stamps.includes(t.cont));
+        ring.setAttribute('stroke', all ? '#4E8B57' : '#E9A23B');
+      }
+    }
+  });
+}
+
+/* ================= QUESTION DECKS ================= */
+let decks = [];   // per-racer decks, in-memory only
+function eligible(prof, bankKey){
+  const lvls = prof.difficulty === 'explorer' ? ['E','M'] : ['M','H'];
+  return BANK[bankKey].map((q,i)=>({q,i})).filter(o => lvls.includes(o.q.lvl)).map(o => o.i);
+}
+function shuffled(arr){
+  const a = arr.slice();
+  for (let i=a.length-1;i>0;i--){ const j = rnd(i+1); [a[i],a[j]] = [a[j],a[i]]; }
+  return a;
+}
+function resetAllDecks(){
+  decks = J.players.map(p => {
+    const prof = SAVE.profiles[p.prof];
+    return { L1:shuffled(eligible(prof,'L1')), L2:shuffled(eligible(prof,'L2')),
+             L3:shuffled(eligible(prof,'L3')), X:shuffled(eligible(prof,'X')) };
+  });
+}
+function drawQ(bankKey, contFilter){
+  const myDecks = decks[J.active];
+  let deck = myDecks[bankKey];
+  if (contFilter){
+    const match = deck.filter(i => BANK[bankKey][i].cont === contFilter);
+    if (match.length){
+      const idx = match[0];
+      myDecks[bankKey] = deck.filter(i => i !== idx);
+      return BANK[bankKey][idx];
+    }
+    const pool = eligible(AP(), bankKey).filter(i => BANK[bankKey][i].cont === contFilter);
+    if (pool.length) return BANK[bankKey][pool[rnd(pool.length)]];
+  }
+  if (!deck.length){ myDecks[bankKey] = shuffled(eligible(AP(), bankKey)); deck = myDecks[bankKey]; }
+  return BANK[bankKey][myDecks[bankKey].shift()];
+}
+
+/* ================= QUESTION MODAL ================= */
+const RIBBONS = {
+  L1:{txt:'🌍 Lesson 1 · What Is Geography?', bg:'#1E6E8C'},
+  L2:{txt:'🏔️ Lesson 2 · Geography Shapes Lives', bg:'#4E8B57'},
+  L3:{txt:'🚢 Lesson 3 · Today’s World', bg:'#E4693B'},
+  X:{txt:'⭐ Bonus · World Explorer', bg:'#c98618'}
+};
+function askQuestion(bankKey, opts = {}){
+  return new Promise(resolve => {
+    const racer = A(), prof = AP();
+    const item = drawQ(bankKey, opts.cont);
+    const rib = RIBBONS[bankKey];
+    $('#qRibbon').textContent = opts.ribbon || rib.txt;
+    $('#qRibbon').style.background = rib.bg;
+    const who = $('#qWho');
+    if (isVs()){ who.style.display = 'inline-block'; who.textContent = prof.emoji + ' ' + prof.name + '’s question'; }
+    else who.style.display = 'none';
+    $('#qText').textContent = item.q;
+    $('#qFeed').textContent = ''; $('#qFeed').className = 'feedback';
+    $('#qGo').style.display = 'none';
+    const useHint = racer.hintNext && item.o.length > 2;
+    $('#qHintNote').innerHTML = useHint ? '<div class="hintnote">🗺️ Your local guide crossed out one wrong answer!</div>' : '';
+    if (useHint) racer.hintNext = false;
+    let hintIdx = -1;
+    if (useHint){
+      const wrongs = item.o.map((_,i)=>i).filter(i => i !== item.a);
+      hintIdx = wrongs[rnd(wrongs.length)];
+    }
+    const box = $('#qOpts'); box.innerHTML = '';
+    item.o.forEach((optText, i) => {
+      const b = document.createElement('button');
+      b.className = 'opt' + (i === hintIdx ? ' hinted' : '');
+      b.innerHTML = `<span class="key">${'ABCD'[i]}</span><span>${optText}</span>`;
+      if (i === hintIdx) b.disabled = true;
+      b.addEventListener('click', () => {
+        $$('#qOpts .opt').forEach(o => o.disabled = true);
+        const ok = i === item.a;
+        b.classList.add(ok ? 'correct' : 'wrong');
+        if (!ok) $$('#qOpts .opt')[item.a].classList.add('correct');
+        const f = $('#qFeed');
+        if (ok){ f.textContent = '✅ ' + item.e; f.classList.add('good'); goodChime(); }
+        else   { f.textContent = '❌ Not quite — ' + item.e + ' You’ll get the next one!'; f.classList.add('bad'); softBuzz(); }
+        prof.acc[bankKey][ok ? 'h' : 'm']++; save();
+        const go = $('#qGo');
+        go.style.display = 'inline-block'; go.focus();
+        go.onclick = () => { $('#qOverlay').classList.remove('show'); resolve(ok); };
+      });
+      box.appendChild(b);
+    });
+    $('#qOverlay').classList.add('show');
+  });
+}
+
+/* ================= EVENT MODAL ================= */
+let eventDeck = [];
+function drawEvent(){
+  if (!eventDeck.length) eventDeck = shuffled(EVENTS.map((_,i)=>i));
+  return EVENTS[eventDeck.shift()];
+}
+function showEvent(card){
+  return new Promise(resolve => {
+    $('#eEmoji').textContent = card.emoji;
+    $('#eTitle').textContent = card.title;
+    $('#eFlavor').textContent = card.flavor;
+    const chip = $('#eChip');
+    chip.textContent = card.chip;
+    chip.className = 'echip' + (card.fx.skip ? ' rest' : (card.fx.move > 0 || card.fx.again || card.fx.nextQ || card.fx.toRival ? ' good' : ''));
+    $('#eOverlay').classList.add('show');
+    $('#eGo').onclick = () => { $('#eOverlay').classList.remove('show'); resolve(); };
+  });
+}
+
+/* ================= MOVEMENT ================= */
+function nextStampBetween(racer, from, to){
+  for (let i = from + 1; i <= to; i++){
+    const t = TILES[i];
+    if (t.type === 'stamp' && !racer.stamps.includes(t.cont)) return i;
+  }
+  return null;
+}
+async function hopTo(racer, target){
+  const dir = target >= racer.pos ? 1 : -1;
+  while (racer.pos !== target){
+    racer.pos += dir;
+    refreshTokens(); hopChime();
+    await sleep(230);
+  }
+  renderSidebar();
+}
+// full = resolve whatever tile we land on; otherwise only stamp ceremonies fire
+async function movePlayer(steps, full){
+  if (steps === 0) return;
+  const racer = A();
+  let target;
+  if (steps > 0){
+    target = Math.min(racer.pos + steps, 36);
+    const stop = nextStampBetween(racer, racer.pos, target);
+    if (stop !== null && stop < target){ target = stop; toast('🛂 Passport control! Everyone must stop.'); }
+  } else {
+    let minPos = 0;
+    for (let i = racer.pos; i >= 0; i--){ if (TILES[i].type === 'stamp'){ minPos = i; break; } }
+    target = Math.max(racer.pos + steps, minPos);
+  }
+  await hopTo(racer, target);
+  const tile = TILES[racer.pos];
+  if (tile.type === 'stamp' && !racer.stamps.includes(tile.cont)){
+    await stampCeremony(tile);
+  } else if (full){
+    await resolveTile();
+  } else if (tile.fact){
+    toast(tile.emoji + ' ' + tile.fact, 3200);
+  }
+}
+
+/* ================= TILE RESOLUTION ================= */
+async function resolveTile(){
+  const tile = TILES[A().pos];
+  switch (tile.type){
+    case 'q1': case 'q2': case 'q3': {
+      const bank = 'L' + tile.type[1];
+      const ok = await askQuestion(bank);
+      if (ok){ toast('✨ Correct! Zoom ahead 2!'); await sleep(400); await movePlayer(2, false); }
+      break;
+    }
+    case 'gold': {
+      if (tile.fact) toast(tile.emoji + ' ' + tile.fact, 2600);
+      await sleep(600);
+      const ok = await askQuestion('X');
+      if (ok){ toast('⭐ Brilliant! Zoom ahead 3!'); await sleep(400); await movePlayer(3, false); }
+      break;
+    }
+    case 'event': {
+      const card = drawEvent();
+      await showEvent(card);
+      await applyEvent(card);
+      break;
+    }
+  }
+}
+async function applyEvent(card){
+  const fx = card.fx, racer = A();
+  if (fx.souvenir){ racer.souvenirs++; toast('🎁 Souvenir added to your backpack!'); }
+  if (fx.hint) racer.hintNext = true;
+  if (fx.skip){ racer.skipNext = fx.skip; }
+  if (fx.again){ racer.rollAgain = true; }
+  if (fx.move) await movePlayer(fx.move, false);
+  if (fx.nextQ){
+    let t = null;
+    for (let i = racer.pos + 1; i <= 36; i++){
+      if (['q1','q2','q3','gold'].includes(TILES[i].type)){ t = i; break; }
+    }
+    if (t !== null) await movePlayer(t - racer.pos, true);
+  }
+  if (fx.bonusQ){
+    const ok = await askQuestion('X', {ribbon:'🛂 Passport Spot-Check'});
+    if (ok){ toast('✅ Papers in order! Move ahead 2.'); await sleep(400); await movePlayer(2, false); }
+    else toast('No worries — the officer waves you through anyway.');
+  }
+  if (fx.toRival){
+    const rivalPos = isVs() ? J.players[1 - J.active].pos : J.galePos;
+    if (rivalPos > racer.pos) await movePlayer(rivalPos - racer.pos, false);
+    else await movePlayer(2, false);
+  }
+}
+
+/* ================= STAMPS & WIN ================= */
+async function stampCeremony(tile){
+  const racer = A(), prof = AP();
+  const cont = CONTS[tile.cont];
+  toast(`🛂 Passport control in ${cont.city}!`);
+  await sleep(700);
+  const ok = await askQuestion('X', {cont:tile.cont, ribbon:`🛂 ${cont.name} Passport Control`});
+  racer.stamps.push(tile.cont);
+  prof.stampCount[tile.cont]++;
+  refreshStampRings(); renderSidebar();
+  confetti(); winChime();
+  if (ok){
+    racer.nextRollBonus = 2;
+    toast(`${cont.stamp} ${cont.name} stamp earned! Express customs: +2 on your next roll!`, 3200);
+  } else {
+    toast(`${cont.stamp} ${cont.name} stamp earned! (You get it either way — welcome!)`, 3200);
+  }
+  save();
+  if (racer.pos >= 36) await finishJourney();
+}
+async function finishJourney(){
+  await sleep(900);
+  const winner = A(), winnerProf = AP();
+  if (isVs()){
+    const other = J.players[1 - J.active], otherProf = SAVE.profiles[other.prof];
+    winnerProf.journeys++; otherProf.journeys++;
+    winnerProf.vsWins++;
+    winnerProf.souvenirs += winner.souvenirs; otherProf.souvenirs += other.souvenirs;
+    SAVE.vs = null; save();
+    $('#wBig').textContent = '🏆';
+    $('#wTitle').textContent = `${winnerProf.emoji} ${winnerProf.name} wins the race!`;
+    $('#wStamps').textContent = CONT_ORDER.map(c => CONTS[c].stamp).join(' ');
+    $('#wTurns').textContent = `🎲 Race finished in ${J.turns} rounds`;
+    $('#wAcc').textContent = `🛂 Stamps — ${winnerProf.emoji} ${winner.stamps.length} · ${otherProf.emoji} ${other.stamps.length}` +
+      ((winner.souvenirs + other.souvenirs) ? ` · 🎁 Souvenirs — ${winnerProf.emoji} ${winner.souvenirs} · ${otherProf.emoji} ${other.souvenirs}` : '');
+    $('#wMedals').textContent = `🥈 ${otherProf.emoji} ${otherProf.name} — Silver Explorer! What a race!`;
+    P = winnerProf;
+  } else {
+    const beat = !J.galeDone;
+    P = winnerProf;
+    P.journeys++;
+    if (beat) P.beatGale++;
+    const newBest = P.bestTurns === null || J.turns < P.bestTurns;
+    if (newBest) P.bestTurns = J.turns;
+    P.souvenirs += winner.souvenirs;
+    P.current = null;
+    save();
+    $('#wBig').textContent = '🎓';
+    $('#wTitle').textContent = `Journey complete, ${P.name}!`;
+    $('#wStamps').textContent = CONT_ORDER.map(c => CONTS[c].stamp).join(' ');
+    $('#wTurns').textContent = `🎲 Around the world in ${J.turns} turns` + (newBest ? ' — 🥇 New personal best!' : (P.bestTurns ? ` (best: ${P.bestTurns})` : ''));
+    $('#wAcc').textContent = winner.souvenirs ? `🎁 Souvenirs collected: ${winner.souvenirs}` : '🧳 A smooth, souvenir-free trip!';
+    $('#wMedals').textContent = beat ? '🏅 You beat Gale home! HONK of respect.' : '🪿 Gale glided home first — geese cheat with wings!';
+  }
+  finishedMode = J.mode;
+  J = null;
+  confetti(); winChime(); setTimeout(confetti, 600);
+  $('#wOverlay').classList.add('show');
+}
+let finishedMode = 'solo';
+$('#wNew').addEventListener('click', () => {
+  $('#wOverlay').classList.remove('show');
+  if (finishedMode === 'vs') startVersus(false);
+  else startJourney(P.name, false);
+});
+$('#wPass').addEventListener('click', () => { $('#wOverlay').classList.remove('show'); renderPassport(); show('passport'); });
+$('#wHome').addEventListener('click', () => { $('#wOverlay').classList.remove('show'); show('profiles'); });
+
+/* ================= GALE ================= */
+const GALE_LINES = ['Race you to the pyramids!','HONK! Nice move!','My wings are tired…','Did you see that reef?!','Waiting in line is boring.','I smell breadcrumbs ahead!'];
+const GALE_REF_LINES = ['HONK! What a race!','Neck and neck, honk honk!','I’m watching you both — no wing-cheating allowed!','Great answer back there!','This is better than migrating!'];
+function galeSay(line){ $('#galeSay').textContent = '🪿 “' + line + '”'; }
+async function galeTurn(){
+  if (J.galeDone) return;
+  if (J.galeWait > 0){
+    J.galeWait--;
+    galeSay('Gale is waiting in line at passport control…');
+    await sleep(900);
+    return;
+  }
+  const gap = J.galePos - J.players[0].pos;
+  let roll;
+  if (gap >= 5) roll = 1 + rnd(3);
+  else if (gap <= -5) roll = 2 + rnd(5);
+  else roll = 1 + rnd(6);
+  galeSay(`Gale rolls a ${roll}…`);
+  await sleep(700);
+  let target = Math.min(J.galePos + roll, 36);
+  for (let i = J.galePos + 1; i <= target; i++){
+    if (TILES[i].type === 'stamp' && i < 36){ target = i; J.galeWait = 1; break; }
+  }
+  while (J.galePos < target){
+    J.galePos++;
+    refreshTokens();
+    await sleep(160);
+  }
+  renderSidebar();
+  if (J.galePos >= 36){
+    J.galeDone = true;
+    galeSay('HONK HONK! Home first! I’ll put the kettle on — keep going, you’re doing great!');
+    toast('🪿 Gale glided home first — geese cheat with wings! Finish your journey!', 3600);
+  } else if (Math.random() < 0.35){
+    galeSay(GALE_LINES[rnd(GALE_LINES.length)]);
+  }
+}
+
+/* ================= TURN LOOP ================= */
+let busy = false;
+function setRollEnabled(on){ $('#rollBtn').disabled = !on; }
+function renderTurnUI(){
+  if (!J) return;
+  if (isVs()){
+    const prof = AP();
+    $('#turnBanner').textContent = `${prof.emoji} ${prof.name}’s turn!`;
+    $('#rollBtn').textContent = `${prof.emoji} Roll! 🎲`;
+  } else {
+    $('#turnBanner').textContent = '';
+    $('#rollBtn').textContent = 'Roll! 🎲';
+  }
+}
+async function rollDice(){
+  const faces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+  const el = $('#diceFace');
+  for (let i=0;i<10;i++){
+    el.textContent = faces[rnd(6)];
+    el.style.transform = 'rotate(' + (rnd(30)-15) + 'deg)';
+    chime(300 + i*30, 0.04, 'sine', 0.04);
+    await sleep(70);
+  }
+  const n = 1 + rnd(6);
+  el.textContent = faces[n-1];
+  el.style.transform = 'none';
+  goodChime();
+  return n;
+}
+async function onRoll(){
+  if (busy || !J) return;
+  busy = true; setRollEnabled(false);
+  try{
+    const racer = A(), prof = AP();
+    if (racer.skipNext > 0){
+      racer.skipNext--;
+      toast(`💤 ${isVs() ? prof.emoji + ' ' + prof.name + ' is' : 'You’re'} resting this turn. Stretch those traveller legs!`);
+      await sleep(1200);
+    } else {
+      let n = await rollDice();
+      if (racer.nextRollBonus){
+        n += racer.nextRollBonus;
+        toast(`🛂 Express customs! +${racer.nextRollBonus} bonus — moving ${n}!`);
+        racer.nextRollBonus = 0;
+      }
+      await movePlayer(n, true);
+    }
+    if (!J) { busy = false; return; }          // journey finished (win overlay showing)
+    if (racer.rollAgain){
+      racer.rollAgain = false;
+      toast('🎲 Roll again!');
+    } else if (isVs()){
+      J.active = 1 - J.active;
+      if (J.active === 0) J.turns++;
+      const nextProf = AP();
+      toast(`${nextProf.emoji} ${nextProf.name}’s turn — pass the keyboard!`, 2200);
+      if (Math.random() < 0.3) galeSay(GALE_REF_LINES[rnd(GALE_REF_LINES.length)]);
+    } else {
+      await galeTurn();
+      J.turns++;
+    }
+    saveJourney();
+    renderTurnUI(); renderSidebar();
+  } finally {
+    busy = false;
+    if (J) setRollEnabled(true);
+  }
+}
+$('#rollBtn').addEventListener('click', onRoll);
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && currentScreen === 'game' && !$('#qOverlay').classList.contains('show') && !$('#eOverlay').classList.contains('show') && !$('#wOverlay').classList.contains('show')){
+    e.preventDefault(); onRoll();
+  }
+});
+
+/* ================= SIDEBAR ================= */
+function tileLabel(i){ return TILES[i].name.replace(' · START','').replace(' · FINISH',''); }
+function renderSidebar(){
+  if (!J) return;
+  // players card
+  const pc = $('#playersCard');
+  let html = '';
+  J.players.forEach((p, i) => {
+    const prof = SAVE.profiles[p.prof];
+    const activeCls = (isVs() && i === J.active) ? ' activeturn' : '';
+    html += `<div class="posline${activeCls}"><span class="who">${prof.emoji}</span><span>${prof.name}:</span> <span class="where">${tileLabel(p.pos)}</span></div>`;
+  });
+  if (!isVs()){
+    html += `<div class="posline"><span class="who">🪿</span><span>Gale:</span> <span class="where">${tileLabel(J.galePos)}</span></div>`;
+  }
+  html += `<div id="turnCount">${isVs() ? 'Round ' : 'Turn '}${J.turns}</div>`;
+  pc.innerHTML = html;
+  // stamp strips
+  const area = $('#stampArea');
+  area.innerHTML = '';
+  J.players.forEach(p => {
+    const prof = SAVE.profiles[p.prof];
+    if (isVs()){
+      const lbl = document.createElement('div');
+      lbl.className = 'striplbl';
+      lbl.textContent = `${prof.emoji} ${prof.name}`;
+      area.appendChild(lbl);
+    }
+    const strip = document.createElement('div');
+    strip.className = 'stampstrip';
+    CONT_ORDER.forEach(c => {
+      const d = document.createElement('div');
+      const got = p.stamps.includes(c);
+      d.className = 'stampslot' + (got ? ' got' : '');
+      d.title = CONTS[c].name;
+      d.innerHTML = got ? CONTS[c].stamp : `<span class="ph">${c}</span>`;
+      strip.appendChild(d);
+    });
+    area.appendChild(strip);
+  });
+}
+
+/* ================= JOURNEY START ================= */
+function startJourney(profName, resume){
+  P = SAVE.profiles[profName];
+  SAVE.last = profName;
+  J = (resume && P.current) ? P.current : newJourney('solo', [profName]);
+  P.current = J; save();
+  resetAllDecks(); eventDeck = [];
+  buildBoard();
+  document.getElementById('tokAFace').textContent = P.emoji;
+  document.getElementById('tokBFace').textContent = '🪿';
+  refreshTokens(); refreshStampRings(); renderTurnUI(); renderSidebar();
+  $('#profChip').textContent = P.emoji + ' ' + P.name;
+  galeSay(resume && J.turns > 1 ? 'Oh good, you’re back! HONK!' : 'HONK! Race you around the world!');
+  setRollEnabled(true);
+  show('game');
+  if (!(resume && P.current)) toast(`🌍 Bon voyage, ${P.name}! Roll the dice to begin.`, 3000);
+}
+function startVersus(resume){
+  J = (resume && SAVE.vs) ? SAVE.vs : newJourney('vs', ['Grace','Warren']);
+  P = SAVE.profiles[J.players[0].prof];
+  SAVE.vs = J; save();
+  resetAllDecks(); eventDeck = [];
+  buildBoard();
+  document.getElementById('tokAFace').textContent = SAVE.profiles[J.players[0].prof].emoji;
+  document.getElementById('tokBFace').textContent = SAVE.profiles[J.players[1].prof].emoji;
+  refreshTokens(); refreshStampRings(); renderTurnUI(); renderSidebar();
+  $('#profChip').textContent = '🌸 vs ⚡';
+  galeSay(resume ? 'Welcome back, racers! HONK!' : 'I’ll be your referee — play fair, race fun! HONK!');
+  setRollEnabled(true);
+  show('game');
+  const first = AP();
+  toast(`🏁 ${resume ? 'The race continues!' : 'The great race begins!'} ${first.emoji} ${first.name} goes first!`, 3000);
+}
+
+/* ================= PROFILE SCREEN ================= */
+function bindProfileCard(cardId, name){
+  const card = $('#' + cardId);
+  const prof = SAVE.profiles[name];
+  card.querySelectorAll('.diff').forEach(b => {
+    b.classList.toggle('sel', prof.difficulty === b.dataset.d);
+    b.onclick = () => {
+      prof.difficulty = b.dataset.d; save();
+      renderProfiles();
+    };
+  });
+  const st = card.querySelector('[data-stats]');
+  const bits = [];
+  if (prof.journeys) bits.push(`🌍 ${prof.journeys} journey${prof.journeys>1?'s':''}`);
+  if (prof.bestTurns) bits.push(`🥇 best: ${prof.bestTurns} turns`);
+  if (prof.beatGale) bits.push(`🏅 beat Gale ×${prof.beatGale}`);
+  if (prof.vsWins) bits.push(`🏆 race wins ×${prof.vsWins}`);
+  st.textContent = bits.length ? bits.join(' · ') : 'No journeys yet — time for your first adventure!';
+  const btns = card.querySelector('[data-btns]');
+  btns.innerHTML = '';
+  const go = document.createElement('button');
+  go.className = 'bigbtn';
+  if (prof.current){
+    go.textContent = `▶️ Continue journey (${TILES[prof.current.players[0].pos].emoji} ${tileLabel(prof.current.players[0].pos)})`;
+    go.onclick = () => startJourney(name, true);
+    const fresh = document.createElement('button');
+    fresh.className = 'bigbtn ghost';
+    fresh.textContent = '🔄 Start a new journey';
+    fresh.onclick = () => { prof.current = null; save(); startJourney(name, false); };
+    btns.appendChild(go); btns.appendChild(fresh);
+  } else {
+    go.textContent = '🌍 Start journey!';
+    go.onclick = () => startJourney(name, false);
+    btns.appendChild(go);
+  }
+  card.querySelector('[data-pass]').onclick = () => {
+    P = prof; SAVE.last = name; save();
+    renderPassport(); show('passport');
+  };
+}
+function bindVersusCard(){
+  const btns = $('#profVs [data-btns]');
+  btns.innerHTML = '';
+  const go = document.createElement('button');
+  go.className = 'bigbtn';
+  if (SAVE.vs){
+    const g = SAVE.vs.players[0], w = SAVE.vs.players[1];
+    go.textContent = `▶️ Continue the race (🌸 ${tileLabel(g.pos)} · ⚡ ${tileLabel(w.pos)})`;
+    go.onclick = () => startVersus(true);
+    const fresh = document.createElement('button');
+    fresh.className = 'bigbtn ghost';
+    fresh.textContent = '🔄 Start a new race';
+    fresh.onclick = () => { SAVE.vs = null; save(); startVersus(false); };
+    btns.appendChild(go); btns.appendChild(fresh);
+  } else {
+    go.textContent = '🏁 Start the race — Grace vs Warren!';
+    go.onclick = () => startVersus(false);
+    btns.appendChild(go);
+  }
+}
+function renderProfiles(){
+  bindProfileCard('profGrace', 'Grace');
+  bindProfileCard('profWarren', 'Warren');
+  bindVersusCard();
+}
+
+/* ================= PASSPORT SCREEN ================= */
+function renderPassport(){
+  $('#passOwner').textContent = P.emoji + ' ' + P.name + ' · ' + (P.difficulty === 'explorer' ? '👧 Little Explorer' : '🧭 Navigator');
+  const pages = $('#passPages'); pages.innerHTML = '';
+  CONT_ORDER.forEach(c => {
+    const n = P.stampCount[c];
+    const d = document.createElement('div');
+    d.className = 'ppage' + (n ? ' got' : '');
+    d.innerHTML = `<div class="st">${CONTS[c].stamp}</div><div class="cn">${CONTS[c].name}</div><div class="ct">${n ? '×' + n + ' stamped' : 'not yet visited'}</div>`;
+    pages.appendChild(d);
+  });
+  const bars = $('#accBars'); bars.innerHTML = '';
+  const names = {L1:'🌍 What Is Geography?', L2:'🏔️ Geography Shapes Lives', L3:'🚢 Today’s World', X:'⭐ World Explorer bonus'};
+  const cols = {L1:'#5aa7c4', L2:'#7cbb87', L3:'#ef9070', X:'#F2C56B'};
+  for (const k of ['L1','L2','L3','X']){
+    const {h,m} = P.acc[k];
+    const total = h + m;
+    const pct = total ? Math.round(h/total*100) : 0;
+    const row = document.createElement('div');
+    row.className = 'accrow';
+    row.innerHTML = `<div class="lbl"><span>${names[k]}</span><span>${total ? pct + '% of ' + total : '—'}</span></div>
+      <div class="accbar"><span style="width:${pct}%;background:${cols[k]}"></span></div>`;
+    bars.appendChild(row);
+  }
+  const stats = $('#passStats'); stats.innerHTML = '';
+  const items = [[P.journeys,'Journeys'],[P.bestTurns ?? '—','Best turns'],[P.beatGale,'Beat Gale'],[P.vsWins || 0,'Race wins 🏆'],[P.souvenirs,'Souvenirs 🎁']];
+  items.forEach(([n,l]) => {
+    const d = document.createElement('div');
+    d.className = 'pstat';
+    d.innerHTML = `<div class="n">${n}</div><div class="l">${l}</div>`;
+    stats.appendChild(d);
+  });
+}
+$('#passBackBtn').addEventListener('click', () => {
+  if (J) show('game'); else show('profiles');
+});
+
+/* ================= TOP BAR ================= */
+function quitToHome(){
+  if (J){ saveJourney(); toast('💾 Journey saved — continue any time!'); }
+  J = null;
+  show('profiles');
+}
+$('#backBtn').addEventListener('click', quitToHome);
+$('#quitBtn').addEventListener('click', quitToHome);
+
+/* ================= INIT ================= */
+$('#muteBtn').textContent = SAVE.muted ? '🔇' : '🔊';
+renderProfiles();
+</script>
+</body>
+</html>

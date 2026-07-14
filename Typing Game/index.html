@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✨ Word Wizards Academy ✨</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky1:#dff1ff; --sky2:#fdf3e7; --ink:#3d3554; --soft:#7a7194;
+    --coral:#ff8e72; --gold:#ffc94d; --mint:#7fd8be; --lav:#b9a7f2;
+    --card:#ffffff; --good:#4caf7d; --shadow:0 8px 24px rgba(80,60,120,.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Baloo 2','Comic Sans MS',cursive,sans-serif;
+    background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 70%);
+    color:var(--ink); min-height:100vh; display:flex; flex-direction:column;
+    overflow-x:hidden;
+  }
+  /* floating clouds */
+  .cloud{position:fixed; font-size:44px; opacity:.5; z-index:0; animation:drift linear infinite; pointer-events:none;}
+  @keyframes drift{from{transform:translateX(-120px);} to{transform:translateX(110vw);}}
+
+  header{
+    display:flex; align-items:center; gap:12px; padding:14px 20px;
+    position:relative; z-index:5;
+  }
+  header h1{font-size:clamp(20px,3.4vw,30px); font-weight:800; flex:1; text-align:center;}
+  .chip{
+    background:var(--card); border-radius:999px; padding:6px 16px; font-weight:700;
+    box-shadow:var(--shadow); font-size:18px; white-space:nowrap;
+  }
+  button.chip{border:none; cursor:pointer; font-family:inherit; color:var(--ink); transition:transform .15s;}
+  button.chip:hover{transform:scale(1.08);}
+  #backBtn{visibility:hidden;}
+
+  main{flex:1; position:relative; z-index:2; padding:8px 20px 20px; max-width:980px; margin:0 auto; width:100%;}
+  section{display:none;}
+  section.active{display:block; animation:pop .3s ease;}
+  @keyframes pop{from{transform:scale(.96); opacity:0;} to{transform:scale(1); opacity:1;}}
+
+  /* ---------- HOME ---------- */
+  .welcome{text-align:center; font-size:19px; color:var(--soft); margin:4px 0 18px;}
+  .places{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px;}
+  .place{
+    background:var(--card); border-radius:26px; padding:26px 20px; text-align:center;
+    box-shadow:var(--shadow); cursor:pointer; border:3px solid transparent;
+    transition:transform .18s, border-color .18s; font-family:inherit;
+  }
+  .place:hover{transform:translateY(-6px) rotate(-1deg); border-color:var(--gold);}
+  .place .big{font-size:54px; display:block; margin-bottom:8px;}
+  .place h2{font-size:22px; font-weight:800;}
+  .place p{color:var(--soft); font-size:15px; margin-top:4px;}
+  .place.small{padding:14px; border-radius:18px;}
+  .place.small .big{font-size:30px; margin-bottom:2px;}
+  .place.small h2{font-size:16px;}
+  .homefoot{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:18px;}
+
+  /* ---------- SHARED GAME BITS ---------- */
+  .gametitle{text-align:center; font-size:24px; font-weight:800; margin-bottom:4px;}
+  .gamesub{text-align:center; color:var(--soft); margin-bottom:14px; font-size:16px;}
+  .pillrow{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:14px;}
+  .pill{
+    border:none; font-family:inherit; font-weight:700; font-size:15px; color:var(--ink);
+    background:var(--card); border-radius:999px; padding:8px 18px; cursor:pointer;
+    box-shadow:var(--shadow); border:3px solid transparent;
+  }
+  .pill.sel{border-color:var(--coral); background:#fff2ec;}
+
+  /* ---------- SPRITE CATCH ---------- */
+  #spriteField{
+    position:relative; height:52vh; min-height:330px; border-radius:26px; overflow:hidden;
+    background:linear-gradient(180deg,#cfe9ff,#f6f9e8); box-shadow:var(--shadow);
+  }
+  .sprite{
+    position:absolute; top:-90px; text-align:center; width:74px;
+    transition:top linear; cursor:default; z-index:2;
+  }
+  .sprite .face{font-size:40px; display:block; animation:bob 1.4s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-4deg);}50%{transform:translateY(-7px) rotate(4deg);}}
+  .sprite .ltr{
+    background:#fff; border-radius:12px; font-weight:800; font-size:22px;
+    box-shadow:0 3px 8px rgba(0,0,0,.15); display:inline-block; padding:1px 12px; margin-top:2px;
+  }
+  .sprite.caught{animation:zoom .45s ease forwards;}
+  @keyframes zoom{to{transform:scale(2.2); opacity:0;}}
+  #inkpot{position:absolute; bottom:6px; left:50%; transform:translateX(-50%); font-size:52px; z-index:3;}
+  #comboTag{
+    position:absolute; top:10px; right:14px; background:#fff; border-radius:999px;
+    padding:4px 14px; font-weight:800; color:var(--coral); box-shadow:var(--shadow); z-index:3;
+  }
+
+  /* ---------- TYPING LINE ---------- */
+  .scene{
+    background:var(--card); border-radius:26px; padding:22px; box-shadow:var(--shadow);
+    text-align:center; margin-bottom:14px;
+  }
+  .typeline{
+    font-size:clamp(26px,4.5vw,40px); font-weight:700; letter-spacing:2px;
+    line-height:1.7; word-break:break-word; user-select:none;
+  }
+  .typeline span{border-bottom:4px solid #e7e1f5; padding:0 2px; border-radius:4px;}
+  .typeline span.done{color:var(--good); border-bottom-color:var(--good);}
+  .typeline span.cur{background:#fff3d6; border-bottom-color:var(--gold);}
+  .typeline span.oops{animation:wig .3s ease;}
+  @keyframes wig{25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+  .bigmoji{font-size:64px; display:block; transition:transform .3s;}
+  .bigmoji.party{animation:dance .6s ease;}
+  @keyframes dance{25%{transform:rotate(-14deg) scale(1.2);}75%{transform:rotate(14deg) scale(1.2);}}
+
+  /* garden */
+  #gardenRow{
+    background:linear-gradient(180deg,#eafbe7,#d8f3d0); border-radius:20px; min-height:66px;
+    padding:10px 14px; font-size:30px; letter-spacing:4px; box-shadow:var(--shadow);
+    line-height:1.4;
+  }
+  .gardenlabel{font-weight:800; color:var(--soft); font-size:14px; margin:10px 0 6px;}
+
+  /* ---------- ON-SCREEN KEYBOARD ---------- */
+  #kbd{
+    position:relative; z-index:4; max-width:760px; margin:0 auto 18px; padding:0 16px;
+    display:none; user-select:none;
+  }
+  #kbd.show{display:block;}
+  .krow{display:flex; justify-content:center; gap:6px; margin-bottom:6px;}
+  .key{
+    background:var(--card); border-radius:10px; box-shadow:0 3px 0 #d9d2ec;
+    min-width:44px; height:46px; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:17px; transition:background .12s, transform .05s;
+  }
+  .key.space{min-width:240px;}
+  .key.wide{min-width:78px; font-size:13px;}
+  .key.hint{background:var(--gold); animation:glowk 1s ease-in-out infinite;}
+  @keyframes glowk{50%{box-shadow:0 3px 0 #d9a520, 0 0 18px 4px #ffd97066;}}
+  .key.pressed{transform:translateY(3px); box-shadow:0 0 0 #d9d2ec; background:#efe9ff;}
+
+  /* ---------- MY ROOM ---------- */
+  .shelf{display:grid; grid-template-columns:repeat(auto-fill,minmax(74px,1fr)); gap:10px; margin-bottom:20px;}
+  .slot{
+    background:var(--card); border-radius:16px; text-align:center; padding:10px 4px;
+    box-shadow:var(--shadow);
+  }
+  .slot .face{font-size:30px; display:block;}
+  .slot .name{font-size:13px; font-weight:700; color:var(--soft);}
+  .slot.locked{opacity:.35; filter:grayscale(1);}
+  .badgerow{display:flex; flex-wrap:wrap; gap:10px;}
+  .badge{
+    background:var(--card); border-radius:16px; padding:10px 16px; box-shadow:var(--shadow);
+    font-weight:700; display:flex; align-items:center; gap:8px;
+  }
+  .badge.locked{opacity:.35; filter:grayscale(1);}
+  h3.roomh{font-size:20px; font-weight:800; margin:18px 0 10px;}
+
+  /* ---------- PARENT ---------- */
+  .pcards{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:18px;}
+  .pcard{background:var(--card); border-radius:18px; padding:16px; box-shadow:var(--shadow); text-align:center;}
+  .pcard .num{font-size:30px; font-weight:800;}
+  .pcard .lbl{color:var(--soft); font-size:14px; font-weight:700;}
+  .heat{display:flex; flex-direction:column; gap:5px; align-items:center; background:var(--card); border-radius:18px; padding:16px; box-shadow:var(--shadow);}
+  .heatrow{display:flex; gap:5px;}
+  .hkey{
+    width:40px; height:40px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-weight:800; background:#eee;
+  }
+  .hkey.g{background:#bde8c9;} .hkey.a{background:#ffe4a8;} .hkey.r{background:#ffc4b5;}
+  .plegend{font-size:13px; color:var(--soft); margin-top:8px; text-align:center;}
+  .pnote{background:var(--card); border-radius:18px; padding:16px; box-shadow:var(--shadow); margin-top:14px; font-size:15px;}
+
+  /* ---------- TOAST & CONFETTI ---------- */
+  #toast{
+    position:fixed; top:18px; left:50%; transform:translateX(-50%) translateY(-90px);
+    background:var(--ink); color:#fff; border-radius:999px; padding:10px 26px;
+    font-weight:800; font-size:17px; z-index:99; transition:transform .35s ease;
+    box-shadow:var(--shadow);
+  }
+  #toast.show{transform:translateX(-50%) translateY(0);}
+  .confetto{position:fixed; top:-20px; z-index:98; font-size:8px; width:12px; height:12px; border-radius:3px; animation:fall 2.4s linear forwards; pointer-events:none;}
+  @keyframes fall{to{transform:translateY(105vh) rotate(720deg); opacity:.6;}}
+
+  .cheer{
+    text-align:center; font-size:20px; font-weight:800; min-height:30px; color:var(--coral);
+  }
+  .notekbd{text-align:center; color:var(--soft); font-size:14px; margin-top:8px;}
+  @media (max-width:640px){ .key{min-width:30px; height:38px; font-size:14px;} .key.space{min-width:130px;} }
+</style>
+</head>
+<body>
+
+<div class="cloud" style="top:8%;  animation-duration:60s;">☁️</div>
+<div class="cloud" style="top:30%; animation-duration:85s; animation-delay:-30s;">☁️</div>
+<div class="cloud" style="top:55%; animation-duration:70s; animation-delay:-50s;">☁️</div>
+
+<header>
+  <button class="chip" id="backBtn">⬅️ Courtyard</button>
+  <h1>✨ Word Wizards Academy ✨</h1>
+  <span class="chip">⭐ <span id="starCount">0</span></span>
+  <button class="chip" id="soundBtn">🔊</button>
+</header>
+
+<main>
+
+  <!-- ================= HOME ================= -->
+  <section id="home" class="active">
+    <p class="welcome" id="welcomeLine">Welcome, young wizard! Where shall we go today?</p>
+    <div class="places">
+      <button class="place" data-go="sprite">
+        <span class="big">🧚</span><h2>Sprite Catch</h2>
+        <p>Press the right key to catch the falling Letter Sprites!</p>
+      </button>
+      <button class="place" data-go="bloom">
+        <span class="big">🌸</span><h2>Bloom Burst</h2>
+        <p>Type magic words to make your garden grow.</p>
+      </button>
+      <button class="place" data-go="dragon">
+        <span class="big">🐉</span><h2>Dragon Snacks</h2>
+        <p>Type whole sentences to feed the hungry baby dragon!</p>
+      </button>
+    </div>
+    <div class="homefoot">
+      <button class="place small" data-go="room"><span class="big">🏆</span><h2>My Room</h2></button>
+      <button class="place small" id="parentLink"><span class="big">📊</span><h2>Grown-Ups</h2></button>
+    </div>
+    <p class="notekbd">💡 This game needs a real keyboard — play on a computer or laptop!</p>
+  </section>
+
+  <!-- ================= SPRITE CATCH ================= -->
+  <section id="sprite">
+    <div class="gametitle">🧚 Sprite Catch</div>
+    <div class="gamesub">Letter Sprites are floating down — press their letter key to catch them in the ink pot!</div>
+    <div class="pillrow" id="spritePills">
+      <button class="pill sel" data-set="home">Home Row</button>
+      <button class="pill" data-set="top">Top Row</button>
+      <button class="pill" data-set="bottom">Bottom Row</button>
+      <button class="pill" data-set="all">All Letters</button>
+    </div>
+    <div id="spriteField">
+      <div id="comboTag">🔥 0 in a row</div>
+      <div id="inkpot">🫙</div>
+    </div>
+    <p class="cheer" id="spriteCheer"></p>
+  </section>
+
+  <!-- ================= BLOOM BURST ================= -->
+  <section id="bloom">
+    <div class="gametitle">🌸 Bloom Burst</div>
+    <div class="gamesub">Type the magic word and watch the flower bloom!</div>
+    <div class="pillrow" id="bloomPills">
+      <button class="pill sel" data-set="tiny">Tiny Words</button>
+      <button class="pill" data-set="short">Short Words</button>
+      <button class="pill" data-set="big">Big Words</button>
+    </div>
+    <div class="scene">
+      <span class="bigmoji" id="bloomMoji">🌱</span>
+      <div class="typeline" id="bloomLine"></div>
+    </div>
+    <p class="cheer" id="bloomCheer"></p>
+    <div class="gardenlabel">🌷 YOUR GARDEN (it stays and grows every day!)</div>
+    <div id="gardenRow"></div>
+  </section>
+
+  <!-- ================= DRAGON SNACKS ================= -->
+  <section id="dragon">
+    <div class="gametitle">🐉 Dragon Snacks</div>
+    <div class="gamesub">Type the whole sentence — capital letter and punctuation too — to feed Sparky!</div>
+    <div class="scene">
+      <span class="bigmoji" id="dragonMoji">🐉</span>
+      <span style="font-size:34px;" id="foodMoji"></span>
+      <div class="typeline" id="dragonLine" style="margin-top:10px;"></div>
+    </div>
+    <p class="cheer" id="dragonCheer">Sparky has eaten <b id="mealCount">0</b> snacks!</p>
+  </section>
+
+  <!-- ================= MY ROOM ================= -->
+  <section id="room">
+    <div class="gametitle">🏆 My Room</div>
+    <div class="gamesub">Your rescued sprites, badges, and treasures live here.</div>
+    <h3 class="roomh">🧚 Letter Sprites <span style="color:var(--soft);font-size:14px;">(catch a letter 5 times to rescue its sprite)</span></h3>
+    <div class="shelf" id="spriteShelf"></div>
+    <h3 class="roomh">🎖️ Badges</h3>
+    <div class="badgerow" id="badgeRow"></div>
+  </section>
+
+  <!-- ================= PARENT ================= -->
+  <section id="parent">
+    <div class="gametitle">📊 The Headmaster's Office</div>
+    <div class="gamesub">A calm corner for grown-ups. Accuracy matters more than speed right now. 💛</div>
+    <div class="pcards">
+      <div class="pcard"><div class="num" id="pStars">0</div><div class="lbl">Stars earned</div></div>
+      <div class="pcard"><div class="num" id="pKeys">0</div><div class="lbl">Keys typed</div></div>
+      <div class="pcard"><div class="num" id="pAcc">–</div><div class="lbl">Accuracy</div></div>
+      <div class="pcard"><div class="num" id="pBlooms">0</div><div class="lbl">Words bloomed</div></div>
+      <div class="pcard"><div class="num" id="pMeals">0</div><div class="lbl">Sentences typed</div></div>
+    </div>
+    <div class="heat" id="heatMap"></div>
+    <div class="plegend">🟩 strong (90%+) &nbsp; 🟨 developing (70–89%) &nbsp; 🟥 needs gentle practice &nbsp; ⬜ not tried yet</div>
+    <div class="pnote" id="pSuggest"></div>
+  </section>
+
+</main>
+
+<!-- on-screen keyboard -->
+<div id="kbd"></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ============ SAVE / STATE ============ */
+const SAVE_KEY = 'wordWizardsSave';
+const DEFAULTS = { stars:0, keyStats:{}, catches:{}, garden:[], blooms:0, meals:0, badges:[], comboBest:0 };
+let S;
+try { S = Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(SAVE_KEY)) || {}); }
+catch(e){ S = Object.assign({}, DEFAULTS); }
+function save(){ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }
+
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+/* ============ SOUND (soft WebAudio chimes) ============ */
+let audioCtx = null, muted = false;
+function chime(freq, dur=0.12, type='sine', vol=0.12){
+  if (muted) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+  }catch(e){}
+}
+const goodChime = () => chime(660 + Math.random()*80);
+const winChime  = () => { chime(523); setTimeout(()=>chime(659),90); setTimeout(()=>chime(784,0.25),180); };
+const softBuzz  = () => chime(180, 0.08, 'triangle', 0.06);
+$('#soundBtn').addEventListener('click', () => {
+  muted = !muted;
+  $('#soundBtn').textContent = muted ? '🔇' : '🔊';
+});
+
+/* ============ STARS / TOAST / CONFETTI ============ */
+function setStars(n){ S.stars = n; $('#starCount').textContent = n; save(); checkBadges(); }
+function addStars(n){ setStars(S.stars + n); }
+let toastTimer = null;
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+function confetti(){
+  const colors = ['#ff8e72','#ffc94d','#7fd8be','#b9a7f2','#7fc8f8','#ff9ff3'];
+  for(let i=0;i<60;i++){
+    const c = document.createElement('div');
+    c.className = 'confetto';
+    c.style.left = Math.random()*100 + 'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDelay = (Math.random()*0.6)+'s';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3200);
+  }
+}
+
+/* ============ KEY STATS ============ */
+function logKey(expected, correct){
+  const k = (expected || '').toUpperCase();
+  if (!/^[A-Z]$/.test(k)) { // still count non-letters toward overall accuracy
+    S.keyStats['_other'] = S.keyStats['_other'] || {hit:0,miss:0};
+    S.keyStats['_other'][correct?'hit':'miss']++;
+    save(); return;
+  }
+  S.keyStats[k] = S.keyStats[k] || {hit:0,miss:0};
+  S.keyStats[k][correct?'hit':'miss']++;
+  save();
+}
+
+/* ============ ON-SCREEN KEYBOARD ============ */
+const KROWS = [ 'QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM' ];
+(function buildKbd(){
+  const kbd = $('#kbd');
+  KROWS.forEach((row,i) => {
+    const r = document.createElement('div'); r.className = 'krow';
+    if (i === 2){
+      const sh = document.createElement('div'); sh.className='key wide'; sh.dataset.key='SHIFT'; sh.textContent='⇧ shift';
+      r.appendChild(sh);
+    }
+    for (const ch of row){
+      const k = document.createElement('div'); k.className='key'; k.dataset.key=ch; k.textContent=ch;
+      r.appendChild(k);
+    }
+    if (i === 2){
+      for (const p of ['.','!','?']){
+        const k = document.createElement('div'); k.className='key'; k.dataset.key=p; k.textContent=p;
+        r.appendChild(k);
+      }
+    }
+    kbd.appendChild(r);
+  });
+  const r = document.createElement('div'); r.className='krow';
+  const sp = document.createElement('div'); sp.className='key space'; sp.dataset.key=' '; sp.textContent='space';
+  r.appendChild(sp);
+  kbd.appendChild(r);
+})();
+function hintKey(char){
+  $$('#kbd .key').forEach(k => k.classList.remove('hint'));
+  if (!char) return;
+  const upper = char.toUpperCase();
+  let target = null;
+  if (/[A-Z]/.test(upper)) target = upper;
+  else if (char === ' ' || char === '.' || char === '!' || char === '?') target = char;
+  if (target){
+    const el = document.querySelector(`#kbd .key[data-key="${target === ' ' ? ' ' : target}"]`);
+    if (el) el.classList.add('hint');
+  }
+  // shift glows for capitals and shifted punctuation
+  if (/[A-Z]/.test(char) || char === '!' || char === '?'){
+    const sh = document.querySelector('#kbd .key[data-key="SHIFT"]');
+    if (sh) sh.classList.add('hint');
+  }
+}
+function flashKey(char){
+  const upper = (char||'').toUpperCase();
+  const el = document.querySelector(`#kbd .key[data-key="${char === ' ' ? ' ' : upper}"]`);
+  if (el){ el.classList.add('pressed'); setTimeout(()=>el.classList.remove('pressed'),120); }
+}
+
+/* ============ SCREENS ============ */
+let current = 'home';
+function show(id){
+  $$('main section').forEach(s => s.classList.remove('active'));
+  $('#' + id).classList.add('active');
+  current = id;
+  $('#backBtn').style.visibility = (id === 'home') ? 'hidden' : 'visible';
+  $('#kbd').classList.toggle('show', id === 'bloom' || id === 'dragon');
+  stopSprites();
+  hintKey(null);
+  if (id === 'sprite') startSprites();
+  if (id === 'bloom')  startBloomWord();
+  if (id === 'dragon') startDragonSentence();
+  if (id === 'room')   renderRoom();
+  if (id === 'parent') renderParent();
+}
+$('#backBtn').addEventListener('click', () => show('home'));
+$$('.place[data-go]').forEach(b => b.addEventListener('click', () => show(b.dataset.go)));
+$('#parentLink').addEventListener('click', () => {
+  const a = prompt('Grown-ups only! 🦉  What is 6 × 7?');
+  if (a && a.trim() === '42') show('parent');
+  else if (a !== null) toast('Hmm, ask a grown-up to help! 🦉');
+});
+
+/* ============ SPRITE CATCH ============ */
+const SPRITE_FACES = {A:'🍎',B:'🐝',C:'🐱',D:'🐶',E:'🥚',F:'🐸',G:'🍇',H:'🐹',I:'🍦',J:'🪼',K:'🪁',L:'🦁',M:'🌙',N:'🪺',O:'🐙',P:'🐧',Q:'👑',R:'🌈',S:'⭐',T:'🐢',U:'☂️',V:'🎻',W:'🐋',X:'🎹',Y:'🪀',Z:'🦓'};
+const LETTER_SETS = {
+  home:'ASDFGHJKL', top:'QWERTYUIOP', bottom:'ZXCVBNM',
+  all:'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+};
+let spriteSet = 'home', spriteTimer = null, combo = 0;
+const CHEERS = ['Great catch! 🎉','Wonderful! ✨','You found it! 🌟','Amazing! 💛','Sprite saved! 🧚','Magic fingers! 🪄'];
+
+$('#spritePills').addEventListener('click', e => {
+  const b = e.target.closest('.pill'); if (!b) return;
+  $$('#spritePills .pill').forEach(p => p.classList.remove('sel'));
+  b.classList.add('sel'); spriteSet = b.dataset.set;
+});
+function startSprites(){
+  combo = 0; updateCombo();
+  spriteTimer = setInterval(spawnSprite, 2100);
+  spawnSprite();
+}
+function stopSprites(){
+  clearInterval(spriteTimer); spriteTimer = null;
+  $$('.sprite').forEach(s => s.remove());
+}
+function spawnSprite(){
+  const field = $('#spriteField');
+  if ($$('.sprite').length >= 4) return;
+  const letters = LETTER_SETS[spriteSet];
+  const L = letters[Math.floor(Math.random()*letters.length)];
+  const el = document.createElement('div');
+  el.className = 'sprite'; el.dataset.letter = L;
+  el.innerHTML = `<span class="face">${SPRITE_FACES[L]}</span><span class="ltr">${L}</span>`;
+  el.style.left = (8 + Math.random()*80) + '%';
+  const fallSecs = 9 + Math.random()*3;
+  el.style.transitionDuration = fallSecs + 's';
+  field.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.style.top = field.clientHeight + 20 + 'px'; }));
+  el.addEventListener('transitionend', () => el.remove()); // floats away — no penalty
+}
+function updateCombo(){ $('#comboTag').textContent = `🔥 ${combo} in a row`; }
+function catchSprite(letter){
+  const matches = $$('.sprite:not(.caught)').filter(s => s.dataset.letter === letter);
+  if (!matches.length){ softBuzz(); logKey(letter, false); return; }
+  // catch the lowest (closest to the pot)
+  matches.sort((a,b) => b.getBoundingClientRect().top - a.getBoundingClientRect().top);
+  const sp = matches[0];
+  sp.classList.add('caught');
+  sp.style.transitionDuration = '0s';
+  setTimeout(()=>sp.remove(), 450);
+  logKey(letter, true);
+  S.catches[letter] = (S.catches[letter] || 0) + 1;
+  const justRescued = S.catches[letter] === 5;
+  combo++; updateCombo();
+  if (combo > S.comboBest) S.comboBest = combo;
+  goodChime();
+  addStars(1);
+  $('#spriteCheer').textContent = CHEERS[Math.floor(Math.random()*CHEERS.length)];
+  if (justRescued){ confetti(); winChime(); toast(`🧚 You rescued the ${letter} sprite ${SPRITE_FACES[letter]}!`); }
+  if (combo === 10){ confetti(); winChime(); toast('🎉 SPRITE PARTY! 10 in a row!'); }
+  save(); checkBadges();
+}
+
+/* ============ TYPING LINE WIDGET ============ */
+function makeTypingLine(el, target, onDone){
+  el.innerHTML = '';
+  const spans = [];
+  for (const ch of target){
+    const s = document.createElement('span');
+    s.textContent = ch === ' ' ? ' ' : ch;
+    el.appendChild(s); spans.push(s);
+  }
+  let idx = 0;
+  spans[0].classList.add('cur');
+  hintKey(target[0]);
+  return {
+    key(ch){
+      if (idx >= target.length) return;
+      if (ch === target[idx]){
+        spans[idx].classList.remove('cur'); spans[idx].classList.add('done');
+        logKey(target[idx], true);
+        goodChime(); flashKey(ch);
+        idx++;
+        if (idx >= target.length){ hintKey(null); onDone(); }
+        else { spans[idx].classList.add('cur'); hintKey(target[idx]); }
+      } else {
+        spans[idx].classList.remove('oops');
+        void spans[idx].offsetWidth; // restart wiggle
+        spans[idx].classList.add('oops');
+        logKey(target[idx], false);
+        softBuzz();
+      }
+    }
+  };
+}
+
+/* ============ BLOOM BURST ============ */
+const WORDS = {
+  tiny:['cat','dog','sun','hat','red','big','run','fun','mud','wet','pig','bee','fox','cup','map','jam','log','van','zip','ant'],
+  short:['frog','star','blue','jump','fish','cake','wand','moon','tree','bird','book','milk','snow','wing','drum','nest','leaf','pond'],
+  big:['magic','dragon','apple','cloud','spark','wizard','castle','flower','garden','potion','sprite','rainbow','sparkle','crystal']
+};
+const FLOWERS = ['🌸','🌼','🌷','🌻','🌺','💐','🪻','🏵️'];
+const VISITORS = ['🦋','🐝','🐞','🐦','🕊️'];
+let bloomSet = 'tiny', bloomTL = null;
+
+$('#bloomPills').addEventListener('click', e => {
+  const b = e.target.closest('.pill'); if (!b) return;
+  $$('#bloomPills .pill').forEach(p => p.classList.remove('sel'));
+  b.classList.add('sel'); bloomSet = b.dataset.set;
+  startBloomWord();
+});
+function renderGarden(){ $('#gardenRow').textContent = S.garden.slice(-60).join(' ') || '(type your first word to plant a flower!)'; }
+function startBloomWord(){
+  $('#bloomMoji').textContent = '🌱';
+  renderGarden();
+  const list = WORDS[bloomSet];
+  const w = list[Math.floor(Math.random()*list.length)];
+  bloomTL = makeTypingLine($('#bloomLine'), w, () => {
+    const f = FLOWERS[Math.floor(Math.random()*FLOWERS.length)];
+    $('#bloomMoji').textContent = f;
+    $('#bloomMoji').classList.add('party');
+    setTimeout(()=>$('#bloomMoji').classList.remove('party'), 650);
+    S.blooms++; S.garden.push(f);
+    if (S.blooms % 5 === 0){
+      S.garden.push(VISITORS[Math.floor(Math.random()*VISITORS.length)]);
+      confetti(); toast('🦋 A visitor came to your garden!');
+    }
+    addStars(2); winChime();
+    $('#bloomCheer').textContent = 'It bloomed! ✨ +2 ⭐';
+    save(); checkBadges(); renderGarden();
+    setTimeout(startBloomWord, 1200);
+  });
+}
+
+/* ============ DRAGON SNACKS ============ */
+const SNACKS = [
+  ['The dragon wants three cheesy tacos!','🌮'],
+  ['Please pass the purple pancakes.','🥞'],
+  ['Do dragons like pickle pizza?','🍕'],
+  ['I baked a big blueberry muffin.','🧁'],
+  ['Watch out for the wobbly jelly!','🍮'],
+  ['The hungry dragon ate ten donuts.','🍩'],
+  ['May we share the mango ice cream?','🍨'],
+  ['This soup is super duper hot!','🍜'],
+  ['Sparky loves crunchy carrot cake.','🥕'],
+  ['Who took my giant strawberry?','🍓']
+];
+let dragonTL = null;
+function startDragonSentence(){
+  $('#mealCount').textContent = S.meals;
+  const [sent, food] = SNACKS[Math.floor(Math.random()*SNACKS.length)];
+  $('#foodMoji').textContent = food;
+  $('#dragonMoji').style.fontSize = Math.min(64 + S.meals*3, 110) + 'px';
+  dragonTL = makeTypingLine($('#dragonLine'), sent, () => {
+    S.meals++;
+    $('#mealCount').textContent = S.meals;
+    $('#foodMoji').textContent = '';
+    $('#dragonMoji').classList.add('party');
+    setTimeout(()=>$('#dragonMoji').classList.remove('party'), 650);
+    addStars(5); winChime(); confetti();
+    toast(`🐉 Yum! Sparky loved it! +5 ⭐`);
+    save(); checkBadges();
+    setTimeout(startDragonSentence, 1400);
+  });
+}
+
+/* ============ GLOBAL KEY HANDLER ============ */
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key.length !== 1) return;
+  if (current === 'sprite'){
+    const L = e.key.toUpperCase();
+    if (/^[A-Z]$/.test(L)) catchSprite(L);
+    e.preventDefault();
+  } else if (current === 'bloom' && bloomTL){
+    bloomTL.key(e.key); e.preventDefault();
+  } else if (current === 'dragon' && dragonTL){
+    dragonTL.key(e.key); e.preventDefault();
+  }
+});
+
+/* ============ BADGES ============ */
+const BADGES = [
+  { id:'firstCatch', icon:'🫙', name:'First Catch!',          test:()=>Object.keys(S.catches).length > 0 },
+  { id:'party',      icon:'🎉', name:'Sprite Party (10 in a row)', test:()=>S.comboBest >= 10 },
+  { id:'rescuer',    icon:'🧚', name:'Sprite Rescuer (5 sprites)', test:()=>rescuedCount() >= 5 },
+  { id:'firstBloom', icon:'🌸', name:'First Bloom',           test:()=>S.blooms >= 1 },
+  { id:'garden10',   icon:'🦋', name:'Garden Grower (10 blooms)', test:()=>S.blooms >= 10 },
+  { id:'firstMeal',  icon:'🐉', name:'Dragon Feeder',         test:()=>S.meals >= 1 },
+  { id:'dragon5',    icon:'❤️', name:"Sparky's Best Friend (5 snacks)", test:()=>S.meals >= 5 },
+  { id:'stars50',    icon:'⭐', name:'Star Collector (50 stars)', test:()=>S.stars >= 50 }
+];
+function rescuedCount(){ return Object.values(S.catches).filter(n => n >= 5).length; }
+function checkBadges(){
+  for (const b of BADGES){
+    if (!S.badges.includes(b.id) && b.test()){
+      S.badges.push(b.id); save();
+      confetti(); winChime();
+      toast(`🎖️ New badge: ${b.icon} ${b.name}!`);
+    }
+  }
+}
+
+/* ============ MY ROOM ============ */
+function renderRoom(){
+  const shelf = $('#spriteShelf'); shelf.innerHTML = '';
+  for (const L of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'){
+    const got = (S.catches[L] || 0) >= 5;
+    const d = document.createElement('div');
+    d.className = 'slot' + (got ? '' : ' locked');
+    d.innerHTML = `<span class="face">${got ? SPRITE_FACES[L] : '❔'}</span><span class="name">${L}</span>`;
+    shelf.appendChild(d);
+  }
+  const row = $('#badgeRow'); row.innerHTML = '';
+  for (const b of BADGES){
+    const got = S.badges.includes(b.id);
+    const d = document.createElement('div');
+    d.className = 'badge' + (got ? '' : ' locked');
+    d.textContent = `${b.icon} ${b.name}`;
+    row.appendChild(d);
+  }
+}
+
+/* ============ PARENT VIEW ============ */
+function renderParent(){
+  let hit = 0, miss = 0;
+  for (const k in S.keyStats){ hit += S.keyStats[k].hit; miss += S.keyStats[k].miss; }
+  $('#pStars').textContent = S.stars;
+  $('#pKeys').textContent = hit + miss;
+  $('#pAcc').textContent = (hit + miss) ? Math.round(hit/(hit+miss)*100) + '%' : '–';
+  $('#pBlooms').textContent = S.blooms;
+  $('#pMeals').textContent = S.meals;
+
+  const heat = $('#heatMap'); heat.innerHTML = '';
+  for (const row of KROWS){
+    const r = document.createElement('div'); r.className = 'heatrow';
+    for (const L of row){
+      const st = S.keyStats[L];
+      const d = document.createElement('div'); d.className = 'hkey'; d.textContent = L;
+      if (st && (st.hit + st.miss) >= 3){
+        const acc = st.hit / (st.hit + st.miss);
+        d.classList.add(acc >= 0.9 ? 'g' : acc >= 0.7 ? 'a' : 'r');
+        d.title = `${Math.round(acc*100)}% (${st.hit + st.miss} tries)`;
+      }
+      r.appendChild(d);
+    }
+    heat.appendChild(r);
+  }
+
+  // tricky letters + suggestion
+  const tricky = Object.entries(S.keyStats)
+    .filter(([k,v]) => /^[A-Z]$/.test(k) && (v.hit + v.miss) >= 5)
+    .map(([k,v]) => [k, v.hit/(v.hit+v.miss)])
+    .filter(([,acc]) => acc < 0.9)
+    .sort((a,b) => a[1]-b[1]).slice(0,5);
+  let msg;
+  if (!(hit+miss)) msg = '💡 <b>Suggestion:</b> Start with Sprite Catch on the Home Row — sit nearby for the first few days!';
+  else if (tricky.length) msg = `💡 <b>Suggestion:</b> The letters <b>${tricky.map(t=>t[0]).join(', ')}</b> could use gentle practice. Try a round of Sprite Catch on the row that includes them — keep it playful!`;
+  else if (S.meals === 0) msg = '💡 <b>Suggestion:</b> Accuracy looks great — she may be ready to try her first full sentence in Dragon Snacks!';
+  else msg = '💡 <b>Suggestion:</b> Wonderful progress! Keep sessions to 15–20 minutes and always end on her favorite game.';
+  $('#pSuggest').innerHTML = msg;
+}
+
+/* ============ INIT ============ */
+setStars(S.stars);
+const hour = new Date().getHours();
+$('#welcomeLine').textContent =
+  (hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening') +
+  ', young wizard! Where shall we go today?';
+</script>
+</body>
+</html>

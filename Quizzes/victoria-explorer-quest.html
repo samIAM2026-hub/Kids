@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Victoria Explorer Quest 🗺️</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy:#123b5c; --teal:#0E8A8A; --coral:#E8734A; --gold:#F2B134;
+    --sky:#3FA7D6; --grape:#7B5EA7; --leaf:#4CAF7D;
+    --ink:#1B2733; --ink-soft:#3f4d5a; --muted:#6B7A88;
+    --line:#E1E7EC; --bg:#FFF9F0; --card:#FFFFFF;
+    --shadow:0 8px 26px rgba(18,59,92,.10); --radius:18px;
+  }
+  body {
+    font-family: 'Comic Sans MS', 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fff6e4 0%, #eaf5f5 55%, #ddeef4 100%);
+    min-height: 100vh; color: var(--ink); padding: 22px 14px 50px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadein .25s ease; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  h1.title { text-align: center; font-size: clamp(24px, 5vw, 34px); color: var(--navy); }
+  .subtitle { text-align: center; color: var(--muted); margin: 4px 0 22px; font-size: 15px; }
+
+  .btn {
+    font-family: inherit; font-size: 16px; font-weight: bold; color: #fff;
+    background: var(--teal); border: none; border-radius: 14px; padding: 12px 22px;
+    cursor: pointer; box-shadow: 0 5px 0 #0a6161; transition: transform .08s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #0a6161; }
+  .btn.coral { background: var(--coral); box-shadow: 0 5px 0 #b8502c; }
+  .btn.coral:active { box-shadow: 0 1px 0 #b8502c; }
+  .btn.grape { background: var(--grape); box-shadow: 0 5px 0 #59437c; }
+  .btn.grape:active { box-shadow: 0 1px 0 #59437c; }
+  .btn.ghost { background: #fff; color: var(--navy); box-shadow: 0 5px 0 var(--line); border: 2px solid var(--line); }
+  .btn.ghost:active { box-shadow: 0 1px 0 var(--line); }
+  .btn.small { font-size: 13px; padding: 8px 14px; border-radius: 11px; }
+  .btnrow { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+
+  /* ---------- Player select ---------- */
+  .players { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 8px; }
+  .player-card {
+    background: var(--card); border: 3px solid var(--line); border-radius: var(--radius);
+    padding: 24px 18px; text-align: center; cursor: pointer; box-shadow: var(--shadow);
+    transition: transform .12s, border-color .12s; font-family: inherit; font-size: inherit; color: inherit;
+  }
+  .player-card:hover { transform: translateY(-4px); border-color: var(--teal); }
+  .player-card .pemoji { font-size: 52px; }
+  .player-card h2 { color: var(--navy); margin: 8px 0 4px; }
+  .player-card .pstats { color: var(--muted); font-size: 13px; }
+  .player-card .prank { display: inline-block; margin-top: 8px; font-size: 12px; font-weight: bold;
+    background: #fdf1d7; color: #8a6d3b; border-radius: 999px; padding: 3px 12px; }
+
+  /* ---------- Map ---------- */
+  .topbar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: var(--card); border: 2px solid var(--line); border-radius: var(--radius);
+    padding: 10px 14px; margin-bottom: 14px; box-shadow: var(--shadow);
+  }
+  .chip { font-weight: bold; color: var(--navy); font-size: 15px; }
+  .chip .cstat { color: var(--muted); font-weight: normal; font-size: 13px; }
+  .topbar .spacer { flex: 1; }
+  .mapcard { background: var(--card); border: 2px solid var(--line); border-radius: var(--radius);
+    padding: 10px; box-shadow: var(--shadow); }
+  .mapcard svg { width: 100%; height: auto; display: block; border-radius: 12px; }
+  .maphint { text-align: center; color: var(--muted); font-size: 13px; margin-top: 8px; }
+
+  svg .stop { cursor: pointer; }
+  svg .stop .ring { fill: #fff; stroke-width: 4; }
+  svg .stop .lname { font-size: 13px; font-weight: bold; fill: var(--navy); text-anchor: middle;
+    font-family: 'Comic Sans MS','Trebuchet MS',system-ui,sans-serif; }
+  svg .stop .lemoji { font-size: 26px; text-anchor: middle; }
+  svg .stop .num { font-size: 11px; font-weight: bold; fill: #fff; text-anchor: middle;
+    font-family: 'Trebuchet MS',system-ui,sans-serif; }
+  svg .stop .lstars { font-size: 12px; text-anchor: middle; }
+  svg .stop .lock { font-size: 14px; text-anchor: middle; display: none; }
+  svg .stop.locked { cursor: not-allowed; }
+  svg .stop.locked .ring { fill: #ececec; stroke: #b9b9b9 !important; }
+  svg .stop.locked .lemoji { opacity: .35; }
+  svg .stop.locked .numbg { fill: #b9b9b9 !important; }
+  svg .stop.locked .lock { display: block; }
+  svg .stop.locked .lname { fill: #93a1ad; }
+  svg .stop.unlocked .ring { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { stroke-width: 4; } 50% { stroke-width: 8; } }
+  svg .stop.shake { animation: shake .4s ease; }
+  @keyframes shake { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-4px,0)} 75%{transform:translate(4px,0)} }
+
+  /* ---------- Story ---------- */
+  .storycard { background: var(--card); border: 3px solid var(--line); border-radius: var(--radius);
+    padding: 26px 24px; box-shadow: var(--shadow); max-width: 720px; margin: 0 auto; }
+  .storycard .semoji { font-size: 54px; text-align: center; }
+  .storycard h2 { color: var(--navy); text-align: center; margin: 6px 0 2px; }
+  .era { display: block; text-align: center; font-size: 13px; font-weight: bold; color: var(--teal); margin-bottom: 14px; }
+  .storycard p.story { font-size: 16.5px; line-height: 1.65; color: var(--ink-soft); margin-bottom: 12px; }
+  .fact { border: 2px dashed var(--gold); background: #fdf6e3; border-radius: 14px;
+    padding: 12px 16px; font-size: 15px; margin: 14px 0 4px; }
+  .fact b { color: #8a6d3b; }
+
+  /* ---------- Quiz ---------- */
+  .quizhead { text-align: center; margin-bottom: 12px; }
+  .quizhead h2 { color: var(--navy); font-size: 20px; }
+  .dots { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; background: #dfe7ec; border: 2px solid #c6d2da; }
+  .dot.now { background: var(--gold); border-color: #cf9526; }
+  .dot.good { background: var(--leaf); border-color: #35855e; }
+  .dot.bad { background: #e57373; border-color: #c62828; }
+  .qcard { background: var(--card); border: 3px solid var(--line); border-radius: var(--radius);
+    padding: 22px; box-shadow: var(--shadow); max-width: 680px; margin: 0 auto; }
+  .qcard .qtext { font-size: 18px; font-weight: bold; color: var(--ink); margin-bottom: 16px; }
+  .opt {
+    display: block; width: 100%; text-align: left; font-family: inherit; font-size: 15.5px; font-weight: bold;
+    color: var(--ink-soft); background: #fff; border: 3px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 10px; cursor: pointer; transition: transform .1s, border-color .1s;
+  }
+  .opt:hover:not(:disabled) { transform: translateX(4px); border-color: var(--sky); }
+  .opt:disabled { cursor: default; opacity: .75; }
+  .opt.correct { background: #d7f5d3; border-color: #43a047; color: #1d5722; opacity: 1; }
+  .opt.wrong { background: #ffd9d9; border-color: #e53935; color: #7c1f1c; opacity: 1; }
+  .feedback { border-radius: 12px; padding: 12px 14px; font-size: 14.5px; margin-top: 4px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.good { background: #e3f6df; border: 2px solid #7ccb8b; color: #205b28; }
+  .feedback.bad { background: #fde3e1; border: 2px solid #ef9a94; color: #7c2822; }
+
+  /* ---------- Passport ---------- */
+  .passport { background: var(--card); border: 3px solid var(--navy); border-radius: var(--radius);
+    padding: 24px; box-shadow: var(--shadow); }
+  .passport h2 { color: var(--navy); text-align: center; }
+  .passport .psub { text-align: center; color: var(--muted); font-size: 14px; margin: 4px 0 18px; }
+  .stampgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .slot { border: 2px dashed #c6d2da; border-radius: 14px; padding: 14px 8px; text-align: center; min-height: 110px; }
+  .slot .semoji { font-size: 34px; opacity: .18; }
+  .slot .sname { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .slot.got { border: 2px solid var(--teal); background: #f0faf8; }
+  .slot.got .semoji { opacity: 1; animation: stamppop .5s ease; }
+  .slot.got .sname { color: var(--navy); font-weight: bold; }
+  .slot .sstars { font-size: 13px; margin-top: 2px; min-height: 18px; }
+  @keyframes stamppop { 0% { transform: scale(.3) rotate(-30deg); } 70% { transform: scale(1.25); } 100% { transform: scale(1); } }
+
+  /* ---------- Compare ---------- */
+  .comparegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .cmp { background: var(--card); border: 3px solid var(--line); border-radius: var(--radius); padding: 18px; text-align: center; box-shadow: var(--shadow); }
+  .cmp h3 { color: var(--navy); font-size: 18px; }
+  .cmp .big { font-size: 30px; margin: 6px 0; }
+  .cmp .cstats { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .cheer { text-align: center; background: #fdf6e3; border: 2px dashed var(--gold); border-radius: 14px;
+    padding: 12px 16px; font-size: 15px; max-width: 560px; margin: 0 auto 8px; }
+  table.cmptable { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 14px; overflow: hidden;
+    box-shadow: var(--shadow); font-size: 14px; }
+  .cmptable th, .cmptable td { padding: 9px 10px; text-align: center; border-bottom: 1px solid var(--line); }
+  .cmptable th { background: var(--navy); color: #fff; font-size: 13px; }
+  .cmptable td:first-child { text-align: left; font-weight: bold; color: var(--ink-soft); }
+
+  /* ---------- Overlay / modal ---------- */
+  .overlay { position: fixed; inset: 0; background: rgba(18,59,92,.55); display: none;
+    align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+  .overlay.show { display: flex; }
+  .modal { background: var(--card); border-radius: 22px; padding: 30px 26px; max-width: 420px; width: 100%;
+    text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  .modal .bigstamp { font-size: 74px; animation: stamppop .55s ease; }
+  .modal h2 { color: var(--navy); margin: 8px 0 4px; }
+  .modal .mstars { font-size: 26px; margin: 4px 0 8px; }
+  .modal p { color: var(--ink-soft); font-size: 15px; margin-bottom: 6px; }
+
+  .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+    background: var(--navy); color: #fff; font-size: 14px; font-weight: bold;
+    padding: 10px 20px; border-radius: 999px; opacity: 0; pointer-events: none;
+    transition: opacity .25s; z-index: 60; max-width: 90vw; text-align: center; }
+  .toast.show { opacity: 1; }
+
+  /* ---------- Certificate ---------- */
+  .cert { position: relative; overflow: hidden; background: #fffdf6; border: 6px double var(--gold); border-radius: 20px;
+    padding: 40px 26px; text-align: center; max-width: 640px; margin: 0 auto; box-shadow: var(--shadow); }
+  .cert .ctrophy { font-size: 60px; }
+  .cert h2 { color: var(--navy); font-size: 26px; margin: 8px 0; }
+  .cert .cname { font-size: 30px; color: var(--coral); margin: 10px 0; }
+  .cert p { color: var(--ink-soft); font-size: 15.5px; line-height: 1.6; }
+  .cert .cdate { color: var(--muted); font-size: 13px; margin-top: 14px; }
+  .confetti span { position: absolute; top: -20px; font-size: 18px; animation: fall linear infinite; }
+  @keyframes fall { to { transform: translateY(120vh) rotate(360deg); } }
+
+  footer { text-align: center; font-size: 12px; color: #8a9a90; margin-top: 28px; }
+  footer a { color: var(--teal); text-decoration: none; margin: 0 8px; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    .comparegrid { grid-template-columns: 1fr; }
+    .topbar { font-size: 13px; }
+  }
+  @media print {
+    .no-print { display: none !important; }
+    body { background: #fff; padding: 0; }
+    .cert { box-shadow: none; border-color: #999; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ PLAYER SELECT ============ -->
+  <section class="screen active" id="screen-select">
+    <h1 class="title">🗺️ Victoria Explorer Quest</h1>
+    <p class="subtitle">Travel the map of Victoria, BC · learn its stories · earn all 10 passport stamps!</p>
+    <div class="players" id="playerCards"></div>
+    <div class="btnrow">
+      <button class="btn ghost" onclick="openCompare('screen-select')">🤝 Compare Explorers</button>
+    </div>
+  </section>
+
+  <!-- ============ MAP ============ -->
+  <section class="screen" id="screen-map">
+    <div class="topbar no-print">
+      <span class="chip" id="mapChip"></span>
+      <span class="spacer"></span>
+      <button class="btn ghost small" onclick="openPassport()">📔 Passport</button>
+      <button class="btn ghost small" onclick="openCompare('screen-map')">🤝 Compare</button>
+      <button class="btn ghost small" onclick="toggleMute()" id="muteBtn">🔊</button>
+      <button class="btn ghost small" onclick="switchPlayer()">👋 Switch</button>
+    </div>
+    <div class="mapcard">
+      <svg id="mapsvg" viewBox="0 0 800 640" xmlns="http://www.w3.org/2000/svg" aria-label="Adventure map of Victoria BC">
+        <!-- water -->
+        <rect x="0" y="0" width="800" height="640" fill="#BFE3F2"/>
+        <path d="M40,180 q14,-9 28,0 q14,9 28,0" stroke="#96cde6" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M70,420 q14,-9 28,0 q14,9 28,0" stroke="#96cde6" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M120,560 q14,-9 28,0 q14,9 28,0" stroke="#96cde6" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M330,300 q14,-9 28,0" stroke="#96cde6" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- mainland -->
+        <path d="M800,0 L800,640 L210,640
+                 C 225,590 215,555 240,515
+                 C 265,475 250,435 280,405
+                 L 300,395
+                 C 350,385 400,390 445,375
+                 C 490,360 495,335 465,320
+                 C 420,300 350,300 300,295
+                 L 262,285
+                 C 240,260 258,225 268,185
+                 C 288,125 242,62 262,0 Z"
+              fill="#F6EBD3" stroke="#E0CFA6" stroke-width="4"/>
+        <!-- Songhees peninsula -->
+        <path d="M180,250 C230,240 260,270 250,310 C240,350 190,360 165,330 C150,300 150,260 180,250 Z"
+              fill="#F6EBD3" stroke="#E0CFA6" stroke-width="4"/>
+        <!-- Butchart inset bubble -->
+        <circle cx="650" cy="80" r="56" fill="#EEF7EE" stroke="#8fbf9a" stroke-width="3" stroke-dasharray="7 6"/>
+        <text x="650" y="150" text-anchor="middle" font-size="11" fill="#6B7A88"
+              font-family="'Trebuchet MS',system-ui,sans-serif">🚌 20 km north · Brentwood Bay</text>
+        <!-- scenery -->
+        <text x="60" y="70" font-size="40">🧭</text>
+        <text x="330" y="345" font-size="22">🛩️</text>
+        <text x="110" y="500" font-size="22">⛴️</text>
+        <text x="380" y="345" font-size="13" fill="#4f7f99" text-anchor="middle"
+              font-family="'Comic Sans MS','Trebuchet MS',sans-serif" font-style="italic">Inner Harbour</text>
+        <text x="90" y="620" font-size="12" fill="#4f7f99"
+              font-family="'Comic Sans MS','Trebuchet MS',sans-serif" font-style="italic">Juan de Fuca Strait</text>
+        <!-- trail -->
+        <polyline id="trail" points="" fill="none" stroke="#C9A25F" stroke-width="3.5"
+                  stroke-dasharray="6 9" stroke-linecap="round"/>
+        <g id="stops"></g>
+      </svg>
+    </div>
+    <p class="maphint">Tap a glowing stop to explore it · 🔒 stops unlock in order</p>
+  </section>
+
+  <!-- ============ STORY ============ -->
+  <section class="screen" id="screen-story">
+    <div class="storycard">
+      <div class="semoji" id="storyEmoji"></div>
+      <h2 id="storyTitle"></h2>
+      <span class="era" id="storyEra"></span>
+      <div id="storyBody"></div>
+      <div class="fact" id="storyFact"></div>
+      <div class="btnrow">
+        <button class="btn ghost" onclick="show('screen-map'); renderMap()">← Map</button>
+        <button class="btn coral" onclick="startQuiz()">Start the Quiz →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="screen" id="screen-quiz">
+    <div class="quizhead">
+      <h2 id="quizTitle"></h2>
+      <div class="dots" id="quizDots"></div>
+    </div>
+    <div class="qcard">
+      <div class="qtext" id="qText"></div>
+      <div id="qOpts"></div>
+      <div class="feedback" id="qFeedback"></div>
+      <div class="btnrow">
+        <button class="btn" id="qNextBtn" style="visibility:hidden" onclick="nextQ()">Next →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PASSPORT ============ -->
+  <section class="screen" id="screen-passport">
+    <div class="passport">
+      <h2 id="ppTitle"></h2>
+      <p class="psub" id="ppSub"></p>
+      <div class="stampgrid" id="stampGrid"></div>
+      <div class="btnrow no-print">
+        <button class="btn ghost" onclick="show('screen-map'); renderMap()">← Map</button>
+        <button class="btn grape" id="certBtn" style="display:none" onclick="openCert()">🏆 View Certificate</button>
+        <button class="btn ghost" onclick="resetProfile()">🔄 Fresh adventure</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COMPARE ============ -->
+  <section class="screen" id="screen-compare">
+    <h1 class="title">🤝 Explorer Meetup</h1>
+    <p class="subtitle">How are our two explorers doing?</p>
+    <div class="comparegrid" id="cmpCards"></div>
+    <div class="cheer" id="cmpCheer"></div>
+    <div style="overflow-x:auto; margin-top:12px;">
+      <table class="cmptable" id="cmpTable"></table>
+    </div>
+    <div class="btnrow">
+      <button class="btn ghost" onclick="closeCompare()">← Back</button>
+    </div>
+  </section>
+
+  <!-- ============ CERTIFICATE ============ -->
+  <section class="screen" id="screen-cert">
+    <div class="cert">
+      <div class="confetti" id="confetti"></div>
+      <div class="ctrophy">🏆</div>
+      <h2>Master Explorer Certificate</h2>
+      <p>This certifies that</p>
+      <div class="cname" id="certName"></div>
+      <p>has explored all <b>10 historic stops</b> of Victoria, British Columbia —<br>
+        from the lands of the Lekwungen peoples to the Butchart Gardens —<br>
+        and earned every stamp in the Explorer Passport!</p>
+      <p id="certStats" style="margin-top:10px; font-weight:bold;"></p>
+      <div class="cdate" id="certDate"></div>
+      <div class="btnrow no-print">
+        <button class="btn ghost" onclick="openPassport()">← Passport</button>
+        <button class="btn" onclick="window.print()">🖨️ Print certificate</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="no-print">
+    <a href="index.html">← All quizzes</a> · <a href="../../index.html">Home</a><br>
+    Victoria Explorer Quest · for Grace &amp; Warren
+  </footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalBox"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= DATA ================= */
+const LOCATIONS = [
+  {
+    id: 'songhees', emoji: '🛶', name: 'Songhees Point', short: 'Songhees',
+    era: 'Thousands of years ago', color: '#0E8A8A', x: 208, y: 295,
+    story: [
+      "Long before there was a city — for thousands of years — the <b>Lekwungen</b> peoples, known today as the <b>Songhees and Esquimalt Nations</b>, lived on these lands and waters.",
+      "They traveled the coast in cedar canoes, caught salmon, and harvested the blue <b>camas flower</b>, whose bulbs were roasted as a sweet food. In spring, the meadows around Victoria still turn purple-blue with camas. This land is still their home today."
+    ],
+    fact: "<b>Did you know?</b> A single giant cedar tree could become a canoe, a house post, clothing, baskets — even medicine!",
+    questions: [
+      { q: "Who lived on the lands around Victoria for thousands of years before the city existed?",
+        options: ["The Lekwungen peoples (Songhees & Esquimalt Nations)", "Pirates", "Nobody at all", "Vikings"], answer: 0,
+        why: "The Lekwungen peoples have lived here for thousands of years — and still do today." },
+      { q: "What special blue flower did the Lekwungen harvest for food?",
+        options: ["Camas", "Rose", "Sunflower", "Tulip"], answer: 0,
+        why: "Camas bulbs were roasted as a sweet and important food." },
+      { q: "What did Lekwungen people build their canoes from?",
+        options: ["Cedar trees", "Metal", "Plastic", "Stone"], answer: 0,
+        why: "Giant cedar trees gave wood for canoes, houses and totem poles." }
+    ]
+  },
+  {
+    id: 'fort', emoji: '🪵', name: 'Fort Victoria · Bastion Square', short: 'Fort Victoria',
+    era: '1843 · The fort that became a city', color: '#E8734A', x: 415, y: 240,
+    story: [
+      "In <b>1843</b>, a fur trader named <b>James Douglas</b> of the <b>Hudson's Bay Company</b> sailed here and built a wooden trading fort. He liked the spot so much he called it “a perfect Eden.”",
+      "The fort was named after <b>Queen Victoria</b> of England. It's gone now, but bricks in the sidewalk near <b>Bastion Square</b> trace where its walls once stood — and that little fort grew into the whole city!"
+    ],
+    fact: "<b>Did you know?</b> People traded furs, blankets and tools at the fort — there were no shops, no cars and no electricity anywhere in Victoria!",
+    questions: [
+      { q: "What year was Fort Victoria built?",
+        options: ["1843", "2005", "1600", "1971"], answer: 0,
+        why: "James Douglas built the fur-trading fort in 1843." },
+      { q: "The fort was named after…",
+        options: ["Queen Victoria of England", "A famous ship", "The first mayor", "A mountain"], answer: 0,
+        why: "Like the city today, the fort took Queen Victoria's name." },
+      { q: "What can you still find near Bastion Square today?",
+        options: ["Bricks in the sidewalk showing where the fort walls stood", "The original wooden fort", "A moat with crocodiles", "Cannons that still fire every day"], answer: 0,
+        why: "The fort was torn down long ago, but sidewalk markers trace its outline." }
+    ]
+  },
+  {
+    id: 'chinatown', emoji: '🏮', name: 'Chinatown & Fan Tan Alley', short: 'Chinatown',
+    era: '1858 · Gold rush days', color: '#E8734A', x: 432, y: 158,
+    story: [
+      "In <b>1858</b>, gold was discovered on the mainland, and thousands of miners rushed through Victoria to reach it. Many settlers from China arrived and built a neighbourhood here — <b>the oldest Chinatown in all of Canada</b>.",
+      "Walk under the red-and-gold <b>Gate of Harmonious Interest</b>, then squeeze through <b>Fan Tan Alley</b>, one of the narrowest streets in Canada — in spots it's barely wider than your arms stretched out!"
+    ],
+    fact: "<b>Did you know?</b> Fan Tan Alley once hid game rooms and secret doors — today it's full of tiny shops.",
+    questions: [
+      { q: "Victoria's Chinatown is famous for being…",
+        options: ["The oldest Chinatown in Canada", "The newest in the world", "Completely underground", "Built on an island"], answer: 0,
+        why: "It began in 1858 — the oldest Chinatown in Canada." },
+      { q: "What brought thousands of people rushing through Victoria in 1858?",
+        options: ["A gold rush", "A giant storm", "A movie festival", "Free candy"], answer: 0,
+        why: "Gold was found on the Fraser River, and miners poured through Victoria on their way." },
+      { q: "What is special about Fan Tan Alley?",
+        options: ["It's one of the narrowest streets in Canada", "It's the longest street in BC", "Cars race down it", "It's made of glass"], answer: 0,
+        why: "At its skinniest, it's barely wider than your outstretched arms." }
+    ]
+  },
+  {
+    id: 'parliament', emoji: '🏛️', name: 'BC Parliament Buildings', short: 'Parliament',
+    era: '1898 · Where BC makes its laws', color: '#3FA7D6', x: 395, y: 440,
+    story: [
+      "British Columbia joined Canada in <b>1871</b>, and Victoria became the <b>capital city</b> of the whole province. The grand Parliament Buildings opened in <b>1898</b>, designed by <b>Francis Rattenbury</b> — he was only 25 years old and entered the design contest in secret!",
+      "At night the buildings sparkle with about <b>3,300 light bulbs</b>. Look up: a golden statue of Captain George Vancouver stands on top of the dome."
+    ],
+    fact: "<b>Did you know?</b> The copper domes were shiny brown when new — the sea air slowly turned them the turquoise-green colour you see today.",
+    questions: [
+      { q: "Victoria is the capital city of which province?",
+        options: ["British Columbia", "Ontario", "Alberta", "Quebec"], answer: 0,
+        why: "Victoria has been BC's capital since the province joined Canada in 1871." },
+      { q: "How many light bulbs make the Parliament Buildings sparkle at night?",
+        options: ["About 3,300", "Exactly 12", "About 100", "One giant bulb"], answer: 0,
+        why: "About 3,300 bulbs outline the buildings every night." },
+      { q: "What is amazing about Francis Rattenbury, who designed the buildings?",
+        options: ["He was only 25 years old", "He never used paper", "He was a king", "He built them alone in one week"], answer: 0,
+        why: "The young architect was just 25 when he won the design contest." }
+    ]
+  },
+  {
+    id: 'empress', emoji: '🫖', name: 'Fairmont Empress Hotel', short: 'Empress',
+    era: '1908 · The castle on the harbour', color: '#7B5EA7', x: 512, y: 330,
+    story: [
+      "The <b>Empress Hotel</b> opened in <b>1908</b>, right on the Inner Harbour — designed by the same young architect who made the Parliament Buildings. It's named for Queen Victoria, who was also called the <b>Empress of India</b>.",
+      "For over 100 years, visitors have dressed up for its famous <b>afternoon tea</b> with tiny sandwiches and cakes. In summer, green ivy climbs its brick walls like a castle in a storybook."
+    ],
+    fact: "<b>Did you know?</b> Kings, queens and movie stars have stayed here — and rumour says a few friendly ghosts never checked out!",
+    questions: [
+      { q: "What famous tradition is the Empress Hotel known for?",
+        options: ["Afternoon tea with tiny sandwiches and cakes", "Water-slide races", "Midnight pizza parties", "Indoor car racing"], answer: 0,
+        why: "Afternoon tea at the Empress has been a Victoria tradition for over a century." },
+      { q: "Why is the hotel called the “Empress”?",
+        options: ["Queen Victoria was also the Empress of India", "An empress built it herself", "It's shaped like a crown", "The owner's cat was named Empress"], answer: 0,
+        why: "It honours Queen Victoria's title: Empress of India." },
+      { q: "What climbs the hotel's brick walls in summer?",
+        options: ["Green ivy", "Bananas", "Seaweed", "Popcorn"], answer: 0,
+        why: "The ivy-covered walls make it look like a storybook castle." }
+    ]
+  },
+  {
+    id: 'museum', emoji: '🦣', name: 'Royal BC Museum', short: 'Museum',
+    era: 'Travel through time indoors', color: '#7B5EA7', x: 482, y: 448,
+    story: [
+      "At the <b>Royal BC Museum</b> you can stand nose-to-trunk with a life-size <b>woolly mammoth</b> from the Ice Age! You can also wander an <b>Old Town</b> street from the early 1900s, with wooden sidewalks and old-fashioned sounds and smells.",
+      "Right next door in <b>Thunderbird Park</b>, tall totem poles reach into the sky, and carvers still work at the carving studio."
+    ],
+    fact: "<b>Did you know?</b> The museum cares for millions of objects — from gold-rush tools to whale skeletons.",
+    questions: [
+      { q: "What giant Ice Age animal greets you at the museum?",
+        options: ["A woolly mammoth", "A T-Rex", "A giant penguin", "A sabre-tooth hamster"], answer: 0,
+        why: "The life-size woolly mammoth is one of the most famous sights in Victoria." },
+      { q: "What can you walk through inside the museum?",
+        options: ["An old-time street from the early 1900s", "A spaceship", "An underwater tunnel", "A chocolate factory"], answer: 0,
+        why: "Old Town recreates a street from over 100 years ago — sounds and smells included!" },
+      { q: "What stands tall in Thunderbird Park beside the museum?",
+        options: ["Totem poles", "Rollercoasters", "Lighthouses", "Windmills"], answer: 0,
+        why: "Thunderbird Park is home to magnificent First Nations totem poles." }
+    ]
+  },
+  {
+    id: 'wharf', emoji: '🦭', name: "Fisherman's Wharf", short: 'Wharf',
+    era: 'A floating village', color: '#3FA7D6', x: 290, y: 462,
+    story: [
+      "<b>Fisherman's Wharf</b> is a floating village! Brightly painted <b>houseboats</b> bob on the water, fishing boats unload their catch, and <b>float planes</b> buzz down to land right on the harbour.",
+      "Keep your eyes on the water — whiskery <b>harbour seals</b> pop up hoping for a snack. It's also a favourite spot to eat fish and chips on the dock."
+    ],
+    fact: "<b>Did you know?</b> The seals are wild animals — it's kinder (and safer) to watch them than to feed them.",
+    questions: [
+      { q: "What kind of homes float at Fisherman's Wharf?",
+        options: ["Colourful houseboats", "Treehouses", "Igloos", "Sandcastles"], answer: 0,
+        why: "People really live in the brightly painted floating homes." },
+      { q: "Which whiskery animal pops up beside the docks?",
+        options: ["Harbour seals", "Polar bears", "Crocodiles", "Sharks"], answer: 0,
+        why: "Curious harbour seals visit the wharf all the time." },
+      { q: "What kind of planes land right on the water?",
+        options: ["Float planes", "Jumbo jets", "Rockets", "Paper planes"], answer: 0,
+        why: "Float planes take off and land on the harbour all day long." }
+    ]
+  },
+  {
+    id: 'beacon', emoji: '🌳', name: 'Beacon Hill Park & Emily Carr', short: 'Beacon Hill',
+    era: 'Mile 0 · Art & totem poles', color: '#4CAF7D', x: 522, y: 545,
+    story: [
+      "<b>Beacon Hill Park</b> is Victoria's giant backyard, with peacocks, ponds, and a petting farm full of goats. Here you'll find <b>“Mile 0”</b> — the very beginning of the <b>Trans-Canada Highway</b>, a road that runs all the way across Canada.",
+      "Nearby stands one of the tallest totem poles in the world, carved by master carver <b>Mungo Martin</b> in 1956 — taller than a 12-storey building! The famous painter <b>Emily Carr</b> grew up just across the street and loved painting BC's forests and totem poles."
+    ],
+    fact: "<b>Did you know?</b> Emily Carr had many pets — including a monkey named Woo!",
+    questions: [
+      { q: "What begins at “Mile 0” in Beacon Hill Park?",
+        options: ["The Trans-Canada Highway", "A rollercoaster", "A river", "The ocean"], answer: 0,
+        why: "Mile 0 marks the start of the highway that crosses all of Canada." },
+      { q: "Who carved the giant totem pole near the park in 1956?",
+        options: ["Mungo Martin", "Emily Carr", "James Douglas", "Robert Butchart"], answer: 0,
+        why: "Master carver Mungo Martin's story pole was once the world's tallest." },
+      { q: "What unusual pet did painter Emily Carr have?",
+        options: ["A monkey named Woo", "A dragon named Rex", "A whale named Bob", "A robot dog"], answer: 0,
+        why: "Woo the monkey even appears in Emily Carr's paintings and books." }
+    ]
+  },
+  {
+    id: 'castle', emoji: '🏰', name: 'Craigdarroch Castle', short: 'Castle',
+    era: '1890 · A coal king’s dream', color: '#123b5c', x: 640, y: 235,
+    story: [
+      "<b>Craigdarroch Castle</b> was built in <b>1890</b> by <b>Robert Dunsmuir</b>, a coal miner who became the richest man in British Columbia. His “castle” has <b>39 rooms</b>, sparkling stained-glass windows, and a tower with <b>87 steps</b> — climb them all for one of the best views in Victoria!",
+      "Sadly, Robert died before his dream castle was finished, but his family lived there for years."
+    ],
+    fact: "<b>Did you know?</b> Over the years the castle has been a hospital, a college and a music school — now it's a museum you can explore.",
+    questions: [
+      { q: "What made Robert Dunsmuir rich enough to build a castle?",
+        options: ["Coal mining", "Pirate treasure", "Selling ice cream", "Winning the lottery"], answer: 0,
+        why: "Coal made Dunsmuir the richest man in British Columbia." },
+      { q: "How many steps climb to the top of the castle tower?",
+        options: ["87", "10", "1,000", "3"], answer: 0,
+        why: "87 steps take you up the tower to an amazing view." },
+      { q: "What is Craigdarroch Castle today?",
+        options: ["A museum you can visit", "A school for wizards", "A hotel", "The mayor's house"], answer: 0,
+        why: "Today anyone can explore the castle — it's a museum." }
+    ]
+  },
+  {
+    id: 'butchart', emoji: '🌸', name: 'The Butchart Gardens', short: 'Butchart',
+    era: '1909 · A quarry becomes a garden', color: '#4CAF7D', x: 650, y: 74,
+    story: [
+      "Over 100 years ago, <b>Robert Butchart</b> dug limestone out of a huge pit here to make cement. When the rock ran out around <b>1909</b>, his wife <b>Jennie Butchart</b> had a brilliant idea: turn the ugly empty pit into a garden!",
+      "She hauled in soil by <b>horse and cart</b>, and it took about <b>nine years</b> to create the famous <b>Sunken Garden</b>. Today it's a National Historic Site with around a million plants."
+    ],
+    fact: "<b>Did you know?</b> In summer the gardens glow with fireworks and thousands of lights — and there's a carousel with 30 animals to ride.",
+    questions: [
+      { q: "Butchart Gardens was built inside an old what?",
+        options: ["Limestone rock pit (a quarry)", "Castle", "Swimming pool", "Volcano"], answer: 0,
+        why: "Jennie Butchart turned her husband's used-up quarry into the Sunken Garden." },
+      { q: "How did Jennie bring in soil for the garden?",
+        options: ["By horse and cart", "By helicopter", "By robot", "Through giant pipes"], answer: 0,
+        why: "Tons of soil arrived by horse and cart — it took about nine years!" },
+      { q: "Whose idea was the garden?",
+        options: ["Jennie Butchart", "Queen Victoria", "James Douglas", "Emily Carr"], answer: 0,
+        why: "Robert dug the pit for cement; Jennie dreamed up the garden." }
+    ]
+  }
+];
+
+/* ================= SAVE / PROFILES ================= */
+const KEY = 'victoriaExplorerQuest_v1';
+function defaultProfile(p) {
+  return {
+    name: p, emoji: p === 'Grace' ? '🌸' : '⚡',
+    stamps: {},            // locId -> { stars, earnedAt }
+    totalAnswered: 0, totalCorrect: 0,
+    masterExplorer: false, completedAt: null
+  };
+}
+let SAVE;
+try { SAVE = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { SAVE = {}; }
+SAVE.profiles = SAVE.profiles || {};
+for (const p of ['Grace', 'Warren']) SAVE.profiles[p] = Object.assign(defaultProfile(p), SAVE.profiles[p] || {});
+SAVE.muted = !!SAVE.muted;
+function save() { try { localStorage.setItem(KEY, JSON.stringify(SAVE)); } catch (e) {} }
+
+let player = null;           // current profile object
+let locIndex = -1;           // current location index
+let quiz = null;             // { qs, i, correct, dots[] }
+let compareReturn = 'screen-select';
+
+/* ================= HELPERS ================= */
+const $ = id => document.getElementById(id);
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+function toastMsg(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.classList.remove('show'), 2200);
+}
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function stampCount(prof) { return Object.keys(prof.stamps).length; }
+function starTotal(prof) { return Object.values(prof.stamps).reduce((s, x) => s + x.stars, 0); }
+function accuracy(prof) { return prof.totalAnswered ? Math.round(100 * prof.totalCorrect / prof.totalAnswered) : 0; }
+function rank(n) {
+  if (n >= 10) return '🏆 Master Explorer';
+  if (n >= 9) return '🔥 Almost There!';
+  if (n >= 6) return '🕵️ History Hunter';
+  if (n >= 3) return '🥾 Trail Finder';
+  return '🌱 Rookie Explorer';
+}
+function isUnlocked(prof, i) { return i === 0 || !!prof.stamps[LOCATIONS[i - 1].id]; }
+
+/* ================= SOUND ================= */
+let audioCtx = null;
+function ping(freq, dur, delay) {
+  if (SAVE.muted) return;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    const t = audioCtx.currentTime + (delay || 0);
+    o.type = 'triangle'; o.frequency.value = freq;
+    g.gain.setValueAtTime(.18, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+const sndGood = () => { ping(660, .15); ping(880, .2, .12); };
+const sndBad = () => ping(180, .3);
+const sndStamp = () => { ping(523, .12); ping(659, .12, .1); ping(784, .25, .2); };
+function toggleMute() {
+  SAVE.muted = !SAVE.muted; save();
+  $('muteBtn').textContent = SAVE.muted ? '🔇' : '🔊';
+}
+
+/* ================= PLAYER SELECT ================= */
+function renderSelect() {
+  const box = $('playerCards');
+  box.innerHTML = '';
+  for (const name of ['Grace', 'Warren']) {
+    const p = SAVE.profiles[name];
+    const n = stampCount(p);
+    const card = document.createElement('button');
+    card.className = 'player-card';
+    card.innerHTML = `
+      <div class="pemoji">${p.emoji}</div>
+      <h2>${p.name}</h2>
+      <div class="pstats">${n}/10 stamps · ${starTotal(p)} ⭐${p.totalAnswered ? ' · ' + accuracy(p) + '% accuracy' : ''}</div>
+      <div class="prank">${rank(n)}</div>`;
+    card.onclick = () => { player = p; SAVE.lastPlayer = name; save(); renderMap(); show('screen-map'); };
+    box.appendChild(card);
+  }
+}
+function switchPlayer() { player = null; renderSelect(); show('screen-select'); }
+
+/* ================= MAP ================= */
+function buildMap() {
+  $('trail').setAttribute('points', LOCATIONS.map(l => `${l.x},${l.y}`).join(' '));
+  const g = $('stops');
+  g.innerHTML = '';
+  LOCATIONS.forEach((loc, i) => {
+    const s = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    s.setAttribute('class', 'stop');
+    s.setAttribute('transform', `translate(${loc.x},${loc.y})`);
+    s.dataset.i = i;
+    s.innerHTML = `
+      <text class="lstars" y="-38"></text>
+      <circle class="ring" r="28" stroke="${loc.color}"/>
+      <text class="lemoji" y="9">${loc.emoji}</text>
+      <circle class="numbg" cx="22" cy="-20" r="11" fill="${loc.color}"/>
+      <text class="num" x="22" y="-16">${i + 1}</text>
+      <text class="lock" x="20" y="24">🔒</text>
+      <text class="lname" y="49">${loc.short}</text>`;
+    g.appendChild(s);
+  });
+  $('mapsvg').addEventListener('click', e => {
+    const s = e.target.closest('g.stop');
+    if (!s) return;
+    openStop(+s.dataset.i, s);
+  });
+}
+function renderMap() {
+  if (!player) return;
+  document.querySelectorAll('#stops .stop').forEach(s => {
+    const i = +s.dataset.i, loc = LOCATIONS[i];
+    const st = player.stamps[loc.id];
+    s.classList.remove('locked', 'unlocked', 'stamped');
+    s.classList.add(st ? 'stamped' : (isUnlocked(player, i) ? 'unlocked' : 'locked'));
+    s.querySelector('.lstars').textContent = st ? '⭐'.repeat(st.stars) : '';
+  });
+  const n = stampCount(player);
+  $('mapChip').innerHTML = `${player.emoji} <b>${player.name}</b> <span class="cstat">· ${n}/10 stamps · ${rank(n)}</span>`;
+  $('muteBtn').textContent = SAVE.muted ? '🔇' : '🔊';
+}
+function openStop(i, el) {
+  if (!isUnlocked(player, i)) {
+    if (el) { el.classList.add('shake'); setTimeout(() => el.classList.remove('shake'), 450); }
+    sndBad();
+    toastMsg(`🔒 Earn the “${LOCATIONS[i - 1].short}” stamp first!`);
+    return;
+  }
+  locIndex = i;
+  renderStory();
+  show('screen-story');
+}
+
+/* ================= STORY ================= */
+function renderStory() {
+  const loc = LOCATIONS[locIndex];
+  $('storyEmoji').textContent = loc.emoji;
+  $('storyTitle').textContent = `Stop ${locIndex + 1} · ${loc.name}`;
+  $('storyEra').textContent = loc.era;
+  $('storyBody').innerHTML = loc.story.map(p => `<p class="story">${p}</p>`).join('');
+  $('storyFact').innerHTML = loc.fact;
+}
+
+/* ================= QUIZ ================= */
+function startQuiz() {
+  const loc = LOCATIONS[locIndex];
+  const qs = shuffle(loc.questions).map(q => {
+    const order = shuffle(q.options.map((_, i) => i));
+    return { q: q.q, why: q.why, options: order.map(i => q.options[i]), answer: order.indexOf(q.answer) };
+  });
+  quiz = { qs, i: 0, correct: 0, marks: [] };
+  $('quizTitle').textContent = `${loc.emoji} ${loc.short} Quiz`;
+  renderQ();
+  show('screen-quiz');
+}
+function renderQ() {
+  const q = quiz.qs[quiz.i];
+  $('quizDots').innerHTML = quiz.qs.map((_, i) =>
+    `<div class="dot ${i < quiz.marks.length ? (quiz.marks[i] ? 'good' : 'bad') : (i === quiz.i ? 'now' : '')}"></div>`).join('');
+  $('qText').textContent = `Q${quiz.i + 1}. ${q.q}`;
+  const box = $('qOpts');
+  box.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.textContent = opt;
+    b.onclick = () => choose(i);
+    box.appendChild(b);
+  });
+  const fb = $('qFeedback');
+  fb.className = 'feedback';
+  $('qNextBtn').style.visibility = 'hidden';
+  $('qNextBtn').textContent = quiz.i === quiz.qs.length - 1 ? 'Finish ✔' : 'Next →';
+}
+function choose(i) {
+  const q = quiz.qs[quiz.i];
+  const opts = document.querySelectorAll('#qOpts .opt');
+  opts.forEach(b => b.disabled = true);
+  const right = i === q.answer;
+  opts[q.answer].classList.add('correct');
+  if (!right) opts[i].classList.add('wrong');
+  if (right) { quiz.correct++; sndGood(); } else sndBad();
+  quiz.marks.push(right);
+  player.totalAnswered++;
+  if (right) player.totalCorrect++;
+  save();
+  const fb = $('qFeedback');
+  fb.className = 'feedback show ' + (right ? 'good' : 'bad');
+  fb.innerHTML = (right ? '✅ <b>Correct!</b> ' : '❌ <b>Not quite.</b> ') + q.why;
+  $('quizDots').innerHTML = quiz.qs.map((_, j) =>
+    `<div class="dot ${j < quiz.marks.length ? (quiz.marks[j] ? 'good' : 'bad') : (j === quiz.i ? 'now' : '')}"></div>`).join('');
+  $('qNextBtn').style.visibility = 'visible';
+}
+function nextQ() {
+  quiz.i++;
+  if (quiz.i < quiz.qs.length) renderQ();
+  else finishQuiz();
+}
+function finishQuiz() {
+  const loc = LOCATIONS[locIndex];
+  const c = quiz.correct;
+  if (c >= 2) {
+    const stars = c === 3 ? 3 : 2;
+    const prev = player.stamps[loc.id];
+    const improved = !prev || stars > prev.stars;
+    if (improved) player.stamps[loc.id] = { stars, earnedAt: prev ? prev.earnedAt : new Date().toISOString() };
+    let becameMaster = false;
+    if (stampCount(player) === LOCATIONS.length && !player.masterExplorer) {
+      player.masterExplorer = true;
+      player.completedAt = new Date().toISOString();
+      becameMaster = true;
+    }
+    save();
+    sndStamp();
+    const next = locIndex + 1 < LOCATIONS.length ? LOCATIONS[locIndex + 1] : null;
+    showModal(`
+      <div class="bigstamp">${loc.emoji}</div>
+      <h2>${prev && !improved ? 'Stamp kept!' : 'Stamp earned!'}</h2>
+      <div class="mstars">${'⭐'.repeat((player.stamps[loc.id]).stars)}</div>
+      <p>You got <b>${c}/3</b> at ${loc.short}!</p>
+      ${becameMaster ? `<p>🎉 <b>You collected ALL 10 stamps — you're a Master Explorer!</b></p>
+        <div class="btnrow"><button class="btn grape" onclick="closeModal(); openCert()">🏆 See your certificate</button></div>`
+      : `<div class="btnrow">
+          <button class="btn ghost" onclick="closeModal(); show('screen-map'); renderMap()">🗺️ Map</button>
+          ${next && !player.stamps[next.id] ? `<button class="btn coral" onclick="closeModal(); openStop(${locIndex + 1})">Next stop: ${next.emoji} →</button>` : ''}
+        </div>`}
+    `);
+  } else {
+    sndBad();
+    showModal(`
+      <div class="bigstamp">🧐</div>
+      <h2>Almost, explorer!</h2>
+      <p>You got <b>${c}/3</b> — you need 2 to earn the stamp.<br>Read the story again — the answers are hiding in it!</p>
+      <div class="btnrow">
+        <button class="btn coral" onclick="closeModal(); renderStory(); show('screen-story')">📖 Read &amp; retry</button>
+        <button class="btn ghost" onclick="closeModal(); show('screen-map'); renderMap()">🗺️ Map</button>
+      </div>
+    `);
+  }
+}
+function showModal(html) { $('modalBox').innerHTML = html; $('overlay').classList.add('show'); }
+function closeModal() { $('overlay').classList.remove('show'); }
+
+/* ================= PASSPORT ================= */
+function openPassport() {
+  const n = stampCount(player);
+  $('ppTitle').textContent = `📔 ${player.emoji} ${player.name}'s Explorer Passport`;
+  $('ppSub').textContent = `${n}/10 stamps · ${starTotal(player)} stars · ${accuracy(player)}% accuracy · ${rank(n)}`;
+  const g = $('stampGrid');
+  g.innerHTML = '';
+  LOCATIONS.forEach(loc => {
+    const st = player.stamps[loc.id];
+    const d = document.createElement('div');
+    d.className = 'slot' + (st ? ' got' : '');
+    d.innerHTML = `<div class="semoji">${loc.emoji}</div>
+      <div class="sstars">${st ? '⭐'.repeat(st.stars) : ''}</div>
+      <div class="sname">${loc.short}</div>`;
+    g.appendChild(d);
+  });
+  $('certBtn').style.display = player.masterExplorer ? '' : 'none';
+  show('screen-passport');
+}
+function resetProfile() {
+  if (!confirm(`Start a totally fresh adventure for ${player.name}? All of ${player.name}'s stamps will be cleared. (This won't touch anyone else's passport.)`)) return;
+  SAVE.profiles[player.name] = defaultProfile(player.name);
+  player = SAVE.profiles[player.name];
+  save();
+  renderMap();
+  show('screen-map');
+  toastMsg('🧭 A brand-new adventure begins!');
+}
+
+/* ================= COMPARE ================= */
+function openCompare(from) {
+  compareReturn = from || 'screen-select';
+  const G = SAVE.profiles.Grace, W = SAVE.profiles.Warren;
+  $('cmpCards').innerHTML = [G, W].map(p => `
+    <div class="cmp">
+      <h3>${p.emoji} ${p.name}</h3>
+      <div class="big">${stampCount(p)}/10</div>
+      <div class="cstats">${starTotal(p)} stars ⭐<br>${accuracy(p)}% accuracy · ${rank(stampCount(p))}</div>
+    </div>`).join('');
+  const diff = stampCount(G) - stampCount(W);
+  $('cmpCheer').innerHTML =
+    diff === 0
+      ? (stampCount(G) === 10 ? "🏆 Two Master Explorers! Victoria has no secrets left!" : "🤝 Neck and neck — amazing exploring, team!")
+      : (diff > 0
+        ? `⚡ Warren has <b>${diff}</b> stop${diff > 1 ? 's' : ''} waiting for him — go get 'em!`
+        : `🌸 Grace has <b>${-diff}</b> stop${-diff > 1 ? 's' : ''} waiting for her — go get 'em!`);
+  $('cmpTable').innerHTML =
+    `<tr><th style="text-align:left">Stop</th><th>🌸 Grace</th><th>⚡ Warren</th></tr>` +
+    LOCATIONS.map(loc => {
+      const g = G.stamps[loc.id], w = W.stamps[loc.id];
+      return `<tr><td>${loc.emoji} ${loc.short}</td>
+        <td>${g ? '⭐'.repeat(g.stars) : '—'}</td>
+        <td>${w ? '⭐'.repeat(w.stars) : '—'}</td></tr>`;
+    }).join('');
+  show('screen-compare');
+}
+function closeCompare() {
+  if (compareReturn === 'screen-map' && player) { renderMap(); show('screen-map'); }
+  else { renderSelect(); show('screen-select'); }
+}
+
+/* ================= CERTIFICATE ================= */
+function openCert() {
+  $('certName').textContent = `${player.emoji} ${player.name} ${player.emoji}`;
+  $('certStats').textContent = `${starTotal(player)}/30 stars · ${accuracy(player)}% quiz accuracy`;
+  const d = player.completedAt ? new Date(player.completedAt) : new Date();
+  $('certDate').textContent = 'Completed on ' + d.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' }) + ' · Victoria, British Columbia';
+  const conf = $('confetti');
+  conf.innerHTML = '';
+  const bits = ['🎉', '⭐', '🌸', '🍁', '✨'];
+  for (let i = 0; i < 22; i++) {
+    const s = document.createElement('span');
+    s.textContent = bits[i % bits.length];
+    s.style.left = Math.random() * 96 + '%';
+    s.style.animationDuration = (3 + Math.random() * 3) + 's';
+    s.style.animationDelay = (Math.random() * 3) + 's';
+    conf.appendChild(s);
+  }
+  show('screen-cert');
+}
+
+/* ================= INIT ================= */
+buildMap();
+renderSelect();
+</script>
+</body>
+</html>

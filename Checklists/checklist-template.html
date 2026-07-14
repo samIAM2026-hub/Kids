@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weekly Checklist · Template</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Firebase compat SDK — MUST load before the sync script (matches the other checklists). -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="../JS/firebase-checklist-sync.js"></script>
+
+<style>
+  :root{
+    --ink:#1c1a17; --ink-soft:#6b6358; --ink-faint:#8a8175;
+    --cream:#f6f3ed; --line:#e6e0d6;
+    --rust:#b4622f; --green:#3f7d4e; --red:#c0392b;
+    --serif:'Newsreader',Georgia,serif; --display:'Fraunces',Georgia,serif; --mono:'IBM Plex Mono',monospace;
+  }
+  html,body{margin:0;background:#fff;}
+  .doc{box-sizing:border-box;max-width:8.5in;margin:0 auto;padding:48px clamp(24px,5vw,.75in) 96px;
+       font-family:var(--serif);color:var(--ink);font-size:15px;line-height:1.5;}
+  h1,h2{text-wrap:balance;margin:0;}
+  .head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
+        border-bottom:2px solid var(--ink);padding-bottom:14px;}
+  .head h1{font-family:var(--display);font-weight:600;font-size:38px;line-height:1;}
+  .head .meta{text-align:right;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--ink-soft);line-height:1.7;}
+  .head .meta b{color:var(--ink);}
+  .goal{margin:16px 0;padding:13px 16px;background:var(--cream);border-left:3px solid var(--rust);font-size:14.5px;}
+  .goal b.pass{color:var(--green);} .goal b.fail{color:var(--rust);}
+  .legend{display:flex;align-items:center;gap:18px;margin:0 0 14px;font-family:var(--mono);
+          font-size:11px;letter-spacing:.03em;color:var(--ink-soft);flex-wrap:wrap;}
+  .legend .cell{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:3px;font-weight:700;}
+  .progress{display:flex;align-items:center;gap:18px;margin:0 0 20px;}
+  .progress .count{font-family:var(--display);font-weight:600;font-size:30px;line-height:1;white-space:nowrap;}
+  .progress .count span{font-size:17px;color:var(--ink-faint);}
+  .bar{flex:1;position:relative;height:12px;background:var(--line);border-radius:99px;}
+  .bar .fill{position:absolute;inset:0 auto 0 0;border-radius:99px;transition:width .2s;}
+  .bar .mark{position:absolute;top:-4px;bottom:-4px;left:90%;width:2px;background:var(--ink);}
+  .badge{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.03em;padding:5px 13px;border-radius:99px;white-space:nowrap;}
+  .reset{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--ink-faint);
+         background:none;border:1px solid #cfc7b8;border-radius:99px;padding:6px 13px;cursor:pointer;}
+  .failbanner{margin:0 0 28px;padding:13px 16px;border-left:3px solid var(--green);border-radius:4px;background:var(--cream);
+              display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .failbanner .n{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--rust);}
+  .failbanner .n b{font-size:17px;color:var(--red);}
+  .failbanner .msg{font-size:14px;font-weight:700;color:var(--red);}
+  .grp{margin-bottom:24px;}
+  .grp .gt{display:flex;align-items:baseline;gap:8px;margin-bottom:7px;}
+  .grp .gt h2{font-family:var(--display);font-weight:600;font-size:18px;}
+  .row{display:grid;grid-template-columns:minmax(0,1fr) 92px repeat(7,34px);align-items:center;}
+  .row.hd{align-items:end;border-bottom:1.5px solid var(--ink);padding-bottom:6px;}
+  .row+.row{border-bottom:1px solid var(--line);}
+  .row .th{font-family:var(--mono);font-weight:500;font-size:10.5px;letter-spacing:.06em;color:var(--ink-soft);}
+  .row .th.day{text-align:center;font-weight:600;font-size:11px;color:var(--ink);}
+  .row .th.wknd{color:var(--rust);}
+  .row .task{font-size:14.5px;padding:9px 8px 9px 4px;}
+  .row .notes{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);padding-right:6px;}
+  .cell{display:flex;justify-content:center;padding:9px 0;cursor:pointer;}
+  .box{display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:3px;
+       font-family:var(--mono);font-size:12px;font-weight:700;line-height:1;}
+  .box.empty{border:1.5px solid #b8afa1;} .box.empty.wknd{border-color:#d9b9a3;}
+  .box.done{border:1.5px solid var(--green);background:var(--green);color:#fff;}
+  .box.fail{border:1.5px solid var(--red);background:var(--red);color:#fff;}
+  .rewards{display:flex;gap:14px;margin-top:30px;}
+  .rw{flex:1;border-radius:5px;padding:13px 16px;}
+  .rw.pass{border:1.5px solid var(--green);} .rw.fail{border:1.5px solid var(--rust);}
+  .rw .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.05em;margin-bottom:3px;}
+  .rw.pass .lbl{color:var(--green);} .rw.fail .lbl{color:var(--rust);}
+  .rw .fill-in{font-size:13.5px;color:#4a443c;}
+  .tpl-note{margin:0 0 20px;padding:10px 14px;border:1px dashed #cfc7b8;border-radius:5px;
+            font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--ink-soft);background:#fbfaf6;}
+  @media print{
+    html{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .doc{max-width:none;padding:0 .6in;}
+    .screen-only{display:none !important;}
+    .grp,.row{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<main class="doc">
+  <div class="tpl-note screen-only">
+    TEMPLATE — to make a real checklist: copy this file, then edit only the CONFIG block in the
+    script below. Set <b>CHILD_NAME</b>, give this child a unique <b>CLOUD_KEY</b> and
+    <b>STORAGE_KEY</b> (else two kids share one saved state), and fill in <b>TASK_GROUPS</b>.
+  </div>
+  <div id="startDayBar" class="screen-only" style="margin:0 0 16px;padding:9px 14px;font-family:var(--mono);font-size:12px;color:var(--ink);display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px dashed #cfc7b8;border-radius:5px;background:#fbfaf6;">
+    <span style="font-weight:600;letter-spacing:.04em;">WEEK STARTING ON:</span>
+    <select id="startDaySel" style="font-family:var(--mono);font-size:12px;padding:5px 10px;border:1px solid #cfc7b8;border-radius:8px;background:#fff;color:var(--ink);cursor:pointer;"></select>
+    <span id="startDayHint" style="color:var(--ink-soft);"></span>
+  </div>
+  <style id="colHLStyle"></style>
+  <div id="app"></div>
+</main>
+
+<script>
+/* ============================ CONFIG — EDIT THIS BLOCK ONLY ============================ */
+const CHILD_NAME  = "Child";                        // shown in the heading, e.g. "Grace"
+const CLOUD_KEY   = "template";                     // Firebase path checklists/<key> — MUST be unique per child ('grace' / 'warren' / …)
+const STORAGE_KEY = "template_weekly_checklist_v1"; // localStorage key — MUST be unique per child
+const PASS_PCT    = 0.90;                            // pass threshold (90%)
+
+// Each task: { name, notes?, half? }  ·  half:true = a ✕ counts as ½ a failure.
+// A cell cycles: empty → done (✓ green) → failed (✕ red) → empty.
+const TASK_GROUPS = [
+  { emoji: "🌅", title: "Morning Routine", tasks: [
+    { name: "Wake up & get ready", notes: "7:45 AM · wknd 8:45" },
+    { name: "Brush teeth", notes: "Morning & night" },
+  ]},
+  { emoji: "📚", title: "School & Learning", tasks: [
+    { name: "Homework", notes: "—" },
+    { name: "Read one book", notes: "30 min" },
+    { name: "Piano practice", notes: "Every day · 30 min" },
+  ]},
+  { emoji: "🧹", title: "Chores", tasks: [
+    { name: "Clean room", notes: "Own room" },
+    { name: "Garbage", notes: "Take turns" },
+  ]},
+  { emoji: "😇", title: "Behavior", tasks: [
+    { name: "Listen to instructions", notes: "Ongoing" },
+    { name: "Making excuses", notes: "½ point per ✕", half: true },
+  ]},
+  { emoji: "🌙", title: "Sleep", tasks: [
+    { name: "Sleep by 10 PM", notes: "10:00 PM" },
+  ]},
+];
+/* ========================== END CONFIG — do not edit below ========================== */
+
+const DAYS = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// A tiny store that mirrors the interface ChecklistCloud.attach() expects (setState({checked})).
+const store = {
+  state: { checked: {} },
+  setState(patch){ Object.assign(this.state, patch); render(); }
+};
+
+function save(){
+  const checked = store.state.checked;
+  if (window.ChecklistCloud) ChecklistCloud.save(CLOUD_KEY, checked, STORAGE_KEY);
+  else { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(checked)); } catch(e){} }
+}
+function toggle(id){
+  const checked = Object.assign({}, store.state.checked);
+  const next = ((checked[id] || 0) + 1) % 3;   // 0 empty → 1 done → 2 failed → 0
+  if (next === 0) delete checked[id]; else checked[id] = next;
+  store.state.checked = checked; save(); render();
+}
+function reset(){
+  const checked = {};
+  TASK_GROUPS.forEach((g, gi) => g.tasks.forEach((t, ti) => {
+    for (let di = 0; di < 7; di++) checked[gi+'-'+ti+'-'+di] = 1;
+  }));
+  store.state.checked = checked; save(); render();
+}
+
+function compute(){
+  const c = store.state.checked || {};
+  let taskCount = 0, total = 0, done = 0, failed = 0;
+  TASK_GROUPS.forEach((g, gi) => g.tasks.forEach((t, ti) => {
+    taskCount++;
+    for (let di = 0; di < 7; di++){
+      total++;
+      const st = c[gi+'-'+ti+'-'+di] || 0;
+      if (st === 1) done++; else if (st === 2) failed += (t.half ? 0.5 : 1);
+    }
+  }));
+  const threshold = Math.ceil(total * PASS_PCT);
+  const pass = done >= threshold;
+  const pct = total ? Math.round(done/total*100) : 0;
+  const maxFails = total - threshold;
+  const failsLeft = Math.max(0, maxFails - failed);
+  const penalty = failed > maxFails;
+  return { taskCount, total, done, failed, threshold, pass, pct, maxFails, failsLeft, penalty };
+}
+
+function box(id, st, wknd){
+  const cls = st === 1 ? 'box done' : st === 2 ? 'box fail' : 'box empty' + (wknd ? ' wknd' : '');
+  const glyph = st === 1 ? '✓' : st === 2 ? '✕' : '';
+  return '<div class="cell" data-id="'+id+'"><span class="'+cls+'">'+glyph+'</span></div>';
+}
+
+function render(){
+  const s = compute(), c = store.state.checked || {};
+  const barColor = s.pass ? 'var(--green)' : 'var(--rust)';
+  const badgeBg = s.pass ? '#e7f0e9' : '#f7ece5', badgeFg = s.pass ? 'var(--green)' : 'var(--rust)';
+  const failMsg = s.penalty ? '⚠ BIG PENALTY TRIGGERED — too many failures this week!'
+    : (s.failsLeft === 0 ? '⚠ One more failure = BIG PENALTY!'
+    : s.failsLeft + (s.failsLeft === 1 ? ' failure left' : ' failures left') + ' before the BIG PENALTY');
+  const failBorder = s.penalty ? 'var(--red)' : (s.failsLeft <= 1 ? 'var(--rust)' : 'var(--green)');
+
+  let html = ''
+    + '<div class="head"><div><h1>'+esc(CHILD_NAME)+"'s Weekly Checklist</h1></div>"
+    + '<div class="meta"><div>'+s.taskCount+' TASKS × 7 DAYS = <b>'+s.total+' CHECKS</b></div>'
+    + '<div>PASS THRESHOLD ≥ '+Math.round(PASS_PCT*100)+'% (<b>'+s.threshold+'</b>)</div></div></div>'
+
+    + '<div class="goal"><b>Goal:</b> Complete at least <b>'+Math.round(PASS_PCT*100)+'%</b> of all '
+    + 'checkboxes by Sunday 9:00 PM to <b class="pass">PASS</b> and earn your reward. Below that means '
+    + '<b class="fail">FAILED</b> — and a penalty.</div>'
+
+    + '<div class="legend screen-only"><span>TAP A BOX TO CYCLE:</span>'
+    + '<span><span class="cell" style="width:auto;padding:0"><span class="box empty"></span></span> EMPTY</span>'
+    + '<span><span class="box done" style="width:16px;height:16px">✓</span> DONE</span>'
+    + '<span><span class="box fail" style="width:16px;height:16px">✕</span> FAILED</span></div>'
+
+    + '<div class="progress"><div class="count">'+s.done+'<span> / '+s.total+'</span></div>'
+    + '<div class="bar"><div class="fill" style="width:'+s.pct+'%;background:'+barColor+'"></div><div class="mark" title="90% goal"></div></div>'
+    + '<div class="badge" style="background:'+badgeBg+';color:'+badgeFg+'">'+(s.pass?'PASS ✓':'IN PROGRESS')+' · '+s.pct+'%</div>'
+    + '<button class="reset screen-only" id="resetBtn">RESET</button></div>'
+
+    + '<div class="failbanner" style="border-left-color:'+failBorder+'">'
+    + '<div class="n">✕ FAILED MARKS: <b>'+s.failed+'</b> / '+s.maxFails+' allowed</div>'
+    + '<div class="msg">'+failMsg+'</div></div>';
+
+  TASK_GROUPS.forEach((g, gi) => {
+    html += '<div class="grp"><div class="gt"><span>'+g.emoji+'</span><h2>'+esc(g.title)+'</h2></div>'
+      + '<div class="row hd"><div class="th">TASK</div><div class="th">NOTES</div>'
+      + DAYS.map((d,i)=>'<div class="th day'+(i>=5?' wknd':'')+'">'+d+'</div>').join('') + '</div>';
+    g.tasks.forEach((t, ti) => {
+      html += '<div class="row"><div class="task">'+esc(t.name)+'</div>'
+        + '<div class="notes">'+esc(t.notes || '')+'</div>';
+      for (let di = 0; di < 7; di++){
+        const id = gi+'-'+ti+'-'+di;
+        html += box(id, c[id] || 0, di >= 5);
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+
+  html += '<div class="rewards"><div class="rw pass"><div class="lbl">PASS ≥ '+s.threshold+' CHECKS</div>'
+    + '<div class="fill-in">Reward unlocked 🎉 — write it here: ____________________</div></div>'
+    + '<div class="rw fail"><div class="lbl">FAILED &lt; '+s.threshold+' CHECKS</div>'
+    + '<div class="fill-in">Penalty: ____________________</div></div></div>';
+
+  document.getElementById('app').innerHTML = html;
+  const rb = document.getElementById('resetBtn');
+  if (rb) rb.addEventListener('click', reset);
+}
+
+// One delegated click handler for all cells.
+document.getElementById('app').addEventListener('click', e => {
+  const cell = e.target.closest('.cell[data-id]');
+  if (cell) toggle(cell.dataset.id);
+});
+
+// Load: prefer cloud sync (same contract as the other checklists), else localStorage.
+if (window.ChecklistCloud) {
+  ChecklistCloud.attach(store, CLOUD_KEY, STORAGE_KEY);   // calls store.setState({checked}) on every update
+} else {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) store.state.checked = JSON.parse(raw);
+  } catch(e){}
+}
+render();
+
+// Start-day selector: highlight the chosen weekday's column (header + all rows).
+(function(){
+  var DAYS=['MON','TUE','WED','THU','FRI','SAT','SUN'];
+  var KEY='dcStartDay:'+location.pathname;
+  var sel=document.getElementById('startDaySel');
+  var hint=document.getElementById('startDayHint');
+  var st=document.getElementById('colHLStyle');
+  if(!sel||!st)return;
+  var o0=document.createElement('option');o0.value='';o0.textContent='— none —';sel.appendChild(o0);
+  for(var i=0;i<7;i++){var o=document.createElement('option');o.value=String(i);o.textContent=DAYS[i];sel.appendChild(o);}
+  function apply(v){
+    if(v===''||v==null){st.textContent='';if(hint)hint.textContent='';return;}
+    var idx=parseInt(v,10);var n=3+idx;
+    st.textContent='.row>*:nth-child('+n+'){background:rgba(212,160,23,.18);}';
+    if(hint)hint.textContent='('+DAYS[idx]+' column highlighted)';
+  }
+  var saved='';try{saved=localStorage.getItem(KEY)||'';}catch(e){}
+  sel.value=saved;apply(saved);
+  sel.addEventListener('change',function(){var v=sel.value;try{localStorage.setItem(KEY,v);}catch(e){}apply(v);});
+})();
+</script>
+</body>
+</html>
