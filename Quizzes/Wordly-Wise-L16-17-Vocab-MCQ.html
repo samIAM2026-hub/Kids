@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wordly Wise Lessons 16 & 17 — Vocabulary (Meanings)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family:'Comic Sans MS','Trebuchet MS',system-ui,sans-serif; background:linear-gradient(160deg,#ffe29a 0%,#ffb37b 50%,#ff8a5c 100%); min-height:100vh; color:#4a2c0f; padding:20px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  header { background:#ff7043; border-radius:24px; padding:26px 24px; text-align:center; color:#fff; box-shadow:0 8px 0 #d84315; margin-bottom:18px; }
+  header .ic { font-size:48px; line-height:1; }
+  header h1 { font-size:24px; margin:8px 0 4px; }
+  header p { font-size:15px; opacity:.95; }
+  .bar { background:#fff3e0; border-radius:16px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; font-weight:bold; margin-bottom:16px; box-shadow:0 4px 0 #ffccbc; }
+  .progress-track { flex:1; height:14px; background:#ffccbc; border-radius:10px; margin:0 14px; overflow:hidden; }
+  .progress-fill { height:100%; width:0; background:#43a047; border-radius:10px; transition:width .3s; }
+  .card { background:#fff; border-radius:20px; padding:22px; box-shadow:0 6px 0 #e0a96d; margin-bottom:16px; }
+  .qmeta { font-size:13px; color:#ef6c00; font-weight:bold; text-transform:uppercase; letter-spacing:.5px; }
+  .qtext { font-size:22px; margin:8px 0 16px; line-height:1.4; }
+  .word { color:#c1440e; font-weight:bold; letter-spacing:.5px; }
+  .opt { display:block; width:100%; text-align:left; background:#fff8f0; border:3px solid #ffd2a8; border-radius:14px; padding:13px 16px; font-size:17px; font-family:inherit; color:#4a2c0f; margin-bottom:10px; cursor:pointer; transition:transform .1s, background .15s, border-color .15s; }
+  .opt:hover:not(:disabled) { transform:translateX(4px); border-color:#ff9d57; }
+  .opt:disabled { cursor:default; }
+  .opt.correct { background:#d7f5d3; border-color:#43a047; }
+  .opt.wrong { background:#ffd9d9; border-color:#e53935; }
+  .feedback { margin-top:6px; padding:12px 14px; border-radius:12px; font-size:15px; line-height:1.4; display:none; }
+  .feedback.show { display:block; }
+  .feedback.good { background:#e8f7e6; color:#2e7d32; }
+  .feedback.bad { background:#fdeaea; color:#c62828; }
+  .btn { background:#43a047; color:#fff; border:none; border-radius:14px; padding:14px 28px; font-size:18px; font-family:inherit; font-weight:bold; cursor:pointer; box-shadow:0 5px 0 #2e7d32; transition:transform .1s; }
+  .btn:active { transform:translateY(3px); box-shadow:0 2px 0 #2e7d32; }
+  .btn.next { background:#ff7043; box-shadow:0 5px 0 #d84315; display:none; margin-top:6px; }
+  .center { text-align:center; }
+  .result { background:#fff; border-radius:24px; padding:34px 24px; text-align:center; box-shadow:0 6px 0 #e0a96d; }
+  .result .big { font-size:60px; }
+  .result h2 { font-size:27px; margin:10px 0; color:#ef6c00; }
+  .scoreline { font-size:22px; margin:14px 0; }
+  .stars { font-size:32px; letter-spacing:4px; margin:10px 0; }
+  .hidden { display:none; }
+  footer { text-align:center; font-size:13px; color:#7a4a1f; margin-top:10px; opacity:.85; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="ic">📚</div>
+    <h1>Wordly Wise · Lessons 16 &amp; 17</h1>
+    <p>Vocabulary · Choose the best meaning</p>
+  </header>
+  <div class="bar">
+    <span id="qcount">Question 1 of 30</span>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <span id="scoreboard">⭐ 0</span>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" class="result hidden"></div>
+  <footer id="footer">For Grace · Passing score: 85%</footer>
+</div>
+<script>
+const PASS_PCT = 0.85;
+const questions = [
+  { ch:"Lesson 16", q:"What does <span class='word'>apt</span> most nearly mean?",
+    options:["Well suited; fitting","Sad and lonely","Not at all generous","Shabby and worn out"], answer:0,
+    why:"Apt = well suited or likely — an apt name fits a person or thing perfectly." },
+  { ch:"Lesson 16", q:"What does <span class='word'>blossom</span> most nearly mean?",
+    options:["A flower on a plant","A big tree branch","A field of fruit trees","The time before dark"], answer:0,
+    why:"A blossom is a flower — and 'to blossom' means to bloom or to develop." },
+  { ch:"Lesson 16", q:"What does <span class='word'>bough</span> most nearly mean?",
+    options:["A big tree branch","A flower on a plant","A person who is older","Money paid for a trip"], answer:0,
+    why:"A bough is a large branch or limb of a tree." },
+  { ch:"Lesson 16", q:"What does <span class='word'>content</span> most nearly mean?",
+    options:["Happy and satisfied","Sad and lonely","Brave and daring","Not at all generous"], answer:0,
+    why:"Content means happy and satisfied — pleased with what you have." },
+  { ch:"Lesson 16", q:"What does <span class='word'>detest</span> most nearly mean?",
+    options:["To hate strongly","To breathe air in","To agree to something","To keep from having"], answer:0,
+    why:"To detest something is to dislike it strongly — to really hate it." },
+  { ch:"Lesson 16", q:"What does <span class='word'>dusk</span> most nearly mean?",
+    options:["The time before dark","A field of fruit trees","A big tree branch","Money paid for a trip"], answer:0,
+    why:"Dusk is the time at the end of the day, just before it gets dark." },
+  { ch:"Lesson 16", q:"What does <span class='word'>extinguish</span> most nearly mean?",
+    options:["To put a fire out","To call or send for","To drift on the air","To cut off branches"], answer:0,
+    why:"To extinguish means to put out a fire or a light." },
+  { ch:"Lesson 16", q:"What does <span class='word'>familiar</span> most nearly mean?",
+    options:["Well known already","Shabby and worn out","Heavily built; strong","Sad and lonely"], answer:0,
+    why:"Familiar means often seen or known — something you already recognise." },
+  { ch:"Lesson 16", q:"What does <span class='word'>obtain</span> most nearly mean?",
+    options:["To get by effort","To bring to an end","To go with and guard","To breathe air in"], answer:0,
+    why:"To obtain means to gain or get something by making an effort." },
+  { ch:"Lesson 16", q:"What does <span class='word'>orchard</span> most nearly mean?",
+    options:["A field of fruit trees","A flower on a plant","The time before dark","A person who is older"], answer:0,
+    why:"An orchard is a place where fruit trees grow." },
+  { ch:"Lesson 16", q:"What does <span class='word'>practice</span> most nearly mean?",
+    options:["To do over and over","To cut off branches","To agree to something","To hate strongly"], answer:0,
+    why:"To practice is to do something again and again to get better at it." },
+  { ch:"Lesson 16", q:"What does <span class='word'>prune</span> most nearly mean?",
+    options:["To cut off branches","To do over and over","To drift on the air","To call or send for"], answer:0,
+    why:"To prune is to cut off branches — and a prune is also a dried plum." },
+  { ch:"Lesson 16", q:"What does <span class='word'>stout</span> most nearly mean?",
+    options:["Heavily built; strong","Shabby and worn out","Happy and satisfied","Sad and lonely"], answer:0,
+    why:"Stout means heavily built and thickset, or strong and not easily bent." },
+  { ch:"Lesson 16", q:"What does <span class='word'>threadbare</span> most nearly mean?",
+    options:["Shabby and worn out","Heavily built; strong","Well known already","Brave and daring"], answer:0,
+    why:"Threadbare means shabby and worn out — thin from lots of use." },
+  { ch:"Lesson 16", q:"What does <span class='word'>wander</span> most nearly mean?",
+    options:["To roam with no plan","To put a fire out","To keep from having","To breathe air in"], answer:0,
+    why:"To wander is to go from place to place with no plan or purpose." },
+  { ch:"Lesson 17", q:"What does <span class='word'>address</span> most nearly mean?",
+    options:["To speak to a crowd","To bring to an end","To go with and guard","To cut off branches"], answer:0,
+    why:"To address is to direct your words to someone — it is also a speech, or where you live." },
+  { ch:"Lesson 17", q:"What does <span class='word'>approve</span> most nearly mean?",
+    options:["To agree to something","To hate strongly","To keep from having","To call or send for"], answer:0,
+    why:"To approve is to think well of something, or to agree to it." },
+  { ch:"Lesson 17", q:"What does <span class='word'>conclude</span> most nearly mean?",
+    options:["To bring to an end","To get by effort","To breathe air in","To drift on the air"], answer:0,
+    why:"To conclude is to bring or come to an end, or to form an opinion." },
+  { ch:"Lesson 17", q:"What does <span class='word'>deprive</span> most nearly mean?",
+    options:["To keep from having","To go with and guard","To agree to something","To put a fire out"], answer:0,
+    why:"To deprive is to keep someone from having something, or to take it away." },
+  { ch:"Lesson 17", q:"What does <span class='word'>elder</span> most nearly mean?",
+    options:["A person who is older","A big tree branch","A field of fruit trees","Money paid for a trip"], answer:0,
+    why:"An elder is a person who is older; as an adjective, elder means older." },
+  { ch:"Lesson 17", q:"What does <span class='word'>escort</span> most nearly mean?",
+    options:["To go with and guard","To keep from having","To bring to an end","To hate strongly"], answer:0,
+    why:"To escort is to travel with someone in order to guide or protect them." },
+  { ch:"Lesson 17", q:"What does <span class='word'>fare</span> most nearly mean?",
+    options:["Money paid for a trip","A person who is older","A big tree branch","The time before dark"], answer:0,
+    why:"A fare is the money paid for a trip (it can also mean food and drink)." },
+  { ch:"Lesson 17", q:"What does <span class='word'>forlorn</span> most nearly mean?",
+    options:["Sad and lonely","Happy and satisfied","Brave and daring","Not at all generous"], answer:0,
+    why:"Forlorn means sad and lonely — like someone left all alone." },
+  { ch:"Lesson 17", q:"What does <span class='word'>hearty</span> most nearly mean?",
+    options:["Healthy and strong","Shabby and worn out","Sad and lonely","Not at all generous"], answer:0,
+    why:"Hearty means healthy and strong, or warm and full of good feeling." },
+  { ch:"Lesson 17", q:"What does <span class='word'>inhale</span> most nearly mean?",
+    options:["To breathe air in","To put a fire out","To call or send for","To cut off branches"], answer:0,
+    why:"To inhale is to breathe air in." },
+  { ch:"Lesson 17", q:"What does <span class='word'>merit</span> most nearly mean?",
+    options:["To deserve; to earn","To drift on the air","To roam with no plan","To bring to an end"], answer:0,
+    why:"To merit something is to deserve it; as a noun, merit means worth or good qualities." },
+  { ch:"Lesson 17", q:"What does <span class='word'>stingy</span> most nearly mean?",
+    options:["Not at all generous","Happy and satisfied","Sad and lonely","Heavily built; strong"], answer:0,
+    why:"Stingy means not generous — unwilling to share or give." },
+  { ch:"Lesson 17", q:"What does <span class='word'>summon</span> most nearly mean?",
+    options:["To call or send for","To drift on the air","To cut off branches","To get by effort"], answer:0,
+    why:"To summon is to call or send for someone, or to call forth." },
+  { ch:"Lesson 17", q:"What does <span class='word'>valiant</span> most nearly mean?",
+    options:["Brave and daring","Sad and lonely","Happy and satisfied","Not at all generous"], answer:0,
+    why:"Valiant means full of courage — brave." },
+  { ch:"Lesson 17", q:"What does <span class='word'>waft</span> most nearly mean?",
+    options:["To drift on the air","To call or send for","To put a fire out","To breathe air in"], answer:0,
+    why:"To waft is to move or be moved lightly over water or air — to drift." }
+];
+
+questions.forEach(item => {
+  const correct = item.options[item.answer];
+  for (let i = item.options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [item.options[i], item.options[j]] = [item.options[j], item.options[i]];
+  }
+  item.answer = item.options.indexOf(correct);
+});
+
+let current = 0, score = 0, answered = false;
+const passNeeded = Math.ceil(questions.length * PASS_PCT);
+const pctLabel = Math.round(PASS_PCT * 100);
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+const qcount = document.getElementById('qcount');
+const scoreboard = document.getElementById('scoreboard');
+const progress = document.getElementById('progress');
+document.getElementById('footer').textContent = `For Grace · Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})`;
+
+function render() {
+  answered = false;
+  const item = questions[current];
+  qcount.textContent = `Question ${current + 1} of ${questions.length}`;
+  scoreboard.textContent = `⭐ ${score}`;
+  progress.style.width = `${(current / questions.length) * 100}%`;
+  const opts = item.options.map((o, i) => `<button class="opt" data-i="${i}" onclick="choose(${i})">${o}</button>`).join('');
+  quizArea.innerHTML = `
+    <div class="card">
+      <div class="qmeta">${item.ch}</div>
+      <div class="qtext">${item.q}</div>
+      ${opts}
+      <div class="feedback" id="fb"></div>
+      <div class="center"><button class="btn next" id="nextBtn" onclick="next()">Next →</button></div>
+    </div>`;
+}
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const item = questions[current];
+  const buttons = document.querySelectorAll('.opt');
+  buttons.forEach(b => b.disabled = true);
+  const fb = document.getElementById('fb');
+  if (i === item.answer) {
+    score++;
+    buttons[i].classList.add('correct');
+    fb.className = 'feedback good show';
+    fb.innerHTML = `✅ <strong>Correct!</strong> ${item.why}`;
+  } else {
+    buttons[i].classList.add('wrong');
+    buttons[item.answer].classList.add('correct');
+    fb.className = 'feedback bad show';
+    fb.innerHTML = `❌ <strong>Not quite.</strong> ${item.why}`;
+  }
+  scoreboard.textContent = `⭐ ${score}`;
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function next() { current++; if (current < questions.length) render(); else showResult(); }
+
+function showResult() {
+  quizArea.classList.add('hidden');
+  document.querySelector('.bar').classList.add('hidden');
+  resultArea.classList.remove('hidden');
+  progress.style.width = '100%';
+  const pct = Math.round((score / questions.length) * 100);
+  const passed = score >= passNeeded;
+  let stars, msg, emoji;
+  if (pct === 100) { stars='⭐⭐⭐⭐⭐'; msg="Perfect score! You know every word."; emoji='🏆'; }
+  else if (passed) { stars='⭐⭐⭐⭐'; msg="Excellent! You passed the 85% mark."; emoji='🎖️'; }
+  else if (pct >= 65) { stars='⭐⭐⭐'; msg="So close! You need 85% to pass — review the words and try again."; emoji='📖'; }
+  else if (pct >= 45) { stars='⭐⭐'; msg="Good effort! You need 85% to pass. Study the list and go again."; emoji='📚'; }
+  else { stars='⭐'; msg="Let's go over the words again and try once more."; emoji='✏️'; }
+  const banner = passed
+    ? `<div style="background:#d7f5d3;color:#2e7d32;border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">🎉 PASSED! 🎉</div>`
+    : `<div style="background:#fdeaea;color:#c62828;border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">Not passed yet — need 85%</div>`;
+  resultArea.innerHTML = `
+    <div class="big">${emoji}</div>
+    <h2>Quiz Complete!</h2>
+    ${banner}
+    <div class="stars">${stars}</div>
+    <div class="scoreline">You got <strong>${score}</strong> out of <strong>${questions.length}</strong> (${pct}%)</div>
+    <div style="font-size:15px;color:#7a4a1f;margin:-4px 0 8px;">Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})</div>
+    <p style="margin:10px 0 20px;font-size:17px;">${msg}</p>
+    <button class="btn" onclick="restart()">Try Again 🔄</button>`;
+}
+
+function restart() {
+  current = 0; score = 0; answered = false;
+  resultArea.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  document.querySelector('.bar').classList.remove('hidden');
+  render();
+}
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wordly Wise Lessons 16 & 17 — Fill in the Blank</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Trebuchet MS',system-ui,sans-serif; background:linear-gradient(160deg,#e8dcc0 0%,#d8c9a4 50%,#c3b184 100%); min-height:100vh; color:#33291c; padding:20px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  header { background:#6b5a34; border-radius:18px; padding:26px 24px; text-align:center; color:#f7f0df; box-shadow:0 8px 0 #4a3f22; margin-bottom:16px; }
+  header .ic { font-size:44px; }
+  header h1 { font-size:23px; margin:8px 0 4px; }
+  header p { font-size:15px; opacity:.92; }
+  .bank { background:#fffdf5; border:3px dashed #b89f66; border-radius:14px; padding:12px 16px; margin-bottom:16px; }
+  .bank h3 { font-size:14px; color:#6b5a34; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+  .bank .words { display:flex; flex-wrap:wrap; gap:8px; }
+  .bank .w { background:#efe4c7; border-radius:999px; padding:5px 12px; font-size:15px; font-weight:bold; color:#5b4a22; }
+  .bar { background:#fffdf5; border-radius:14px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; font-weight:bold; margin-bottom:16px; box-shadow:0 4px 0 #cbb789; }
+  .progress-track { flex:1; height:14px; background:#ddcba0; border-radius:10px; margin:0 14px; overflow:hidden; }
+  .progress-fill { height:100%; width:0; background:#8a6d3b; border-radius:10px; transition:width .3s; }
+  .card { background:#fffdf7; border-radius:16px; padding:22px; box-shadow:0 6px 0 #cbb789; margin-bottom:16px; }
+  .qmeta { font-size:13px; color:#8a6d3b; font-weight:bold; text-transform:uppercase; letter-spacing:.5px; }
+  .qtext { font-size:21px; margin:8px 0 16px; line-height:1.5; }
+  .blank { color:#8a6d3b; font-weight:bold; letter-spacing:2px; }
+  .answerRow { display:flex; gap:10px; flex-wrap:wrap; }
+  input.ans { flex:1; min-width:200px; font-size:19px; font-family:inherit; padding:12px 14px; border:3px solid #ddcaa3; border-radius:12px; background:#fbf6ea; color:#33291c; }
+  input.ans:focus { outline:none; border-color:#8a6d3b; }
+  input.ans.correct { background:#e2f3de; border-color:#3a7d44; }
+  input.ans.wrong { background:#f7dede; border-color:#c0392b; }
+  .feedback { margin-top:10px; padding:12px 14px; border-radius:10px; font-size:15px; line-height:1.45; display:none; }
+  .feedback.show { display:block; }
+  .feedback.good { background:#e8f5e6; color:#2e6b34; }
+  .feedback.bad { background:#fbeaea; color:#a5352a; }
+  .btn { background:#8a6d3b; color:#fff; border:none; border-radius:12px; padding:12px 24px; font-size:17px; font-family:inherit; font-weight:bold; cursor:pointer; box-shadow:0 5px 0 #5b4636; transition:transform .1s; }
+  .btn:active { transform:translateY(3px); box-shadow:0 2px 0 #5b4636; }
+  .btn.next { background:#3a7d44; box-shadow:0 5px 0 #285a30; display:none; margin-top:12px; }
+  .center { text-align:center; }
+  .result { background:#fffdf7; border-radius:18px; padding:34px 24px; text-align:center; box-shadow:0 6px 0 #cbb789; }
+  .result .big { font-size:60px; }
+  .result h2 { font-size:27px; margin:10px 0; color:#6b5a34; }
+  .scoreline { font-size:22px; margin:14px 0; }
+  .stars { font-size:32px; letter-spacing:4px; margin:10px 0; }
+  .hidden { display:none; }
+  footer { text-align:center; font-size:13px; color:#6b5a34; margin-top:10px; opacity:.85; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="ic">✍️</div>
+    <h1>Wordly Wise · Lessons 16 &amp; 17</h1>
+    <p>Type the word that fits the sentence</p>
+  </header>
+  <div class="bank"><h3>Word Bank</h3><div class="words" id="bank"></div></div>
+  <div class="bar">
+    <span id="qcount">Question 1 of 30</span>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <span id="scoreboard">✓ 0</span>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" class="result hidden"></div>
+  <footer id="footer">For Grace · Spelling counts! Passing score: 85%</footer>
+</div>
+<script>
+const PASS_PCT = 0.85;
+const items = [
+  { word:"apt", sentence:"A raincoat is an ______ thing to bring on a stormy day.", why:"apt = well suited or fitting for the situation." },
+  { word:"blossom", sentence:"In spring, the apple tree grows a pretty pink ______.", why:"a blossom is a flower on a plant." },
+  { word:"bough", sentence:"A little bird sat on the highest ______ of the oak tree.", why:"a bough is a big branch of a tree." },
+  { word:"content", sentence:"After a warm meal, the sleepy cat felt calm and ______.", why:"content = happy and satisfied." },
+  { word:"detest", sentence:"I love carrots, but I really ______ soggy, mushy peas.", why:"to detest is to hate something strongly." },
+  { word:"dusk", sentence:"At ______, the sky turns orange and the streetlights switch on.", why:"dusk is the time just before dark." },
+  { word:"extinguish", sentence:"The firefighters used their hoses to ______ the flames.", why:"to extinguish is to put out a fire." },
+  { word:"familiar", sentence:"Her grandma's voice sounded warm and ______ on the phone.", why:"familiar = well known; often heard before." },
+  { word:"obtain", sentence:"You must save your coins to ______ a ticket to the show.", why:"to obtain is to get something by effort." },
+  { word:"orchard", sentence:"We picked baskets of red apples at the ______ near the farm.", why:"an orchard is a field of fruit trees." },
+  { word:"practice", sentence:"If you ______ the piano every day, you will get much better.", why:"to practice is to do something over and over." },
+  { word:"prune", sentence:"In autumn, Dad likes to ______ the rose bushes with his shears.", why:"to prune is to cut off branches." },
+  { word:"stout", sentence:"The ______ little pony was strong enough to pull the heavy cart.", why:"stout = heavily built and strong." },
+  { word:"threadbare", sentence:"His old teddy bear was so loved that it grew thin and ______.", why:"threadbare = shabby and worn out." },
+  { word:"wander", sentence:"Without a map, the puppy began to ______ all over the park.", why:"to wander is to roam with no plan." },
+  { word:"address", sentence:"The principal stood up to ______ the whole school at assembly.", why:"to address is to speak to a group." },
+  { word:"approve", sentence:"Mom had to ______ the plan before we could have the sleepover.", why:"to approve is to agree to something." },
+  { word:"conclude", sentence:"The teacher will ______ the lesson with a quick review.", why:"to conclude is to bring to an end." },
+  { word:"deprive", sentence:"Staying up too late can ______ you of the sleep you need.", why:"to deprive is to keep someone from having something." },
+  { word:"elder", sentence:"My ______ sister is three years older than I am.", why:"elder means older; an elder is a person who is older." },
+  { word:"escort", sentence:"A friendly guide will ______ the visitors around the museum.", why:"to escort is to go with someone to guide or guard them." },
+  { word:"fare", sentence:"We paid the bus ______ with the coins in Mom's purse.", why:"a fare is the money paid for a trip." },
+  { word:"forlorn", sentence:"The lost puppy looked ______ as it waited alone in the rain.", why:"forlorn = sad and lonely." },
+  { word:"hearty", sentence:"After the long hike, we ate a big, ______ bowl of warm stew.", why:"hearty = healthy, warm, and satisfying." },
+  { word:"inhale", sentence:"Take a slow breath and ______ the fresh mountain air.", why:"to inhale is to breathe air in." },
+  { word:"merit", sentence:"Her kind and brave act was sure to ______ a special award.", why:"to merit something is to deserve it." },
+  { word:"stingy", sentence:"The ______ dragon would not share even one of his gold coins.", why:"stingy = not generous." },
+  { word:"summon", sentence:"The king would ring a bell to ______ his servants.", why:"to summon is to call or send for someone." },
+  { word:"valiant", sentence:"The ______ knight rode out to rescue the trapped villagers.", why:"valiant = brave and full of courage." },
+  { word:"waft", sentence:"The smell of fresh cookies began to ______ through the house.", why:"to waft is to drift lightly on the air." }
+];
+
+document.getElementById('bank');
+const bankEl = document.getElementById('bank');
+[...items.map(q => q.word)].sort(() => Math.random() - 0.5).forEach(w => {
+  const s = document.createElement('span'); s.className = 'w'; s.textContent = w; bankEl.appendChild(s);
+});
+
+let current = 0, score = 0, answered = false;
+const passNeeded = Math.ceil(items.length * PASS_PCT);
+const pctLabel = Math.round(PASS_PCT * 100);
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+const qcount = document.getElementById('qcount');
+const scoreboard = document.getElementById('scoreboard');
+const progress = document.getElementById('progress');
+document.getElementById('footer').textContent = `For Grace · Spelling counts! Passing score: ${pctLabel}% (${passNeeded} of ${items.length})`;
+
+function normalize(s){ return s.toLowerCase().trim().replace(/[.,!?;:'"]/g,''); }
+
+function render() {
+  answered = false;
+  const item = items[current];
+  qcount.textContent = `Question ${current + 1} of ${items.length}`;
+  scoreboard.textContent = `✓ ${score}`;
+  progress.style.width = `${(current / items.length) * 100}%`;
+  const sentenceHtml = item.sentence.replace('______', '<span class="blank">______</span>');
+  quizArea.innerHTML = `
+    <div class="card">
+      <div class="qmeta">Sentence ${current + 1}</div>
+      <div class="qtext">${sentenceHtml}</div>
+      <div class="answerRow">
+        <input class="ans" id="ans" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type the word here..." />
+        <button class="btn" id="checkBtn" onclick="check()">Check</button>
+      </div>
+      <div class="feedback" id="fb"></div>
+      <div class="center"><button class="btn next" id="nextBtn" onclick="next()">Next →</button></div>
+    </div>`;
+  const input = document.getElementById('ans');
+  input.focus();
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { answered ? next() : check(); } });
+}
+
+function check() {
+  if (answered) return;
+  const item = items[current];
+  const input = document.getElementById('ans');
+  const val = normalize(input.value);
+  if (val === '') { input.focus(); return; }
+  answered = true;
+  input.disabled = true;
+  document.getElementById('checkBtn').disabled = true;
+  const fb = document.getElementById('fb');
+  if (val === item.word) {
+    score++;
+    input.classList.add('correct');
+    fb.className = 'feedback good show';
+    fb.innerHTML = `✅ <strong>Correct!</strong> ${item.why}`;
+  } else {
+    input.classList.add('wrong');
+    fb.className = 'feedback bad show';
+    fb.innerHTML = `❌ <strong>Not quite.</strong> The word is <strong>${item.word}</strong>. ${item.why}`;
+  }
+  scoreboard.textContent = `✓ ${score}`;
+  const nb = document.getElementById('nextBtn'); nb.style.display = 'inline-block'; nb.focus();
+}
+
+function next() { current++; if (current < items.length) render(); else showResult(); }
+
+function showResult() {
+  quizArea.classList.add('hidden');
+  document.querySelector('.bar').classList.add('hidden');
+  resultArea.classList.remove('hidden');
+  progress.style.width = '100%';
+  const pct = Math.round((score / items.length) * 100);
+  const passed = score >= passNeeded;
+  let stars, msg, emoji;
+  if (pct === 100) { stars='⭐⭐⭐⭐⭐'; msg="Perfect score! Every word right."; emoji='🏆'; }
+  else if (passed) { stars='⭐⭐⭐⭐'; msg=`Excellent! You passed the ${pctLabel}% mark.`; emoji='🎖️'; }
+  else if (pct >= 65) { stars='⭐⭐⭐'; msg=`So close! You need ${pctLabel}% to pass — review the words and spelling, then try again.`; emoji='📖'; }
+  else if (pct >= 45) { stars='⭐⭐'; msg=`Good effort! You need ${pctLabel}% to pass. Study the list and go again.`; emoji='📚'; }
+  else { stars='⭐'; msg="Let's go over the words again and try once more."; emoji='✏️'; }
+  const banner = passed
+    ? `<div style="background:#d7f0d3;color:#2e6b34;border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">🎉 PASSED! 🎉</div>`
+    : `<div style="background:#fbeaea;color:#a5352a;border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">Not passed yet — need ${pctLabel}%</div>`;
+  resultArea.innerHTML = `
+    <div class="big">${emoji}</div>
+    <h2>Test Complete!</h2>
+    ${banner}
+    <div class="stars">${stars}</div>
+    <div class="scoreline">You got <strong>${score}</strong> out of <strong>${items.length}</strong> (${pct}%)</div>
+    <div style="font-size:15px;color:#6b5a34;margin:-4px 0 8px;">Passing score: ${pctLabel}% (${passNeeded} of ${items.length})</div>
+    <p style="margin:10px 0 20px;font-size:17px;">${msg}</p>
+    <button class="btn" onclick="restart()">Try Again 🔄</button>`;
+}
+
+function restart() {
+  current = 0; score = 0; answered = false;
+  resultArea.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  document.querySelector('.bar').classList.remove('hidden');
+  render();
+}
+render();
+</script>
+</body>
+</html>
