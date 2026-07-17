@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thinking, Fast and Slow — Concept Exam · Parts 1–2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', 'Iowan Old Style', 'Palatino Linotype', Palatino, serif;
+    background: linear-gradient(160deg, #f7f2e7 0%, #efe6cf 50%, #e7dcc0 100%);
+    min-height: 100vh; color: #1c2433; padding: 20px;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  header {
+    background: linear-gradient(135deg,#24395c,#1f3352);
+    border-radius: 22px; padding: 26px 24px; text-align: center; color: #f3ecdb;
+    box-shadow: 0 8px 0 #101f38; margin-bottom: 16px; border-bottom: 3px solid #b3892f;
+  }
+  header .coin { font-size: 48px; line-height: 1; }
+  header h1 { font-size: 24px; margin: 8px 0 4px; letter-spacing:.3px; }
+  header p { font-size: 15px; opacity: .95; color:#e7dcc2; font-style: italic; }
+  .bar {
+    background: #fdfaf2; border-radius: 14px; padding: 11px 16px; display: flex;
+    justify-content: space-between; align-items: center; font-weight: bold;
+    margin-bottom: 16px; box-shadow: 0 4px 0 #d9cdae; font-size: 15px; color:#1f3352;
+  }
+  .progress-track { flex: 1; height: 13px; background: #e7dcc0; border-radius: 10px; margin: 0 12px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0; background: #b3892f; border-radius: 10px; transition: width .3s; }
+
+  .partbanner {
+    background: #1f3352; color: #fff; border-radius: 18px; padding: 18px 22px;
+    margin-bottom: 16px; box-shadow: 0 6px 0 #101f38;
+  }
+  .partbanner .k { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #d8b25a; font-weight: bold; }
+  .partbanner h2 { font-size: 21px; margin: 3px 0 4px; color:#f3ecdb; }
+  .partbanner p { font-size: 14px; color: #cdd8e6; }
+
+  .card { background: #fdfaf2; border-radius: 18px; padding: 22px; box-shadow: 0 6px 0 #d9cdae; margin-bottom: 16px; }
+  .qhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .qmeta { font-size: 12px; color: #8a6d1f; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; }
+  .diff { font-size: 11px; font-weight: bold; padding: 2px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: .5px; }
+  .diff.easy { background: #e3f0e6; color: #2e7d32; }
+  .diff.medium { background: #fbefd4; color: #9a6a12; }
+  .diff.hard { background: #f5e0dc; color: #a5352a; }
+  .qtext { font-size: 19px; margin: 6px 0 16px; line-height: 1.45; }
+  .opt {
+    display: block; width: 100%; text-align: left; background: #f6f0e0;
+    border: 3px solid #ddcaa3; border-radius: 13px; padding: 13px 16px; font-size: 16.5px;
+    font-family: inherit; color: #1c2433; margin-bottom: 10px; cursor: pointer;
+    transition: transform .1s, background .15s, border-color .15s;
+  }
+  .opt:hover:not(:disabled) { transform: translateX(4px); border-color: #b3892f; }
+  .opt:disabled { cursor: default; }
+  .opt.correct { background: #d7f0d3; border-color: #3a7d44; }
+  .opt.wrong { background: #f6d6d6; border-color: #c0392b; }
+  .feedback { margin-top: 6px; padding: 12px 14px; border-radius: 12px; font-size: 15px; line-height: 1.45; display: none; }
+  .feedback.show { display: block; }
+  .feedback.good { background: #e8f5e6; color: #2e6b34; }
+  .feedback.bad { background: #fbeaea; color: #a5352a; }
+
+  textarea {
+    width: 100%; min-height: 140px; border: 3px solid #ddcaa3; border-radius: 13px;
+    padding: 13px 15px; font-family: inherit; font-size: 16px; color: #1c2433; resize: vertical; background: #f6f0e0;
+  }
+  textarea:focus { outline: none; border-color: #b3892f; }
+  .essay-note { font-size: 13.5px; color: #6b6350; margin: 4px 0 12px; }
+  .rubric { margin-top: 12px; padding: 14px 16px; border-radius: 12px; background: #f3eedf; border: 2px solid #e0d4b3; display: none; }
+  .rubric.show { display: block; }
+  .rubric h4 { font-size: 15px; color: #1f3352; margin-bottom: 8px; }
+  .checkitem { font-size: 14.5px; margin: 5px 0; line-height: 1.4; }
+  .checkitem .mk { font-weight: bold; }
+  .hit { color: #2e6b34; } .miss { color: #a5352a; }
+  .model { margin-top: 12px; font-size: 14.5px; line-height: 1.5; background: #fbf3df; border-left: 4px solid #b3892f; padding: 10px 14px; border-radius: 8px; }
+  .model b { color: #8a6d1f; }
+
+  .btn {
+    background: #1f3352; color: #fff; border: none; border-radius: 13px; padding: 13px 26px;
+    font-size: 17px; font-family: inherit; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #101f38; transition: transform .1s;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #101f38; }
+  .btn.next { background: #b3892f; box-shadow: 0 5px 0 #856418; display: none; margin-top: 10px; }
+  .btn.grade { background: #3a5a86; box-shadow: 0 5px 0 #24395c; }
+  .center { text-align: center; }
+
+  .result { background: #fdfaf2; border-radius: 22px; padding: 32px 24px; text-align: center; box-shadow: 0 6px 0 #d9cdae; }
+  .result .big { font-size: 60px; }
+  .result h2 { font-size: 26px; margin: 10px 0; color: #1f3352; }
+  .scoreline { font-size: 21px; margin: 12px 0; }
+  .partscores { text-align: left; max-width: 460px; margin: 14px auto; }
+  .partscores .row { display: flex; justify-content: space-between; padding: 8px 12px; border-radius: 10px; background: #f3eedf; margin-bottom: 8px; font-size: 15px; }
+  .partscores .row b { color: #1f3352; }
+  .stars { font-size: 32px; letter-spacing: 4px; margin: 8px 0; }
+  .hidden { display: none; }
+  footer { text-align: center; font-size: 13px; color: #6b6350; margin-top: 12px; opacity: .9; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="coin">🧠</div>
+    <h1>Thinking, Fast and Slow — Concept Exam</h1>
+    <p>Parts 1–2 · by Daniel Kahneman · Testing your understanding of the ideas</p>
+  </header>
+
+  <div class="bar">
+    <span id="qcount">Question 1 of 30</span>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <span id="scoreboard">🏅 0</span>
+  </div>
+
+  <div id="quizArea"></div>
+  <div id="resultArea" class="result hidden"></div>
+
+  <footer id="footer">30 questions · 2 short essays graded by rubric · This tests the <b>ideas</b>, not just names · For Warren</footer>
+</div>
+
+<script>
+/* ================= EXAM DATA =================
+   Each part: 15 multiple-choice (mixed difficulty) + 1 essay graded by rubric.
+   Questions test understanding of the CONCEPTS, not surface facts.
+   Author the CORRECT option at index 0 (answer:0); options are shuffled at load. */
+
+const PARTS = [
+  {
+    k: "Part I", title: "Two Systems",
+    blurb: "System 1 (fast, automatic) vs System 2 (slow, effortful) · priming · cognitive ease · WYSIATI · substitution.",
+    questions: [
+      { diff:"easy", ch:"The Characters of the Story", q:"System 1 is best described as…",
+        options:["Fast, automatic thinking that runs with little effort or control","Slow, careful thinking that you steer on purpose each time","The part of the brain that stores your oldest childhood memories","A method for solving hard math problems one step at a time"], answer:0,
+        why:"System 1 works on its own — reading a face or finishing 'bread and…' — with no sense of effort." },
+
+      { diff:"medium", ch:"The Characters of the Story", q:"When you work out 17 × 24, which system are you mainly using, and why?",
+        options:["System 2, because the exact answer needs slow, effortful steps","System 1, because the answer appears at once without any work","System 1, because multiplying is a habit the mind does for fun","System 2, because the mind enjoys hard numbers more than easy ones"], answer:0,
+        why:"You instantly know it isn't 12,000, but the exact product only comes with deliberate System 2 work." },
+
+      { diff:"medium", ch:"Attention and Effort", q:"Kahneman's team watched people's pupils widen during hard mental tasks. This showed that…",
+        options:["Thinking hard is real work that uses measurable brain energy","The eyes are the fastest way to solve a tricky math problem","People widen their eyes on purpose when they concentrate hard","Bright light is the thing that makes careful thinking feel tiring"], answer:0,
+        why:"Pupils widened as mental load rose and shrank when the effort stopped — effort has a physical signature." },
+
+      { diff:"hard", ch:"Attention and Effort", q:"Half the viewers counting basketball passes never saw the person in a gorilla suit. The lesson is that…",
+        options:["Focusing hard on one task can leave us blind to the obvious","Most people have quite poor eyesight for fast-moving objects","A gorilla suit blends into a busy scene more than you'd think","Counting is harder for the brain than simply watching a game"], answer:0,
+        why:"Being 'cognitively busy' with the passes left no attention to notice the gorilla walking through." },
+
+      { diff:"medium", ch:"The Lazy Controller", q:"The bat-and-ball puzzle (a bat and ball cost $1.10; the bat costs $1 more than the ball) mainly shows that…",
+        options:["Most people accept System 1's first guess without checking it","Simple money puzzles are actually too hard for most adults","The right answer to the puzzle is ten cents for the small ball","People are worse at word problems than at plain arithmetic"], answer:0,
+        why:"'10¢' leaps to mind but is wrong (it's 5¢); most people never pause to let System 2 check." },
+
+      { diff:"hard", ch:"The Lazy Controller", q:"Holding a phone number in mind while resisting a slice of cake feels tiring because…",
+        options:["Self-control and hard thinking draw on the same limited energy","Food cravings switch off the part of the brain used for memory","Numbers and snacks are stored in the very same place in memory","The body burns its energy faster whenever a person feels hungry"], answer:0,
+        why:"Both pull from one shared 'tank' — this is ego depletion, and even a little glucose can refill it." },
+
+      { diff:"medium", ch:"The Associative Machine", q:"Students who read words about old age (like 'wrinkle' and 'gray') then walked more slowly. This is an example of…",
+        options:["Priming — cues quietly nudging behavior we do not notice","Acting — the students were told to pretend to be elderly","Fatigue — reading a long word list tires out the legs","Manners — young people slow down to be polite in a study"], answer:0,
+        why:"Ideas of old age spread through the associative machine and shaped their walking speed, with no awareness." },
+
+      { diff:"medium", ch:"Cognitive Ease", q:"The book warns that repeating a false claim often can make it feel true because…",
+        options:["Familiar, easy-to-process ideas get mistaken for true ones","Repeating a claim slowly gathers real evidence behind it","Claims we hear again feel important and worth believing","Hearing something twice shows a trusted source said it first"], answer:0,
+        why:"Familiarity is hard to tell apart from truth — cognitive ease makes repeated claims feel believable." },
+
+      { diff:"hard", ch:"Cognitive Ease", q:"Surprisingly, printing the bat-and-ball problem in a blurry, hard-to-read font made people get it right MORE often. Why?",
+        options:["The strain wakes up System 2, so people slow down and check","Blurry text hides the trap answer of ten cents from readers","Hard fonts are read by the most careful, skilful students","A tricky font gives the brain extra time by slowing the eyes"], answer:0,
+        why:"Difficulty creates strain, which rouses the lazy System 2 into checking — ease invites belief, strain invites checking." },
+
+      { diff:"medium", ch:"Norms, Surprises, and Causes", q:"Shown dots moving on a screen, people instantly see a 'bully' chasing a 'victim.' This shows System 1…",
+        options:["Invents causes and intentions even where none exist","Can read the true feelings behind any moving shape","Struggles to notice motion unless it is pointed out","Prefers watching cartoons to solving real-world problems"], answer:0,
+        why:"System 1 is a relentless story-teller, seeing purpose and agency in mere sequences of events." },
+
+      { diff:"hard", ch:"A Machine for Jumping to Conclusions", q:"WYSIATI ('What You See Is All There Is') helps explain overconfidence because…",
+        options:["A neat story from very little data can still feel certain","Confident people have gathered the most evidence first","Seeing more facts tends to make a person feel more sure","The mind waits for full information before it will judge"], answer:0,
+        why:"Confidence comes from how well the pieces you have fit together, not from how much you actually know." },
+
+      { diff:"medium", ch:"A Machine for Jumping to Conclusions", q:"Told 'Ann approached the bank,' most people never even think of a riverbank. This is because…",
+        options:["Nearby words settle the meaning before doubt can arise","Riverbanks are a rare thing for most readers to picture","The word bank is almost never used to mean a riverside","People dislike thinking about water when they read stories"], answer:0,
+        why:"System 1 suppresses ambiguity — it settles on one reading and never flags the alternative." },
+
+      { diff:"hard", ch:"How Judgments Happen", q:"The 'mental shotgun' means that when you try to answer one question, your mind…",
+        options:["Also computes extra answers you never asked it for","Fires off a quick guess and then refuses to change it","Shuts down other thoughts that aren't about the question","Sends its effort to that single question by itself"], answer:0,
+        why:"System 1 computes more than you intend, so stray, irrelevant answers slosh into your judgment." },
+
+      { diff:"medium", ch:"Answering an Easier Question", q:"A 'heuristic,' in Kahneman's sense, is best described as…",
+        options:["Answering an easier question in place of the hard one","A careful rule that always gives the exact right answer","A trick question designed to fool a tired, lazy reader","A slow method System 2 uses to double-check System 1"], answer:0,
+        why:"Faced with a hard 'target question,' System 1 quietly answers an easier one — and we don't notice the swap." },
+
+      { diff:"hard", ch:"Answering an Easier Question", q:"Students asked 'How happy are you?' right after 'How many dates did you have?' gave answers that lined up closely. This shows that…",
+        options:["Their dating mood replaced the harder happiness question","Dating is the true secret to a happy and contented life","Happiness can be measured exactly by counting recent dates","Students feel much happier just after thinking of romance"], answer:0,
+        why:"The easy 'How's my love life?' feeling was substituted for the hard 'How happy is my whole life?' question." }
+    ]
+  },
+  {
+    k: "Part II", title: "Heuristics and Biases",
+    blurb: "Small samples · anchoring · availability · affect & risk · representativeness · the Linda problem · base rates · regression.",
+    questions: [
+      { diff:"medium", ch:"The Law of Small Numbers", q:"The U.S. counties with the LOWEST kidney-cancer rates — and the HIGHEST — both tend to be small and rural. The real reason is that…",
+        options:["Tiny populations swing to extremes purely by chance","Rural living is both good and bad for people's kidneys","Country doctors report cancer cases far less carefully","Fresh farm air protects some counties but not others"], answer:0,
+        why:"With few people, one or two cases move the rate wildly — it's sample size, not any hidden cause." },
+
+      { diff:"hard", ch:"The Law of Small Numbers", q:"Kahneman says even trained scientists 'over-trust small samples.' The danger of this is that they…",
+        options:["Invent causes for patterns that are really just noise","Spend far too long gathering enormous piles of data","Refuse to believe any result from a small experiment","Trust large studies less than they trust tiny ones"], answer:0,
+        why:"System 1 cannot represent randomness, so it manufactures a story for what is really chance." },
+
+      { diff:"medium", ch:"Anchors", q:"People who saw a rigged wheel stop at 65 later guessed a HIGHER percentage of African nations in the UN than those who saw 10. This is…",
+        options:["Anchoring — a random number dragging an estimate toward it","Guessing — the people simply did not know the real answer","Learning — the wheel taught them a useful fact about the UN","Cheating — the wheel was secretly showing the right answer"], answer:0,
+        why:"An obviously meaningless number bent their judgment — anchors work even when the number is absurd." },
+
+      { diff:"hard", ch:"Anchors", q:"A store sign reads 'Limit 12 per customer,' and shoppers buy more soup. The best explanation is that…",
+        options:["The number 12 acts as an anchor that lifts how much they buy","Shoppers fear the soup will sell out before they can get some","A posted limit makes people suspect the soup is very popular","Buying in bulk is the habit of most careful grocery shoppers"], answer:0,
+        why:"The '12' quietly sets a reference point — whoever names the first number steers the estimate." },
+
+      { diff:"easy", ch:"The Science of Availability", q:"The availability heuristic means we judge how common something is by…",
+        options:["How easily examples of it spring to mind","How dangerous the thing happens to feel","How often the news decides to report it","How much we would like it to be true"], answer:0,
+        why:"We swap 'how frequent is it?' for 'how easily do examples come to mind?' — so vivid events feel common." },
+
+      { diff:"hard", ch:"The Science of Availability", q:"People asked to list 12 examples of their own assertiveness rated themselves as LESS assertive than those asked for just 6. Why?",
+        options:["Struggling to reach twelve made the examples feel rare","Twelve real examples proved they were not very assertive","Counting to twelve simply bored and distracted the people","The bigger group had shyer people in it from the start"], answer:0,
+        why:"It's the ease of recall, not the count, that drives the judgment — hard-to-recall reads as 'rare.'" },
+
+      { diff:"medium", ch:"Availability, Emotion, and Risk", q:"The 'affect heuristic' says that if we LIKE a technology, we tend to…",
+        options:["See its benefits as big and its risks as small","Study its dangers more closely than its perks","Assume the government has already banned it","Judge it purely by the hard numbers alone"], answer:0,
+        why:"How we feel about something colors our view of both its risks and its benefits." },
+
+      { diff:"hard", ch:"Availability, Emotion, and Risk", q:"An 'availability cascade' is when a minor hazard becomes a national panic because…",
+        options:["Scary coverage feeds attention, which feeds more coverage","Scientists discover the risk is far worse than first thought","The government orders newspapers to keep printing the story","A single trusted expert convinces the public it is real"], answer:0,
+        why:"A scary report draws attention, attention breeds coverage, and the risk starts to feel common — a self-feeding loop." },
+
+      { diff:"medium", ch:"Tom W's Specialty", q:"Given a nerdy sketch of 'Tom W,' most people guess he studies computer science, ignoring that far more students study other fields. This bias is…",
+        options:["Representativeness — judging by likeness to a stereotype","Availability — recalling computer scientists very easily","Anchoring — starting from the first number they were given","Framing — being swayed by how the question was worded"], answer:0,
+        why:"We judge probability by resemblance to a mental picture, and ignore the base rate — how many students are really in each field." },
+
+      { diff:"hard", ch:"Tom W's Specialty", q:"The 'base rate' that people ignore in the Tom W problem is…",
+        options:["How many students are actually in each field of study","How accurate the personality sketch of Tom really is","How intelligent Tom is compared with other students","How much people happen to like computer scientists"], answer:0,
+        why:"The base rate is the background proportion — how common each field is — which the vivid sketch pushes aside." },
+
+      { diff:"hard", ch:"Linda: Less Is More", q:"Most people say 'Linda is a bank teller AND a feminist' is more likely than 'Linda is a bank teller.' Why is that impossible?",
+        options:["Every feminist bank teller is already a bank teller","Feminists are far less likely to work as bank tellers","Linda sounds much more like a feminist than a teller","Two facts joined together beat one fact on its own"], answer:0,
+        why:"A smaller group (feminist bank tellers) can never be more likely than the whole group (bank tellers)." },
+
+      { diff:"medium", ch:"Linda: Less Is More", q:"The Linda problem shows that adding a vivid, fitting detail to a story makes it feel…",
+        options:["More believable even as it becomes less likely","Less interesting to careful, logical readers","More likely, because extra detail adds real proof","Harder to picture, so people just ignore the story"], answer:0,
+        why:"Coherence and plausibility get confused with probability — a richer story feels truer but is statistically rarer." },
+
+      { diff:"hard", ch:"Causes Trump Statistics", q:"In the cab problem, 85% of cabs are Green and 15% Blue; a witness says 'Blue.' Most people ignore that…",
+        options:["Green cabs are so common they remain the likely culprit","The witness is right about the color eight times in ten","Green cabs are too rare in this city to be the culprit","Eyewitnesses can never be trusted about colors at night"], answer:0,
+        why:"The 85% base rate makes Green the likelier cab, but a plain statistic slides right off unless it's framed as a cause." },
+
+      { diff:"medium", ch:"Regression to the Mean", q:"A flight instructor found that praising a great landing was followed by a worse one, and scolding a bad landing by a better one. The true cause was…",
+        options:["Regression — extreme results drift toward average","Praise — kind words make cadets careless and lazy","Scolding — harsh words truly sharpen a pilot's focus","Reward — cadets try harder after being congratulated"], answer:0,
+        why:"Any extreme performance is naturally followed by one closer to average — he credited praise and blame instead of the math." },
+
+      { diff:"hard", ch:"Taming Intuitive Predictions", q:"Told that a toddler named Julie read fluently at age four, people confidently predict a brilliant college GPA. The book says this forecast is…",
+        options:["Too extreme — weak evidence should give a modest guess","About right — early readers do become top students","Too low — fluent four-year-olds usually do even better","Impossible to make from so little information at all"], answer:0,
+        why:"Intuitive predictions match an extreme outcome to a weak clue; a good forecast stays closer to the average." }
+    ]
+  }
+];
+
+const ESSAYS = [
+  { part:0, ch:"Essay · Part I",
+    q:"Explain, in your own words, the difference between System 1 and System 2. Then pick ONE example from the book (such as the bat-and-ball puzzle, the invisible gorilla, or 17 × 24) and explain how the two systems work together to produce a mistake or reveal a limit in our thinking.",
+    note:"Write 4–7 sentences. Define both systems, then use one clear example from the book.",
+    model:"System 1 is fast, automatic, and effortless — it reads a face, finishes 'bread and…,' and hands you an instant impression. System 2 is slow, deliberate, and effortful — it does the hard work like 17 × 24 or checking an answer, but it is lazy and often just approves whatever System 1 suggests. In the bat-and-ball puzzle, System 1 blurts out '10 cents' because it feels right, and a lazy System 2 waves it through without noticing the real answer is 5 cents. The mistake happens not because the math is hard, but because the effortful checker never bothered to step in. That is the book's central drama: most errors are System 1 jumping ahead while System 2 fails to catch it.",
+    checks:[
+      { concept:"System 1 = fast, automatic, effortless", keys:["fast","automatic","effort","instant","quick","intuiti","no control","without thinking","reflex"], hint:"Say that System 1 is fast, automatic, and works with little effort." },
+      { concept:"System 2 = slow, deliberate, effortful (and often lazy)", keys:["slow","effortful","deliberate","careful","hard work","lazy","concentrat","checking","attention","think it through"], hint:"Say that System 2 is slow and effortful — and often lazy." },
+      { concept:"A specific example from the book", keys:["bat","ball","gorilla","17","24","cents","5 cent","five cent","florida","pupil","multipl","bread"], hint:"Name a real example (bat-and-ball, the gorilla, or 17 × 24)." },
+      { concept:"How they interact to cause the error (System 2 fails to check System 1)", keys:["check","approve","lazy","rubber","fails","doesn't catch","does not catch","accept","override","without checking","waves","endorse","step in","jump"], hint:"Explain that the error comes from System 2 failing to check System 1." }
+    ] },
+  { part:1, ch:"Essay · Part II",
+    q:"The book says we often judge things by how much they RESEMBLE a stereotype, while ignoring the 'base rate' (how common something actually is). Explain what a base rate is and why people ignore it. Use the Tom W example (or the taxi-cab example) in your answer, and say what a careful thinker should do instead.",
+    note:"Write 4–7 sentences. Define a base rate, explain the mistake, use an example, and give the fix.",
+    model:"A base rate is the background frequency of something — for example, how many students actually study each subject, or how many cabs in a city are Green. People ignore it because a vivid, specific description feels like strong evidence, so it grabs our attention while the dull statistic slides away. In the Tom W problem, a nerdy personality sketch makes everyone guess 'computer science,' even though far more students study other fields — resemblance to a stereotype beats the real proportions. This is representativeness: we judge probability by similarity, not by frequency. A careful thinker should start from the base rate first, and only adjust toward the vivid detail as far as the evidence honestly allows.",
+    checks:[
+      { concept:"A base rate is the background frequency / proportion", keys:["base rate","frequency","how common","proportion","how many","background","overall","population","percentage"], hint:"Define a base rate as how common something is in general." },
+      { concept:"Why it's ignored — a vivid detail or resemblance beats the statistic", keys:["vivid","stereotype","resembl","similar","story","detail","description","feels","specific","representative","picture"], hint:"Explain that a vivid description or stereotype grabs attention over the statistic." },
+      { concept:"Uses the Tom W or cab example", keys:["tom","computer","engineer","cab","taxi","green","blue","witness","nerd","field"], hint:"Bring in the Tom W or taxi-cab example." },
+      { concept:"The fix — start from / weight the base rate", keys:["start with","start from","anchor","weight","use the base","begin","adjust","consider the","lean on","proportion","numbers first","step back"], hint:"Say the fix is to start from the base rate, then adjust." }
+    ] }
+];
+
+/* ================= BUILD FLAT LIST ================= */
+const items = [];
+PARTS.forEach((p, pi) => {
+  items.push({ type:"banner", part:pi });
+  p.questions.forEach(q => items.push(Object.assign({ type:"mcq", part:pi }, q)));
+  const e = ESSAYS.find(es => es.part === pi);
+  if (e) items.push(Object.assign({ type:"essay", part:pi }, e));
+});
+const totalQuestions = PARTS.reduce((n,p)=>n+p.questions.length,0) + ESSAYS.length; // 32 screens; MCQ = 30
+
+// Shuffle MCQ options so the correct answer isn't always first
+items.forEach(item => {
+  if (item.type !== "mcq") return;
+  const correct = item.options[item.answer];
+  for (let i = item.options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [item.options[i], item.options[j]] = [item.options[j], item.options[i]];
+  }
+  item.answer = item.options.indexOf(correct);
+});
+
+/* ================= STATE ================= */
+let idx = 0;
+let mcqScore = 0;
+const NPARTS = PARTS.length;
+const partMcq = Array(NPARTS).fill(0), partMcqTotal = Array(NPARTS).fill(0);
+const partEssay = Array(NPARTS).fill(0);   // 0..3 each
+let answered = false;
+
+const MCQ_TOTAL = items.filter(i=>i.type==="mcq").length;   // 30
+const ESSAY_MAX = ESSAYS.length * 3;                        // 6
+const GRAND_TOTAL = MCQ_TOTAL + ESSAY_MAX;                  // 36
+const PASS = Math.ceil(GRAND_TOTAL * 0.75);                 // 27
+items.forEach(i => { if (i.type==="mcq") partMcqTotal[i.part]++; });
+
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+const qcount = document.getElementById('qcount');
+const scoreboard = document.getElementById('scoreboard');
+const progress = document.getElementById('progress');
+
+function currentQn() { return items.slice(0, idx+1).filter(i => i.type !== "banner").length; }
+function updateBar() {
+  const qn = currentQn();
+  const totalScreens = items.filter(i=>i.type!=="banner").length; // 32
+  qcount.textContent = `Question ${qn} of ${totalScreens}`;
+  scoreboard.textContent = `🏅 ${(mcqScore + partEssay.reduce((a,b)=>a+b,0))}`;
+  progress.style.width = `${(qn / totalScreens) * 100}%`;
+}
+
+function render() {
+  answered = false;
+  const item = items[idx];
+
+  if (item.type === "banner") {
+    const p = PARTS[item.part];
+    quizArea.innerHTML = `
+      <div class="partbanner">
+        <div class="k">${p.k}</div>
+        <h2>${p.title}</h2>
+        <p>${p.blurb}</p>
+      </div>
+      <div class="center"><button class="btn" onclick="next()">Start ${p.k} →</button></div>`;
+    return;
+  }
+
+  updateBar();
+
+  if (item.type === "mcq") {
+    const opts = item.options.map((o,i)=>`<button class="opt" data-i="${i}" onclick="choose(${i})">${o}</button>`).join('');
+    quizArea.innerHTML = `
+      <div class="card">
+        <div class="qhead"><span class="qmeta">${item.ch}</span><span class="diff ${item.diff}">${item.diff}</span></div>
+        <div class="qtext">${item.q}</div>
+        ${opts}
+        <div class="feedback" id="fb"></div>
+        <div class="center"><button class="btn next" id="nextBtn" onclick="next()">Next →</button></div>
+      </div>`;
+  } else { // essay
+    quizArea.innerHTML = `
+      <div class="card">
+        <div class="qhead"><span class="qmeta">${item.ch}</span><span class="diff hard">essay</span></div>
+        <div class="qtext">${item.q}</div>
+        <div class="essay-note">${item.note}</div>
+        <textarea id="essayInput" placeholder="Type your answer here..."></textarea>
+        <div class="center" style="margin-top:12px;"><button class="btn grade" id="gradeBtn" onclick="gradeEssay()">Grade my answer</button></div>
+        <div class="rubric" id="rubric"></div>
+        <div class="center"><button class="btn next" id="nextBtn" onclick="next()">Next →</button></div>
+      </div>`;
+  }
+}
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const item = items[idx];
+  const buttons = document.querySelectorAll('.opt');
+  buttons.forEach(b => b.disabled = true);
+  const fb = document.getElementById('fb');
+  if (i === item.answer) {
+    mcqScore++; partMcq[item.part]++;
+    buttons[i].classList.add('correct');
+    fb.className = 'feedback good show';
+    fb.innerHTML = `✅ <strong>Correct!</strong> ${item.why}`;
+  } else {
+    buttons[i].classList.add('wrong');
+    buttons[item.answer].classList.add('correct');
+    fb.className = 'feedback bad show';
+    fb.innerHTML = `❌ <strong>Not quite.</strong> ${item.why}`;
+  }
+  updateBar();
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+/* ===== Copy detector: how much of the answer is lifted word-for-word
+   from the QUESTION (or the on-screen note). Returns a fraction 0–1. ===== */
+function normWords(s){ return s.toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
+function copyOverlap(answer, source){
+  const a = normWords(answer).split(' ').filter(Boolean);
+  const src = ' ' + normWords(source) + ' ';
+  if (a.length === 0) return 0;
+  if (a.length < 6) return src.includes(' ' + a.join(' ') + ' ') ? 1 : 0;
+  const N = 5; // any run of 5+ consecutive copied words counts as lifted text
+  const covered = new Array(a.length).fill(false);
+  for (let i = 0; i + N <= a.length; i++){
+    if (src.includes(' ' + a.slice(i, i+N).join(' ') + ' ')){
+      for (let j = i; j < i + N; j++) covered[j] = true;
+    }
+  }
+  return covered.filter(Boolean).length / a.length;
+}
+
+/* ===== Essay auto-grader: checks the answer for each key concept ===== */
+function gradeEssay() {
+  if (answered) return;
+  const item = items[idx];
+  const raw = (document.getElementById('essayInput').value || '').trim();
+  if (raw.length < 15) {
+    alert("Please write a few sentences before grading — try to explain the idea in your own words.");
+    return;
+  }
+  answered = true;
+  document.getElementById('gradeBtn').disabled = true;
+  document.getElementById('essayInput').disabled = true;
+
+  const r = document.getElementById('rubric');
+
+  // ---- Anti-copy check: must be in his OWN words, not copied from the question ----
+  const overlap = Math.max(
+    copyOverlap(raw, item.q),
+    copyOverlap(raw, item.note || '')
+  );
+  if (overlap >= 0.4) {
+    partEssay[item.part] = 0;
+    r.className = "rubric show";
+    r.innerHTML = `
+      <h4 style="color:#a5352a;">Auto-graded: 0 / 3 — copied from the question</h4>
+      <div style="color:#a5352a;font-weight:bold;margin-bottom:8px;">
+        It looks like this answer copies the words of the question (about ${Math.round(overlap*100)}% matches).
+        Please answer in your <u>own words</u> — explain the idea the way you would tell a friend.</div>
+      <div class="model"><b>Model answer (for after you try again):</b> ${item.model}</div>`;
+    updateBar();
+    document.getElementById('nextBtn').style.display = 'inline-block';
+    return;
+  }
+
+  const text = raw.toLowerCase();
+  let hits = 0;
+  const rows = item.checks.map(c => {
+    const found = c.keys.some(k => new RegExp(k).test(text));
+    if (found) hits++;
+    return found
+      ? `<div class="checkitem hit"><span class="mk">✓</span> ${c.concept}</div>`
+      : `<div class="checkitem miss"><span class="mk">✗</span> ${c.concept}<br><span style="color:#8a6d1f;">→ ${c.hint}</span></div>`;
+  }).join('');
+
+  // Map concepts hit (out of N) to a 0–3 score
+  const n = item.checks.length;
+  const points = Math.round((hits / n) * 3);
+  partEssay[item.part] = points;
+
+  let verdict, vcolor;
+  if (points >= 3)      { verdict = "Excellent — you captured the main ideas!"; vcolor="#2e6b34"; }
+  else if (points === 2){ verdict = "Good — you've got most of it. Add the missing idea below."; vcolor="#8a6d1f"; }
+  else if (points === 1){ verdict = "A start — but re-read and include more of the key ideas."; vcolor="#9a6a12"; }
+  else                  { verdict = "Let's revisit this one — the key ideas are missing."; vcolor="#a5352a"; }
+
+  r.className = "rubric show";
+  r.innerHTML = `
+    <h4>Auto-graded: ${points} / 3 &nbsp;·&nbsp; ${hits} of ${n} key ideas found</h4>
+    <div style="color:${vcolor};font-weight:bold;margin-bottom:8px;">${verdict}</div>
+    ${rows}
+    <div class="model"><b>Model answer:</b> ${item.model}</div>`;
+  updateBar();
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function next() {
+  idx++;
+  if (idx < items.length) render();
+  else showResult();
+}
+
+function showResult() {
+  quizArea.classList.add('hidden');
+  document.querySelector('.bar').classList.add('hidden');
+  resultArea.classList.remove('hidden');
+  progress.style.width = '100%';
+
+  const essayTotal = partEssay.reduce((a,b)=>a+b,0);
+  const total = mcqScore + essayTotal;
+  const pct = Math.round((total / GRAND_TOTAL) * 100);
+  const passed = total >= PASS;
+
+  let stars, msg, emoji;
+  if (pct === 100)      { stars="⭐⭐⭐⭐⭐"; emoji="🏆"; msg="Perfect! You truly understand these ideas."; }
+  else if (pct >= 90)   { stars="⭐⭐⭐⭐⭐"; emoji="🎖️"; msg="Outstanding grasp of the concepts."; }
+  else if (passed)      { stars="⭐⭐⭐⭐"; emoji="✅"; msg="Well done — you passed and clearly get the big ideas."; }
+  else if (pct >= 60)   { stars="⭐⭐⭐"; emoji="📈"; msg="Close! Review the parts you missed and try again — passing is 75%."; }
+  else if (pct >= 40)   { stars="⭐⭐"; emoji="📚"; msg="Good effort. Re-read the chapters and give it another go."; }
+  else                  { stars="⭐"; emoji="🌱"; msg="Let's revisit the ideas together and try once more."; }
+
+  const rows = PARTS.map((p,i)=>`
+    <div class="row"><span>${p.k} · ${p.title}</span>
+      <b>${partMcq[i]}/${partMcqTotal[i]} MCQ &nbsp;+&nbsp; ${partEssay[i]}/3 essay</b></div>`).join('');
+
+  const banner = passed
+    ? `<div style="background:#d7f0d3;color:#2e6b34;border-radius:12px;padding:14px;font-size:22px;font-weight:bold;margin:14px 0;">🎉 PASSED! 🎉</div>`
+    : `<div style="background:#fbeaea;color:#a5352a;border-radius:12px;padding:14px;font-size:22px;font-weight:bold;margin:14px 0;">Not passed yet — need 75%</div>`;
+
+  resultArea.innerHTML = `
+    <div class="big">${emoji}</div>
+    <h2>Exam Complete!</h2>
+    ${banner}
+    <div class="stars">${stars}</div>
+    <div class="scoreline">Total: <strong>${total}</strong> / ${GRAND_TOTAL} &nbsp;(${pct}%)</div>
+    <div style="font-size:14px;color:#6b6350;margin:-2px 0 6px;">Multiple-choice: ${mcqScore}/${MCQ_TOTAL} · Essays: ${essayTotal}/${ESSAY_MAX} · Passing: 75% (${PASS}/${GRAND_TOTAL})</div>
+    <div class="partscores">${rows}</div>
+    <p style="margin:8px 0 18px;font-size:16px;">${msg}</p>
+    <button class="btn" onclick="restart()">Try Again 🔄</button>`;
+}
+
+function restart() {
+  idx = 0; mcqScore = 0; answered = false;
+  for (let i=0;i<NPARTS;i++){ partMcq[i]=0; partEssay[i]=0; }
+  resultArea.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  document.querySelector('.bar').classList.remove('hidden');
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
