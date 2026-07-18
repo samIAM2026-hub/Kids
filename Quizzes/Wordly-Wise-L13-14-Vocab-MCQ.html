@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wordly Wise Lessons 13 & 14 — Vocabulary (Meanings)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family:'Comic Sans MS','Trebuchet MS',system-ui,sans-serif; background:linear-gradient(160deg,#ffe29a 0%,#ffb37b 50%,#ff8a5c 100%); min-height:100vh; color:#4a2c0f; padding:20px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  header { background:#ff7043; border-radius:24px; padding:26px 24px; text-align:center; color:#fff; box-shadow:0 8px 0 #d84315; margin-bottom:18px; }
+  header .ic { font-size:48px; line-height:1; }
+  header h1 { font-size:24px; margin:8px 0 4px; }
+  header p { font-size:15px; opacity:.95; }
+  .bar { background:#fff3e0; border-radius:16px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; font-weight:bold; margin-bottom:16px; box-shadow:0 4px 0 #ffccbc; }
+  .progress-track { flex:1; height:14px; background:#ffccbc; border-radius:10px; margin:0 14px; overflow:hidden; }
+  .progress-fill { height:100%; width:0; background:#43a047; border-radius:10px; transition:width .3s; }
+  .card { background:#fff; border-radius:20px; padding:22px; box-shadow:0 6px 0 #e0a96d; margin-bottom:16px; }
+  .qmeta { font-size:13px; color:#ef6c00; font-weight:bold; text-transform:uppercase; letter-spacing:.5px; }
+  .qtext { font-size:22px; margin:8px 0 16px; line-height:1.4; }
+  .word { color:#c1440e; font-weight:bold; letter-spacing:.5px; }
+  .opt { display:block; width:100%; text-align:left; background:#fff8f0; border:3px solid #ffd2a8; border-radius:14px; padding:13px 16px; font-size:17px; font-family:inherit; color:#4a2c0f; margin-bottom:10px; cursor:pointer; transition:transform .1s, background .15s, border-color .15s; }
+  .opt:hover:not(:disabled) { transform:translateX(4px); border-color:#ff9d57; }
+  .opt:disabled { cursor:default; }
+  .opt.correct { background:#d7f5d3; border-color:#43a047; }
+  .opt.wrong { background:#ffd9d9; border-color:#e53935; }
+  .feedback { margin-top:6px; padding:12px 14px; border-radius:12px; font-size:15px; line-height:1.4; display:none; }
+  .feedback.show { display:block; }
+  .feedback.good { background:#e8f7e6; color:#2e7d32; }
+  .feedback.bad { background:#fdeaea; color:#c62828; }
+  .btn { background:#43a047; color:#fff; border:none; border-radius:14px; padding:14px 28px; font-size:18px; font-family:inherit; font-weight:bold; cursor:pointer; box-shadow:0 5px 0 #2e7d32; transition:transform .1s; }
+  .btn:active { transform:translateY(3px); box-shadow:0 2px 0 #2e7d32; }
+  .btn.next { background:#ff7043; box-shadow:0 5px 0 #d84315; display:none; margin-top:6px; }
+  .center { text-align:center; }
+  .result { background:#fff; border-radius:24px; padding:34px 24px; text-align:center; box-shadow:0 6px 0 #e0a96d; }
+  .result .big { font-size:60px; }
+  .result h2 { font-size:27px; margin:10px 0; color:#ef6c00; }
+  .scoreline { font-size:22px; margin:14px 0; }
+  .stars { font-size:32px; letter-spacing:4px; margin:10px 0; }
+  .hidden { display:none; }
+  footer { text-align:center; font-size:13px; color:#7a4a1f; margin-top:10px; opacity:.85; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="ic">📚</div>
+    <h1>Wordly Wise · Lessons 13 &amp; 14</h1>
+    <p>Vocabulary · Choose the best meaning</p>
+  </header>
+  <div class="bar">
+    <span id="qcount">Question 1 of 30</span>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <span id="scoreboard">⭐ 0</span>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" class="result hidden"></div>
+  <footer id="footer">For Grace · Passing score: 85%</footer>
+</div>
+<script>
+const PASS_PCT = 0.85;
+const questions = [
+  // ---- Lesson 13 ----
+  { ch:"Lesson 13", q:"What does <span class='word'>appall</span> most nearly mean?",
+    options:["To shock or dismay someone","To beg for something you want","To become a little less strict","To walk with heavy steps"], answer:0,
+    why:"To appall is to fill someone with horror, shock, or dismay." },
+  { ch:"Lesson 13", q:"What does <span class='word'>dejected</span> most nearly mean?",
+    options:["Sad and discouraged","Modest and not proud","Unusually good and fine","Lucky and carefree"], answer:0,
+    why:"Dejected means discouraged and low in spirits." },
+  { ch:"Lesson 13", q:"What does <span class='word'>depend</span> most nearly mean?",
+    options:["To rely on for support","To enter a place by force","To make something known","To brag about oneself"], answer:0,
+    why:"To depend on someone is to rely on them for help or support." },
+  { ch:"Lesson 13", q:"What does <span class='word'>dreary</span> most nearly mean?",
+    options:["Dull, sad, and gloomy","Modest and not proud","Stubborn and unbending","Lucky and cheerful"], answer:0,
+    why:"Dreary means dull and gloomy — sad and without cheer." },
+  { ch:"Lesson 13", q:"What does <span class='word'>fanatic</span> most nearly mean?",
+    options:["A person with extreme zeal","A total, crushing defeat","A wide field of green grass","A border made of threads"], answer:0,
+    why:"A fanatic is a person whose enthusiasm for something is extreme." },
+  { ch:"Lesson 13", q:"What does <span class='word'>impact</span> most nearly mean?",
+    options:["One object hitting another","A wide stretch of open meadow","A group of musical notes","A dull and gloomy mood"], answer:0,
+    why:"An impact is the striking of one object against another (it can also mean a strong effect)." },
+  { ch:"Lesson 13", q:"What does <span class='word'>invade</span> most nearly mean?",
+    options:["To enter by force","To make known or show","To beg for something","To dive in suddenly"], answer:0,
+    why:"To invade is to enter by force, or to crowd in in great numbers." },
+  { ch:"Lesson 13", q:"What does <span class='word'>isolate</span> most nearly mean?",
+    options:["To cut off from others","To live in or take up","To hand something in","To rely on for support"], answer:0,
+    why:"To isolate is to set apart or cut off from other people." },
+  { ch:"Lesson 13", q:"What does <span class='word'>occupy</span> most nearly mean?",
+    options:["To live in or take up","To cut off from others","To beg for something","To shock or dismay"], answer:0,
+    why:"To occupy a place is to live in it or take it up." },
+  { ch:"Lesson 13", q:"What does <span class='word'>reveal</span> most nearly mean?",
+    options:["To make known or to show","To think someone is guilty","To become a bit less strict","To walk with effort"], answer:0,
+    why:"To reveal is to make something known or bring it into view." },
+  { ch:"Lesson 13", q:"What does <span class='word'>rout</span> most nearly mean?",
+    options:["A total, crushing defeat","A person with wild zeal","A grassy field of flowers","A great and sudden fear"], answer:0,
+    why:"A rout is a complete defeat and a disorderly retreat." },
+  { ch:"Lesson 13", q:"What does <span class='word'>suspect</span> most nearly mean?",
+    options:["To think probably guilty","To enter a place by force","To rely on for support","To make known or show"], answer:0,
+    why:"To suspect is to think someone is probably guilty, or to suppose something is true." },
+  { ch:"Lesson 13", q:"What does <span class='word'>temporary</span> most nearly mean?",
+    options:["Lasting only a short time","Unusually good and fine","Modest and not proud","Sad and discouraged"], answer:0,
+    why:"Temporary means made to last only for a short time." },
+  { ch:"Lesson 13", q:"What does <span class='word'>terror</span> most nearly mean?",
+    options:["A feeling of great fear","A total, crushing defeat","A field of tall grass","A border of hanging thread"], answer:0,
+    why:"Terror is very great fear." },
+  { ch:"Lesson 13", q:"What does <span class='word'>tragic</span> most nearly mean?",
+    options:["Causing great sadness","Bringing very good luck","Lasting a short time","Modest and not proud"], answer:0,
+    why:"Tragic means causing great sadness — terrible or dreadful." },
+  // ---- Lesson 14 ----
+  { ch:"Lesson 14", q:"What does <span class='word'>afford</span> most nearly mean?",
+    options:["To be able to pay for","To beg for something","To hand in or give in","To dive in quickly"], answer:0,
+    why:"To afford is to have enough money or means to pay for something." },
+  { ch:"Lesson 14", q:"What does <span class='word'>boast</span> most nearly mean?",
+    options:["To brag about oneself","To beg for something","To give in to others","To enter by force"], answer:0,
+    why:"To boast is to talk with too much pride — to brag." },
+  { ch:"Lesson 14", q:"What does <span class='word'>chord</span> most nearly mean?",
+    options:["Notes played together","A border of threads","A grassy open field","A great, crushing defeat"], answer:0,
+    why:"A chord is three or more musical notes played together (not a rope 'cord')." },
+  { ch:"Lesson 14", q:"What does <span class='word'>exceptional</span> most nearly mean?",
+    options:["Unusually good","Sad and gloomy","Very stubborn","Modest; humble"], answer:0,
+    why:"Exceptional means unusually good — better than the rest." },
+  { ch:"Lesson 14", q:"What does <span class='word'>fortunate</span> most nearly mean?",
+    options:["Lucky; in good fortune","Sad and low in spirits","Stubborn and unbending","Plain, modest, humble"], answer:0,
+    why:"Fortunate means lucky — having good fortune." },
+  { ch:"Lesson 14", q:"What does <span class='word'>fringe</span> most nearly mean?",
+    options:["A border of threads","A total defeat in battle","A field of wildflowers","A very great feeling"], answer:0,
+    why:"A fringe is a border of hanging threads, or the outer edge of something." },
+  { ch:"Lesson 14", q:"What does <span class='word'>humble</span> most nearly mean?",
+    options:["Modest and not proud","Sad and discouraged","Stubborn; unyielding","Lucky and carefree"], answer:0,
+    why:"Humble means modest and not proud — or plain and simple." },
+  { ch:"Lesson 14", q:"What does <span class='word'>meadow</span> most nearly mean?",
+    options:["A grassy, flowery field","A big defeat in battle","A group of piano notes","A trim of hanging thread"], answer:0,
+    why:"A meadow is a field of grass or wildflowers." },
+  { ch:"Lesson 14", q:"What does <span class='word'>melancholy</span> most nearly mean?",
+    options:["A deep, gloomy sadness","A sudden burst of fear","A total loss in battle","A trim of thread"], answer:0,
+    why:"Melancholy is a state of deep sadness or sorrow." },
+  { ch:"Lesson 14", q:"What does <span class='word'>obstinate</span> most nearly mean?",
+    options:["Stubborn and firm","Sad and downcast","Modest and quiet","Cheerful and lucky"], answer:0,
+    why:"Obstinate means stubborn — not willing to give in." },
+  { ch:"Lesson 14", q:"What does <span class='word'>plead</span> most nearly mean?",
+    options:["To beg for something","To hand in or submit","To dive in quickly","To give in to others"], answer:0,
+    why:"To plead is to beg for something you feel is very important." },
+  { ch:"Lesson 14", q:"What does <span class='word'>plunge</span> most nearly mean?",
+    options:["To dive in suddenly","To hand something in","To beg for something","To pay for something"], answer:0,
+    why:"To plunge is to throw or dive oneself into something suddenly." },
+  { ch:"Lesson 14", q:"What does <span class='word'>relent</span> most nearly mean?",
+    options:["To become less strict","To brag about oneself","To walk with effort","To enter by force"], answer:0,
+    why:"To relent is to soften and become less strict." },
+  { ch:"Lesson 14", q:"What does <span class='word'>submit</span> most nearly mean?",
+    options:["To turn in or give in","To beg for something","To walk heavily along","To pay for something"], answer:0,
+    why:"To submit is to hand something in, or to give in to someone." },
+  { ch:"Lesson 14", q:"What does <span class='word'>trudge</span> most nearly mean?",
+    options:["To plod along wearily","To dive in quickly","To give in to others","To rely on for help"], answer:0,
+    why:"To trudge is to walk slowly and heavily, as if with great effort." }
+];
+
+questions.forEach(item => {
+  const correct = item.options[item.answer];
+  for (let i = item.options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [item.options[i], item.options[j]] = [item.options[j], item.options[i]];
+  }
+  item.answer = item.options.indexOf(correct);
+});
+
+let current = 0, score = 0, answered = false;
+const passNeeded = Math.ceil(questions.length * PASS_PCT);
+const pctLabel = Math.round(PASS_PCT * 100);
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+const qcount = document.getElementById('qcount');
+const scoreboard = document.getElementById('scoreboard');
+const progress = document.getElementById('progress');
+document.getElementById('footer').textContent = `For Grace · Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})`;
+
+function render() {
+  answered = false;
+  const item = questions[current];
+  qcount.textContent = `Question ${current + 1} of ${questions.length}`;
+  scoreboard.textContent = `⭐ ${score}`;
+  progress.style.width = `${(current / questions.length) * 100}%`;
+  const opts = item.options.map((o, i) => `<button class="opt" data-i="${i}" onclick="choose(${i})">${o}</button>`).join('');
+  quizArea.innerHTML = `
+    <div class="card">
+      <div class="qmeta">${item.ch}</div>
+      <div class="qtext">${item.q}</div>
+      ${opts}
+      <div class="feedback" id="fb"></div>
+      <div class="center"><button class="btn next" id="nextBtn" onclick="next()">Next →</button></div>
+    </div>`;
+}
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const item = questions[current];
+  const buttons = document.querySelectorAll('.opt');
+  buttons.forEach(b => b.disabled = true);
+  const fb = document.getElementById('fb');
+  if (i === item.answer) {
+    score++;
+    buttons[i].classList.add('correct');
+    fb.className = 'feedback good show';
+    fb.innerHTML = `✅ <strong>Correct!</strong> ${item.why}`;
+  } else {
+    buttons[i].classList.add('wrong');
+    buttons[item.answer].classList.add('correct');
+    fb.className = 'feedback bad show';
+    fb.innerHTML = `❌ <strong>Not quite.</strong> ${item.why}`;
+  }
+  scoreboard.textContent = `⭐ ${score}`;
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function next() { current++; if (current < questions.length) render(); else showResult(); }
+
+function showResult() {
+  quizArea.classList.add('hidden');
+  document.querySelector('.bar').classList.add('hidden');
+  resultArea.classList.remove('hidden');
+  progress.style.width = '100%';
+  const pct = Math.round((score / questions.length) * 100);
+  const passed = score >= passNeeded;
+  let stars, msg, emoji;
+  if (pct === 100) { stars='⭐⭐⭐⭐⭐'; msg="Perfect score! You really know these words."; emoji='🏆'; }
+  else if (passed) { stars='⭐⭐⭐⭐'; msg=`Excellent! You passed the ${pctLabel}% mark.`; emoji='🎖️'; }
+  else if (pct >= 65) { stars='⭐⭐⭐'; msg=`So close! You need ${pctLabel}% to pass — review the words and try again.`; emoji='📖'; }
+  else if (pct >= 45) { stars='⭐⭐'; msg=`Good effort! You need ${pctLabel}% to pass. Study the list and go again.`; emoji='📚'; }
+  else { stars='⭐'; msg="Let's go over the words again and try once more."; emoji='✏️'; }
+  const banner = passed
+    ? `<div style="background:#d7f5d3;color:#2e7d32;border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">🎉 PASSED! 🎉</div>`
+    : `<div style="background:#fdeaea;color:#c62828;border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">Not passed yet — need ${pctLabel}%</div>`;
+  resultArea.innerHTML = `
+    <div class="big">${emoji}</div>
+    <h2>Quiz Complete!</h2>
+    ${banner}
+    <div class="stars">${stars}</div>
+    <div class="scoreline">You got <strong>${score}</strong> out of <strong>${questions.length}</strong> (${pct}%)</div>
+    <div style="font-size:15px;color:#7a4a1f;margin:-4px 0 8px;">Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})</div>
+    <p style="margin:10px 0 20px;font-size:17px;">${msg}</p>
+    <button class="btn" onclick="restart()">Try Again 🔄</button>`;
+}
+
+function restart() {
+  current = 0; score = 0; answered = false;
+  resultArea.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  document.querySelector('.bar').classList.remove('hidden');
+  render();
+}
+render();
+</script>
+</body>
+</html>
