@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charlie and the Chocolate Factory · Chapters 6–7</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --font:'Comic Sans MS','Trebuchet MS',system-ui,sans-serif;
+    --bg:linear-gradient(160deg,#ffe29a 0%,#ffb37b 50%,#ff8a5c 100%);
+    --ink:#4a2c0f;
+    --header-bg:#ff7043; --header-shadow:#d84315; --header-radius:24px;
+    --bar-bg:#fff3e0; --bar-shadow:#ffccbc; --track:#ffccbc; --fill:#43a047;
+    --card-bg:#fff; --card-shadow:#e0a96d; --card-radius:20px; --meta:#ef6c00;
+    --opt-bg:#fff8f0; --opt-border:#ffd2a8; --opt-hover:#ff9d57; --opt-radius:14px;
+    --correct-bg:#d7f5d3; --correct-border:#43a047; --wrong-bg:#ffd9d9; --wrong-border:#e53935;
+    --good-bg:#e8f7e6; --good-fg:#2e7d32; --bad-bg:#fdeaea; --bad-fg:#c62828;
+    --btn:#43a047; --btn-shadow:#2e7d32; --next:#ff7043; --next-shadow:#d84315;
+    --result-title:#ef6c00; --footer:#7a4a1f;
+  }
+  body.theme-river{
+    --font:'Georgia','Times New Roman',serif;
+    --bg:linear-gradient(160deg,#cfe8f0 0%,#a9d3c2 45%,#8bb98f 100%);
+    --ink:#2c2418;
+    --header-bg:#5b4636; --header-shadow:#3a2c20; --header-radius:18px;
+    --bar-bg:#f5ecd9; --bar-shadow:#c9b890; --track:#d9c9a3; --fill:#3a7d44;
+    --card-bg:#fffdf7; --card-shadow:#c9b890; --card-radius:16px; --meta:#8a6d3b;
+    --opt-bg:#f7f1e3; --opt-border:#ddcaa3; --opt-hover:#b89968; --opt-radius:12px;
+    --correct-bg:#d7f0d3; --correct-border:#3a7d44; --wrong-bg:#f6d6d6; --wrong-border:#c0392b;
+    --good-bg:#e8f5e6; --good-fg:#2e6b34; --bad-bg:#fbeaea; --bad-fg:#a5352a;
+    --btn:#3a7d44; --btn-shadow:#285a30; --next:#8a6d3b; --next-shadow:#5b4636;
+    --result-title:#5b4636; --footer:#4c4030;
+  }
+  body { font-family:var(--font); background:var(--bg); min-height:100vh; color:var(--ink); padding:20px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  header { background:var(--header-bg); border-radius:var(--header-radius); padding:26px 24px; text-align:center; color:#fff; box-shadow:0 8px 0 var(--header-shadow); margin-bottom:18px; }
+  header .ic { font-size:50px; line-height:1; }
+  header h1 { font-size:25px; margin:8px 0 4px; }
+  header p { font-size:16px; opacity:.95; }
+  .bar { background:var(--bar-bg); border-radius:14px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; font-weight:bold; margin-bottom:16px; box-shadow:0 4px 0 var(--bar-shadow); }
+  .progress-track { flex:1; height:14px; background:var(--track); border-radius:10px; margin:0 14px; overflow:hidden; }
+  .progress-fill { height:100%; width:0; background:var(--fill); border-radius:10px; transition:width .3s; }
+  .card { background:var(--card-bg); border-radius:var(--card-radius); padding:22px; box-shadow:0 6px 0 var(--card-shadow); margin-bottom:16px; }
+  .qmeta { font-size:13px; color:var(--meta); font-weight:bold; text-transform:uppercase; letter-spacing:.5px; }
+  .qtext { font-size:20px; margin:8px 0 16px; line-height:1.45; }
+  .opt { display:block; width:100%; text-align:left; background:var(--opt-bg); border:3px solid var(--opt-border); border-radius:var(--opt-radius); padding:13px 16px; font-size:17px; font-family:inherit; color:var(--ink); margin-bottom:10px; cursor:pointer; transition:transform .1s, background .15s, border-color .15s; }
+  .opt:hover:not(:disabled) { transform:translateX(4px); border-color:var(--opt-hover); }
+  .opt:disabled { cursor:default; }
+  .opt.correct { background:var(--correct-bg); border-color:var(--correct-border); }
+  .opt.wrong { background:var(--wrong-bg); border-color:var(--wrong-border); }
+  .feedback { margin-top:6px; padding:12px 14px; border-radius:12px; font-size:15px; line-height:1.45; display:none; }
+  .feedback.show { display:block; }
+  .feedback.good { background:var(--good-bg); color:var(--good-fg); }
+  .feedback.bad { background:var(--bad-bg); color:var(--bad-fg); }
+  .btn { background:var(--btn); color:#fff; border:none; border-radius:14px; padding:14px 28px; font-size:18px; font-family:inherit; font-weight:bold; cursor:pointer; box-shadow:0 5px 0 var(--btn-shadow); transition:transform .1s; }
+  .btn:active { transform:translateY(3px); box-shadow:0 2px 0 var(--btn-shadow); }
+  .btn.next { background:var(--next); box-shadow:0 5px 0 var(--next-shadow); display:none; margin-top:6px; }
+  .center { text-align:center; }
+  .result { background:var(--card-bg); border-radius:var(--card-radius); padding:34px 24px; text-align:center; box-shadow:0 6px 0 var(--card-shadow); }
+  .result .big { font-size:62px; }
+  .result h2 { font-size:27px; margin:10px 0; color:var(--result-title); }
+  .scoreline { font-size:22px; margin:14px 0; }
+  .stars { font-size:33px; letter-spacing:4px; margin:10px 0; }
+  .hidden { display:none; }
+  footer { text-align:center; font-size:13px; color:var(--footer); margin-top:10px; opacity:.85; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="ic" id="icon">🍫</div>
+    <h1 id="title">Book Title</h1>
+    <p id="subtitle">Reading Quiz · Chapter N</p>
+  </header>
+  <div class="bar">
+    <span id="qcount">Question 1</span>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <span id="scoreboard">0</span>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" class="result hidden"></div>
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* ======================= EDIT THIS ======================= */
+const CONFIG = {
+  title:    "Charlie and the Chocolate Factory",
+  subtitle: "Reading Quiz · Chapters 6–7",
+  child:    "Grace",
+  theme:    "peach",
+  icon:     "🍫",
+  passPct:  0.80
+};
+
+const questions = [
+  // ---------- Chapter 6 · The First Two Finders ----------
+  { ch:"Chapter 6 · The First Two Finders", q:"Who found the very first Golden Ticket?",
+    options:["Augustus Gloop, a greedy boy who loved eating","Veruca Salt, a girl whose father shelled peanuts","Violet Beauregarde, a girl who chewed her gum","Charlie Bucket, a poor boy from the town"],
+    answer:0,
+    why:"Augustus Gloop, the boy who loved eating, found the very first Golden Ticket." },
+
+  { ch:"Chapter 6 · The First Two Finders", q:"How does the book describe Augustus Gloop?",
+    options:["A nine-year-old boy who was enormously fat","A tall thin boy who was always feeling hungry","A small quiet boy who loved to read books","A strong older boy who was good at sports"],
+    answer:0,
+    why:"Augustus was a nine-year-old boy so fat he looked blown up with a pump." },
+
+  { ch:"Chapter 6 · The First Two Finders", q:"What did Augustus's mother say was his hobby?",
+    options:["Eating chocolate and sweets nonstop","Collecting toys from the local shops","Watching cartoons on the television","Playing games in the back garden"],
+    answer:0,
+    why:"His mother told reporters that eating was his hobby and all he cared about." },
+
+  { ch:"Chapter 6 · The First Two Finders", q:"How did Charlie's family first learn that Augustus had found a ticket?",
+    options:["From a photo and a story in the newspaper","From a letter delivered to their front door","From a message on the family's radio set","From a neighbour who came round to visit"],
+    answer:0,
+    why:"The news, with a photo of Augustus, was printed in the newspaper the family read." },
+
+  { ch:"Chapter 6 · The First Two Finders", q:"Who found the second Golden Ticket?",
+    options:["Veruca Salt, a girl who was rather spoiled","Augustus Gloop, a boy who loved chocolate","Mike Teavee, a boy who watched television","Violet Beauregarde, a girl who chewed gum"],
+    answer:0,
+    why:"The second ticket went to Veruca Salt, a very spoiled girl." },
+
+  { ch:"Chapter 6 · The First Two Finders", q:"What kind of business did Veruca's father own?",
+    options:["A factory that shelled peanuts","A shop that sold chocolate bars","A farm that grew cocoa beans","A bakery that made birthday cakes"],
+    answer:0,
+    why:"Mr Salt owned a factory where workers shelled peanuts." },
+
+  { ch:"Chapter 6 · The First Two Finders", q:"How did Mr Salt get a Golden Ticket for Veruca?",
+    options:["He bought thousands of bars to be unwrapped","He searched every sweet shop in the whole city","He asked Mr Wonka to send one straight to him","He traded a new toy with a boy who had one"],
+    answer:0,
+    why:"He bought thousands of Wonka bars and had his workers unwrap them all." },
+
+  { ch:"Chapter 6 · The First Two Finders", q:"How long did the workers unwrap bars before they found the ticket?",
+    options:["By the evening of the fourth day","After part of a single afternoon","After nearly a whole month passed","Before the first morning had ended"],
+    answer:0,
+    why:"After three days of unwrapping, they finally found the ticket on the fourth evening." },
+
+  { ch:"Chapter 6 · The First Two Finders", q:"How did Veruca behave while she waited for her ticket?",
+    options:["She lay on the floor kicking and screaming","She waited quietly and read her story books","She helped her father sort the peanut sacks","She sat calmly and did not make a fuss"],
+    answer:0,
+    why:"Veruca screamed for her ticket and lay on the floor kicking and yelling for hours." },
+
+  { ch:"Chapter 6 · Think About It", q:"Why did the Bucket family dislike how Augustus and Veruca got their tickets?",
+    options:["The children were greedy and spoiled, not lucky","The children had cheated by making pretend tickets","The children were much older than the other finders","The children lived far away in another country"],
+    answer:0,
+    why:"The Buckets felt both children were greedy and spoiled, not deserving winners." },
+
+  // ---------- Chapter 7 · Charlie's Birthday ----------
+  { ch:"Chapter 7 · Charlie's Birthday", q:"What special day does this chapter celebrate?",
+    options:["Charlie's birthday","Grandpa Joe's birthday","Christmas morning","The first day of school"],
+    answer:0,
+    why:"The whole chapter is about Charlie's birthday and the chocolate bar he gets." },
+
+  { ch:"Chapter 7 · Charlie's Birthday", q:"What was Charlie given as his birthday present?",
+    options:["A Whipple-Scrumptious Fudgemallow Delight bar","A Nutty Crunch Surprise chocolate bar from Wonka","A bag of brightly coloured sweets from the shop","A small wooden toy wrapped in bright paper"],
+    answer:0,
+    why:"His present was one Wonka's Whipple-Scrumptious Fudgemallow Delight bar." },
+
+  { ch:"Chapter 7 · Charlie's Birthday", q:"How often did Charlie get a chocolate bar of his very own?",
+    options:["Once a year, on his birthday","Each day after his supper","Once a week on a Sunday","Twice a month as a special treat"],
+    answer:0,
+    why:"Charlie was so poor that he only got one chocolate bar a year, on his birthday." },
+
+  { ch:"Chapter 7 · Charlie's Birthday", q:"Who gathered to watch Charlie open his chocolate bar?",
+    options:["His parents and his four grandparents","His mother and father by themselves","His teacher and a few of his classmates","The neighbours from down the street"],
+    answer:0,
+    why:"The whole family, parents and all four grandparents, gathered to watch and hope." },
+
+  { ch:"Chapter 7 · Charlie's Birthday", q:"What did Charlie's mother tell him before he opened the wrapper?",
+    options:["Not to be too upset if no ticket was there","To eat the whole bar as fast as he could","To save half of the chocolate for later","To share the bar with his friends at school"],
+    answer:0,
+    why:"His mother gently warned him not to be too disappointed if no ticket was inside." },
+
+  { ch:"Chapter 7 · Charlie's Birthday", q:"How did Charlie open the wrapper?",
+    options:["Very slowly and carefully","Quickly and all at once","Without even looking at it","With both of his eyes shut"],
+    answer:0,
+    why:"Charlie tore the wrapper open very slowly, hoping to see gold underneath." },
+
+  { ch:"Chapter 7 · Charlie's Birthday", q:"What did Charlie find inside his birthday bar?",
+    options:["Plain chocolate and no Golden Ticket","A bright Golden Ticket folded up inside","A small note written by Mr Wonka","A shiny silver coin hidden underneath"],
+    answer:0,
+    why:"There was no Golden Ticket, just the plain chocolate itself." },
+
+  { ch:"Chapter 7 · Charlie's Birthday", q:"What did Charlie do after he saw there was no ticket?",
+    options:["He offered to share the bar with everyone","He tossed the chocolate down on the floor","He hid the chocolate bar away for himself","He hurried outside to buy another one"],
+    answer:0,
+    why:"Charlie kindly offered his family a bit, saying he wanted everyone to taste it." },
+
+  { ch:"Chapter 7 · Charlie's Birthday", q:"How did Charlie's family answer when he offered to share?",
+    options:["They refused, saying it was his present","They happily took the biggest pieces","They told him to give it to Grandpa Joe","They asked him to sell it at the shop"],
+    answer:0,
+    why:"The family said no because the bar was his own birthday present." },
+
+  { ch:"Chapter 7 · Think About It", q:"What does Charlie offering to share his only chocolate show about him?",
+    options:["He is kind and thinks of his family first","He did not really enjoy chocolate much","He was too shy to eat it near others","He wanted his family to feel sorry for him"],
+    answer:0,
+    why:"Sharing his one yearly treat shows how kind and generous Charlie is." }
+];
+/* ===================== END EDIT AREA ===================== */
+
+document.body.className = 'theme-' + CONFIG.theme;
+const MARK = CONFIG.theme === 'river' ? '✓' : '⭐';
+document.getElementById('icon').textContent = CONFIG.icon;
+document.getElementById('title').textContent = CONFIG.title;
+document.getElementById('subtitle').textContent = CONFIG.subtitle;
+
+questions.forEach(item => {
+  const correct = item.options[item.answer];
+  for (let i = item.options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [item.options[i], item.options[j]] = [item.options[j], item.options[i]];
+  }
+  item.answer = item.options.indexOf(correct);
+});
+
+let current = 0, score = 0, answered = false;
+const passNeeded = Math.ceil(questions.length * CONFIG.passPct);
+const pctLabel = Math.round(CONFIG.passPct * 100);
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+const qcount = document.getElementById('qcount');
+const scoreboard = document.getElementById('scoreboard');
+const progress = document.getElementById('progress');
+document.getElementById('footer').textContent =
+  `For ${CONFIG.child} · Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})`;
+
+function render() {
+  answered = false;
+  const item = questions[current];
+  qcount.textContent = `Question ${current + 1} of ${questions.length}`;
+  scoreboard.textContent = `${MARK} ${score}`;
+  progress.style.width = `${(current / questions.length) * 100}%`;
+  const opts = item.options.map((o, i) => `<button class="opt" data-i="${i}" onclick="choose(${i})">${o}</button>`).join('');
+  quizArea.innerHTML = `
+    <div class="card">
+      <div class="qmeta">${item.ch}</div>
+      <div class="qtext">${item.q}</div>
+      ${opts}
+      <div class="feedback" id="fb"></div>
+      <div class="center"><button class="btn next" id="nextBtn" onclick="next()">Next →</button></div>
+    </div>`;
+}
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const item = questions[current];
+  const buttons = document.querySelectorAll('.opt');
+  buttons.forEach(b => b.disabled = true);
+  const fb = document.getElementById('fb');
+  if (i === item.answer) {
+    score++;
+    buttons[i].classList.add('correct');
+    fb.className = 'feedback good show';
+    fb.innerHTML = `✅ <strong>Correct!</strong> ${item.why}`;
+  } else {
+    buttons[i].classList.add('wrong');
+    buttons[item.answer].classList.add('correct');
+    fb.className = 'feedback bad show';
+    fb.innerHTML = `❌ <strong>Not quite.</strong> ${item.why}`;
+  }
+  scoreboard.textContent = `${MARK} ${score}`;
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function next() { current++; if (current < questions.length) render(); else showResult(); }
+
+function showResult() {
+  quizArea.classList.add('hidden');
+  document.querySelector('.bar').classList.add('hidden');
+  resultArea.classList.remove('hidden');
+  progress.style.width = '100%';
+  const pct = Math.round((score / questions.length) * 100);
+  const passed = score >= passNeeded;
+  let stars, msg, emoji;
+  if (pct === 100) { stars='⭐⭐⭐⭐⭐'; msg="Perfect score! You really know it."; emoji='🏆'; }
+  else if (passed) { stars='⭐⭐⭐⭐'; msg="Excellent! You passed with room to spare."; emoji='🎖️'; }
+  else if (pct >= 60) { stars='⭐⭐⭐'; msg=`So close! You need ${pctLabel}% to pass — review and try again.`; emoji='📖'; }
+  else if (pct >= 40) { stars='⭐⭐'; msg=`Good effort! You need ${pctLabel}% to pass. Re-read and give it another go.`; emoji='📚'; }
+  else { stars='⭐'; msg="Let's read it again carefully and try once more."; emoji='📗'; }
+  const banner = passed
+    ? `<div style="background:var(--correct-bg);color:var(--good-fg);border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">🎉 PASSED! 🎉</div>`
+    : `<div style="background:var(--bad-bg);color:var(--bad-fg);border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">Not passed yet — need ${pctLabel}%</div>`;
+  resultArea.innerHTML = `
+    <div class="big">${emoji}</div>
+    <h2>Quiz Complete!</h2>
+    ${banner}
+    <div class="stars">${stars}</div>
+    <div class="scoreline">You got <strong>${score}</strong> out of <strong>${questions.length}</strong> (${pct}%)</div>
+    <div style="font-size:15px;color:var(--footer);margin:-4px 0 8px;">Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})</div>
+    <p style="margin:10px 0 20px;font-size:17px;">${msg}</p>
+    <button class="btn" onclick="restart()">Try Again 🔄</button>`;
+}
+
+function restart() {
+  current = 0; score = 0; answered = false;
+  resultArea.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  document.querySelector('.bar').classList.remove('hidden');
+  render();
+}
+render();
+</script>
+</body>
+</html>
