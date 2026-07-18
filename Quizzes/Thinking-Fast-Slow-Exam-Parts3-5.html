@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thinking, Fast and Slow — Concept Exam · Parts 3–5</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', 'Iowan Old Style', 'Palatino Linotype', Palatino, serif;
+    background: linear-gradient(160deg, #f7f2e7 0%, #efe6cf 50%, #e7dcc0 100%);
+    min-height: 100vh; color: #1c2433; padding: 20px;
+  }
+  .wrap { max-width: 800px; margin: 0 auto; }
+  header {
+    background: linear-gradient(135deg,#24395c,#1f3352);
+    border-radius: 22px; padding: 26px 24px; text-align: center; color: #f3ecdb;
+    box-shadow: 0 8px 0 #101f38; margin-bottom: 16px; border-bottom: 3px solid #b3892f;
+  }
+  header .coin { font-size: 48px; line-height: 1; }
+  header h1 { font-size: 24px; margin: 8px 0 4px; letter-spacing:.3px; }
+  header p { font-size: 15px; opacity: .95; color:#e7dcc2; font-style: italic; }
+  .bar {
+    background: #fdfaf2; border-radius: 14px; padding: 11px 16px; display: flex;
+    justify-content: space-between; align-items: center; font-weight: bold;
+    margin-bottom: 16px; box-shadow: 0 4px 0 #d9cdae; font-size: 15px; color:#1f3352;
+  }
+  .progress-track { flex: 1; height: 13px; background: #e7dcc0; border-radius: 10px; margin: 0 12px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0; background: #b3892f; border-radius: 10px; transition: width .3s; }
+
+  .partbanner {
+    background: #1f3352; color: #fff; border-radius: 18px; padding: 18px 22px;
+    margin-bottom: 16px; box-shadow: 0 6px 0 #101f38;
+  }
+  .partbanner .k { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #d8b25a; font-weight: bold; }
+  .partbanner h2 { font-size: 21px; margin: 3px 0 4px; color:#f3ecdb; }
+  .partbanner p { font-size: 14px; color: #cdd8e6; }
+
+  .card { background: #fdfaf2; border-radius: 18px; padding: 22px; box-shadow: 0 6px 0 #d9cdae; margin-bottom: 16px; }
+  .qhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .qmeta { font-size: 12px; color: #8a6d1f; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; }
+  .diff { font-size: 11px; font-weight: bold; padding: 2px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: .5px; }
+  .diff.easy { background: #e3f0e6; color: #2e7d32; }
+  .diff.medium { background: #fbefd4; color: #9a6a12; }
+  .diff.hard { background: #f5e0dc; color: #a5352a; }
+  .diff.scenario { background: #e2eaf5; color: #2f5079; }
+  .qtext { font-size: 19px; margin: 6px 0 16px; line-height: 1.5; }
+  .opt {
+    display: block; width: 100%; text-align: left; background: #f6f0e0;
+    border: 3px solid #ddcaa3; border-radius: 13px; padding: 13px 16px; font-size: 16.5px;
+    font-family: inherit; color: #1c2433; margin-bottom: 10px; cursor: pointer;
+    transition: transform .1s, background .15s, border-color .15s;
+  }
+  .opt:hover:not(:disabled) { transform: translateX(4px); border-color: #b3892f; }
+  .opt:disabled { cursor: default; }
+  .opt.correct { background: #d7f0d3; border-color: #3a7d44; }
+  .opt.wrong { background: #f6d6d6; border-color: #c0392b; }
+  .feedback { margin-top: 6px; padding: 12px 14px; border-radius: 12px; font-size: 15px; line-height: 1.45; display: none; }
+  .feedback.show { display: block; }
+  .feedback.good { background: #e8f5e6; color: #2e6b34; }
+  .feedback.bad { background: #fbeaea; color: #a5352a; }
+
+  textarea {
+    width: 100%; min-height: 150px; border: 3px solid #ddcaa3; border-radius: 13px;
+    padding: 13px 15px; font-family: inherit; font-size: 16px; color: #1c2433; resize: vertical; background: #f6f0e0; line-height:1.5;
+  }
+  textarea:focus { outline: none; border-color: #b3892f; }
+  .essay-note { font-size: 13.5px; color: #6b6350; margin: 4px 0 12px; }
+  .rubric { margin-top: 12px; padding: 14px 16px; border-radius: 12px; background: #f3eedf; border: 2px solid #e0d4b3; display: none; }
+  .rubric.show { display: block; }
+  .rubric h4 { font-size: 15px; color: #1f3352; margin-bottom: 8px; }
+  .checkitem { font-size: 14.5px; margin: 6px 0; line-height: 1.45; }
+  .checkitem .mk { font-weight: bold; }
+  .hit { color: #2e6b34; } .miss { color: #a5352a; }
+  .provisional { font-size:12.5px; color:#6b6350; background:#efe6cf; border-radius:8px; padding:8px 11px; margin:8px 0; }
+  .model { margin-top: 12px; font-size: 14.5px; line-height: 1.55; background: #fbf3df; border-left: 4px solid #b3892f; padding: 10px 14px; border-radius: 8px; }
+  .model b { color: #8a6d1f; }
+  .yourans { margin-top:10px; font-size:14px; line-height:1.5; background:#eef1f6; border-left:4px solid #3a5a86; padding:10px 14px; border-radius:8px; color:#26364f; }
+
+  .btn {
+    background: #1f3352; color: #fff; border: none; border-radius: 13px; padding: 13px 26px;
+    font-size: 17px; font-family: inherit; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #101f38; transition: transform .1s;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #101f38; }
+  .btn.next { background: #b3892f; box-shadow: 0 5px 0 #856418; display: none; margin-top: 10px; }
+  .btn.grade { background: #3a5a86; box-shadow: 0 5px 0 #24395c; }
+  .btn.small { font-size: 15px; padding: 10px 18px; }
+  .center { text-align: center; }
+
+  .result { background: #fdfaf2; border-radius: 22px; padding: 32px 24px; text-align: center; box-shadow: 0 6px 0 #d9cdae; }
+  .result .big { font-size: 60px; }
+  .result h2 { font-size: 26px; margin: 10px 0; color: #1f3352; }
+  .scoreline { font-size: 21px; margin: 12px 0; }
+  .partscores { text-align: left; max-width: 500px; margin: 14px auto; }
+  .partscores .row { display: flex; justify-content: space-between; padding: 8px 12px; border-radius: 10px; background: #f3eedf; margin-bottom: 8px; font-size: 15px; }
+  .partscores .row b { color: #1f3352; }
+  .stars { font-size: 32px; letter-spacing: 4px; margin: 8px 0; }
+  .exportbox { max-width: 560px; margin: 16px auto 0; text-align:left; }
+  .exportbox textarea { min-height: 150px; font-size: 13.5px; }
+  .hidden { display: none; }
+  footer { text-align: center; font-size: 13px; color: #6b6350; margin-top: 12px; opacity: .9; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="coin">🧠</div>
+    <h1>Thinking, Fast and Slow — Concept Exam</h1>
+    <p>Parts 3–5 · by Daniel Kahneman · Real-life scenarios that test the ideas</p>
+  </header>
+
+  <div class="bar">
+    <span id="qcount">Question 1</span>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <span id="scoreboard">🏅 0</span>
+  </div>
+
+  <div id="quizArea"></div>
+  <div id="resultArea" class="result hidden"></div>
+
+  <footer id="footer">45 scenario questions · 3 written essays · Essays are graded by a real reader, not keywords · For Warren</footer>
+</div>
+
+<script>
+/* ================= EXAM DATA =================
+   Each part: 15 scenario multiple-choice + 1 written essay.
+   MCQs give a fresh real-life situation and ask which idea applies / what it predicts —
+   NOT a line copied from the book. Author the CORRECT option at index 0 (answer:0);
+   options are shuffled at load so position is never a tell. */
+
+const PARTS = [
+  {
+    k: "Part III", title: "Overconfidence",
+    blurb: "Hindsight & the illusion of understanding · confidence isn't accuracy · formulas beat experts · when to trust intuition · the outside view · optimism & the premortem.",
+    questions: [
+      { diff:"scenario", ch:"Illusion of Understanding", q:"After a team loses the final, fans sneer, 'I knew that risky last play would fail' — though two weeks earlier they praised the same plan. What's going on?",
+        options:["Hindsight bias — the result seems predictable now","Bad luck — the coach picked the wrong moment to gamble","Real insight — the fans read the game very well","Regression — the team was going to slip anyway"], answer:0,
+        why:"Once we know the outcome, we misremember having expected it, and blame a decision that only looks obvious now." },
+
+      { diff:"scenario", ch:"Illusion of Understanding", q:"Two drivers both text at the wheel; one gets home fine, the other crashes. People call the crasher far more reckless, though the choice was identical. This is…",
+        options:["Outcome bias — judging the choice by its result","A fair call — the crash proves worse driving skill overall","Plain sense — a safe driver makes the wiser choice","Regression — a crash like that was due to happen"], answer:0,
+        why:"A risky choice can end well and a careful one badly; Kahneman says judge the decision by what was known, not the result." },
+
+      { diff:"scenario", ch:"Illusion of Validity", q:"A market tipster has a slick, confident story for every pick, yet his picks do no better than a coin toss. The lesson is that…",
+        options:["A smooth pitch feels like skill without being it","Confidence is a dependable sign of a genuine expert","Polished pros usually beat the market over years","A coin toss poorly captures market behavior"], answer:0,
+        why:"Subjective confidence comes from how neatly your story hangs together, not from real predictive accuracy." },
+
+      { diff:"scenario", ch:"Intuitions vs Formulas", q:"A hospital swaps a senior doctor's gut feel about newborn health for a simple five-number checklist. Kahneman would expect the checklist to…",
+        options:["Match or beat the doctor and stay steady","Fall short by missing the doctor's long training","Help with babies but fail in other fields","Strip the useful human judgment from care"], answer:0,
+        why:"Simple formulas routinely beat experts because they don't drift with mood or fatigue — the Apgar score is the classic case." },
+
+      { diff:"scenario", ch:"Intuitions vs Formulas", q:"Give an experienced judge the very same case file on two different days and she hands down two different rulings. This inconsistency is a big reason that…",
+        options:["A steady formula will beat the human expert","Judges should be handed much less information here","Formulas fail whenever a case gets complicated","Experts line up closely on the toughest cases"], answer:0,
+        why:"Experts are noisy — same input, different output — while a formula never has an off day." },
+
+      { diff:"scenario", ch:"Expert Intuition", q:"A veteran nurse's hunch that a baby is turning septic is worth trusting, but a TV pundit's confident election call is not. The key difference is that…",
+        options:["The nurse works where patterns are learnable","The nurse wants to be right far more than others","The pundit had less schooling than the nurse","The pundit works alone; the nurse has a team"], answer:0,
+        why:"Valid intuition needs a regular, predictable world plus long practice with quick feedback — nursing has both; punditry doesn't." },
+
+      { diff:"scenario", ch:"Expert Intuition", q:"A chess master glances at a board and instantly 'sees' the right move. Kahneman says this near-magic is really…",
+        options:["Recognition of a pattern seen many times","A talent that a lucky few people are born with","A lucky guess wrapped in confident words","A power to see further ahead than rivals"], answer:0,
+        why:"'Intuition is nothing more than recognition' — without a learnable pattern, the confident hunch is an illusion." },
+
+      { diff:"scenario", ch:"The Outside View", q:"A student swears her science fair project will take one weekend, though her last three took three weekends each. She'll most likely…",
+        options:["Run well over, picturing the smooth path","Finish early, since she knows her own pace best","Nail it, since this project is different","Save time by skipping her past projects"], answer:0,
+        why:"The planning fallacy: the rosy 'inside view' ignores the reference class — how similar jobs actually turned out." },
+
+      { diff:"scenario", ch:"The Outside View", q:"To fix that too-rosy estimate, the single best move is to…",
+        options:["Begin from how long her past projects took","Trust the detailed plan she wrote for this one","Add a day to whatever her gut first says","Let a cheerful friend pick the deadline"], answer:0,
+        why:"The outside view anchors on the statistics of similar cases first, then adjusts — beating optimistic guesswork." },
+
+      { diff:"scenario", ch:"The Engine of Capitalism", q:"Nearly all new cafés close within a few years, yet a founder is certain hers will thrive. Kahneman would call this…",
+        options:["Optimistic bias — it drives many flops too","Careful planning built on the local market data","A rare slip that new owners tend to make","Firm proof she has skill her rivals lack"], answer:0,
+        why:"Optimistic bias powers enterprise but makes people underrate risks, costs, and competitors — the most consequential bias, he says." },
+
+      { diff:"scenario", ch:"The Engine of Capitalism", q:"Before a big launch, a manager has the team imagine it's a year later and the project failed badly, then write the story of why. This technique is…",
+        options:["A premortem — it lets buried doubts speak up","A postmortem — it studies a failure after it ends","A stress test — it hunts for budget gaps","A brainstorm — it lists the ideas in the room"], answer:0,
+        why:"The premortem legitimizes doubt and surfaces risks that group optimism would otherwise silence." },
+
+      { diff:"scenario", ch:"The Engine of Capitalism", q:"Three rival CEOs each bid a fortune for the same company, each sure he'll add the most value. Most such mergers lose money because the bidders…",
+        options:["Overrate their skill and forget the rivals","Study their rival companies far too closely","Refuse to pay above a fair market price","Bring little optimism to the whole deal"], answer:0,
+        why:"Overconfidence plus 'competition neglect' — each mistakes his will for skill and discounts the rivals." },
+
+      { diff:"scenario", ch:"Illusion of Understanding", q:"Every evening the news 'explains' exactly why the market moved that day, as if it were obvious. Kahneman warns this smooth hindsight quietly…",
+        options:["Makes tomorrow feel more knowable than today","Proves that sharp analysts can time the market","Shows the market obeys a few simple rules","Helps ordinary people forecast tomorrow"], answer:0,
+        why:"The ease of after-the-fact explanation fools us into thinking tomorrow is predictable — the root of overconfidence." },
+
+      { diff:"scenario", ch:"Illusion of Validity", q:"Your friend says, 'I'm 100% sure this horse wins — I can just feel it.' Based on Part 3, the strength of that feeling mainly tells you…",
+        options:["How neat his story is, not whether he is right","That he studied these horses more than anyone else","That the horse truly has a strong chance today","Little that is real about him or the race"], answer:0,
+        why:"Confidence measures the coherence of the story in your head, not its accuracy — especially in a luck-heavy game." },
+
+      { diff:"scenario", ch:"Expert Intuition", q:"A day-trader and a firefighter both act on gut instinct. Why does Kahneman trust the firefighter's gut far more?",
+        options:["Fire follows regularities a person will learn","Firefighters are naturally braver than traders","Markets are too dull to study up close","Traders rarely practice their craft with feedback"], answer:0,
+        why:"A fire gives fast, clear lessons; markets are too random to teach anyone, so the trader's 'expertise' can't form." }
+    ]
+  },
+  {
+    k: "Part IV", title: "Choices",
+    blurb: "Reference points · loss aversion · the endowment effect · negativity dominance · the fourfold pattern · rare events · broad vs narrow framing · mental accounts · framing & defaults.",
+    questions: [
+      { diff:"scenario", ch:"Bernoulli's Errors", q:"Anna's pay rises from $40k to $50k and she's thrilled; Ben's falls from $60k to $50k and he's crushed — both now earn $50k. This shows our feelings track…",
+        options:["The reference point we start from, not the total","The exact final number sitting in the bank account","How wisely each person plans to spend the money","The amount of tax that each person now owes"], answer:0,
+        why:"We judge outcomes as gains or losses from a starting point, not as final states — Bernoulli's missing variable." },
+
+      { diff:"scenario", ch:"Prospect Theory", q:"A friend refuses a coin flip to win $150 or lose $100, even though the odds clearly favor him. The best explanation is that…",
+        options:["Losing $100 stings more than winning $150 pleases","He is convinced the coin is rigged against him now","He worked the math and the bet is truly a bad one","He loves the thrill of turning down free money"], answer:0,
+        why:"Loss aversion — losses loom roughly twice as large as equal gains, so a favorable bet still feels too risky." },
+
+      { diff:"scenario", ch:"Prospect Theory", q:"Bumping a gift from $10 to $20 feels huge, but $1,010 to $1,020 feels like nothing — the same $10. This is…",
+        options:["Diminishing sensitivity — extra dollars feel small","Loss aversion — a loss stings more than a matching gain","Anchoring — the first price fixes all the others","Mental accounting — cash sits in separate jars"], answer:0,
+        why:"Prospect theory's diminishing sensitivity: the more you already have, the less an extra unit registers." },
+
+      { diff:"scenario", ch:"The Endowment Effect", q:"Handed a concert ticket, Mia won't part with it for $200 — though yesterday she wouldn't have paid $80 to buy it. This flip is…",
+        options:["The endowment effect — owning lifts its value","Plain greed — she wants the biggest payout she can get","Smart trading — the ticket's real price rose","Regret — she dreads missing a show she skipped"], answer:0,
+        why:"Selling registers as a loss, so once we own something we demand more to give it up than we'd have paid for it." },
+
+      { diff:"scenario", ch:"Bad Events", q:"One rude remark wrecks Sam's whole day, even though he also got five kind ones. Part 4 explains this because…",
+        options:["Bad events hit us harder than equally good ones","Rude people are more common than kind people around","He probably agreed with the insult deep down","A compliment fades from memory within minutes"], answer:0,
+        why:"Negativity dominance — 'bad is stronger than good'; threats and losses are processed more powerfully than rewards." },
+
+      { diff:"scenario", ch:"Bad Events", q:"A cab driver knocks off early on a busy day the moment he hits his usual total, but grinds on for hours on a slow day. Why?",
+        options:["Falling short of the target feels like a loss","Busy days make driving far too tiring to keep on","He takes home the same pay whatever happens","Slow days tend to bring friendlier passengers"], answer:0,
+        why:"The income goal is a reference point; missing it hurts more than beating it feels good — so he works against his own interest." },
+
+      { diff:"scenario", ch:"The Fourfold Pattern", q:"The same person buys a lottery ticket AND buys insurance in the same week. Kahneman explains this pairing with…",
+        options:["Overweighting tiny odds — for hope and for fear","The fact that lotteries and insurance are the same","A quiet enjoyment of losing small sums each week","A plain failure to have learned the math"], answer:0,
+        why:"The fourfold pattern: we overweight rare outcomes, so a sliver of hope (jackpot) and a sliver of fear (disaster) both feel worth paying for." },
+
+      { diff:"scenario", ch:"The Fourfold Pattern", q:"People pay a lot to drop a risk from 5% to 0%, but little to drop it from 45% to 40% — the same 5 points. This is…",
+        options:["Certainty effect — erasing the last risk feels big","Anchoring effect — the number five sets the value here","Loss aversion — a shift in risk reads as a loss","Denominator neglect — the bottom number is ignored"], answer:0,
+        why:"We overvalue going from almost-safe to fully certain; the final slice of risk feels far bigger than an equal middle slice." },
+
+      { diff:"scenario", ch:"Rare Events", q:"A headline blares 'Local shop sells winning ticket!' and sales jump, though the odds haven't moved. This happens because…",
+        options:["A vivid winner drowns out the tiny probability","The odds genuinely improve after a town wins big","Buyers carefully recompute their new chances","Lottery math is too hard for people to grasp"], answer:0,
+        why:"Denominator neglect — a concrete, emotional image ('a winner!') fills the mind and the tiny fraction fades." },
+
+      { diff:"scenario", ch:"Risk Policies", q:"Ravi panics and sells whenever he checks his stocks daily, while a friend who looks once a year stays calm and ends up richer. The lesson is that…",
+        options:["Zooming out over many bets tames loss aversion","Checking often gives you more control of losses","Daily prices reveal a truth the yearly ones hide","The calm friend is luckier with his timing"], answer:0,
+        why:"Broad framing — a risk policy applied across many decisions — lets good odds pay off; narrow framing maximizes each loss's sting." },
+
+      { diff:"scenario", ch:"Keeping Score", q:"Dana proudly sells a stock that's up 20% but clings to one down 40%, sure it'll 'come back.' This pattern is…",
+        options:["The disposition effect — sell winners, keep losers","Smart investing — you should hold losing stocks longer","Diversifying — she spreads her money around safely","The halo effect — one trait colors the whole"], answer:0,
+        why:"Selling a loser means admitting a loss, so we avoid it — even when the loser is the worse bet from here on." },
+
+      { diff:"scenario", ch:"Keeping Score", q:"A studio pours another $30 million into a doomed film 'because we've spent $90 million already.' This mistake is…",
+        options:["The sunk-cost fallacy — chasing money that is gone","Loss aversion — guarding a gain that they have made","The planning fallacy — a schedule that is too hopeful","Regression — the film was going to average out"], answer:0,
+        why:"Money already spent shouldn't steer the choice; judge each decision by its future, not the account already opened." },
+
+      { diff:"scenario", ch:"Reversals", q:"Seen alone, a '40-piece set with 9 broken plates' feels worse than a flawless 24-piece set; placed side by side, the 40-piece (31 intact) wins. This shows…",
+        options:["Our ranking flips with how the options compare","Broken plates leave a dinnerware set worthless","People struggle to count the dishes on their own","The 24-piece set is the better buy in the end"], answer:0,
+        why:"Preference reversal — judging jointly vs one-at-a-time changes which features we notice, and can flip the choice." },
+
+      { diff:"scenario", ch:"Frames and Reality", q:"A surgery labeled '90% survive' is chosen far more often than the identical '10% die.' This is…",
+        options:["The framing effect — the wording shifts the choice","Sound reasoning — survival really is the safer bet","Loss aversion — patients dislike the idea of surgery","A math slip — the two figures are not equal"], answer:0,
+        why:"Logically identical descriptions trigger opposite choices, because 'survive' reads as a gain and 'die' as a loss." },
+
+      { diff:"scenario", ch:"Frames and Reality", q:"Countries where you're an organ donor unless you opt out have near-universal donation; opt-in countries have very little. The main driver is…",
+        options:["A lazy System 2 takes whatever default it is given","Opt-out countries have far more generous citizens","People in opt-in countries dislike donating organs","Opt-out forms are much easier to read and fill"], answer:0,
+        why:"Defaults and framing quietly govern choices; most people passively accept the option handed to them rather than re-deciding." }
+    ]
+  },
+  {
+    k: "Part V", title: "Two Selves",
+    blurb: "The experiencing self vs the remembering self · the peak-end rule · duration neglect · life as a story · experienced well-being & the money satiation point · the focusing illusion.",
+    questions: [
+      { diff:"scenario", ch:"Two Selves", q:"The vacation days were wonderful, but a stressful airport meltdown on the last morning leaves Mark saying 'the whole trip was ruined.' This shows…",
+        options:["The remembering self weighs the ending too much","The trip really was as bad as its final morning","Vacations tend to end in disappointment somehow","Mark forgot how good the earlier days truly felt"], answer:0,
+        why:"The remembering self judges by the peak and the end; a rough finish can outweigh many good days actually lived." },
+
+      { diff:"scenario", ch:"Two Selves", q:"In the cold-hand study, people chose to repeat the LONGER ordeal — extra time at slightly milder pain — because it ended more gently. This reveals that memory scores pain by…",
+        options:["Its worst moment and its ending, not its length","The total number of seconds that it truly lasted","How fair the person running the test appeared","Whichever hand happened to feel colder first"], answer:0,
+        why:"Peak-end rule plus duration neglect — how it ended mattered more than how long the suffering went on." },
+
+      { diff:"scenario", ch:"Two Selves", q:"Dentist A gives 20 minutes of steady pain; dentist B gives the same 20 minutes plus 5 extra minutes of milder pain. Patients recall B as LESS bad because…",
+        options:["The gentler ending reshapes the whole memory","Longer visits tend to be easier on the patient","Five extra minutes hardly counts as real time","Dentist B used noticeably better equipment"], answer:0,
+        why:"Duration neglect — length barely registers, so a softer ending makes even a longer ordeal feel better in memory." },
+
+      { diff:"scenario", ch:"Two Selves", q:"Kahneman says the self that actually DECIDES what to do next — books the trip, sets the goal — is…",
+        options:["The remembering self, which keeps score and story","The experiencing self, which lives each moment","Whichever self happens to feel stronger that day","A seamless blend of the two selves acting as one"], answer:0,
+        why:"'I am my remembering self' — the storyteller sets goals and decides, while the experiencing self goes largely unheard." },
+
+      { diff:"scenario", ch:"Life as a Story", q:"People rate a happy life that dips a little at the very end as WORSE than a shorter one that stops on a high note. Why?",
+        options:["A life, like a story, is judged by its ending","Shorter lives are happier than longer ones","Extra years reliably add real value to a life","People struggle to compare two whole lives"], answer:0,
+        why:"The remembering self thinks in stories; endings carry outsized weight, so a late downturn drags the whole rating down." },
+
+      { diff:"scenario", ch:"Life as a Story", q:"Studies found that adding five mildly pleasant years to a wonderful life could actually LOWER people's rating of it. The reason is that…",
+        options:["Ordinary years dilute the story's strong peak","Five years is far too short a span to matter here","Pleasant years are secretly unpleasant ones","Longer lives get rated higher by most people"], answer:0,
+        why:"A life judged as a story is about peaks and endings, not the sum of its days — so plain extra time can weaken it." },
+
+      { diff:"scenario", ch:"Experienced Well-Being", q:"A raise from $40k to $90k barely changes how good Priya's daily hours feel, yet she reports her life is 'better.' Part 5 explains that money can…",
+        options:["Lift the story you tell more than your mood","Be measured well by counting up happy days","Improve each ordinary day of a person's life","Change how someone feels about their whole life"], answer:0,
+        why:"Beyond a comfortable level, income keeps raising life satisfaction (the remembering self) but not moment-to-moment experienced happiness." },
+
+      { diff:"scenario", ch:"Experienced Well-Being", q:"Kahneman found that once income passes a comfortable level, extra money does little for a person's…",
+        options:["Everyday mood, hour by hour, as they live it","Overall rating of how their life is going now","Hunger to earn even more money than before","Number of hours that they choose to work"], answer:0,
+        why:"Experienced well-being rises with income only up to a satiation point; past it, more money stops improving daily feelings." },
+
+      { diff:"scenario", ch:"Thinking About Life", q:"'I'd be so much happier if I moved somewhere sunny.' Kahneman warns this feeling misleads us because…",
+        options:["Weather matters mainly while you think about it","Sunny places truly make new movers happier","Sunshine has little effect on a person's mood","People in cold places stay quietly miserable"], answer:0,
+        why:"The focusing illusion: whatever you spotlight swells in importance, but day to day nobody keeps thinking about the weather." },
+
+      { diff:"scenario", ch:"Thinking About Life", q:"A teen is sure a new phone will make him lastingly happy. Part 5 predicts that…",
+        options:["The thrill fades once the phone leaves the focus","The phone will keep him happy for many years","He will regret buying it almost right away","Gadgets are a sure route to a joyful life for kids"], answer:0,
+        why:"'Miswanting' — we overrate how much any single thing will change our lasting happiness once the spotlight moves on." },
+
+      { diff:"scenario", ch:"Thinking About Life", q:"'Nothing in life is as important as you think it is while you are thinking about it.' The best real-life use of this line is to…",
+        options:["Discount the one big factor you keep staring at","Focus even harder on the most exciting option","Assume a large choice barely affects your life","Trust that what grabs you now will still matter"], answer:0,
+        why:"The focusing illusion warps big choices; picture the ordinary days you'll actually live, not just the one vivid factor." },
+
+      { diff:"scenario", ch:"Conclusions", q:"A government makes 'save for retirement' the automatic default, with an easy opt-out, and saving soars. This 'nudge' assumes people are…",
+        options:["Real Humans who need help, not flawless Econs","Too lazy to be trusted with a choice of their own","Already perfectly rational when left on their own","Best pushed to save with the exit door closed"], answer:0,
+        why:"Nudges (libertarian paternalism) design choices around human limits — smart defaults that help while leaving people free to opt out." },
+
+      { diff:"scenario", ch:"Conclusions", q:"Kahneman argues that calling ordinary people 'irrational' is unfair. His reason is that…",
+        options:["A finite mind cannot follow perfect logic rules","People reason well and rarely slip up","Logic has very little to do with good decisions","Deep down people act like rational Econs"], answer:0,
+        why:"Real people are reasonable, not logic machines; holding them to an impossible standard makes normal behavior look like failure." },
+
+      { diff:"scenario", ch:"Two Selves", q:"A brutal mountain hike is miserable minute-to-minute, yet afterward you treasure it and plan another. The two selves disagree because…",
+        options:["One self suffered while the other stays proud","The hike was secretly enjoyable the entire time","Memory records each minute exactly as it felt","The suffering self is the one that plans ahead"], answer:0,
+        why:"The experiencing self lived the hard minutes; the remembering self holds a proud story and decides to do it again." },
+
+      { diff:"scenario", ch:"Experienced Well-Being", q:"Using the Day Reconstruction Method, Kahneman found time with friends ranks among the happiest parts of a day, while the LOW points include…",
+        options:["The daily commute and time with the boss","Weekends spent relaxing quietly around the home","A moment that involves spending some money","Long chats with close family members"], answer:0,
+        why:"Measured moment by moment, commuting and time with the boss rank low, while time with friends ranks high." }
+    ]
+  }
+];
+
+const ESSAYS = [
+  { part:0, ch:"Essay · Part III · Overconfidence",
+    q:"Think of a REAL time — from your own life or something in the news — when a person (maybe you!) was very sure of something and turned out wrong, or was only right by luck. Using an idea from Part 3 (hindsight bias, the illusion of validity, the planning fallacy, or the difference between confidence and accuracy), explain what fooled them. Then describe ONE thing they could have done — like taking the outside view or running a premortem — to think more clearly.",
+    note:"Write 5–8 sentences. Use YOUR OWN example (not one from the book), name a Part 3 idea, and give a concrete fix.",
+    model:"A strong answer picks a genuine example — say, being sure you'd ace a test after barely studying, or a pundit who 'knew' an election result. It names the bias at work: maybe the illusion of validity (a confident feeling that isn't backed by real accuracy), or the planning fallacy (assuming the smooth, best-case path). It explains WHY the person was fooled — a coherent story felt like knowledge, or the vivid inside view crowded out the record of how similar things really go. Then it offers a real fix, such as taking the outside view (start from how these situations usually turn out) or running a premortem (imagine it already failed and ask why). The best answers connect the fix directly to the example, showing understanding rather than a definition.",
+    rubric:[
+      "Uses a real, specific example of overconfidence (their own, not the book's).",
+      "Correctly names and applies a Part 3 idea (hindsight, illusion of validity, planning fallacy, confidence≠accuracy).",
+      "Explains WHY the person was fooled — the mechanism, not just a label.",
+      "Gives a concrete fix (outside view / premortem / checking the track record) tied to the example."
+    ],
+    checks:[
+      { concept:"A real, own example (first-person or a specific case)", keys:["\\bi \\b","\\bmy \\b","\\bwe \\b","\\bme\\b","\\bmy\\b","\\bour \\b","once","last","when i","time i","friend","team","my mom","my dad","brother","sister","school"], hint:"Ground it in a specific real situation, not a general statement." },
+      { concept:"Names a Part 3 idea", keys:["hindsight","illusion of validity","planning fallacy","overconfiden","confidence","outside view","premortem","optimis","reference class","narrative"], hint:"Name the concept you're using (e.g., planning fallacy, illusion of validity)." },
+      { concept:"Explains WHY they were fooled (the mechanism)", keys:["because","felt","story","seemed obvious","looked easy","only saw","ignored","didn't consider","confident but","luck","assumed","best case","coherent"], hint:"Explain the reason — why the confident feeling misled them." },
+      { concept:"Gives a concrete fix", keys:["outside view","premortem","should have","could have","checked","look at how","track record","past","imagine","plan for","asked","reference class","get feedback"], hint:"Add a real fix (outside view, premortem, check the track record)." }
+    ] },
+  { part:1, ch:"Essay · Part IV · Choices",
+    q:"Describe a REAL choice — yours or someone you know — where FEELINGS about gains and losses mattered more than the plain numbers. For example: refusing to sell or give up something you own, turning down a fair bet, throwing good money after a 'sunk cost,' or being swayed by how a choice was worded. Name the Part 4 idea that explains it, then explain what the coldly 'rational' choice would have been and why it was hard to actually make.",
+    note:"Write 5–8 sentences. Use YOUR OWN example, name a Part 4 idea (loss aversion, endowment effect, sunk cost, framing…), and explain the rational choice.",
+    model:"A strong answer names a real decision — refusing to trade away a favorite game, keeping a losing bet in a video game 'to not waste it,' or a family member holding a losing stock. It identifies the mechanism: loss aversion (the pain of losing outweighs an equal gain), the endowment effect (owning something makes you overvalue it), the sunk-cost fallacy (past spending shouldn't count but does), or framing (the wording tilted the choice). Crucially, it explains what the rational move was — judge the decision by its FUTURE value, ignore money already gone, or restate the choice in neutral words — and admits why that's hard: losses genuinely hurt about twice as much as gains feel good, so the emotional pull is strong. The best answers show the tug-of-war between the feeling and the logic, not just a definition.",
+    rubric:[
+      "Uses a real, specific choice where emotion beat the numbers (their own example).",
+      "Correctly names and applies a Part 4 idea (loss aversion, endowment, sunk cost, framing, reference point).",
+      "States what the rational choice would have been (judge by future value / ignore sunk cost / reframe).",
+      "Explains why it was hard — the emotional pull (losses loom larger), showing real understanding."
+    ],
+    checks:[
+      { concept:"A real, own example", keys:["\\bi \\b","\\bmy \\b","\\bwe \\b","\\bme\\b","\\bmy\\b","\\bour \\b","once","when i","time","friend","brother","sister","my mom","my dad","game","team","school"], hint:"Ground it in a specific real choice, not a general statement." },
+      { concept:"Names a Part 4 idea", keys:["loss aversion","endowment","sunk cost","sunk-cost","framing","reference point","mental account","disposition","losses loom","prospect"], hint:"Name the concept (loss aversion, endowment effect, sunk cost, framing…)." },
+      { concept:"States the rational choice", keys:["rational","should have","better choice","future","ignore","let go","sell","reframe","the smart","logically","judge by","move on","cut"], hint:"Say what the coldly rational move would have been." },
+      { concept:"Explains why it was hard (the feeling)", keys:["hard because","hurt","painful","twice","attached","loss","feel","emotion","couldn't","tempting","fear","regret","pull"], hint:"Explain why the rational choice was hard — the emotional pull of loss." }
+    ] },
+  { part:2, ch:"Essay · Part V · Two Selves",
+    q:"Think of an experience where what you REMEMBER is different from how it actually FELT while it was happening — a trip, a game, a long car ride, a performance. Using the two selves, the peak-end rule, or duration neglect, explain the gap between your experiencing self (living each moment) and your remembering self (telling the story afterward). Then explain how this idea might change one real decision you make in the future.",
+    note:"Write 5–8 sentences. Use YOUR OWN experience, name a Part 5 idea, and connect it to a future decision.",
+    model:"A strong answer describes a real experience where the lived feeling and the memory diverge — a hard hike that felt awful but is remembered fondly, a long game that dragged but ended on a thrilling win, a trip whose bad last day colors the whole memory. It uses the framework: the experiencing self felt each moment, but the remembering self kept a story shaped by the peak-end rule (the most intense moment and the ending) and duration neglect (how long it lasted barely counts). It shows the gap clearly — for instance, the memory is far better or worse than the average minute actually was. Finally, it connects to a future decision: maybe choosing experiences with strong endings, not obsessing over a rough finish, or valuing the actual good hours over the story. The best answers use the concept to reason, not just to label.",
+    rubric:[
+      "Describes a real experience where memory and lived feeling differ (their own).",
+      "Correctly uses a Part 5 idea (two selves, peak-end rule, duration neglect).",
+      "Clearly shows the GAP between the experiencing self and the remembering self.",
+      "Connects the idea to a real future decision, showing understanding."
+    ],
+    checks:[
+      { concept:"A real, own experience", keys:["\\bi \\b","\\bmy \\b","\\bwe \\b","\\bme\\b","\\bmy\\b","\\bour \\b","once","when i","time","trip","game","hike","ride","remember","vacation","last"], hint:"Ground it in a specific real experience of your own." },
+      { concept:"Names a Part 5 idea", keys:["experiencing self","remembering self","two selves","peak","end rule","peak-end","duration neglect","memory","the ending"], hint:"Name the concept (two selves, peak-end rule, duration neglect)." },
+      { concept:"Shows the gap between the two selves", keys:["different","gap","felt","but remember","actually","in the moment","afterward","worse than","better than","memory","at the time","story"], hint:"Show how the memory differs from how it actually felt." },
+      { concept:"Connects to a future decision", keys:["future","next time","will","would","decision","choose","plan","from now","i'd","i will","change","should"], hint:"Say how this could change a real decision you'll make." }
+    ] },
+];
+
+/* ================= BUILD FLAT LIST ================= */
+const items = [];
+PARTS.forEach((p, pi) => {
+  items.push({ type:"banner", part:pi });
+  p.questions.forEach(q => items.push(Object.assign({ type:"mcq", part:pi }, q)));
+  const e = ESSAYS.find(es => es.part === pi);
+  if (e) items.push(Object.assign({ type:"essay", part:pi, answerText:"" }, e));
+});
+
+// Shuffle MCQ options so the correct answer isn't always first
+items.forEach(item => {
+  if (item.type !== "mcq") return;
+  const correct = item.options[item.answer];
+  for (let i = item.options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [item.options[i], item.options[j]] = [item.options[j], item.options[i]];
+  }
+  item.answer = item.options.indexOf(correct);
+});
+
+/* ================= STATE ================= */
+let idx = 0;
+let mcqScore = 0;
+const NPARTS = PARTS.length;
+const partMcq = Array(NPARTS).fill(0), partMcqTotal = Array(NPARTS).fill(0);
+const partEssay = Array(NPARTS).fill(0);   // provisional 0..3 each
+let answered = false;
+
+const MCQ_TOTAL = items.filter(i=>i.type==="mcq").length;   // 45
+const ESSAY_MAX = ESSAYS.length * 3;                        // 9
+const GRAND_TOTAL = MCQ_TOTAL + ESSAY_MAX;                  // 54
+const PASS = Math.ceil(GRAND_TOTAL * 0.75);                 // 41
+const TOTAL_SCREENS = items.filter(i=>i.type!=="banner").length; // 48
+items.forEach(i => { if (i.type==="mcq") partMcqTotal[i.part]++; });
+
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+const qcount = document.getElementById('qcount');
+const scoreboard = document.getElementById('scoreboard');
+const progress = document.getElementById('progress');
+
+function currentQn() { return items.slice(0, idx+1).filter(i => i.type !== "banner").length; }
+function updateBar() {
+  const qn = currentQn();
+  qcount.textContent = `Question ${qn} of ${TOTAL_SCREENS}`;
+  scoreboard.textContent = `🏅 ${(mcqScore + partEssay.reduce((a,b)=>a+b,0))}`;
+  progress.style.width = `${(qn / TOTAL_SCREENS) * 100}%`;
+}
+
+function render() {
+  answered = false;
+  const item = items[idx];
+
+  if (item.type === "banner") {
+    const p = PARTS[item.part];
+    quizArea.innerHTML = `
+      <div class="partbanner">
+        <div class="k">${p.k}</div>
+        <h2>${p.title}</h2>
+        <p>${p.blurb}</p>
+      </div>
+      <div class="center"><button class="btn" onclick="next()">Start ${p.k} →</button></div>`;
+    return;
+  }
+
+  updateBar();
+
+  if (item.type === "mcq") {
+    const opts = item.options.map((o,i)=>`<button class="opt" data-i="${i}" onclick="choose(${i})">${o}</button>`).join('');
+    quizArea.innerHTML = `
+      <div class="card">
+        <div class="qhead"><span class="qmeta">${item.ch}</span><span class="diff ${item.diff}">${item.diff}</span></div>
+        <div class="qtext">${item.q}</div>
+        ${opts}
+        <div class="feedback" id="fb"></div>
+        <div class="center"><button class="btn next" id="nextBtn" onclick="next()">Next →</button></div>
+      </div>`;
+  } else { // essay
+    quizArea.innerHTML = `
+      <div class="card">
+        <div class="qhead"><span class="qmeta">${item.ch}</span><span class="diff scenario">essay</span></div>
+        <div class="qtext">${item.q}</div>
+        <div class="essay-note">${item.note}</div>
+        <textarea id="essayInput" oninput="saveEssay()" placeholder="Type your answer here — in your own words...">${item.answerText || ''}</textarea>
+        <div class="center" style="margin-top:12px;"><button class="btn grade" id="gradeBtn" onclick="gradeEssay()">Check my answer</button></div>
+        <div class="rubric" id="rubric"></div>
+        <div class="center"><button class="btn next" id="nextBtn" onclick="next()" style="${item.answerText ? 'display:inline-block' : ''}">Next →</button></div>
+      </div>`;
+  }
+}
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const item = items[idx];
+  const buttons = document.querySelectorAll('.opt');
+  buttons.forEach(b => b.disabled = true);
+  const fb = document.getElementById('fb');
+  if (i === item.answer) {
+    mcqScore++; partMcq[item.part]++;
+    buttons[i].classList.add('correct');
+    fb.className = 'feedback good show';
+    fb.innerHTML = `✅ <strong>Correct!</strong> ${item.why}`;
+  } else {
+    buttons[i].classList.add('wrong');
+    buttons[item.answer].classList.add('correct');
+    fb.className = 'feedback bad show';
+    fb.innerHTML = `❌ <strong>Not quite.</strong> ${item.why}`;
+  }
+  updateBar();
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function saveEssay() {
+  const el = document.getElementById('essayInput');
+  if (el) items[idx].answerText = el.value;
+}
+
+/* ===== Copy detector: how much of the answer is lifted word-for-word
+   from the QUESTION (or the on-screen note). Returns a fraction 0–1. ===== */
+function normWords(s){ return s.toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
+function copyOverlap(answer, source){
+  const a = normWords(answer).split(' ').filter(Boolean);
+  const src = ' ' + normWords(source) + ' ';
+  if (a.length === 0) return 0;
+  if (a.length < 6) return src.includes(' ' + a.join(' ') + ' ') ? 1 : 0;
+  const N = 5;
+  const covered = new Array(a.length).fill(false);
+  for (let i = 0; i + N <= a.length; i++){
+    if (src.includes(' ' + a.slice(i, i+N).join(' ') + ' ')){
+      for (let j = i; j < i + N; j++) covered[j] = true;
+    }
+  }
+  return covered.filter(Boolean).length / a.length;
+}
+
+/* ===== Essay self-check: PROVISIONAL only. The real grade comes from a
+   human reader (parent or Claude) — see the export button on the results page. ===== */
+function gradeEssay() {
+  if (answered) return;
+  const item = items[idx];
+  const raw = (document.getElementById('essayInput').value || '').trim();
+  if (raw.split(/\s+/).filter(Boolean).length < 25) {
+    alert("Write at least a few full sentences (about 25+ words) in your own words before checking.");
+    return;
+  }
+  answered = true;
+  item.answerText = raw;
+  document.getElementById('gradeBtn').disabled = true;
+  const r = document.getElementById('rubric');
+
+  const overlap = Math.max(copyOverlap(raw, item.q), copyOverlap(raw, item.note || ''));
+  const text = raw.toLowerCase();
+  let hits = 0;
+  const rows = item.checks.map((c,ci) => {
+    const found = c.keys.some(k => new RegExp(k).test(text));
+    if (found) hits++;
+    return found
+      ? `<div class="checkitem hit"><span class="mk">✓</span> ${item.rubric[ci]}</div>`
+      : `<div class="checkitem miss"><span class="mk">✗</span> ${item.rubric[ci]}<br><span style="color:#8a6d1f;">→ ${c.hint}</span></div>`;
+  }).join('');
+
+  const n = item.checks.length;
+  let points = Math.round((hits / n) * 3);
+  let copyWarn = "";
+  if (overlap >= 0.4) { points = Math.min(points, 1); copyWarn =
+    `<div style="color:#a5352a;font-weight:bold;margin:6px 0;">⚠ A lot of this copies the question's wording (~${Math.round(overlap*100)}%). Put it in your own words — that's where the learning is.</div>`; }
+  partEssay[item.part] = points;
+
+  let verdict, vcolor;
+  if (points >= 3)      { verdict = "Looks solid — you're hitting the key ideas."; vcolor="#2e6b34"; }
+  else if (points === 2){ verdict = "Good start — strengthen the missing piece below."; vcolor="#8a6d1f"; }
+  else if (points === 1){ verdict = "Keep going — work in more of the ideas below."; vcolor="#9a6a12"; }
+  else                  { verdict = "Give it another try using the checklist below."; vcolor="#a5352a"; }
+
+  r.className = "rubric show";
+  r.innerHTML = `
+    <h4>Self-check — what a strong answer includes:</h4>
+    ${copyWarn}
+    <div style="color:${vcolor};font-weight:bold;margin-bottom:8px;">${verdict}</div>
+    ${rows}
+    <div class="provisional">📝 <b>This is only a rough self-check.</b> Your real grade comes from a reader (a parent, or Claude) who reads what you actually wrote. When you finish the exam, use the <b>“Copy my essay answers”</b> button to send all three for real feedback.</div>
+    <div class="model"><b>Model answer (read AFTER your own try):</b> ${item.model}</div>`;
+  updateBar();
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function next() {
+  saveEssay();
+  idx++;
+  if (idx < items.length) render();
+  else showResult();
+}
+
+function buildExportText() {
+  let out = "THINKING, FAST AND SLOW — Warren's essay answers (Parts 3–5)\n";
+  out += "Please grade each essay on understanding, not keywords.\n\n";
+  ESSAYS.forEach((e, i) => {
+    const src = items.find(it => it.type==="essay" && it.part===e.part);
+    out += `====== ${e.ch} ======\n`;
+    out += `PROMPT: ${e.q}\n\n`;
+    out += `WARREN'S ANSWER:\n${(src && src.answerText ? src.answerText.trim() : "(left blank)")}\n\n`;
+  });
+  return out;
+}
+
+function copyEssays() {
+  const txt = buildExportText();
+  const ta = document.getElementById('exportArea');
+  if (ta) { ta.value = txt; ta.style.display='block'; ta.select(); }
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt);
+    } else if (ta) { document.execCommand('copy'); }
+    const b = document.getElementById('copyBtn');
+    if (b) b.textContent = "✓ Copied — now paste to Claude";
+  } catch(e) {
+    const b = document.getElementById('copyBtn');
+    if (b) b.textContent = "Select the text below & copy";
+  }
+}
+
+function showResult() {
+  quizArea.classList.add('hidden');
+  document.querySelector('.bar').classList.add('hidden');
+  resultArea.classList.remove('hidden');
+  progress.style.width = '100%';
+
+  const essayTotal = partEssay.reduce((a,b)=>a+b,0);
+  const total = mcqScore + essayTotal;
+  const pct = Math.round((mcqScore / MCQ_TOTAL) * 100); // pass is judged on MCQ; essays graded by a human
+  const passed = mcqScore >= Math.ceil(MCQ_TOTAL * 0.75);
+
+  let stars, msg, emoji;
+  if (pct === 100)      { stars="⭐⭐⭐⭐⭐"; emoji="🏆"; msg="Perfect on the multiple-choice — you really understand these ideas."; }
+  else if (pct >= 90)   { stars="⭐⭐⭐⭐⭐"; emoji="🎖️"; msg="Outstanding grasp of the concepts."; }
+  else if (passed)      { stars="⭐⭐⭐⭐"; emoji="✅"; msg="Well done — you passed the multiple-choice and clearly get the big ideas."; }
+  else if (pct >= 60)   { stars="⭐⭐⭐"; emoji="📈"; msg="Close! Review the ones you missed and try again — passing is 75%."; }
+  else if (pct >= 40)   { stars="⭐⭐"; emoji="📚"; msg="Good effort. Re-read the chapters and give it another go."; }
+  else                  { stars="⭐"; emoji="🌱"; msg="Let's revisit the ideas together and try once more."; }
+
+  const rows = PARTS.map((p,i)=>`
+    <div class="row"><span>${p.k} · ${p.title}</span>
+      <b>${partMcq[i]}/${partMcqTotal[i]} MCQ &nbsp;·&nbsp; essay: sent for grading</b></div>`).join('');
+
+  const banner = passed
+    ? `<div style="background:#d7f0d3;color:#2e6b34;border-radius:12px;padding:14px;font-size:22px;font-weight:bold;margin:14px 0;">🎉 PASSED the multiple-choice! 🎉</div>`
+    : `<div style="background:#fbeaea;color:#a5352a;border-radius:12px;padding:14px;font-size:22px;font-weight:bold;margin:14px 0;">Multiple-choice not passed yet — need 75%</div>`;
+
+  resultArea.innerHTML = `
+    <div class="big">${emoji}</div>
+    <h2>Exam Complete!</h2>
+    ${banner}
+    <div class="stars">${stars}</div>
+    <div class="scoreline">Multiple-choice: <strong>${mcqScore}</strong> / ${MCQ_TOTAL} &nbsp;(${pct}%)</div>
+    <div style="font-size:14px;color:#6b6350;margin:-2px 0 6px;">Passing: 75% (${Math.ceil(MCQ_TOTAL*0.75)}/${MCQ_TOTAL}) · The 3 essays are graded by a real reader.</div>
+    <div class="partscores">${rows}</div>
+    <p style="margin:8px 0 14px;font-size:16px;">${msg}</p>
+    <div style="background:#eef1f6;border:2px solid #94a4c4;border-radius:14px;padding:16px;margin:6px 0 4px;">
+      <div style="font-weight:bold;color:#1f3352;margin-bottom:6px;">📋 Get your essays graded for real</div>
+      <div style="font-size:14px;color:#26364f;line-height:1.5;">Click below to gather all three essay answers, then paste them to Claude (or hand them to a parent) for real feedback on your thinking.</div>
+      <div class="center" style="margin-top:12px;"><button class="btn small grade" id="copyBtn" onclick="copyEssays()">Copy my essay answers</button></div>
+      <div class="exportbox"><textarea id="exportArea" style="display:none" readonly></textarea></div>
+    </div>
+    <button class="btn" style="margin-top:14px;" onclick="restart()">Try Again 🔄</button>`;
+}
+
+function restart() {
+  idx = 0; mcqScore = 0; answered = false;
+  for (let i=0;i<NPARTS;i++){ partMcq[i]=0; partEssay[i]=0; }
+  items.forEach(it => { if (it.type==="essay") it.answerText = ""; });
+  resultArea.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  document.querySelector('.bar').classList.remove('hidden');
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
