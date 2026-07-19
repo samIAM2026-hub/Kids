@@ -94,6 +94,11 @@
   .endbig{font-size:3.2rem; text-align:center; margin:8px 0;}
   .endstars{font-size:2.4rem; text-align:center; letter-spacing:6px; margin:8px 0;}
   .endstat{text-align:center; font-size:1.15rem; color:#7a6a60; margin:8px 0 18px;}
+  .statgrid{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:6px 0 12px;}
+  .stat{background:#f6f0ea; border:2px solid #ece1d6; border-radius:18px; padding:14px 18px; min-width:96px;}
+  .stat .sv{font-size:1.9rem; font-weight:bold; color:var(--green); line-height:1;}
+  .stat .sl{font-size:.8rem; color:#8a7a70; margin-top:6px; line-height:1.2;}
+  .statnote{font-size:1rem; color:#7a6a60;}
   .again{display:block; margin:0 auto; background:linear-gradient(135deg,var(--green),#3cba7a); color:#fff; border:none; border-radius:20px; padding:14px 30px; font-family:inherit; font-size:1.15rem; font-weight:bold; cursor:pointer; box-shadow:0 6px 0 #2e9c66;}
   .again:active{transform:translateY(4px); box-shadow:0 2px 0 #2e9c66;}
   .confetti{position:fixed; top:-20px; width:12px; height:16px; border-radius:3px; opacity:.9; animation:fall linear forwards; z-index:50;}
@@ -227,6 +232,7 @@ const PRAISE = [
 
 /* ================= STATE ================= */
 let queue = [], idx = 0, score = 0, total = 0, hintsUsed = 0, firstTryOK = 0;
+let startTime = 0;
 
 /* helpers */
 const $ = id => document.getElementById(id);
@@ -250,6 +256,7 @@ function startLevel(lvl){
   let list = lvl==='all' ? [...DATA.scenery, ...DATA.weather, ...DATA.words] : DATA[lvl];
   queue = shuffle(list);
   idx = 0; score = 0; total = queue.length; hintsUsed = 0; firstTryOK = 0;
+  startTime = (window.performance && performance.now) ? performance.now() : Date.now();
   $('menu').classList.add('hidden');
   $('end').classList.add('hidden');
   $('game').classList.remove('hidden');
@@ -376,13 +383,23 @@ function endGame(){
   $('game').classList.add('hidden');
   $('end').classList.remove('hidden');
   const pct = Math.round(firstTryOK/total*100);
+  const now = (window.performance && performance.now) ? performance.now() : Date.now();
+  const secs = Math.max(1, Math.round((now - startTime)/1000));
+  const mm = Math.floor(secs/60), ss = secs%60;
+  const timeStr = mm>0 ? (mm+':'+String(ss).padStart(2,'0')) : (ss+'秒');
   let stars = 1;
   if(pct>=90) stars=3; else if(pct>=60) stars=2;
   $('endStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
   $('endEmoji').textContent = stars===3?'🏆':(stars===2?'🎉':'💪');
   $('endTitle').textContent = stars===3?'完美通关！':'全部完成！';
-  $('endStat').innerHTML = '你打对了 <b>'+total+'</b> 个词！<br>一次就对：<b>'+firstTryOK+'/'+total+'</b>（'+pct+'%）'
-                          + (hintsUsed?('<br>用了 '+hintsUsed+' 次提示'):'');
+  $('endStat').innerHTML =
+    '<div class="statgrid">'
+    + '<div class="stat"><div class="sv">'+pct+'%</div><div class="sl">正确率<br>Correct</div></div>'
+    + '<div class="stat"><div class="sv">'+timeStr+'</div><div class="sl">用时<br>Time</div></div>'
+    + '<div class="stat"><div class="sv">'+firstTryOK+'/'+total+'</div><div class="sl">一次打对<br>First try</div></div>'
+    + '</div>'
+    + '<div class="statnote">你打对了 <b>'+total+'</b> 个词！'
+    + (hintsUsed?(' · 用了 '+hintsUsed+' 次提示'):'') + '</div>';
   if(stars===3) confetti();
 }
 
