@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charlie and the Chocolate Factory · Chapters 8–9</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --font:'Comic Sans MS','Trebuchet MS',system-ui,sans-serif;
+    --bg:linear-gradient(160deg,#ffe29a 0%,#ffb37b 50%,#ff8a5c 100%);
+    --ink:#4a2c0f;
+    --header-bg:#ff7043; --header-shadow:#d84315; --header-radius:24px;
+    --bar-bg:#fff3e0; --bar-shadow:#ffccbc; --track:#ffccbc; --fill:#43a047;
+    --card-bg:#fff; --card-shadow:#e0a96d; --card-radius:20px; --meta:#ef6c00;
+    --opt-bg:#fff8f0; --opt-border:#ffd2a8; --opt-hover:#ff9d57; --opt-radius:14px;
+    --correct-bg:#d7f5d3; --correct-border:#43a047; --wrong-bg:#ffd9d9; --wrong-border:#e53935;
+    --good-bg:#e8f7e6; --good-fg:#2e7d32; --bad-bg:#fdeaea; --bad-fg:#c62828;
+    --btn:#43a047; --btn-shadow:#2e7d32; --next:#ff7043; --next-shadow:#d84315;
+    --result-title:#ef6c00; --footer:#7a4a1f;
+  }
+  body.theme-river{
+    --font:'Georgia','Times New Roman',serif;
+    --bg:linear-gradient(160deg,#cfe8f0 0%,#a9d3c2 45%,#8bb98f 100%);
+    --ink:#2c2418;
+    --header-bg:#5b4636; --header-shadow:#3a2c20; --header-radius:18px;
+    --bar-bg:#f5ecd9; --bar-shadow:#c9b890; --track:#d9c9a3; --fill:#3a7d44;
+    --card-bg:#fffdf7; --card-shadow:#c9b890; --card-radius:16px; --meta:#8a6d3b;
+    --opt-bg:#f7f1e3; --opt-border:#ddcaa3; --opt-hover:#b89968; --opt-radius:12px;
+    --correct-bg:#d7f0d3; --correct-border:#3a7d44; --wrong-bg:#f6d6d6; --wrong-border:#c0392b;
+    --good-bg:#e8f5e6; --good-fg:#2e6b34; --bad-bg:#fbeaea; --bad-fg:#a5352a;
+    --btn:#3a7d44; --btn-shadow:#285a30; --next:#8a6d3b; --next-shadow:#5b4636;
+    --result-title:#5b4636; --footer:#4c4030;
+  }
+  body { font-family:var(--font); background:var(--bg); min-height:100vh; color:var(--ink); padding:20px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  header { background:var(--header-bg); border-radius:var(--header-radius); padding:26px 24px; text-align:center; color:#fff; box-shadow:0 8px 0 var(--header-shadow); margin-bottom:18px; }
+  header .ic { font-size:50px; line-height:1; }
+  header h1 { font-size:25px; margin:8px 0 4px; }
+  header p { font-size:16px; opacity:.95; }
+  .bar { background:var(--bar-bg); border-radius:14px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; font-weight:bold; margin-bottom:16px; box-shadow:0 4px 0 var(--bar-shadow); }
+  .progress-track { flex:1; height:14px; background:var(--track); border-radius:10px; margin:0 14px; overflow:hidden; }
+  .progress-fill { height:100%; width:0; background:var(--fill); border-radius:10px; transition:width .3s; }
+  .card { background:var(--card-bg); border-radius:var(--card-radius); padding:22px; box-shadow:0 6px 0 var(--card-shadow); margin-bottom:16px; }
+  .qmeta { font-size:13px; color:var(--meta); font-weight:bold; text-transform:uppercase; letter-spacing:.5px; }
+  .qtext { font-size:20px; margin:8px 0 16px; line-height:1.45; }
+  .opt { display:block; width:100%; text-align:left; background:var(--opt-bg); border:3px solid var(--opt-border); border-radius:var(--opt-radius); padding:13px 16px; font-size:17px; font-family:inherit; color:var(--ink); margin-bottom:10px; cursor:pointer; transition:transform .1s, background .15s, border-color .15s; }
+  .opt:hover:not(:disabled) { transform:translateX(4px); border-color:var(--opt-hover); }
+  .opt:disabled { cursor:default; }
+  .opt.correct { background:var(--correct-bg); border-color:var(--correct-border); }
+  .opt.wrong { background:var(--wrong-bg); border-color:var(--wrong-border); }
+  .feedback { margin-top:6px; padding:12px 14px; border-radius:12px; font-size:15px; line-height:1.45; display:none; }
+  .feedback.show { display:block; }
+  .feedback.good { background:var(--good-bg); color:var(--good-fg); }
+  .feedback.bad { background:var(--bad-bg); color:var(--bad-fg); }
+  .btn { background:var(--btn); color:#fff; border:none; border-radius:14px; padding:14px 28px; font-size:18px; font-family:inherit; font-weight:bold; cursor:pointer; box-shadow:0 5px 0 var(--btn-shadow); transition:transform .1s; }
+  .btn:active { transform:translateY(3px); box-shadow:0 2px 0 var(--btn-shadow); }
+  .btn.next { background:var(--next); box-shadow:0 5px 0 var(--next-shadow); display:none; margin-top:6px; }
+  .center { text-align:center; }
+  .result { background:var(--card-bg); border-radius:var(--card-radius); padding:34px 24px; text-align:center; box-shadow:0 6px 0 var(--card-shadow); }
+  .result .big { font-size:62px; }
+  .result h2 { font-size:27px; margin:10px 0; color:var(--result-title); }
+  .scoreline { font-size:22px; margin:14px 0; }
+  .stars { font-size:33px; letter-spacing:4px; margin:10px 0; }
+  .hidden { display:none; }
+  footer { text-align:center; font-size:13px; color:var(--footer); margin-top:10px; opacity:.85; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="ic" id="icon">🍫</div>
+    <h1 id="title">Book Title</h1>
+    <p id="subtitle">Reading Quiz · Chapter N</p>
+  </header>
+  <div class="bar">
+    <span id="qcount">Question 1</span>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <span id="scoreboard">0</span>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" class="result hidden"></div>
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* ======================= EDIT THIS ======================= */
+const CONFIG = {
+  title:    "Charlie and the Chocolate Factory",
+  subtitle: "Reading Quiz · Chapters 8–9",
+  child:    "Grace",
+  theme:    "peach",
+  icon:     "🍫",
+  passPct:  0.80
+};
+
+const questions = [
+  // ---------- Chapter 8 · Two More Golden Tickets Found ----------
+  { ch:"Chapter 8 · Two More Golden Tickets Found", q:"Who found the third Golden Ticket?",
+    options:["Violet Beauregarde, a keen gum chewer","Veruca Salt, whose father shelled peanuts","Augustus Gloop, a boy who loved eating","Charlie Bucket, a poor boy from town"],
+    answer:0,
+    why:"The third ticket went to Violet Beauregarde, a champion gum chewer." },
+
+  { ch:"Chapter 8 · Two More Golden Tickets Found", q:"What was Violet Beauregarde famous for?",
+    options:["Chewing gum for hours on end","Blowing the biggest bubbles","Winning races at her school","Eating huge amounts of sweets"],
+    answer:0,
+    why:"Violet was proud of being a record-breaking gum chewer." },
+
+  { ch:"Chapter 8 · Two More Golden Tickets Found", q:"How long had Violet been chewing the same piece of gum?",
+    options:["For more than three months","For nearly two whole weeks","For about half of one day","For over five long years"],
+    answer:0,
+    why:"Violet bragged that she had chewed the same piece for over three months solid." },
+
+  { ch:"Chapter 8 · Two More Golden Tickets Found", q:"What does Violet do with her gum when she needs to talk?",
+    options:["She sticks it behind her ear","She wraps it back in its paper","She quickly swallows it down","She drops it into a nearby bin"],
+    answer:0,
+    why:"Violet said she sticks her gum behind her ear for safekeeping." },
+
+  { ch:"Chapter 8 · Two More Golden Tickets Found", q:"Who found the fourth Golden Ticket?",
+    options:["Mike Teavee, a boy who loved TV shows","Augustus Gloop, a boy who loved eating","Charlie Bucket, a poor and hungry boy","Violet Beauregarde, the gum chewer"],
+    answer:0,
+    why:"The fourth ticket went to Mike Teavee, a boy obsessed with television." },
+
+  { ch:"Chapter 8 · Two More Golden Tickets Found", q:"What was Mike Teavee obsessed with?",
+    options:["Watching television shows","Reading his comic books","Playing football outdoors","Building model aeroplanes"],
+    answer:0,
+    why:"Mike cared about one thing: watching television, especially violent shows." },
+
+  { ch:"Chapter 8 · Two More Golden Tickets Found", q:"What was Mike wearing all over his body?",
+    options:["Eighteen toy pistols on belts","Badges from his football club","Pockets full of chewing gum","A cape and a shiny silver mask"],
+    answer:0,
+    why:"Mike had eighteen toy pistols hanging from belts around his body." },
+
+  { ch:"Chapter 8 · Two More Golden Tickets Found", q:"What was Mike watching on television when reporters came?",
+    options:["A film about gangsters and guns","A cartoon about talking animals","A show about racing fast cars","A match between two football teams"],
+    answer:0,
+    why:"He was watching a gangster film full of machine guns and shooting." },
+
+  { ch:"Chapter 8 · Two More Golden Tickets Found", q:"After Violet's and Mike's tickets, how many Golden Tickets were still unfound?",
+    options:["One","Two","Three","Four"],
+    answer:0,
+    why:"Four of the five tickets were now found, so only one remained." },
+
+  { ch:"Chapter 8 · Think About It", q:"What do the four ticket-finders so far have in common?",
+    options:["Each child has a greedy or bad habit","Each child comes from a very poor family","Each child is very kind to other people","Each child lives in the very same town"],
+    answer:0,
+    why:"Augustus, Veruca, Violet and Mike are all spoiled children with bad habits." },
+
+  // ---------- Chapter 9 · Grandpa Joe Takes a Gamble ----------
+  { ch:"Chapter 9 · Grandpa Joe Takes a Gamble", q:"What did Grandpa Joe decide to do after the fourth ticket was found?",
+    options:["Buy one more bar to look for a ticket","Write a letter straight to Mr Willy Wonka","Ask the shopkeeper for a free bar","Give up hoping for the last ticket"],
+    answer:0,
+    why:"Grandpa Joe wanted to buy one more bar and try their luck one last time." },
+
+  { ch:"Chapter 9 · Grandpa Joe Takes a Gamble", q:"How did Grandpa Joe call Charlie over to share his secret?",
+    options:["He whispered and beckoned him closer","He shouted for him from across the room","He wrote him a short little note","He rang a small bell by his bed"],
+    answer:0,
+    why:"Grandpa Joe went 'Ssshh!' and quietly beckoned Charlie to come closer." },
+
+  { ch:"Chapter 9 · Grandpa Joe Takes a Gamble", q:"Where had Grandpa Joe been keeping his money?",
+    options:["Hidden away as a secret hoard","In a jar on the kitchen shelf","Inside his warm coat pocket","At the sweet shop down the road"],
+    answer:0,
+    why:"He kept it as a secret hoard that the rest of the family did not know about." },
+
+  { ch:"Chapter 9 · Grandpa Joe Takes a Gamble", q:"What did Grandpa Joe tell Charlie about the money?",
+    options:["To keep it a secret from the others","To spend it all on sweets for himself","To give it back to his grandma","To save it for a rainy day"],
+    answer:0,
+    why:"Grandpa Joe made Charlie promise to keep the money a secret from the family." },
+
+  { ch:"Chapter 9 · Grandpa Joe Takes a Gamble", q:"What did Charlie and Grandpa Joe buy with the secret money?",
+    options:["One Wonka chocolate bar","A bag of mixed sweets","Two large fizzy drinks","A small birthday cake"],
+    answer:0,
+    why:"They spent it on a single Wonka bar, hoping a ticket was inside." },
+
+  { ch:"Chapter 9 · Grandpa Joe Takes a Gamble", q:"Which chocolate bar did Charlie buy this time?",
+    options:["Wonka's Nutty Crunch Surprise","Wonka's Fudgemallow Delight","Wonka's Creamy Caramel Bar","Wonka's Minty Peppermint Twist"],
+    answer:0,
+    why:"Charlie bought a Wonka's Nutty Crunch Surprise bar." },
+
+  { ch:"Chapter 9 · Grandpa Joe Takes a Gamble", q:"How did Charlie and Grandpa Joe feel as they opened the wrapper?",
+    options:["Nervous but full of hope","Bored and quite sleepy","Cross with each other","Sure they would win it"],
+    answer:0,
+    why:"They were nervous and hopeful, even though Grandpa Joe said they had little chance." },
+
+  { ch:"Chapter 9 · Grandpa Joe Takes a Gamble", q:"What did they find inside the Nutty Crunch Surprise bar?",
+    options:["Plain chocolate and no ticket","A bright new Golden Ticket","A short note written by Mr Wonka","A small plastic toy surprise"],
+    answer:0,
+    why:"There was no Golden Ticket, just the plain chocolate inside." },
+
+  { ch:"Chapter 9 · Grandpa Joe Takes a Gamble", q:"How did Charlie and Grandpa Joe react when there was no ticket?",
+    options:["They burst out laughing together","They started to sob out loud","They tossed the bar in the bin","They blamed the poor shopkeeper"],
+    answer:0,
+    why:"Instead of being upset, they both started giggling and burst out laughing." },
+
+  { ch:"Chapter 9 · Think About It", q:"What does Grandpa Joe's secret gamble show about him?",
+    options:["He loves Charlie and shares his hopes","He wanted the sweets for himself","He likes keeping secrets from family","He is cross about the whole contest"],
+    answer:0,
+    why:"Spending his hidden money on Charlie shows how much he loves and believes in him." }
+];
+/* ===================== END EDIT AREA ===================== */
+
+document.body.className = 'theme-' + CONFIG.theme;
+const MARK = CONFIG.theme === 'river' ? '✓' : '⭐';
+document.getElementById('icon').textContent = CONFIG.icon;
+document.getElementById('title').textContent = CONFIG.title;
+document.getElementById('subtitle').textContent = CONFIG.subtitle;
+
+questions.forEach(item => {
+  const correct = item.options[item.answer];
+  for (let i = item.options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [item.options[i], item.options[j]] = [item.options[j], item.options[i]];
+  }
+  item.answer = item.options.indexOf(correct);
+});
+
+let current = 0, score = 0, answered = false;
+const passNeeded = Math.ceil(questions.length * CONFIG.passPct);
+const pctLabel = Math.round(CONFIG.passPct * 100);
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+const qcount = document.getElementById('qcount');
+const scoreboard = document.getElementById('scoreboard');
+const progress = document.getElementById('progress');
+document.getElementById('footer').textContent =
+  `For ${CONFIG.child} · Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})`;
+
+function render() {
+  answered = false;
+  const item = questions[current];
+  qcount.textContent = `Question ${current + 1} of ${questions.length}`;
+  scoreboard.textContent = `${MARK} ${score}`;
+  progress.style.width = `${(current / questions.length) * 100}%`;
+  const opts = item.options.map((o, i) => `<button class="opt" data-i="${i}" onclick="choose(${i})">${o}</button>`).join('');
+  quizArea.innerHTML = `
+    <div class="card">
+      <div class="qmeta">${item.ch}</div>
+      <div class="qtext">${item.q}</div>
+      ${opts}
+      <div class="feedback" id="fb"></div>
+      <div class="center"><button class="btn next" id="nextBtn" onclick="next()">Next →</button></div>
+    </div>`;
+}
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const item = questions[current];
+  const buttons = document.querySelectorAll('.opt');
+  buttons.forEach(b => b.disabled = true);
+  const fb = document.getElementById('fb');
+  if (i === item.answer) {
+    score++;
+    buttons[i].classList.add('correct');
+    fb.className = 'feedback good show';
+    fb.innerHTML = `✅ <strong>Correct!</strong> ${item.why}`;
+  } else {
+    buttons[i].classList.add('wrong');
+    buttons[item.answer].classList.add('correct');
+    fb.className = 'feedback bad show';
+    fb.innerHTML = `❌ <strong>Not quite.</strong> ${item.why}`;
+  }
+  scoreboard.textContent = `${MARK} ${score}`;
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function next() { current++; if (current < questions.length) render(); else showResult(); }
+
+function showResult() {
+  quizArea.classList.add('hidden');
+  document.querySelector('.bar').classList.add('hidden');
+  resultArea.classList.remove('hidden');
+  progress.style.width = '100%';
+  const pct = Math.round((score / questions.length) * 100);
+  const passed = score >= passNeeded;
+  let stars, msg, emoji;
+  if (pct === 100) { stars='⭐⭐⭐⭐⭐'; msg="Perfect score! You really know it."; emoji='🏆'; }
+  else if (passed) { stars='⭐⭐⭐⭐'; msg="Excellent! You passed with room to spare."; emoji='🎖️'; }
+  else if (pct >= 60) { stars='⭐⭐⭐'; msg=`So close! You need ${pctLabel}% to pass — review and try again.`; emoji='📖'; }
+  else if (pct >= 40) { stars='⭐⭐'; msg=`Good effort! You need ${pctLabel}% to pass. Re-read and give it another go.`; emoji='📚'; }
+  else { stars='⭐'; msg="Let's read it again carefully and try once more."; emoji='📗'; }
+  const banner = passed
+    ? `<div style="background:var(--correct-bg);color:var(--good-fg);border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">🎉 PASSED! 🎉</div>`
+    : `<div style="background:var(--bad-bg);color:var(--bad-fg);border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">Not passed yet — need ${pctLabel}%</div>`;
+  resultArea.innerHTML = `
+    <div class="big">${emoji}</div>
+    <h2>Quiz Complete!</h2>
+    ${banner}
+    <div class="stars">${stars}</div>
+    <div class="scoreline">You got <strong>${score}</strong> out of <strong>${questions.length}</strong> (${pct}%)</div>
+    <div style="font-size:15px;color:var(--footer);margin:-4px 0 8px;">Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})</div>
+    <p style="margin:10px 0 20px;font-size:17px;">${msg}</p>
+    <button class="btn" onclick="restart()">Try Again 🔄</button>`;
+}
+
+function restart() {
+  current = 0; score = 0; answered = false;
+  resultArea.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  document.querySelector('.bar').classList.remove('hidden');
+  render();
+}
+render();
+</script>
+</body>
+</html>
