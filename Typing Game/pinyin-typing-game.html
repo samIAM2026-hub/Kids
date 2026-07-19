@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拼音打字乐园 · Pinyin Typing Fun</title>
+<style>
+  :root{
+    --bg1:#fff7e6; --bg2:#e6f7ff; --ink:#3a2f2a;
+    --pink:#ff8fab; --blue:#6ec6ff; --green:#5ec26a; --red:#ff6b6b;
+    --yellow:#ffd93d; --purple:#b39ddb; --card:#fffdf7;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; height:100%;}
+  body{
+    font-family:"Comic Sans MS","Segoe UI Rounded","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));
+    color:var(--ink); min-height:100%;
+    display:flex; align-items:center; justify-content:center;
+    padding:16px; overflow-x:hidden;
+  }
+  .wrap{width:100%; max-width:720px;}
+  .card{
+    background:var(--card); border-radius:28px; padding:26px 24px;
+    box-shadow:0 14px 40px rgba(120,90,60,.18); position:relative;
+  }
+  h1{ text-align:center; margin:.1em 0 .2em; font-size:2rem; letter-spacing:1px;
+      background:linear-gradient(90deg,var(--pink),var(--blue),var(--purple));
+      -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .sub{text-align:center; margin:0 0 18px; color:#8a7a70; font-size:.95rem;}
+
+  /* menu */
+  .levels{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .level-btn{
+    border:none; cursor:pointer; border-radius:20px; padding:18px 14px;
+    font-size:1.05rem; font-family:inherit; color:#fff; font-weight:bold;
+    box-shadow:0 6px 0 rgba(0,0,0,.12); transition:transform .08s, box-shadow .08s;
+    display:flex; flex-direction:column; gap:4px; align-items:center;
+  }
+  .level-btn small{font-weight:normal; opacity:.95; font-size:.8rem;}
+  .level-btn:active{transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,.12);}
+  .lv1{background:linear-gradient(135deg,#ff9a9e,#ff6b8b);}
+  .lv2{background:linear-gradient(135deg,#6ec6ff,#3a8dff);}
+  .lv3{background:linear-gradient(135deg,#7ee8b0,#3cba7a);}
+  .lv4{background:linear-gradient(135deg,#c79bff,#8e6bff);}
+  .hint-line{text-align:center; margin-top:16px; color:#9a8a80; font-size:.85rem;}
+
+  /* game */
+  .topbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:.95rem;}
+  .topbar .back{cursor:pointer; background:#f1e9e2; border:none; border-radius:14px; padding:8px 14px; font-family:inherit; font-size:.9rem; color:#7a6a60;}
+  .stars{font-size:1.1rem; letter-spacing:2px;}
+  .progress-outer{height:14px; background:#efe6dd; border-radius:10px; overflow:hidden; margin-bottom:18px;}
+  .progress-inner{height:100%; width:0%; background:linear-gradient(90deg,var(--yellow),var(--green)); border-radius:10px; transition:width .3s;}
+
+  .hanzi{font-size:4.6rem; text-align:center; line-height:1.1; margin:6px 0 2px; font-weight:bold;
+         font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",serif;}
+  .meaning{text-align:center; color:#8a7a70; font-size:1.1rem; margin-bottom:14px;}
+  .speak{display:block; margin:0 auto 14px; background:var(--yellow); border:none; border-radius:50px;
+         padding:8px 20px; font-family:inherit; font-size:1rem; cursor:pointer; box-shadow:0 4px 0 #e6b800;}
+  .speak:active{transform:translateY(3px); box-shadow:0 1px 0 #e6b800;}
+
+  .tiles{display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin:6px 0 18px;}
+  .syll{display:flex; gap:5px;}
+  .box{
+    width:34px; height:46px; border-radius:10px; background:#f6f0ea; border:2px dashed #d9cabc;
+    display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:bold;
+    color:#c9b8aa; text-transform:lowercase;
+  }
+  .box.filled{border-style:solid; border-color:var(--green); color:var(--green); background:#eafaec;}
+  .box.wrong{border-style:solid; border-color:var(--red); color:var(--red); background:#ffecec;}
+
+  .inputrow{display:flex; gap:10px; justify-content:center; align-items:center;}
+  input.type{
+    font-family:inherit; font-size:1.6rem; text-align:center; padding:12px 16px;
+    border-radius:18px; border:3px solid var(--blue); width:min(340px,80%); outline:none;
+    letter-spacing:2px; color:var(--ink); background:#fbfdff;
+  }
+  input.type.good{border-color:var(--green); background:#f2fff4;}
+  input.type.bad{border-color:var(--red); background:#fff3f3;}
+
+  .btnrow{display:flex; gap:10px; justify-content:center; margin-top:16px; flex-wrap:wrap;}
+  .mini{border:none; cursor:pointer; border-radius:16px; padding:10px 18px; font-family:inherit; font-size:.95rem; font-weight:bold; color:#fff; box-shadow:0 4px 0 rgba(0,0,0,.12);}
+  .mini:active{transform:translateY(3px); box-shadow:0 1px 0 rgba(0,0,0,.12);}
+  .mini.hintb{background:var(--purple);}
+  .mini.skipb{background:#b0a89f;}
+  .pinyin-hint{text-align:center; min-height:26px; margin-top:12px; font-size:1.3rem; color:var(--purple); font-weight:bold; letter-spacing:1px;}
+
+  .feedback{position:absolute; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; pointer-events:none;}
+  .feedback .big{font-size:4rem; animation:pop .5s ease;}
+  .feedback .msg{font-size:1.3rem; color:var(--green); font-weight:bold; background:#fff; padding:6px 18px; border-radius:20px; box-shadow:0 6px 18px rgba(0,0,0,.12);}
+  @keyframes pop{0%{transform:scale(.2); opacity:0;} 60%{transform:scale(1.25);} 100%{transform:scale(1); opacity:1;}}
+
+  /* end screen */
+  .endbig{font-size:3.2rem; text-align:center; margin:8px 0;}
+  .endstars{font-size:2.4rem; text-align:center; letter-spacing:6px; margin:8px 0;}
+  .endstat{text-align:center; font-size:1.15rem; color:#7a6a60; margin:8px 0 18px;}
+  .again{display:block; margin:0 auto; background:linear-gradient(135deg,var(--green),#3cba7a); color:#fff; border:none; border-radius:20px; padding:14px 30px; font-family:inherit; font-size:1.15rem; font-weight:bold; cursor:pointer; box-shadow:0 6px 0 #2e9c66;}
+  .again:active{transform:translateY(4px); box-shadow:0 2px 0 #2e9c66;}
+  .confetti{position:fixed; top:-20px; width:12px; height:16px; border-radius:3px; opacity:.9; animation:fall linear forwards; z-index:50;}
+  @keyframes fall{to{transform:translateY(105vh) rotate(720deg);}}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+
+    <!-- ===== MENU ===== -->
+    <div id="menu">
+      <h1>🌈 拼音打字乐园</h1>
+      <p class="sub">Pinyin Typing Fun &nbsp;·&nbsp; 看汉字，打拼音！ Type the pinyin for each word.</p>
+      <div class="levels">
+        <button class="level-btn lv1" data-lvl="scenery">🏝️ 祖国风光<small>Scenery words (12)</small></button>
+        <button class="level-btn lv2" data-lvl="weather">⛅ 天气词语<small>Weather phrases (8)</small></button>
+        <button class="level-btn lv3" data-lvl="words">📚 生字词<small>New words (23)</small></button>
+        <button class="level-btn lv4" data-lvl="all">🏆 全部挑战<small>Everything, mixed</small></button>
+      </div>
+      <p class="hint-line">💡 打字提示：只打字母，不用打声调。例如 海滩 → <b>hai tan</b>（空格可有可无）</p>
+    </div>
+
+    <!-- ===== GAME ===== -->
+    <div id="game" class="hidden">
+      <div class="topbar">
+        <button class="back" id="backBtn">◀ 返回</button>
+        <span id="counter">1 / 12</span>
+        <span class="stars" id="scoreStars">⭐ 0</span>
+      </div>
+      <div class="progress-outer"><div class="progress-inner" id="prog"></div></div>
+
+      <div class="hanzi" id="hanzi">海滩</div>
+      <div class="meaning" id="meaning">beach</div>
+      <button class="speak" id="speakBtn">🔊 听一听 Hear it</button>
+
+      <div class="tiles" id="tiles"></div>
+
+      <div class="inputrow">
+        <input class="type" id="typeBox" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="打拼音…">
+      </div>
+
+      <div class="pinyin-hint" id="pyHint"></div>
+
+      <div class="btnrow">
+        <button class="mini hintb" id="hintBtn">💡 看拼音 Hint</button>
+        <button class="mini skipb" id="skipBtn">➡️ 跳过 Skip</button>
+      </div>
+
+      <div class="feedback" id="feedback"><div class="big" id="fbBig">🎉</div><div class="msg" id="fbMsg">太棒了！</div></div>
+    </div>
+
+    <!-- ===== END ===== -->
+    <div id="end" class="hidden">
+      <div class="endbig" id="endEmoji">🏆</div>
+      <h1 id="endTitle">全部完成！</h1>
+      <div class="endstars" id="endStars">⭐⭐⭐</div>
+      <div class="endstat" id="endStat"></div>
+      <button class="again" id="againBtn">🔁 再玩一次 Play again</button>
+      <p class="hint-line" style="margin-top:16px;"><span id="backToMenu" style="cursor:pointer; text-decoration:underline;">回到主菜单 Back to menu</span></p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ================= VOCAB ================= */
+// py = plain pinyin (letters only, syllables space-separated) — what she types
+// tone = pretty pinyin with tone marks (shown as hint)
+const DATA = {
+  scenery: [
+    {hz:"海滩", py:"hai tan",  tone:"hǎi tān",  en:"beach"},
+    {hz:"椰树", py:"ye shu",   tone:"yē shù",   en:"coconut tree"},
+    {hz:"贝壳", py:"bei ke",   tone:"bèi ké",   en:"seashell"},
+    {hz:"沙漠", py:"sha mo",   tone:"shā mò",   en:"desert"},
+    {hz:"胡杨", py:"hu yang",  tone:"hú yáng",  en:"poplar tree"},
+    {hz:"骆驼", py:"luo tuo",  tone:"luò tuo",  en:"camel"},
+    {hz:"高原", py:"gao yuan", tone:"gāo yuán", en:"plateau"},
+    {hz:"雪莲", py:"xue lian", tone:"xuě lián", en:"snow lotus"},
+    {hz:"骏马", py:"jun ma",   tone:"jùn mǎ",   en:"fine horse"},
+    {hz:"悬崖", py:"xuan ya",  tone:"xuán yá",  en:"cliff"},
+    {hz:"青松", py:"qing song",tone:"qīng sōng",en:"green pine"},
+    {hz:"雄鹰", py:"xiong ying",tone:"xióng yīng",en:"eagle"}
+  ],
+  weather: [
+    {hz:"云雾缭绕", py:"yun wu liao rao", tone:"yún wù liáo rào", en:"mist swirling around"},
+    {hz:"云开雾散", py:"yun kai wu san",  tone:"yún kāi wù sàn",  en:"clouds part, mist clears"},
+    {hz:"微风习习", py:"wei feng xi xi",  tone:"wēi fēng xí xí",  en:"a gentle breeze"},
+    {hz:"寒风刺骨", py:"han feng ci gu",  tone:"hán fēng cì gǔ",  en:"biting cold wind"},
+    {hz:"冰天雪地", py:"bing tian xue di",tone:"bīng tiān xuě dì",en:"a frozen, snowy world"},
+    {hz:"鹅毛大雪", py:"e mao da xue",    tone:"é máo dà xuě",    en:"heavy, feathery snow"},
+    {hz:"风雨交加", py:"feng yu jiao jia",tone:"fēng yǔ jiāo jiā",en:"wind and rain together"},
+    {hz:"电闪雷鸣", py:"dian shan lei ming",tone:"diàn shǎn léi míng",en:"lightning and thunder"}
+  ],
+  words: [
+    {hz:"棉被", py:"mian bei",  tone:"mián bèi", en:"cotton quilt"},
+    {hz:"泼水", py:"po shui",   tone:"pō shuǐ",  en:"to splash water"},
+    {hz:"带领", py:"dai ling",  tone:"dài lǐng", en:"to lead"},
+    {hz:"展现", py:"zhan xian", tone:"zhǎn xiàn",en:"to show / display"},
+    {hz:"散步", py:"san bu",    tone:"sàn bù",   en:"to take a walk"},
+    {hz:"南瓜", py:"nan gua",   tone:"nán guā",  en:"pumpkin"},
+    {hz:"纸巾", py:"zhi jin",   tone:"zhǐ jīn",  en:"tissue / napkin"},
+    {hz:"低头", py:"di tou",    tone:"dī tóu",   en:"to lower one's head"},
+    {hz:"战士", py:"zhan shi",  tone:"zhàn shì", en:"soldier"},
+    {hz:"土地", py:"tu di",     tone:"tǔ dì",    en:"land / soil"},
+    {hz:"今天", py:"jin tian",  tone:"jīn tiān", en:"today"},
+    {hz:"口令", py:"kou ling",  tone:"kǒu lìng", en:"password / command"},
+    {hz:"穿戴", py:"chuan dai", tone:"chuān dài",en:"to dress / wear"},
+    {hz:"以后", py:"yi hou",    tone:"yǐ hòu",   en:"afterwards"},
+    {hz:"已经", py:"yi jing",   tone:"yǐ jīng",  en:"already"},
+    {hz:"再见", py:"zai jian",  tone:"zài jiàn", en:"goodbye"},
+    {hz:"正在", py:"zheng zai", tone:"zhèng zài",en:"in the middle of doing"},
+    {hz:"果园", py:"guo yuan",  tone:"guǒ yuán", en:"orchard"},
+    {hz:"圆心", py:"yuan xin",  tone:"yuán xīn", en:"center of a circle"},
+    {hz:"汽水", py:"qi shui",   tone:"qì shuǐ",  en:"soda / pop"},
+    {hz:"气体", py:"qi ti",     tone:"qì tǐ",    en:"gas"},
+    {hz:"心情", py:"xin qing",  tone:"xīn qíng", en:"mood"},
+    {hz:"晴天", py:"qing tian", tone:"qíng tiān",en:"sunny day"}
+  ]
+};
+
+const PRAISE = [
+  {e:"🎉", m:"太棒了！ Awesome!"},
+  {e:"🌟", m:"真厉害！ Amazing!"},
+  {e:"👏", m:"打对啦！ Correct!"},
+  {e:"🚀", m:"好快呀！ So fast!"},
+  {e:"💯", m:"完美！ Perfect!"},
+  {e:"🦄", m:"你真棒！ You rock!"}
+];
+
+/* ================= STATE ================= */
+let queue = [], idx = 0, score = 0, total = 0, hintsUsed = 0, firstTryOK = 0;
+
+/* helpers */
+const $ = id => document.getElementById(id);
+function norm(s){ return s.toLowerCase().replace(/\s+/g,''); }   // ignore spaces & case
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor((i+1)*pseudo()); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+// simple deterministic-ish shuffle without Math.random dependency issues
+let _seed = 12345 + (new Date().getSeconds?0:0);
+function pseudo(){ _seed = (_seed*1103515245 + 12345) & 0x7fffffff; return _seed/0x7fffffff; }
+
+/* ================= FLOW ================= */
+document.querySelectorAll('.level-btn').forEach(b=>{
+  b.addEventListener('click', ()=> startLevel(b.dataset.lvl));
+});
+$('backBtn').addEventListener('click', showMenu);
+$('backToMenu').addEventListener('click', showMenu);
+$('againBtn').addEventListener('click', ()=> startLevel(currentLvl));
+
+let currentLvl = 'scenery';
+function startLevel(lvl){
+  currentLvl = lvl;
+  let list = lvl==='all' ? [...DATA.scenery, ...DATA.weather, ...DATA.words] : DATA[lvl];
+  queue = shuffle(list);
+  idx = 0; score = 0; total = queue.length; hintsUsed = 0; firstTryOK = 0;
+  $('menu').classList.add('hidden');
+  $('end').classList.add('hidden');
+  $('game').classList.remove('hidden');
+  loadWord();
+}
+
+function showMenu(){
+  $('game').classList.add('hidden');
+  $('end').classList.add('hidden');
+  $('menu').classList.remove('hidden');
+}
+
+let curWordWrongThisTry = false;
+function loadWord(){
+  const w = queue[idx];
+  curWordWrongThisTry = false;
+  $('hanzi').textContent = w.hz;
+  $('meaning').textContent = w.en;
+  $('counter').textContent = (idx+1)+' / '+total;
+  $('scoreStars').textContent = '⭐ '+score;
+  $('prog').style.width = (idx/total*100)+'%';
+  $('pyHint').textContent = '';
+  const box = $('typeBox');
+  box.value=''; box.classList.remove('good','bad'); box.disabled=false;
+  buildTiles(w.py, '');
+  box.focus();
+}
+
+function buildTiles(py, typed){
+  const tiles = $('tiles'); tiles.innerHTML='';
+  const target = norm(py);
+  const tnorm = norm(typed);
+  const sylls = py.trim().split(/\s+/);
+  let gi = 0; // global index over target letters
+  sylls.forEach(syl=>{
+    const sd = document.createElement('div'); sd.className='syll';
+    for(let k=0;k<syl.length;k++){
+      const b = document.createElement('div'); b.className='box';
+      if(gi < tnorm.length){
+        b.textContent = tnorm[gi];
+        if(tnorm[gi] === target[gi]) b.classList.add('filled');
+        else b.classList.add('wrong');
+      } else {
+        b.textContent = '_';
+      }
+      sd.appendChild(b); gi++;
+    }
+    tiles.appendChild(sd);
+  });
+}
+
+$('typeBox').addEventListener('input', ()=>{
+  const w = queue[idx];
+  const box = $('typeBox');
+  const typed = box.value;
+  buildTiles(w.py, typed);
+  const t = norm(typed), target = norm(w.py);
+  // live border color
+  box.classList.remove('good','bad');
+  if(t.length){
+    if(target.startsWith(t)) box.classList.add('good');
+    else { box.classList.add('bad'); curWordWrongThisTry = true; }
+  }
+  if(t === target){ correct(); }
+});
+
+// Enter also checks / re-tries
+$('typeBox').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){
+    const w = queue[idx];
+    if(norm($('typeBox').value)===norm(w.py)) correct();
+  }
+});
+
+function correct(){
+  const box = $('typeBox'); box.disabled=true;
+  score++;
+  if(!curWordWrongThisTry) firstTryOK++;
+  $('scoreStars').textContent = '⭐ '+score;
+  const p = PRAISE[idx % PRAISE.length];
+  $('fbBig').textContent = p.e; $('fbMsg').textContent = p.m;
+  const fb = $('feedback'); fb.style.display='flex';
+  speak(queue[idx].hz);
+  setTimeout(()=>{
+    fb.style.display='none';
+    idx++;
+    if(idx>=total) endGame();
+    else loadWord();
+  }, 1100);
+}
+
+$('hintBtn').addEventListener('click', ()=>{
+  const w = queue[idx];
+  $('pyHint').textContent = '👉 ' + w.tone;
+  hintsUsed++;
+  curWordWrongThisTry = true; // used help → not a clean first try
+  $('typeBox').focus();
+});
+
+$('skipBtn').addEventListener('click', ()=>{
+  curWordWrongThisTry = true;
+  idx++;
+  if(idx>=total) endGame();
+  else loadWord();
+});
+
+$('speakBtn').addEventListener('click', ()=> speak(queue[idx].hz));
+
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN'; u.rate=.8;
+    const vs = window.speechSynthesis.getVoices();
+    const zh = vs.find(v=>/zh|Chinese/i.test(v.lang+v.name));
+    if(zh) u.voice = zh;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+function endGame(){
+  $('prog').style.width='100%';
+  $('game').classList.add('hidden');
+  $('end').classList.remove('hidden');
+  const pct = Math.round(firstTryOK/total*100);
+  let stars = 1;
+  if(pct>=90) stars=3; else if(pct>=60) stars=2;
+  $('endStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+  $('endEmoji').textContent = stars===3?'🏆':(stars===2?'🎉':'💪');
+  $('endTitle').textContent = stars===3?'完美通关！':'全部完成！';
+  $('endStat').innerHTML = '你打对了 <b>'+total+'</b> 个词！<br>一次就对：<b>'+firstTryOK+'/'+total+'</b>（'+pct+'%）'
+                          + (hintsUsed?('<br>用了 '+hintsUsed+' 次提示'):'');
+  if(stars===3) confetti();
+}
+
+function confetti(){
+  const colors=['#ff8fab','#6ec6ff','#ffd93d','#5ec26a','#b39ddb'];
+  for(let i=0;i<60;i++){
+    const c=document.createElement('div'); c.className='confetti';
+    c.style.left=(i*1.7)+'vw';
+    c.style.background=colors[i%colors.length];
+    c.style.animationDuration=(2.2+ (i%5)*0.4)+'s';
+    c.style.animationDelay=((i%10)*0.08)+'s';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 5000);
+  }
+}
+
+// warm up voices
+if('speechSynthesis' in window){ window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices(); }
+</script>
+</body>
+</html>
