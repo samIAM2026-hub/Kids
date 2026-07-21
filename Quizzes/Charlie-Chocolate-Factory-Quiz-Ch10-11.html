@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charlie and the Chocolate Factory · Chapters 10–11</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --font:'Comic Sans MS','Trebuchet MS',system-ui,sans-serif;
+    --bg:linear-gradient(160deg,#ffe29a 0%,#ffb37b 50%,#ff8a5c 100%);
+    --ink:#4a2c0f;
+    --header-bg:#ff7043; --header-shadow:#d84315; --header-radius:24px;
+    --bar-bg:#fff3e0; --bar-shadow:#ffccbc; --track:#ffccbc; --fill:#43a047;
+    --card-bg:#fff; --card-shadow:#e0a96d; --card-radius:20px; --meta:#ef6c00;
+    --opt-bg:#fff8f0; --opt-border:#ffd2a8; --opt-hover:#ff9d57; --opt-radius:14px;
+    --correct-bg:#d7f5d3; --correct-border:#43a047; --wrong-bg:#ffd9d9; --wrong-border:#e53935;
+    --good-bg:#e8f7e6; --good-fg:#2e7d32; --bad-bg:#fdeaea; --bad-fg:#c62828;
+    --btn:#43a047; --btn-shadow:#2e7d32; --next:#ff7043; --next-shadow:#d84315;
+    --result-title:#ef6c00; --footer:#7a4a1f;
+  }
+  body.theme-river{
+    --font:'Georgia','Times New Roman',serif;
+    --bg:linear-gradient(160deg,#cfe8f0 0%,#a9d3c2 45%,#8bb98f 100%);
+    --ink:#2c2418;
+    --header-bg:#5b4636; --header-shadow:#3a2c20; --header-radius:18px;
+    --bar-bg:#f5ecd9; --bar-shadow:#c9b890; --track:#d9c9a3; --fill:#3a7d44;
+    --card-bg:#fffdf7; --card-shadow:#c9b890; --card-radius:16px; --meta:#8a6d3b;
+    --opt-bg:#f7f1e3; --opt-border:#ddcaa3; --opt-hover:#b89968; --opt-radius:12px;
+    --correct-bg:#d7f0d3; --correct-border:#3a7d44; --wrong-bg:#f6d6d6; --wrong-border:#c0392b;
+    --good-bg:#e8f5e6; --good-fg:#2e6b34; --bad-bg:#fbeaea; --bad-fg:#a5352a;
+    --btn:#3a7d44; --btn-shadow:#285a30; --next:#8a6d3b; --next-shadow:#5b4636;
+    --result-title:#5b4636; --footer:#4c4030;
+  }
+  body { font-family:var(--font); background:var(--bg); min-height:100vh; color:var(--ink); padding:20px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  header { background:var(--header-bg); border-radius:var(--header-radius); padding:26px 24px; text-align:center; color:#fff; box-shadow:0 8px 0 var(--header-shadow); margin-bottom:18px; }
+  header .ic { font-size:50px; line-height:1; }
+  header h1 { font-size:25px; margin:8px 0 4px; }
+  header p { font-size:16px; opacity:.95; }
+  .bar { background:var(--bar-bg); border-radius:14px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; font-weight:bold; margin-bottom:16px; box-shadow:0 4px 0 var(--bar-shadow); }
+  .progress-track { flex:1; height:14px; background:var(--track); border-radius:10px; margin:0 14px; overflow:hidden; }
+  .progress-fill { height:100%; width:0; background:var(--fill); border-radius:10px; transition:width .3s; }
+  .card { background:var(--card-bg); border-radius:var(--card-radius); padding:22px; box-shadow:0 6px 0 var(--card-shadow); margin-bottom:16px; }
+  .qmeta { font-size:13px; color:var(--meta); font-weight:bold; text-transform:uppercase; letter-spacing:.5px; }
+  .qtext { font-size:20px; margin:8px 0 16px; line-height:1.45; }
+  .opt { display:block; width:100%; text-align:left; background:var(--opt-bg); border:3px solid var(--opt-border); border-radius:var(--opt-radius); padding:13px 16px; font-size:17px; font-family:inherit; color:var(--ink); margin-bottom:10px; cursor:pointer; transition:transform .1s, background .15s, border-color .15s; }
+  .opt:hover:not(:disabled) { transform:translateX(4px); border-color:var(--opt-hover); }
+  .opt:disabled { cursor:default; }
+  .opt.correct { background:var(--correct-bg); border-color:var(--correct-border); }
+  .opt.wrong { background:var(--wrong-bg); border-color:var(--wrong-border); }
+  .feedback { margin-top:6px; padding:12px 14px; border-radius:12px; font-size:15px; line-height:1.45; display:none; }
+  .feedback.show { display:block; }
+  .feedback.good { background:var(--good-bg); color:var(--good-fg); }
+  .feedback.bad { background:var(--bad-bg); color:var(--bad-fg); }
+  .btn { background:var(--btn); color:#fff; border:none; border-radius:14px; padding:14px 28px; font-size:18px; font-family:inherit; font-weight:bold; cursor:pointer; box-shadow:0 5px 0 var(--btn-shadow); transition:transform .1s; }
+  .btn:active { transform:translateY(3px); box-shadow:0 2px 0 var(--btn-shadow); }
+  .btn.next { background:var(--next); box-shadow:0 5px 0 var(--next-shadow); display:none; margin-top:6px; }
+  .center { text-align:center; }
+  .result { background:var(--card-bg); border-radius:var(--card-radius); padding:34px 24px; text-align:center; box-shadow:0 6px 0 var(--card-shadow); }
+  .result .big { font-size:62px; }
+  .result h2 { font-size:27px; margin:10px 0; color:var(--result-title); }
+  .scoreline { font-size:22px; margin:14px 0; }
+  .stars { font-size:33px; letter-spacing:4px; margin:10px 0; }
+  .hidden { display:none; }
+  footer { text-align:center; font-size:13px; color:var(--footer); margin-top:10px; opacity:.85; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="ic" id="icon">🍫</div>
+    <h1 id="title">Book Title</h1>
+    <p id="subtitle">Reading Quiz · Chapter N</p>
+  </header>
+  <div class="bar">
+    <span id="qcount">Question 1</span>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <span id="scoreboard">0</span>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" class="result hidden"></div>
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* ======================= EDIT THIS ======================= */
+const CONFIG = {
+  title:    "Charlie and the Chocolate Factory",
+  subtitle: "Reading Quiz · Chapters 10–11",
+  child:    "Grace",
+  theme:    "peach",
+  icon:     "🍫",
+  passPct:  0.80
+};
+
+const questions = [
+  // ---------- Chapter 10 · The Family Begins to Starve ----------
+  { ch:"Chapter 10 · The Family Begins to Starve", q:"What happened to make the Bucket family even poorer?",
+    options:["Mr Bucket's toothpaste factory closed down","The family's house was damaged in a storm","Grandpa Joe grew too ill to help the family","Thieves took the family's little savings"],
+    answer:0,
+    why:"The toothpaste factory where Mr Bucket worked went bust, so he lost his job." },
+
+  { ch:"Chapter 10 · The Family Begins to Starve", q:"What did each person get for breakfast now?",
+    options:["A single slice of bread","A small bowl of hot soup","A boiled egg and toast","A cup of warm creamy milk"],
+    answer:0,
+    why:"Breakfast had shrunk to just one slice of bread for each person." },
+
+  { ch:"Chapter 10 · The Family Begins to Starve", q:"What was lunch sometimes reduced to?",
+    options:["Half of a boiled potato","A handful of dry raisins","A thin slice of hard cheese","A few small dry crackers"],
+    answer:0,
+    why:"Lunch was often only half a boiled potato each." },
+
+  { ch:"Chapter 10 · The Family Begins to Starve", q:"What made the family's hunger feel even worse?",
+    options:["The freezing winter cold","The long cold walk to school","The noisy busy streets","The dark rainy evenings"],
+    answer:0,
+    why:"The bitterly cold weather made the hunger even harder to bear." },
+
+  { ch:"Chapter 10 · The Family Begins to Starve", q:"How did Charlie try to save his energy?",
+    options:["He walked slowly and did not run","He ate his meals very quickly","He slept during his school lessons","He asked friends to carry his bag"],
+    answer:0,
+    why:"Charlie walked slowly and never ran, to use up as little energy as he could." },
+
+  { ch:"Chapter 10 · The Family Begins to Starve", q:"What did Charlie do during break instead of playing?",
+    options:["He sat quietly to rest himself","He ran races with his friends","He read books in the school library","He helped the teacher tidy up"],
+    answer:0,
+    why:"During break Charlie sat still and rested rather than running about." },
+
+  { ch:"Chapter 10 · The Family Begins to Starve", q:"How did Charlie's face begin to look?",
+    options:["Very white, thin and pinched","Rosy, round and very cheerful","Tanned and rather freckled","Puffy and slightly swollen"],
+    answer:0,
+    why:"His face turned frighteningly white and pinched as he grew thinner." },
+
+  { ch:"Chapter 10 · The Family Begins to Starve", q:"What could you see on Charlie's cheeks?",
+    options:["The shape of the bones beneath","A bright and very healthy red glow","Lots of tiny brown freckles","Deep dimples when he smiled"],
+    answer:0,
+    why:"The skin was drawn so tight you could see the shape of the bones underneath." },
+
+  { ch:"Chapter 10 · The Family Begins to Starve", q:"What did Grandpa Joe say Charlie was starting to look like?",
+    options:["A skeleton","A snowman","A giant","A ghost"],
+    answer:0,
+    why:"Grandpa Joe worried that Charlie was beginning to look like a skeleton." },
+
+  { ch:"Chapter 10 · Think About It", q:"Why did Charlie move slowly and rest so much?",
+    options:["To save energy, as food was scarce","To keep himself warm in the cold weather","To avoid his noisy school friends","To have more time to daydream"],
+    answer:0,
+    why:"With so little food, Charlie moved gently to save what little energy he had." },
+
+  // ---------- Chapter 11 · The Miracle ----------
+  { ch:"Chapter 11 · The Miracle", q:"What did Charlie find buried in the snow?",
+    options:["Some money in the snow","A lost golden ticket","A dropped chocolate bar","An old woollen glove"],
+    answer:0,
+    why:"Charlie spotted money half-buried in the snow of the gutter." },
+
+  { ch:"Chapter 11 · The Miracle", q:"What did the money mean to Charlie right away?",
+    options:["Food he badly needed","A toy he had wanted","A gift for his mother","A ride home from school"],
+    answer:0,
+    why:"To a starving Charlie, the money meant one thing above all: food." },
+
+  { ch:"Chapter 11 · The Miracle", q:"What did Charlie buy first with the money?",
+    options:["A Wonka chocolate bar","A loaf of fresh bread","A cup of hot cocoa","A bag of red apples"],
+    answer:0,
+    why:"Charlie bought himself a Wonka's Whipple-Scrumptious Fudgemallow Delight." },
+
+  { ch:"Chapter 11 · The Miracle", q:"How did Charlie eat that first chocolate bar?",
+    options:["Quickly, wolfing it down","Slowly, saving half of it","Neatly, one square at a time","Carefully, sharing it around"],
+    answer:0,
+    why:"He was so hungry he wolfed the whole bar down and could not stop." },
+
+  { ch:"Chapter 11 · The Miracle", q:"What did Charlie decide to do with his change?",
+    options:["Buy one more chocolate bar","Take it home to his family","Save it for the next day","Give it to the shopkeeper"],
+    answer:0,
+    why:"Charlie decided to treat himself to just one more chocolate bar." },
+
+  { ch:"Chapter 11 · The Miracle", q:"In which bar did Charlie find the Golden Ticket?",
+    options:["The second bar he bought","The very first bar he ate","A bar he found in the snow","A bar his mother gave him"],
+    answer:0,
+    why:"It was the second bar, bought with his change, that held the ticket." },
+
+  { ch:"Chapter 11 · The Miracle", q:"What did Charlie see as he tore open the second wrapper?",
+    options:["A bright flash of gold","A plain bar of chocolate","A small folded letter","A shiny silver wrapper"],
+    answer:0,
+    why:"Under the wrapper came a brilliant flash of gold." },
+
+  { ch:"Chapter 11 · The Miracle", q:"What had Charlie actually found?",
+    options:["The fifth Golden Ticket","A prize coupon for sweets","A note from Willy Wonka","A ticket to the cinema"],
+    answer:0,
+    why:"The flash of gold was the fifth and final Golden Ticket." },
+
+  { ch:"Chapter 11 · The Miracle", q:"What made Charlie's Golden Ticket special?",
+    options:["It was the last one of five","It was signed by the Mayor","It was bigger than the others","It was made of real gold"],
+    answer:0,
+    why:"Four tickets were already found, so Charlie had the very last one." },
+
+  { ch:"Chapter 11 · Think About It", q:"Why is this chapter called \"The Miracle\"?",
+    options:["Charlie found money and the last ticket","Charlie was given a brand new red bicycle","The whole family finally moved away","Mr Wonka came to visit the family"],
+    answer:0,
+    why:"Against all the odds Charlie found money and then the final Golden Ticket." }
+];
+/* ===================== END EDIT AREA ===================== */
+
+document.body.className = 'theme-' + CONFIG.theme;
+const MARK = CONFIG.theme === 'river' ? '✓' : '⭐';
+document.getElementById('icon').textContent = CONFIG.icon;
+document.getElementById('title').textContent = CONFIG.title;
+document.getElementById('subtitle').textContent = CONFIG.subtitle;
+
+questions.forEach(item => {
+  const correct = item.options[item.answer];
+  for (let i = item.options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [item.options[i], item.options[j]] = [item.options[j], item.options[i]];
+  }
+  item.answer = item.options.indexOf(correct);
+});
+
+let current = 0, score = 0, answered = false;
+const passNeeded = Math.ceil(questions.length * CONFIG.passPct);
+const pctLabel = Math.round(CONFIG.passPct * 100);
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+const qcount = document.getElementById('qcount');
+const scoreboard = document.getElementById('scoreboard');
+const progress = document.getElementById('progress');
+document.getElementById('footer').textContent =
+  `For ${CONFIG.child} · Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})`;
+
+function render() {
+  answered = false;
+  const item = questions[current];
+  qcount.textContent = `Question ${current + 1} of ${questions.length}`;
+  scoreboard.textContent = `${MARK} ${score}`;
+  progress.style.width = `${(current / questions.length) * 100}%`;
+  const opts = item.options.map((o, i) => `<button class="opt" data-i="${i}" onclick="choose(${i})">${o}</button>`).join('');
+  quizArea.innerHTML = `
+    <div class="card">
+      <div class="qmeta">${item.ch}</div>
+      <div class="qtext">${item.q}</div>
+      ${opts}
+      <div class="feedback" id="fb"></div>
+      <div class="center"><button class="btn next" id="nextBtn" onclick="next()">Next →</button></div>
+    </div>`;
+}
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const item = questions[current];
+  const buttons = document.querySelectorAll('.opt');
+  buttons.forEach(b => b.disabled = true);
+  const fb = document.getElementById('fb');
+  if (i === item.answer) {
+    score++;
+    buttons[i].classList.add('correct');
+    fb.className = 'feedback good show';
+    fb.innerHTML = `✅ <strong>Correct!</strong> ${item.why}`;
+  } else {
+    buttons[i].classList.add('wrong');
+    buttons[item.answer].classList.add('correct');
+    fb.className = 'feedback bad show';
+    fb.innerHTML = `❌ <strong>Not quite.</strong> ${item.why}`;
+  }
+  scoreboard.textContent = `${MARK} ${score}`;
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function next() { current++; if (current < questions.length) render(); else showResult(); }
+
+function showResult() {
+  quizArea.classList.add('hidden');
+  document.querySelector('.bar').classList.add('hidden');
+  resultArea.classList.remove('hidden');
+  progress.style.width = '100%';
+  const pct = Math.round((score / questions.length) * 100);
+  const passed = score >= passNeeded;
+  let stars, msg, emoji;
+  if (pct === 100) { stars='⭐⭐⭐⭐⭐'; msg="Perfect score! You really know it."; emoji='🏆'; }
+  else if (passed) { stars='⭐⭐⭐⭐'; msg="Excellent! You passed with room to spare."; emoji='🎖️'; }
+  else if (pct >= 60) { stars='⭐⭐⭐'; msg=`So close! You need ${pctLabel}% to pass — review and try again.`; emoji='📖'; }
+  else if (pct >= 40) { stars='⭐⭐'; msg=`Good effort! You need ${pctLabel}% to pass. Re-read and give it another go.`; emoji='📚'; }
+  else { stars='⭐'; msg="Let's read it again carefully and try once more."; emoji='📗'; }
+  const banner = passed
+    ? `<div style="background:var(--correct-bg);color:var(--good-fg);border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">🎉 PASSED! 🎉</div>`
+    : `<div style="background:var(--bad-bg);color:var(--bad-fg);border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">Not passed yet — need ${pctLabel}%</div>`;
+  resultArea.innerHTML = `
+    <div class="big">${emoji}</div>
+    <h2>Quiz Complete!</h2>
+    ${banner}
+    <div class="stars">${stars}</div>
+    <div class="scoreline">You got <strong>${score}</strong> out of <strong>${questions.length}</strong> (${pct}%)</div>
+    <div style="font-size:15px;color:var(--footer);margin:-4px 0 8px;">Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})</div>
+    <p style="margin:10px 0 20px;font-size:17px;">${msg}</p>
+    <button class="btn" onclick="restart()">Try Again 🔄</button>`;
+}
+
+function restart() {
+  current = 0; score = 0; answered = false;
+  resultArea.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  document.querySelector('.bar').classList.remove('hidden');
+  render();
+}
+render();
+</script>
+</body>
+</html>
