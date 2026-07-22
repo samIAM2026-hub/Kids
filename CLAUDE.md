@@ -38,6 +38,17 @@ The two live checklists (Grace / Warren) are **generated Cowork bundles** — `<
 `{{ }}` templating, `class Component extends DCLogic`. Those are painful to hand-edit; regenerate
 them instead.
 
+**`Checklists/Manners Scoreboard.html`** is the newer behavior tracker (both kids on one page).
+It drops the task grid entirely: each kid starts at **10**, a **yellow card = −0.5**, running total
+you reset manually, **pass line 5.0 (50%)**, plus a **per-kid round-start date** (a round can begin any
+weekday; Reset dates a fresh round to today) and a **7-day reset countdown** (`ROUND_DAYS` config; shows
+days left → "reset due today" → overdue). Score number/meter are color-banded (green ≥5 · rust 2.5–4.5 ·
+red <2.5). The 10-card pip strip is literal: each card absorbs **two** yellows — full green (kept) →
+half green/half yellow (1 yellow) → whole red (2 yellows = one red card). Green + half·0.5 always equals
+the score. Hand-editable vanilla JS — edit only the top `CONFIG` block. Synced payload is
+`{ yellow, start }`. Uses the same Firebase script but under **separate keys** (`grace_manners` /
+`warren_manners`, storage `<child>_manners_v1`) so it never touches the old `grace` / `warren` data.
+
 **For a new checklist, start from `Checklists/checklist-template.html`** — a hand-editable, vanilla-JS
 equivalent with the same look and behavior. Copy it, then edit only its top `CONFIG` block
 (`CHILD_NAME`, a unique `CLOUD_KEY` + `STORAGE_KEY` per child, and the `TASK_GROUPS` array). No build

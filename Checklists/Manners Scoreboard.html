@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manners Scoreboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Firebase compat SDK — MUST load before the sync script (matches the other checklists). -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="../JS/firebase-checklist-sync.js"></script>
+
+<style>
+  :root{
+    --ink:#1c1a17; --ink-soft:#6b6358; --ink-faint:#8a8175;
+    --cream:#f6f3ed; --line:#e6e0d6;
+    --rust:#b4622f; --green:#3f7d4e; --red:#c0392b; --yellow:#e0a81c;
+    --serif:'Newsreader',Georgia,serif; --display:'Fraunces',Georgia,serif; --mono:'IBM Plex Mono',monospace;
+  }
+  html,body{margin:0;background:#fff;}
+  .doc{box-sizing:border-box;max-width:9in;margin:0 auto;padding:48px clamp(24px,5vw,.75in) 96px;
+       font-family:var(--serif);color:var(--ink);font-size:15px;line-height:1.5;}
+  h1,h2{text-wrap:balance;margin:0;}
+  .head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
+        border-bottom:2px solid var(--ink);padding-bottom:14px;}
+  .head h1{font-family:var(--display);font-weight:600;font-size:38px;line-height:1;}
+  .head .meta{text-align:right;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--ink-soft);line-height:1.7;}
+  .head .meta b{color:var(--ink);}
+
+  .rules{margin:16px 0 26px;padding:13px 16px;background:var(--cream);border-left:3px solid var(--rust);font-size:14.5px;}
+  .rules b.pass{color:var(--green);}
+  .rules .keys{display:flex;gap:20px;flex-wrap:wrap;margin-top:9px;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--ink-soft);}
+  .rules .keys span{display:inline-flex;align-items:center;gap:6px;}
+  .swatch{width:15px;height:20px;border-radius:2px;display:inline-block;}
+
+  .board{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+  @media (max-width:720px){ .board{grid-template-columns:1fr;} }
+
+  .panel{border:1px solid var(--line);border-radius:8px;padding:22px 22px 20px;background:#fdfcf9;break-inside:avoid;}
+  .panel .name{font-family:var(--display);font-weight:600;font-size:24px;line-height:1;margin-bottom:14px;
+               display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .status{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.05em;padding:4px 11px;border-radius:99px;white-space:nowrap;}
+
+  .scoreline{display:flex;align-items:baseline;gap:10px;}
+  .score-big{font-family:var(--display);font-weight:600;font-size:64px;line-height:.9;letter-spacing:-.01em;}
+  .score-of{font-family:var(--display);font-size:22px;color:var(--ink-faint);}
+  .score-yc{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--ink-soft);text-align:right;line-height:1.6;}
+  .score-yc b{color:var(--ink);}
+
+  .cards{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 14px;}
+  .pip{width:24px;height:33px;border-radius:3px;box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.06);}
+  .pip.empty{background:repeating-linear-gradient(-45deg,#f2ede3,#f2ede3 3px,#ece5d8 3px,#ece5d8 6px);
+             box-shadow:inset 0 0 0 1.5px #ddd4c4;}
+
+  .meter{position:relative;height:12px;background:var(--line);border-radius:99px;margin:4px 0 18px;}
+  .meter .fill{position:absolute;inset:0 auto 0 0;border-radius:99px;transition:width .2s;}
+  .meter .mark{position:absolute;top:-4px;bottom:-4px;left:50%;width:2px;background:var(--ink);}
+  .meter .marklbl{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:9px;letter-spacing:.04em;color:var(--ink-soft);}
+
+  .startrow{display:flex;align-items:center;gap:9px;margin:0 0 16px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink-soft);}
+  .startrow .lbl{font-weight:600;color:var(--ink);}
+  .startrow input[type=date]{font-family:var(--mono);font-size:12px;padding:5px 9px;border:1px solid #cfc7b8;border-radius:8px;background:#fff;color:var(--ink);cursor:pointer;}
+  .startrow .print-only{font-weight:600;color:var(--ink);}
+  .countdown{display:flex;align-items:baseline;gap:8px;margin:-6px 0 16px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink-soft);}
+  .countdown .num{font-family:var(--display);font-weight:600;font-size:19px;line-height:1;}
+  .countdown .end{color:var(--ink-faint);}
+
+  .btns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;}
+  .btn{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.03em;border:none;border-radius:99px;
+       padding:10px 16px;cursor:pointer;}
+  .btn.yellow{background:var(--yellow);color:#3a2e05;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);}
+  .btn.yellow:hover{filter:brightness(.96);}
+  .btn.undo{background:#fff;color:var(--ink-soft);box-shadow:inset 0 0 0 1px #cfc7b8;}
+  .btn.undo:hover{color:var(--ink);}
+  .btn.reset{background:none;color:var(--ink-faint);box-shadow:inset 0 0 0 1px #cfc7b8;margin-left:auto;
+             font-weight:500;letter-spacing:.05em;font-size:11px;padding:8px 13px;}
+  .btn:disabled{opacity:.4;cursor:default;}
+
+  .foot{margin-top:26px;font-family:var(--mono);font-size:11px;color:var(--ink-faint);line-height:1.7;}
+
+  .print-only{display:none;}
+  @media print{
+    html{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .doc{max-width:none;padding:0 .5in;}
+    .screen-only{display:none !important;}
+    .print-only{display:inline !important;}
+    .board{gap:16px;}
+    .panel{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<main class="doc">
+  <div class="head">
+    <div><h1>Manners Scoreboard</h1></div>
+    <div class="meta">
+      <div>EVERYONE STARTS AT <b>10</b></div>
+      <div>YELLOW CARD = <b>&minus;0.5</b></div>
+      <div>PASS ≥ <b>5.0</b> (50%)</div>
+    </div>
+  </div>
+
+  <div class="rules">
+    <b>How it works:</b> Each kid starts the round with <b>10</b> green cards. Every slip in manners is a
+    <b style="color:var(--yellow);filter:brightness(.82)">yellow card</b> (<b>&minus;0.5</b>) — it turns a green
+    card <b>half yellow</b>. A <b>second</b> yellow on that card makes it a whole <b>red card</b>
+    (<b>&minus;1.0</b> lost). So <b>two yellows = one red</b>. Stay at <b class="pass">5.0 or above</b>
+    (that's 50%) to pass. Set the day the round began, and tap <b>Reset</b> to start fresh from today.
+    <div class="keys">
+      <span><span class="swatch" style="background:var(--green)"></span> full green · kept</span>
+      <span><span class="swatch" style="background:linear-gradient(90deg,var(--green) 50%,var(--yellow) 50%)"></span> one yellow · −0.5</span>
+      <span><span class="swatch" style="background:var(--red)"></span> two yellows = one red · −1.0</span>
+    </div>
+  </div>
+
+  <div id="board" class="board"></div>
+
+  <div class="foot screen-only">
+    Saved automatically and synced across your devices. Two yellow cards = one whole card gone.
+    The lowest a score can go is 0 (twenty yellow cards). A round can begin on any weekday — set its start date per kid.
+  </div>
+</main>
+
+<script>
+/* ============================ CONFIG — EDIT THIS BLOCK ONLY ============================ */
+const START      = 10;      // cards everyone starts with
+const YC_COST    = 0.5;     // cost of one yellow card
+const PASS_SCORE = 5.0;     // pass line — 50% of 10
+const ROUND_DAYS = 7;       // length of one evaluation round (days) — reset falls due on start + ROUND_DAYS
+const MAX_YC     = START / YC_COST;   // 20 yellow cards drives a score to 0
+
+// One entry per child. cloudKey / storageKey are unique and separate from the old checklists,
+// so this page never touches the existing 'grace' / 'warren' checklist data.
+const KIDS = [
+  { name: "Grace",  cloudKey: "grace_manners",  storageKey: "grace_manners_v1"  },
+  { name: "Warren", cloudKey: "warren_manners", storageKey: "warren_manners_v1" },
+];
+/* ========================== END CONFIG — do not edit below ========================== */
+
+// Each kid gets a tiny store matching the ChecklistCloud.attach() contract (setState({checked})).
+// The synced payload is { yellow: <count>, start: "YYYY-MM-DD" }.
+function makeStore(kid){
+  return {
+    kid: kid,
+    state: { checked: { yellow: 0, start: "" } },
+    setState(patch){ Object.assign(this.state, patch); if(!this.state.checked) this.state.checked={}; renderAll(); }
+  };
+}
+const stores = KIDS.map(makeStore);
+
+function todayISO(){
+  var d = new Date();
+  var m = String(d.getMonth()+1).padStart(2,'0');
+  var day = String(d.getDate()).padStart(2,'0');
+  return d.getFullYear()+'-'+m+'-'+day;
+}
+function fmtDate(iso){
+  if(!iso) return 'not set';
+  var d = parseISO(iso);
+  if(!d) return iso;
+  return d.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+}
+function parseISO(iso){
+  var p = String(iso).split('-');
+  if(p.length !== 3) return null;
+  var d = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));   // local midnight
+  return isNaN(d.getTime()) ? null : d;
+}
+function midnight(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+// Days left until reset falls due (start + ROUND_DAYS). null if no start date set.
+function daysLeft(start){
+  var s = parseISO(start);
+  if(!s) return null;
+  var elapsed = Math.round((midnight(new Date()) - midnight(s)) / 86400000);
+  return ROUND_DAYS - elapsed;
+}
+function endISO(start){
+  var s = parseISO(start);
+  if(!s) return "";
+  var e = new Date(s.getFullYear(), s.getMonth(), s.getDate() + ROUND_DAYS);
+  return fmtDate(e.getFullYear()+'-'+String(e.getMonth()+1).padStart(2,'0')+'-'+String(e.getDate()).padStart(2,'0'));
+}
+
+function ycOf(store){
+  var y = (store.state.checked && Number(store.state.checked.yellow)) || 0;
+  if (!(y >= 0)) y = 0;
+  return Math.min(MAX_YC, Math.round(y));   // clamp 0..MAX_YC, whole yellow cards
+}
+function startOf(store){ return (store.state.checked && store.state.checked.start) || ""; }
+function scoreOf(store){ return Math.max(0, START - ycOf(store) * YC_COST); }
+
+function band(score){
+  if (score >= PASS_SCORE) return { color:'var(--green)', bg:'#e7f0e9', fg:'var(--green)', status:'PASS ✓' };
+  if (score >= 2.5)        return { color:'var(--rust)',  bg:'#f7ece5', fg:'var(--rust)',  status:'BELOW PASS' };
+  return                          { color:'var(--red)',   bg:'#fbeaea', fg:'var(--red)',   status:'DANGER' };
+}
+
+function persist(i){
+  var kid = KIDS[i], c = stores[i].state.checked;
+  if (window.ChecklistCloud) ChecklistCloud.save(kid.cloudKey, c, kid.storageKey);
+  else { try { localStorage.setItem(kid.storageKey, JSON.stringify(c)); } catch(e){} }
+  renderAll();
+}
+function setYC(i, y){
+  y = Math.max(0, Math.min(MAX_YC, y));
+  var c = Object.assign({}, stores[i].state.checked);
+  c.yellow = y;
+  if (!c.start && y > 0) c.start = todayISO();   // auto-date the round on its first yellow card
+  stores[i].state.checked = c;
+  persist(i);
+}
+function setStart(i, iso){
+  var c = Object.assign({}, stores[i].state.checked);
+  c.start = iso || "";
+  stores[i].state.checked = c;
+  persist(i);
+}
+function addYC(i){ setYC(i, ycOf(stores[i]) + 1); }   // one yellow card  → −0.5
+function undoYC(i){ setYC(i, ycOf(stores[i]) - 1); }  // take one back    → +0.5
+function resetKid(i){                                  // fresh round, dated today
+  stores[i].state.checked = { yellow: 0, start: todayISO() };
+  persist(i);
+}
+
+// Each card absorbs two yellow cards: 0 → full green, 1 → half green/half yellow, 2 → whole red.
+// Order left→right: green cards kept, the in-progress half card, then red cards lost.
+function pips(yc){
+  var red = Math.floor(yc / 2);          // full red cards = pairs of yellows
+  var half = (yc % 2) === 1;             // a lone yellow leaves one card half-and-half
+  var green = START - red - (half ? 1 : 0);
+  if (green < 0) green = 0;
+  var html = '';
+  for (var g = 0; g < green; g++) html += '<span class="pip" style="background:var(--green)"></span>';
+  if (half) html += '<span class="pip" style="background:linear-gradient(90deg,var(--green) 50%,var(--yellow) 50%)"></span>';
+  for (var r = 0; r < red; r++) html += '<span class="pip" style="background:var(--red)"></span>';
+  return html;
+}
+
+function panelHTML(i){
+  var store = stores[i], kid = KIDS[i];
+  var yc = ycOf(store), score = scoreOf(store), start = startOf(store), b = band(score);
+  var scoreStr = (score % 1 === 0) ? String(score) : score.toFixed(1);
+  var pct = Math.round(score / START * 100);
+
+  // 7-day reset countdown
+  var dl = daysLeft(start), cdColor, cdMain, cdEnd = '';
+  if (dl === null){
+    cdColor = 'var(--ink-faint)'; cdMain = '<span>set a start date to begin the '+ROUND_DAYS+'-day count</span>';
+  } else if (dl > 0){
+    cdColor = dl <= 2 ? 'var(--rust)' : 'var(--green)';
+    cdMain = '<span class="num" style="color:'+cdColor+'">'+dl+'</span><span>day'+(dl===1?'':'s')+' until reset</span>';
+    cdEnd  = '<span class="end">· due '+endISO(start)+'</span>';
+  } else if (dl === 0){
+    cdColor = 'var(--rust)'; cdMain = '<span class="num" style="color:'+cdColor+'">Today</span><span>— round complete, reset due</span>';
+  } else {
+    cdColor = 'var(--red)';
+    cdMain = '<span class="num" style="color:'+cdColor+'">Overdue</span><span>by '+(-dl)+' day'+(dl===-1?'':'s')+' — reset now</span>';
+  }
+
+  return ''
+    + '<div class="panel">'
+    +   '<div class="name">'+kid.name+'<span class="status" style="background:'+b.bg+';color:'+b.fg+'">'+b.status+'</span></div>'
+    +   '<div class="scoreline">'
+    +     '<span class="score-big" style="color:'+b.color+'">'+scoreStr+'</span>'
+    +     '<span class="score-of">/ '+START+'</span>'
+    +     '<span class="score-yc"><b>'+yc+'</b> yellow card'+(yc===1?'':'s')+'<br>'+pct+'% · pass at 50%</span>'
+    +   '</div>'
+    +   '<div class="cards">'+pips(yc)+'</div>'
+    +   '<div class="meter"><div class="fill" style="width:'+pct+'%;background:'+b.color+'"></div>'
+    +     '<div class="mark"></div><div class="marklbl">50%</div></div>'
+    +   '<div class="startrow">'
+    +     '<span class="lbl">ROUND STARTED</span>'
+    +     '<input class="screen-only" type="date" data-act="date" data-i="'+i+'" value="'+start+'">'
+    +     '<span class="print-only">'+fmtDate(start)+'</span>'
+    +   '</div>'
+    +   '<div class="countdown">'+cdMain+cdEnd+'</div>'
+    +   '<div class="btns screen-only">'
+    +     '<button class="btn yellow" data-act="add" data-i="'+i+'">＋ Yellow Card &nbsp;−0.5</button>'
+    +     '<button class="btn undo" data-act="undo" data-i="'+i+'"'+(yc===0?' disabled':'')+'>↩ Undo</button>'
+    +     '<button class="btn reset" data-act="reset" data-i="'+i+'">RESET · TODAY</button>'
+    +   '</div>'
+    + '</div>';
+}
+
+function renderAll(){
+  document.getElementById('board').innerHTML = KIDS.map(function(_,i){ return panelHTML(i); }).join('');
+}
+
+// Delegated handlers for every button and the date inputs.
+var boardEl = document.getElementById('board');
+boardEl.addEventListener('click', function(e){
+  var btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  var i = parseInt(btn.dataset.i, 10);
+  if (btn.dataset.act === 'add')        addYC(i);
+  else if (btn.dataset.act === 'undo')  undoYC(i);
+  else if (btn.dataset.act === 'reset') resetKid(i);
+});
+boardEl.addEventListener('change', function(e){
+  var inp = e.target.closest('input[data-act="date"]');
+  if (!inp) return;
+  setStart(parseInt(inp.dataset.i, 10), inp.value);
+});
+
+// Load: prefer cloud sync (same contract as the other checklists), else localStorage.
+KIDS.forEach(function(kid, i){
+  if (window.ChecklistCloud) {
+    ChecklistCloud.attach(stores[i], kid.cloudKey, kid.storageKey);  // calls setState({checked}) on every update
+  } else {
+    try {
+      var raw = localStorage.getItem(kid.storageKey);
+      if (raw) stores[i].state.checked = JSON.parse(raw);
+    } catch(e){}
+  }
+});
+renderAll();
+</script>
+</body>
+</html>
