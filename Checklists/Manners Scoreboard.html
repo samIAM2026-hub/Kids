@@ -68,6 +68,11 @@
   .countdown{display:flex;align-items:baseline;gap:8px;margin:-6px 0 16px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink-soft);}
   .countdown .num{font-family:var(--display);font-weight:600;font-size:19px;line-height:1;}
   .countdown .end{color:var(--ink-faint);}
+  .penaltybanner{margin:0 0 14px;padding:8px 11px;border-radius:6px;background:#fbeaea;color:var(--red);
+                 font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;border:1px solid #e6b9b2;}
+  .penaltytog{display:flex;align-items:center;gap:8px;margin:-4px 0 14px;font-family:var(--mono);font-size:11px;
+              letter-spacing:.03em;color:var(--ink-soft);cursor:pointer;}
+  .penaltytog input{cursor:pointer;}
 
   .btns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;}
   .btn{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.03em;border:none;border-radius:99px;
@@ -101,6 +106,7 @@
       <div>EVERYONE STARTS AT <b>10</b></div>
       <div>YELLOW CARD = <b>&minus;0.5</b></div>
       <div>PASS ≥ <b>5.0</b> (50%)</div>
+      <div>MISS → NO SCREEN TIME · <b>60%</b> NEXT WEEK</div>
     </div>
   </div>
 
@@ -109,7 +115,9 @@
     <b style="color:var(--yellow);filter:brightness(.82)">yellow card</b> (<b>&minus;0.5</b>) — it turns a green
     card <b>half yellow</b>. A <b>second</b> yellow on that card makes it a whole <b>red card</b>
     (<b>&minus;1.0</b> lost). So <b>two yellows = one red</b>. Stay at <b class="pass">5.0 or above</b>
-    (that's 50%) to pass. Set the day the round began, and tap <b>Reset</b> to start fresh from today.
+    (that's 50%) to pass the week. <b style="color:var(--red)">Miss it and there's no screen time at all the
+    next week</b> — and next week's bar rises to <b>6.0 (60%)</b>. Flip on <b>Penalty week</b> for a kid who
+    fell short. Set the day the round began, and tap <b>Reset</b> to start fresh from today.
     <div class="keys">
       <span><span class="swatch" style="background:var(--green)"></span> full green · kept</span>
       <span><span class="swatch" style="background:linear-gradient(90deg,var(--green) 50%,var(--yellow) 50%)"></span> one yellow · −0.5</span>
@@ -127,10 +135,11 @@
 
 <script>
 /* ============================ CONFIG — EDIT THIS BLOCK ONLY ============================ */
-const START      = 10;      // cards everyone starts with
-const YC_COST    = 0.5;     // cost of one yellow card
-const PASS_SCORE = 5.0;     // pass line — 50% of 10
-const ROUND_DAYS = 7;       // length of one evaluation round (days) — reset falls due on start + ROUND_DAYS
+const START       = 10;     // cards everyone starts with
+const YC_COST      = 0.5;    // cost of one yellow card
+const PASS_PCT     = 0.50;   // normal pass line — 50% of 10
+const PENALTY_PCT  = 0.60;   // pass line during a penalty week — 60% of 10 (kid missed last week)
+const ROUND_DAYS   = 7;      // length of one evaluation round (days) — reset falls due on start + ROUND_DAYS
 const MAX_YC     = START / YC_COST;   // 20 yellow cards drives a score to 0
 
 // One entry per child. cloudKey / storageKey are unique and separate from the old checklists,
@@ -142,11 +151,11 @@ const KIDS = [
 /* ========================== END CONFIG — do not edit below ========================== */
 
 // Each kid gets a tiny store matching the ChecklistCloud.attach() contract (setState({checked})).
-// The synced payload is { yellow: <count>, start: "YYYY-MM-DD" }.
+// The synced payload is { yellow: <count>, start: "YYYY-MM-DD", penalty: <bool> }.
 function makeStore(kid){
   return {
     kid: kid,
-    state: { checked: { yellow: 0, start: "" } },
+    state: { checked: { yellow: 0, start: "", penalty: false } },
     setState(patch){ Object.assign(this.state, patch); if(!this.state.checked) this.state.checked={}; renderAll(); }
   };
 }
@@ -192,11 +201,14 @@ function ycOf(store){
 }
 function startOf(store){ return (store.state.checked && store.state.checked.start) || ""; }
 function scoreOf(store){ return Math.max(0, START - ycOf(store) * YC_COST); }
+function penaltyOf(store){ return !!(store.state.checked && store.state.checked.penalty); }
+function passPctOf(store){ return penaltyOf(store) ? PENALTY_PCT : PASS_PCT; }   // 0.60 in a penalty week, else 0.50
+function passScoreOf(store){ return START * passPctOf(store); }
 
-function band(score){
-  if (score >= PASS_SCORE) return { color:'var(--green)', bg:'#e7f0e9', fg:'var(--green)', status:'PASS ✓' };
-  if (score >= 2.5)        return { color:'var(--rust)',  bg:'#f7ece5', fg:'var(--rust)',  status:'BELOW PASS' };
-  return                          { color:'var(--red)',   bg:'#fbeaea', fg:'var(--red)',   status:'DANGER' };
+function band(score, passScore){
+  if (score >= passScore) return { color:'var(--green)', bg:'#e7f0e9', fg:'var(--green)', status:'PASS ✓' };
+  if (score >= 2.5)       return { color:'var(--rust)',  bg:'#f7ece5', fg:'var(--rust)',  status:'BELOW PASS' };
+  return                         { color:'var(--red)',   bg:'#fbeaea', fg:'var(--red)',   status:'DANGER' };
 }
 
 function persist(i){
@@ -219,10 +231,16 @@ function setStart(i, iso){
   stores[i].state.checked = c;
   persist(i);
 }
+function setPenalty(i, on){                            // toggle the 60% penalty week for one kid
+  var c = Object.assign({}, stores[i].state.checked);
+  c.penalty = !!on;
+  stores[i].state.checked = c;
+  persist(i);
+}
 function addYC(i){ setYC(i, ycOf(stores[i]) + 1); }   // one yellow card  → −0.5
 function undoYC(i){ setYC(i, ycOf(stores[i]) - 1); }  // take one back    → +0.5
-function resetKid(i){                                  // fresh round, dated today
-  stores[i].state.checked = { yellow: 0, start: todayISO() };
+function resetKid(i){                                  // fresh round, dated today (keeps the penalty-week flag)
+  stores[i].state.checked = { yellow: 0, start: todayISO(), penalty: penaltyOf(stores[i]) };
   persist(i);
 }
 
@@ -242,7 +260,9 @@ function pips(yc){
 
 function panelHTML(i){
   var store = stores[i], kid = KIDS[i];
-  var yc = ycOf(store), score = scoreOf(store), start = startOf(store), b = band(score);
+  var yc = ycOf(store), score = scoreOf(store), start = startOf(store);
+  var penalty = penaltyOf(store), passScore = passScoreOf(store), passPctNum = Math.round(passPctOf(store) * 100);
+  var b = band(score, passScore);
   var scoreStr = (score % 1 === 0) ? String(score) : score.toFixed(1);
   var pct = Math.round(score / START * 100);
 
@@ -264,20 +284,22 @@ function panelHTML(i){
   return ''
     + '<div class="panel">'
     +   '<div class="name">'+kid.name+'<span class="status" style="background:'+b.bg+';color:'+b.fg+'">'+b.status+'</span></div>'
+    +   (penalty ? '<div class="penaltybanner">⛔ PENALTY WEEK · no screen time · pass raised to '+Math.round(PENALTY_PCT*100)+'%</div>' : '')
     +   '<div class="scoreline">'
     +     '<span class="score-big" style="color:'+b.color+'">'+scoreStr+'</span>'
     +     '<span class="score-of">/ '+START+'</span>'
-    +     '<span class="score-yc"><b>'+yc+'</b> yellow card'+(yc===1?'':'s')+'<br>'+pct+'% · pass at 50%</span>'
+    +     '<span class="score-yc"><b>'+yc+'</b> yellow card'+(yc===1?'':'s')+'<br>'+pct+'% · pass at '+passPctNum+'%</span>'
     +   '</div>'
     +   '<div class="cards">'+pips(yc)+'</div>'
     +   '<div class="meter"><div class="fill" style="width:'+pct+'%;background:'+b.color+'"></div>'
-    +     '<div class="mark"></div><div class="marklbl">50%</div></div>'
+    +     '<div class="mark" style="left:'+passPctNum+'%"></div><div class="marklbl" style="left:'+passPctNum+'%">'+passPctNum+'%</div></div>'
     +   '<div class="startrow">'
     +     '<span class="lbl">ROUND STARTED</span>'
     +     '<input class="screen-only" type="date" data-act="date" data-i="'+i+'" value="'+start+'">'
     +     '<span class="print-only">'+fmtDate(start)+'</span>'
     +   '</div>'
     +   '<div class="countdown">'+cdMain+cdEnd+'</div>'
+    +   '<label class="penaltytog screen-only"><input type="checkbox" data-act="penalty" data-i="'+i+'"'+(penalty?' checked':'')+'> Penalty week — no screen time, pass raised to 60%</label>'
     +   '<div class="btns screen-only">'
     +     '<button class="btn yellow" data-act="add" data-i="'+i+'">＋ Yellow Card &nbsp;−0.5</button>'
     +     '<button class="btn undo" data-act="undo" data-i="'+i+'"'+(yc===0?' disabled':'')+'>↩ Undo</button>'
@@ -301,9 +323,10 @@ boardEl.addEventListener('click', function(e){
   else if (btn.dataset.act === 'reset') resetKid(i);
 });
 boardEl.addEventListener('change', function(e){
-  var inp = e.target.closest('input[data-act="date"]');
-  if (!inp) return;
-  setStart(parseInt(inp.dataset.i, 10), inp.value);
+  var dateInp = e.target.closest('input[data-act="date"]');
+  if (dateInp) { setStart(parseInt(dateInp.dataset.i, 10), dateInp.value); return; }
+  var pen = e.target.closest('input[data-act="penalty"]');
+  if (pen) { setPenalty(parseInt(pen.dataset.i, 10), pen.checked); }
 });
 
 // Load: prefer cloud sync (same contract as the other checklists), else localStorage.

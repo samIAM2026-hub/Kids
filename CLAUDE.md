@@ -42,7 +42,9 @@ them instead.
 It drops the task grid entirely: each kid starts at **10**, a **yellow card = −0.5**, running total
 you reset manually, **pass line 5.0 (50%)**, plus a **per-kid round-start date** (a round can begin any
 weekday; Reset dates a fresh round to today) and a **7-day reset countdown** (`ROUND_DAYS` config; shows
-days left → "reset due today" → overdue). Score number/meter are color-banded (green ≥5 · rust 2.5–4.5 ·
+days left → "reset due today" → overdue). **Consequence rule:** miss the pass line and the kid gets **no
+screen time the next week**, and that week's bar rises to **60%** — flip on the per-kid **Penalty week**
+toggle (`PENALTY_PCT` config) to hold them to 6.0; it shows a red "no screen time" banner and survives Reset. Score number/meter are color-banded (green ≥5 · rust 2.5–4.5 ·
 red <2.5). The 10-card pip strip is literal: each card absorbs **two** yellows — full green (kept) →
 half green/half yellow (1 yellow) → whole red (2 yellows = one red card). Green + half·0.5 always equals
 the score. Hand-editable vanilla JS — edit only the top `CONFIG` block. Synced payload is
