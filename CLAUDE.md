@@ -44,7 +44,16 @@ you reset manually, **pass line 5.0 (50%)**, plus a **per-kid round-start date**
 weekday; Reset dates a fresh round to today) and a **7-day reset countdown** (`ROUND_DAYS` config; shows
 days left → "reset due today" → overdue). **Consequence rule:** miss the pass line and the kid gets **no
 screen time the next week**, and that week's bar rises to **60%** — flip on the per-kid **Penalty week**
-toggle (`PENALTY_PCT` config) to hold them to 6.0; it shows a red "no screen time" banner and survives Reset. Score number/meter are color-banded (green ≥5 · rust 2.5–4.5 ·
+toggle (`PENALTY_PCT` config) to hold them to 6.0; it shows a red "no screen time" banner and survives Reset.
+**Card log is the source of truth:** each card is a logged entry `{id, type:'yellow'|'red', reason, date}`
+(yellow −0.5, red −1.0 = two yellows). Add via per-kid type-pick + required reason. The **log is permanent
+history** — there is no bulk-clear (removed by request; only a per-row ✕ for fixing a mis-tap). Score/pips/counts
+count **only the current week** — entries with `date >= that kid's start` (see `inRound`). Each log row has an
+inline **edit (✎)** — opens an in-row editor for type / kid / reason / date (Save/Cancel); changing the kid moves
+the entry between the two Firebase nodes. **New Week · Today**
+just moves the kid's `start` forward, resetting the visible score to 10 without deleting anything; older cards
+stay in the log dimmed as "past week". Legacy `{yellow:N}` payloads auto-migrate to yellow entries on load.
+Synced payload is `{entries, start, penalty}` under the same `grace_manners`/`warren_manners` keys. Score number/meter are color-banded (green ≥5 · rust 2.5–4.5 ·
 red <2.5). The 10-card pip strip is literal: each card absorbs **two** yellows — full green (kept) →
 half green/half yellow (1 yellow) → whole red (2 yellows = one red card). Green + half·0.5 always equals
 the score. Hand-editable vanilla JS — edit only the top `CONFIG` block. Synced payload is

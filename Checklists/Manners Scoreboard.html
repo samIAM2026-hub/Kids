@@ -74,16 +74,57 @@
               letter-spacing:.03em;color:var(--ink-soft);cursor:pointer;}
   .penaltytog input{cursor:pointer;}
 
-  .btns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;}
+  /* Add-card form */
+  .addcard{margin-top:4px;padding-top:14px;border-top:1px solid var(--line);}
+  .typepick{display:flex;gap:8px;margin-bottom:9px;}
+  .tchip{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.03em;border-radius:99px;cursor:pointer;
+         padding:7px 13px;background:#fff;box-shadow:inset 0 0 0 1px #cfc7b8;color:var(--ink-soft);}
+  .tchip.yellow.active{background:var(--yellow);color:#3a2e05;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);}
+  .tchip.red.active{background:var(--red);color:#fff;box-shadow:none;}
+  .reason{width:100%;box-sizing:border-box;font-family:var(--serif);font-size:14px;padding:9px 11px;
+          border:1px solid #cfc7b8;border-radius:8px;background:#fff;color:var(--ink);margin-bottom:9px;}
+  .reason.need{border-color:var(--red);background:#fdf2f0;}
+  .addrow{display:flex;gap:9px;align-items:center;}
   .btn{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.03em;border:none;border-radius:99px;
        padding:10px 16px;cursor:pointer;}
-  .btn.yellow{background:var(--yellow);color:#3a2e05;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);}
-  .btn.yellow:hover{filter:brightness(.96);}
-  .btn.undo{background:#fff;color:var(--ink-soft);box-shadow:inset 0 0 0 1px #cfc7b8;}
-  .btn.undo:hover{color:var(--ink);}
+  .btn.add{background:var(--ink);color:#fff;}
+  .btn.add:hover{filter:brightness(1.25);}
   .btn.reset{background:none;color:var(--ink-faint);box-shadow:inset 0 0 0 1px #cfc7b8;margin-left:auto;
              font-weight:500;letter-spacing:.05em;font-size:11px;padding:8px 13px;}
+  .btn.danger{background:var(--red);color:#fff;}
+  .btn.ghost{background:#fff;color:var(--ink-soft);box-shadow:inset 0 0 0 1px #cfc7b8;}
   .btn:disabled{opacity:.4;cursor:default;}
+
+  /* Card log */
+  .logwrap{margin-top:34px;border-top:2px solid var(--ink);padding-top:16px;}
+  .loghead{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:12px;}
+  .loghead h2{font-family:var(--display);font-weight:600;font-size:22px;}
+  .loghead .n{font-family:var(--mono);font-size:12px;color:var(--ink-faint);margin-left:8px;}
+  .logtable{width:100%;border-collapse:collapse;font-size:14px;}
+  .logtable th{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.06em;color:var(--ink-soft);
+               text-align:left;border-bottom:1.5px solid var(--ink);padding:0 10px 7px 0;}
+  .logtable td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line);vertical-align:top;}
+  .logtable td.k{font-family:var(--mono);font-size:12px;color:var(--ink);white-space:nowrap;}
+  .logtable td.rsn{width:100%;}
+  .logtable td.dt{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);white-space:nowrap;}
+  .logchip{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.05em;
+           padding:3px 8px;border-radius:99px;}
+  .logchip.yellow{background:var(--yellow);color:#3a2e05;}
+  .logchip.red{background:var(--red);color:#fff;}
+  .xbtn{border:none;background:none;color:var(--ink-faint);font-size:14px;cursor:pointer;padding:2px 6px;border-radius:6px;line-height:1;}
+  .xbtn:hover{color:var(--red);background:#fbeaea;}
+  .logempty{font-family:var(--mono);font-size:12px;color:var(--ink-faint);padding:14px 0;}
+  .logtable tr.past td{opacity:.5;}
+  .logtable .pasttag{color:var(--ink-faint);}
+  .logtable td .xbtn+.xbtn{margin-left:2px;}
+  .logtable tr.editing td{background:#fbfaf6;}
+  .editrow{display:flex;flex-wrap:wrap;gap:9px;align-items:center;padding:4px 0;}
+  .editrow .typepick{margin:0;}
+  .editrow select,.editrow input{font-family:var(--mono);font-size:12px;padding:7px 9px;border:1px solid #cfc7b8;border-radius:8px;background:#fff;color:var(--ink);}
+  .editrow .editreason{font-family:var(--serif);font-size:14px;flex:1;min-width:180px;}
+  .editrow .editreason.need{border-color:var(--red);background:#fdf2f0;}
+  .editrow .editbtns{display:flex;gap:8px;margin-left:auto;}
+  .editrow .btn.add,.editrow .btn.ghost{padding:8px 14px;}
 
   .foot{margin-top:26px;font-family:var(--mono);font-size:11px;color:var(--ink-faint);line-height:1.7;}
 
@@ -94,7 +135,7 @@
     .screen-only{display:none !important;}
     .print-only{display:inline !important;}
     .board{gap:16px;}
-    .panel{break-inside:avoid;}
+    .panel,.logtable tr{break-inside:avoid;}
   }
 </style>
 </head>
@@ -104,43 +145,44 @@
     <div><h1>Manners Scoreboard</h1></div>
     <div class="meta">
       <div>EVERYONE STARTS AT <b>10</b></div>
-      <div>YELLOW CARD = <b>&minus;0.5</b></div>
+      <div>YELLOW <b>&minus;0.5</b> · RED <b>&minus;1.0</b></div>
       <div>PASS ≥ <b>5.0</b> (50%)</div>
       <div>MISS → NO SCREEN TIME · <b>60%</b> NEXT WEEK</div>
     </div>
   </div>
 
   <div class="rules">
-    <b>How it works:</b> Each kid starts the round with <b>10</b> green cards. Every slip in manners is a
-    <b style="color:var(--yellow);filter:brightness(.82)">yellow card</b> (<b>&minus;0.5</b>) — it turns a green
-    card <b>half yellow</b>. A <b>second</b> yellow on that card makes it a whole <b>red card</b>
-    (<b>&minus;1.0</b> lost). So <b>two yellows = one red</b>. Stay at <b class="pass">5.0 or above</b>
-    (that's 50%) to pass the week. <b style="color:var(--red)">Miss it and there's no screen time at all the
-    next week</b> — and next week's bar rises to <b>6.0 (60%)</b>. Flip on <b>Penalty week</b> for a kid who
-    fell short. Set the day the round began, and tap <b>Reset</b> to start fresh from today.
+    <b>How it works:</b> Each kid starts the round with <b>10</b> green cards. A <b style="color:var(--yellow);filter:brightness(.82)">yellow
+    card</b> (<b>&minus;0.5</b>) turns a green card half yellow; a <b style="color:var(--red)">red card</b> (<b>&minus;1.0</b>) takes a whole
+    card — and <b>two yellows = one red</b>. Give a card by choosing its colour, typing the <b>reason</b>, and pressing Add — every card is
+    logged with its date below. Stay at <b class="pass">5.0 or above</b> (50%) to pass the week; miss it and there's
+    <b style="color:var(--red)">no screen time the next week</b>, with the bar raised to <b>60%</b>.
     <div class="keys">
       <span><span class="swatch" style="background:var(--green)"></span> full green · kept</span>
       <span><span class="swatch" style="background:linear-gradient(90deg,var(--green) 50%,var(--yellow) 50%)"></span> one yellow · −0.5</span>
-      <span><span class="swatch" style="background:var(--red)"></span> two yellows = one red · −1.0</span>
+      <span><span class="swatch" style="background:var(--red)"></span> red / two yellows · −1.0</span>
     </div>
   </div>
 
   <div id="board" class="board"></div>
 
+  <div id="logSection" class="logwrap"></div>
+
   <div class="foot screen-only">
-    Saved automatically and synced across your devices. Two yellow cards = one whole card gone.
-    The lowest a score can go is 0 (twenty yellow cards). A round can begin on any weekday — set its start date per kid.
+    Saved automatically and synced across your devices. Each kid's score counts only the cards from their current week; the log
+    keeps every card as permanent history. Tap a kid's New Week button to start a fresh round from today — nothing is erased.
   </div>
 </main>
 
 <script>
 /* ============================ CONFIG — EDIT THIS BLOCK ONLY ============================ */
 const START       = 10;     // cards everyone starts with
-const YC_COST      = 0.5;    // cost of one yellow card
-const PASS_PCT     = 0.50;   // normal pass line — 50% of 10
-const PENALTY_PCT  = 0.60;   // pass line during a penalty week — 60% of 10 (kid missed last week)
-const ROUND_DAYS   = 7;      // length of one evaluation round (days) — reset falls due on start + ROUND_DAYS
-const MAX_YC     = START / YC_COST;   // 20 yellow cards drives a score to 0
+const YELLOW_COST  = 0.5;   // a yellow card costs half a card
+const RED_COST     = 1.0;   // a red card costs a whole card (= two yellows)
+const PASS_PCT     = 0.50;  // normal pass line — 50% of 10
+const PENALTY_PCT  = 0.60;  // pass line during a penalty week — 60% of 10 (kid missed last week)
+const ROUND_DAYS   = 7;     // length of one evaluation round (days) — reset falls due on start + ROUND_DAYS
+const MAX_HALVES   = START / YELLOW_COST;   // 20 half-cards drives a score to 0
 
 // One entry per child. cloudKey / storageKey are unique and separate from the old checklists,
 // so this page never touches the existing 'grace' / 'warren' checklist data.
@@ -150,59 +192,68 @@ const KIDS = [
 ];
 /* ========================== END CONFIG — do not edit below ========================== */
 
-// Each kid gets a tiny store matching the ChecklistCloud.attach() contract (setState({checked})).
-// The synced payload is { yellow: <count>, start: "YYYY-MM-DD", penalty: <bool> }.
+const esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+function genId(){ return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+// Each kid gets a store matching the ChecklistCloud.attach() contract (setState({checked})).
+// Synced payload: { entries: [ {id,type:'yellow'|'red',reason,date} ], start:"YYYY-MM-DD", penalty:bool }.
+function normalize(c){
+  c = (c && typeof c === 'object') ? c : {};
+  if (!Array.isArray(c.entries)){
+    // migrate legacy { yellow: N } data into yellow entries so old scores carry over
+    var legacy = Number(c.yellow) || 0, seeded = [];
+    for (var k = 0; k < legacy; k++) seeded.push({ id: genId(), type:'yellow', reason:'(before logging)', date: (typeof c.start === 'string' ? c.start : '') });
+    c.entries = seeded;
+  }
+  c.entries = c.entries.filter(function(e){ return e && (e.type === 'yellow' || e.type === 'red'); });
+  if (typeof c.start !== 'string') c.start = '';
+  c.penalty = !!c.penalty;
+  return c;
+}
 function makeStore(kid){
   return {
     kid: kid,
-    state: { checked: { yellow: 0, start: "", penalty: false } },
-    setState(patch){ Object.assign(this.state, patch); if(!this.state.checked) this.state.checked={}; renderAll(); }
+    state: { checked: { entries: [], start: "", penalty: false } },
+    setState(patch){ Object.assign(this.state, patch); this.state.checked = normalize(this.state.checked); renderAll(); }
   };
 }
 const stores = KIDS.map(makeStore);
+var editId = null;   // id of the log entry currently being edited inline (one at a time)
 
 function todayISO(){
   var d = new Date();
-  var m = String(d.getMonth()+1).padStart(2,'0');
-  var day = String(d.getDate()).padStart(2,'0');
-  return d.getFullYear()+'-'+m+'-'+day;
-}
-function fmtDate(iso){
-  if(!iso) return 'not set';
-  var d = parseISO(iso);
-  if(!d) return iso;
-  return d.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 function parseISO(iso){
   var p = String(iso).split('-');
   if(p.length !== 3) return null;
-  var d = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));   // local midnight
+  var d = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
   return isNaN(d.getTime()) ? null : d;
 }
+function fmtDate(iso){ var d = parseISO(iso); return d ? d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'}) : (iso ? iso : 'not set'); }
+function fmtShort(iso){ var d = parseISO(iso); return d ? d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : (iso ? iso : '—'); }
 function midnight(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
-// Days left until reset falls due (start + ROUND_DAYS). null if no start date set.
 function daysLeft(start){
-  var s = parseISO(start);
-  if(!s) return null;
-  var elapsed = Math.round((midnight(new Date()) - midnight(s)) / 86400000);
-  return ROUND_DAYS - elapsed;
+  var s = parseISO(start); if(!s) return null;
+  return ROUND_DAYS - Math.round((midnight(new Date()) - midnight(s)) / 86400000);
 }
 function endISO(start){
-  var s = parseISO(start);
-  if(!s) return "";
+  var s = parseISO(start); if(!s) return "";
   var e = new Date(s.getFullYear(), s.getMonth(), s.getDate() + ROUND_DAYS);
   return fmtDate(e.getFullYear()+'-'+String(e.getMonth()+1).padStart(2,'0')+'-'+String(e.getDate()).padStart(2,'0'));
 }
 
-function ycOf(store){
-  var y = (store.state.checked && Number(store.state.checked.yellow)) || 0;
-  if (!(y >= 0)) y = 0;
-  return Math.min(MAX_YC, Math.round(y));   // clamp 0..MAX_YC, whole yellow cards
-}
+function entriesOf(store){ return (store.state.checked && store.state.checked.entries) || []; }   // full history
+function inRound(e, start){ return !start || (e.date && e.date >= start); }   // ISO YYYY-MM-DD strings compare correctly
+function currentEntriesOf(store){ var st = startOf(store); return entriesOf(store).filter(function(e){ return inRound(e, st); }); }
+function countOf(store, type){ return currentEntriesOf(store).filter(function(e){ return e.type === type; }).length; }
+function halvesRaw(store){ return currentEntriesOf(store).reduce(function(s,e){ return s + (e.type==='red' ? 2 : 1); }, 0); }
+function halvesOf(store){ return Math.min(MAX_HALVES, halvesRaw(store)); }
+function scoreOf(store){ return Math.max(0, START - 0.5 * halvesOf(store)); }
 function startOf(store){ return (store.state.checked && store.state.checked.start) || ""; }
-function scoreOf(store){ return Math.max(0, START - ycOf(store) * YC_COST); }
 function penaltyOf(store){ return !!(store.state.checked && store.state.checked.penalty); }
-function passPctOf(store){ return penaltyOf(store) ? PENALTY_PCT : PASS_PCT; }   // 0.60 in a penalty week, else 0.50
+function passPctOf(store){ return penaltyOf(store) ? PENALTY_PCT : PASS_PCT; }
 function passScoreOf(store){ return START * passPctOf(store); }
 
 function band(score, passScore){
@@ -217,39 +268,35 @@ function persist(i){
   else { try { localStorage.setItem(kid.storageKey, JSON.stringify(c)); } catch(e){} }
   renderAll();
 }
-function setYC(i, y){
-  y = Math.max(0, Math.min(MAX_YC, y));
+function addEntry(i, type, reason){
   var c = Object.assign({}, stores[i].state.checked);
-  c.yellow = y;
-  if (!c.start && y > 0) c.start = todayISO();   // auto-date the round on its first yellow card
-  stores[i].state.checked = c;
-  persist(i);
+  c.entries = entriesOf(stores[i]).concat([{ id: genId(), type: type, reason: reason, date: todayISO() }]);
+  if (!c.start) c.start = todayISO();
+  stores[i].state.checked = c; persist(i);
+}
+function delEntry(i, id){
+  var c = Object.assign({}, stores[i].state.checked);
+  c.entries = entriesOf(stores[i]).filter(function(e){ return e.id !== id; });
+  stores[i].state.checked = c; persist(i);
 }
 function setStart(i, iso){
-  var c = Object.assign({}, stores[i].state.checked);
-  c.start = iso || "";
-  stores[i].state.checked = c;
-  persist(i);
+  var c = Object.assign({}, stores[i].state.checked); c.start = iso || "";
+  stores[i].state.checked = c; persist(i);
 }
-function setPenalty(i, on){                            // toggle the 60% penalty week for one kid
-  var c = Object.assign({}, stores[i].state.checked);
-  c.penalty = !!on;
-  stores[i].state.checked = c;
-  persist(i);
+function setPenalty(i, on){
+  var c = Object.assign({}, stores[i].state.checked); c.penalty = !!on;
+  stores[i].state.checked = c; persist(i);
 }
-function addYC(i){ setYC(i, ycOf(stores[i]) + 1); }   // one yellow card  → −0.5
-function undoYC(i){ setYC(i, ycOf(stores[i]) - 1); }  // take one back    → +0.5
-function resetKid(i){                                  // fresh round, dated today (keeps the penalty-week flag)
-  stores[i].state.checked = { yellow: 0, start: todayISO(), penalty: penaltyOf(stores[i]) };
+function resetKid(i){   // start a new week for one kid: move the round start to today. Cards stay in the log as history.
+  var c = Object.assign({}, stores[i].state.checked);
+  c.start = todayISO();
+  stores[i].state.checked = c;
   persist(i);
 }
 
-// Each card absorbs two yellow cards: 0 → full green, 1 → half green/half yellow, 2 → whole red.
-// Order left→right: green cards kept, the in-progress half card, then red cards lost.
-function pips(yc){
-  var red = Math.floor(yc / 2);          // full red cards = pairs of yellows
-  var half = (yc % 2) === 1;             // a lone yellow leaves one card half-and-half
-  var green = START - red - (half ? 1 : 0);
+// Each card absorbs two half-cards: full green → half green/half yellow → whole red.
+function pips(halves){
+  var red = Math.floor(halves / 2), half = (halves % 2) === 1, green = START - red - (half ? 1 : 0);
   if (green < 0) green = 0;
   var html = '';
   for (var g = 0; g < green; g++) html += '<span class="pip" style="background:var(--green)"></span>';
@@ -260,26 +307,20 @@ function pips(yc){
 
 function panelHTML(i){
   var store = stores[i], kid = KIDS[i];
-  var yc = ycOf(store), score = scoreOf(store), start = startOf(store);
-  var penalty = penaltyOf(store), passScore = passScoreOf(store), passPctNum = Math.round(passPctOf(store) * 100);
+  var yCount = countOf(store,'yellow'), rCount = countOf(store,'red');
+  var score = scoreOf(store), start = startOf(store);
+  var penalty = penaltyOf(store), passScore = passScoreOf(store), passPctNum = Math.round(passPctOf(store)*100);
   var b = band(score, passScore);
   var scoreStr = (score % 1 === 0) ? String(score) : score.toFixed(1);
   var pct = Math.round(score / START * 100);
 
-  // 7-day reset countdown
   var dl = daysLeft(start), cdColor, cdMain, cdEnd = '';
-  if (dl === null){
-    cdColor = 'var(--ink-faint)'; cdMain = '<span>set a start date to begin the '+ROUND_DAYS+'-day count</span>';
-  } else if (dl > 0){
-    cdColor = dl <= 2 ? 'var(--rust)' : 'var(--green)';
-    cdMain = '<span class="num" style="color:'+cdColor+'">'+dl+'</span><span>day'+(dl===1?'':'s')+' until reset</span>';
-    cdEnd  = '<span class="end">· due '+endISO(start)+'</span>';
-  } else if (dl === 0){
-    cdColor = 'var(--rust)'; cdMain = '<span class="num" style="color:'+cdColor+'">Today</span><span>— round complete, reset due</span>';
-  } else {
-    cdColor = 'var(--red)';
-    cdMain = '<span class="num" style="color:'+cdColor+'">Overdue</span><span>by '+(-dl)+' day'+(dl===-1?'':'s')+' — reset now</span>';
-  }
+  if (dl === null){ cdColor='var(--ink-faint)'; cdMain='<span>set a start date to begin the '+ROUND_DAYS+'-day count</span>'; }
+  else if (dl > 0){ cdColor = dl<=2?'var(--rust)':'var(--green)';
+    cdMain='<span class="num" style="color:'+cdColor+'">'+dl+'</span><span>day'+(dl===1?'':'s')+' until reset</span>';
+    cdEnd='<span class="end">· due '+endISO(start)+'</span>'; }
+  else if (dl === 0){ cdColor='var(--rust)'; cdMain='<span class="num" style="color:'+cdColor+'">Today</span><span>— round complete, reset due</span>'; }
+  else { cdColor='var(--red)'; cdMain='<span class="num" style="color:'+cdColor+'">Overdue</span><span>by '+(-dl)+' day'+(dl===-1?'':'s')+' — reset now</span>'; }
 
   return ''
     + '<div class="panel">'
@@ -288,9 +329,9 @@ function panelHTML(i){
     +   '<div class="scoreline">'
     +     '<span class="score-big" style="color:'+b.color+'">'+scoreStr+'</span>'
     +     '<span class="score-of">/ '+START+'</span>'
-    +     '<span class="score-yc"><b>'+yc+'</b> yellow card'+(yc===1?'':'s')+'<br>'+pct+'% · pass at '+passPctNum+'%</span>'
+    +     '<span class="score-yc"><b>'+yCount+'</b> yellow · <b>'+rCount+'</b> red<br>'+pct+'% · pass at '+passPctNum+'%</span>'
     +   '</div>'
-    +   '<div class="cards">'+pips(yc)+'</div>'
+    +   '<div class="cards">'+pips(halvesOf(store))+'</div>'
     +   '<div class="meter"><div class="fill" style="width:'+pct+'%;background:'+b.color+'"></div>'
     +     '<div class="mark" style="left:'+passPctNum+'%"></div><div class="marklbl" style="left:'+passPctNum+'%">'+passPctNum+'%</div></div>'
     +   '<div class="startrow">'
@@ -300,44 +341,145 @@ function panelHTML(i){
     +   '</div>'
     +   '<div class="countdown">'+cdMain+cdEnd+'</div>'
     +   '<label class="penaltytog screen-only"><input type="checkbox" data-act="penalty" data-i="'+i+'"'+(penalty?' checked':'')+'> Penalty week — no screen time, pass raised to 60%</label>'
-    +   '<div class="btns screen-only">'
-    +     '<button class="btn yellow" data-act="add" data-i="'+i+'">＋ Yellow Card &nbsp;−0.5</button>'
-    +     '<button class="btn undo" data-act="undo" data-i="'+i+'"'+(yc===0?' disabled':'')+'>↩ Undo</button>'
-    +     '<button class="btn reset" data-act="reset" data-i="'+i+'">RESET · TODAY</button>'
+    +   '<div class="addcard screen-only">'
+    +     '<div class="typepick">'
+    +       '<button class="tchip yellow active" data-act="type" data-i="'+i+'" data-type="yellow">Yellow −0.5</button>'
+    +       '<button class="tchip red" data-act="type" data-i="'+i+'" data-type="red">Red −1.0</button>'
+    +     '</div>'
+    +     '<input class="reason" type="text" data-role="reason" data-i="'+i+'" placeholder="Reason — what happened?" maxlength="140">'
+    +     '<div class="addrow">'
+    +       '<button class="btn add" data-act="add" data-i="'+i+'">＋ Add card</button>'
+    +       '<button class="btn reset" data-act="reset" data-i="'+i+'">New Week · Today</button>'
+    +     '</div>'
     +   '</div>'
     + '</div>';
 }
 
-function renderAll(){
-  document.getElementById('board').innerHTML = KIDS.map(function(_,i){ return panelHTML(i); }).join('');
+function logRows(){
+  var rows = [];
+  KIDS.forEach(function(kid, i){
+    entriesOf(stores[i]).forEach(function(e){ rows.push({ i:i, kid:kid.name, e:e }); });
+  });
+  rows.sort(function(a,b){
+    var da = a.e.date||'', db = b.e.date||'';
+    if (da !== db) return db < da ? -1 : 1;          // newest date first
+    return (b.e.id||'') < (a.e.id||'') ? -1 : 1;      // then newest entry first
+  });
+  return rows;
+}
+function logHTML(){
+  var rows = logRows();
+  var head = '<div class="loghead"><h2>Card Log <span class="n">'+rows.length+' card'+(rows.length===1?'':'s')+' · full history, kept across weeks</span></h2></div>';
+  if (!rows.length) return head + '<div class="logempty">No cards yet — a clean slate. 🎉</div>';
+  var body = '<table class="logtable"><thead><tr>'
+    + '<th>Card</th><th>Kid</th><th>Reason</th><th>Date</th><th class="screen-only"></th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var e = r.e, past = !inRound(e, startOf(stores[r.i]));   // dimmed if it belongs to an earlier week
+    if (e.id === editId){
+      body += '<tr class="editing"><td colspan="5">'
+        + '<div class="editrow" data-id="'+esc(e.id)+'">'
+        +   '<div class="typepick">'
+        +     '<button class="tchip yellow'+(e.type==='yellow'?' active':'')+'" data-act="type" data-type="yellow">Yellow −0.5</button>'
+        +     '<button class="tchip red'+(e.type==='red'?' active':'')+'" data-act="type" data-type="red">Red −1.0</button>'
+        +   '</div>'
+        +   '<select class="editkid">'+ KIDS.map(function(k,ki){ return '<option value="'+ki+'"'+(ki===r.i?' selected':'')+'>'+esc(k.name)+'</option>'; }).join('') +'</select>'
+        +   '<input class="editreason" type="text" maxlength="140" placeholder="Reason — what happened?" value="'+esc(e.reason || '')+'">'
+        +   '<input class="editdate" type="date" value="'+esc(e.date || '')+'">'
+        +   '<div class="editbtns">'
+        +     '<button class="btn add" data-act="saveedit" data-i="'+r.i+'" data-id="'+esc(e.id)+'">Save</button>'
+        +     '<button class="btn ghost" data-act="canceledit">Cancel</button>'
+        +   '</div>'
+        + '</div></td></tr>';
+      return;
+    }
+    body += '<tr class="'+(past?'past':'')+'">'
+      + '<td><span class="logchip '+e.type+'">'+(e.type==='red'?'RED':'YELLOW')+'</span></td>'
+      + '<td class="k">'+esc(r.kid)+'</td>'
+      + '<td class="rsn">'+esc(e.reason || '—')+'</td>'
+      + '<td class="dt">'+fmtShort(e.date)+(past?' <span class="pasttag">· past week</span>':'')+'</td>'
+      + '<td class="del screen-only">'
+      +   '<button class="xbtn" title="Edit this card" data-act="edit" data-i="'+r.i+'" data-id="'+esc(e.id)+'">✎</button>'
+      +   '<button class="xbtn" title="Delete this card" data-act="del" data-i="'+r.i+'" data-id="'+esc(e.id)+'">✕</button>'
+      + '</td>'
+      + '</tr>';
+  });
+  return head + body + '</tbody></table>';
 }
 
-// Delegated handlers for every button and the date inputs.
-var boardEl = document.getElementById('board');
-boardEl.addEventListener('click', function(e){
-  var btn = e.target.closest('button[data-act]');
+function renderAll(){
+  document.getElementById('board').innerHTML = KIDS.map(function(_,i){ return panelHTML(i); }).join('');
+  document.getElementById('logSection').innerHTML = logHTML();
+}
+
+/* ---- interaction ---- */
+function saveEdit(fromIdx, id){
+  var rowEl = document.querySelector('.editrow[data-id="'+id+'"]');
+  if (!rowEl) return;
+  var activeChip = rowEl.querySelector('.tchip.active');
+  var type = activeChip ? activeChip.dataset.type : 'yellow';
+  var toIdx = parseInt(rowEl.querySelector('select.editkid').value, 10);
+  var reasonEl = rowEl.querySelector('input.editreason');
+  var reason = reasonEl ? reasonEl.value.trim() : '';
+  var dateEl = rowEl.querySelector('input.editdate');
+  var date = (dateEl && dateEl.value) ? dateEl.value : todayISO();
+  if (!reason){ if (reasonEl){ reasonEl.classList.add('need'); reasonEl.focus(); } return; }
+  var updated = { id: id, type: type, reason: reason, date: date };
+  editId = null;
+  if (toIdx === fromIdx){
+    var c = Object.assign({}, stores[fromIdx].state.checked);
+    c.entries = entriesOf(stores[fromIdx]).map(function(en){ return en.id === id ? updated : en; });
+    stores[fromIdx].state.checked = c; persist(fromIdx);
+  } else {
+    var fc = Object.assign({}, stores[fromIdx].state.checked);
+    fc.entries = entriesOf(stores[fromIdx]).filter(function(en){ return en.id !== id; });
+    var tc = Object.assign({}, stores[toIdx].state.checked);
+    tc.entries = entriesOf(stores[toIdx]).concat([updated]);
+    stores[fromIdx].state.checked = fc; stores[toIdx].state.checked = tc;
+    persist(fromIdx); persist(toIdx);
+  }
+}
+
+document.addEventListener('click', function(e){
+  var btn = e.target.closest('[data-act]');
   if (!btn) return;
-  var i = parseInt(btn.dataset.i, 10);
-  if (btn.dataset.act === 'add')        addYC(i);
-  else if (btn.dataset.act === 'undo')  undoYC(i);
-  else if (btn.dataset.act === 'reset') resetKid(i);
+  var act = btn.dataset.act, i = btn.dataset.i != null ? parseInt(btn.dataset.i, 10) : null;
+
+  if (act === 'type'){                       // switch yellow/red without re-rendering (keeps typed reason)
+    var pick = btn.parentNode;
+    pick.querySelectorAll('.tchip').forEach(function(c){ c.classList.remove('active'); });
+    btn.classList.add('active');
+    return;
+  }
+  if (act === 'add'){
+    var panel = btn.closest('.panel');
+    var active = panel.querySelector('.tchip.active');
+    var type = active ? active.dataset.type : 'yellow';
+    var input = panel.querySelector('input.reason');
+    var reason = input ? input.value.trim() : '';
+    if (!reason){ if (input){ input.classList.add('need'); input.focus(); } return; }
+    addEntry(i, type, reason);
+    return;
+  }
+  if (act === 'del')        { delEntry(i, btn.dataset.id); return; }
+  if (act === 'reset')      { resetKid(i); return; }
+  if (act === 'edit')       { editId = btn.dataset.id; renderAll(); return; }
+  if (act === 'canceledit') { editId = null; renderAll(); return; }
+  if (act === 'saveedit')   { saveEdit(i, btn.dataset.id); return; }
 });
-boardEl.addEventListener('change', function(e){
-  var dateInp = e.target.closest('input[data-act="date"]');
-  if (dateInp) { setStart(parseInt(dateInp.dataset.i, 10), dateInp.value); return; }
-  var pen = e.target.closest('input[data-act="penalty"]');
-  if (pen) { setPenalty(parseInt(pen.dataset.i, 10), pen.checked); }
+
+document.addEventListener('change', function(e){
+  var d = e.target.closest('input[data-act="date"]');
+  if (d) { setStart(parseInt(d.dataset.i, 10), d.value); return; }
+  var p = e.target.closest('input[data-act="penalty"]');
+  if (p) { setPenalty(parseInt(p.dataset.i, 10), p.checked); }
 });
 
 // Load: prefer cloud sync (same contract as the other checklists), else localStorage.
 KIDS.forEach(function(kid, i){
   if (window.ChecklistCloud) {
-    ChecklistCloud.attach(stores[i], kid.cloudKey, kid.storageKey);  // calls setState({checked}) on every update
+    ChecklistCloud.attach(stores[i], kid.cloudKey, kid.storageKey);
   } else {
-    try {
-      var raw = localStorage.getItem(kid.storageKey);
-      if (raw) stores[i].state.checked = JSON.parse(raw);
-    } catch(e){}
+    try { var raw = localStorage.getItem(kid.storageKey); if (raw) stores[i].state.checked = normalize(JSON.parse(raw)); } catch(e){}
   }
 });
 renderAll();
