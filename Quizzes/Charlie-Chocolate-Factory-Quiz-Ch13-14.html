@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charlie and the Chocolate Factory · Chapters 13–14</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --font:'Comic Sans MS','Trebuchet MS',system-ui,sans-serif;
+    --bg:linear-gradient(160deg,#ffe29a 0%,#ffb37b 50%,#ff8a5c 100%);
+    --ink:#4a2c0f;
+    --header-bg:#ff7043; --header-shadow:#d84315; --header-radius:24px;
+    --bar-bg:#fff3e0; --bar-shadow:#ffccbc; --track:#ffccbc; --fill:#43a047;
+    --card-bg:#fff; --card-shadow:#e0a96d; --card-radius:20px; --meta:#ef6c00;
+    --opt-bg:#fff8f0; --opt-border:#ffd2a8; --opt-hover:#ff9d57; --opt-radius:14px;
+    --correct-bg:#d7f5d3; --correct-border:#43a047; --wrong-bg:#ffd9d9; --wrong-border:#e53935;
+    --good-bg:#e8f7e6; --good-fg:#2e7d32; --bad-bg:#fdeaea; --bad-fg:#c62828;
+    --btn:#43a047; --btn-shadow:#2e7d32; --next:#ff7043; --next-shadow:#d84315;
+    --result-title:#ef6c00; --footer:#7a4a1f;
+  }
+  body.theme-river{
+    --font:'Georgia','Times New Roman',serif;
+    --bg:linear-gradient(160deg,#cfe8f0 0%,#a9d3c2 45%,#8bb98f 100%);
+    --ink:#2c2418;
+    --header-bg:#5b4636; --header-shadow:#3a2c20; --header-radius:18px;
+    --bar-bg:#f5ecd9; --bar-shadow:#c9b890; --track:#d9c9a3; --fill:#3a7d44;
+    --card-bg:#fffdf7; --card-shadow:#c9b890; --card-radius:16px; --meta:#8a6d3b;
+    --opt-bg:#f7f1e3; --opt-border:#ddcaa3; --opt-hover:#b89968; --opt-radius:12px;
+    --correct-bg:#d7f0d3; --correct-border:#3a7d44; --wrong-bg:#f6d6d6; --wrong-border:#c0392b;
+    --good-bg:#e8f5e6; --good-fg:#2e6b34; --bad-bg:#fbeaea; --bad-fg:#a5352a;
+    --btn:#3a7d44; --btn-shadow:#285a30; --next:#8a6d3b; --next-shadow:#5b4636;
+    --result-title:#5b4636; --footer:#4c4030;
+  }
+  body { font-family:var(--font); background:var(--bg); min-height:100vh; color:var(--ink); padding:20px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  header { background:var(--header-bg); border-radius:var(--header-radius); padding:26px 24px; text-align:center; color:#fff; box-shadow:0 8px 0 var(--header-shadow); margin-bottom:18px; }
+  header .ic { font-size:50px; line-height:1; }
+  header h1 { font-size:25px; margin:8px 0 4px; }
+  header p { font-size:16px; opacity:.95; }
+  .bar { background:var(--bar-bg); border-radius:14px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; font-weight:bold; margin-bottom:16px; box-shadow:0 4px 0 var(--bar-shadow); }
+  .progress-track { flex:1; height:14px; background:var(--track); border-radius:10px; margin:0 14px; overflow:hidden; }
+  .progress-fill { height:100%; width:0; background:var(--fill); border-radius:10px; transition:width .3s; }
+  .card { background:var(--card-bg); border-radius:var(--card-radius); padding:22px; box-shadow:0 6px 0 var(--card-shadow); margin-bottom:16px; }
+  .qmeta { font-size:13px; color:var(--meta); font-weight:bold; text-transform:uppercase; letter-spacing:.5px; }
+  .qtext { font-size:20px; margin:8px 0 16px; line-height:1.45; }
+  .opt { display:block; width:100%; text-align:left; background:var(--opt-bg); border:3px solid var(--opt-border); border-radius:var(--opt-radius); padding:13px 16px; font-size:17px; font-family:inherit; color:var(--ink); margin-bottom:10px; cursor:pointer; transition:transform .1s, background .15s, border-color .15s; }
+  .opt:hover:not(:disabled) { transform:translateX(4px); border-color:var(--opt-hover); }
+  .opt:disabled { cursor:default; }
+  .opt.correct { background:var(--correct-bg); border-color:var(--correct-border); }
+  .opt.wrong { background:var(--wrong-bg); border-color:var(--wrong-border); }
+  .feedback { margin-top:6px; padding:12px 14px; border-radius:12px; font-size:15px; line-height:1.45; display:none; }
+  .feedback.show { display:block; }
+  .feedback.good { background:var(--good-bg); color:var(--good-fg); }
+  .feedback.bad { background:var(--bad-bg); color:var(--bad-fg); }
+  .btn { background:var(--btn); color:#fff; border:none; border-radius:14px; padding:14px 28px; font-size:18px; font-family:inherit; font-weight:bold; cursor:pointer; box-shadow:0 5px 0 var(--btn-shadow); transition:transform .1s; }
+  .btn:active { transform:translateY(3px); box-shadow:0 2px 0 var(--btn-shadow); }
+  .btn.next { background:var(--next); box-shadow:0 5px 0 var(--next-shadow); display:none; margin-top:6px; }
+  .center { text-align:center; }
+  .result { background:var(--card-bg); border-radius:var(--card-radius); padding:34px 24px; text-align:center; box-shadow:0 6px 0 var(--card-shadow); }
+  .result .big { font-size:62px; }
+  .result h2 { font-size:27px; margin:10px 0; color:var(--result-title); }
+  .scoreline { font-size:22px; margin:14px 0; }
+  .stars { font-size:33px; letter-spacing:4px; margin:10px 0; }
+  .hidden { display:none; }
+  footer { text-align:center; font-size:13px; color:var(--footer); margin-top:10px; opacity:.85; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="ic" id="icon">🍫</div>
+    <h1 id="title">Book Title</h1>
+    <p id="subtitle">Reading Quiz · Chapter N</p>
+  </header>
+  <div class="bar">
+    <span id="qcount">Question 1</span>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <span id="scoreboard">0</span>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" class="result hidden"></div>
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* ======================= EDIT THIS ======================= */
+const CONFIG = {
+  title:    "Charlie and the Chocolate Factory",
+  subtitle: "Reading Quiz · Chapters 13–14",
+  child:    "Grace",
+  theme:    "peach",
+  icon:     "🍫",
+  passPct:  0.80
+};
+
+const questions = [
+  // ---------- Chapter 13 · The Big Day Arrives ----------
+  { ch:"Chapter 13 · The Big Day Arrives", q:"On what day were the ticket-holders invited to visit the factory?",
+    options:["The first of February","The last of December","The first of January","The middle of March"],
+    answer:0,
+    why:"The Golden Ticket said to come on the first day of February." },
+
+  { ch:"Chapter 13 · The Big Day Arrives", q:"How many people was Charlie allowed to bring with him?",
+    options:["One member of his family","Two of his school friends","Three of his grandparents","Both of his parents"],
+    answer:0,
+    why:"Each child could bring one grown-up from the family, and Charlie chose one." },
+
+  { ch:"Chapter 13 · The Big Day Arrives", q:"Who did Charlie choose to take with him?",
+    options:["Grandpa Joe","Grandma Josephine","His father","His mother"],
+    answer:0,
+    why:"Charlie chose Grandpa Joe, who had told him all about Mr Wonka." },
+
+  { ch:"Chapter 13 · The Big Day Arrives", q:"How did Grandpa Joe react on the big morning?",
+    options:["He leapt out of bed with joy","He stayed resting in his bed","He quietly ate his breakfast","He wept and felt too worried"],
+    answer:0,
+    why:"Grandpa Joe jumped out of bed cheering, more lively than he had been in years." },
+
+  { ch:"Chapter 13 · The Big Day Arrives", q:"What did Grandpa Joe shout out?",
+    options:["Three cheers for Charlie!","Good luck at the gates!","Time to go home now!","Please save me a seat!"],
+    answer:0,
+    why:"He cried out 'Yippee!' and 'Three cheers for Charlie!' with delight." },
+
+  { ch:"Chapter 13 · The Big Day Arrives", q:"Who gathered outside the chocolate factory?",
+    options:["Great crowds of people","A small group of children","A handful of reporters","The five ticket families"],
+    answer:0,
+    why:"Enormous crowds came to watch the lucky children go in." },
+
+  { ch:"Chapter 13 · The Big Day Arrives", q:"Who held the crowds back?",
+    options:["The police officers","The town's soldiers","The school teachers","The news reporters"],
+    answer:0,
+    why:"Police kept the huge crowd back from the factory gates." },
+
+  { ch:"Chapter 13 · The Big Day Arrives", q:"What stood in front of the factory?",
+    options:["Tall black iron gates","A tall red brick wall","A wide wooden drawbridge","A guarded stone checkpoint"],
+    answer:0,
+    why:"The great iron gates stood shut in front of the waiting children." },
+
+  { ch:"Chapter 13 · The Big Day Arrives", q:"What sound told everyone the gates were about to open?",
+    options:["A church clock striking ten","A loud brass band playing","A whistle from a guard","A great cheer from the crowd"],
+    answer:0,
+    why:"Far off, a church clock struck ten, and then the gates began to open." },
+
+  { ch:"Chapter 13 · Think About It", q:"How did Charlie feel as he waited at the gates?",
+    options:["Nervous but very excited","Bored and rather sleepy","Cross with the big crowd","Sad about being there"],
+    answer:0,
+    why:"Charlie held Grandpa Joe's hand tightly, nervous and thrilled all at once." },
+
+  // ---------- Chapter 14 · Mr Willy Wonka ----------
+  { ch:"Chapter 14 · Mr Willy Wonka", q:"Who came out to meet the children at the gates?",
+    options:["Mr Willy Wonka in person","One of the factory workers","A tall uniformed guard","The town's friendly mayor"],
+    answer:0,
+    why:"Mr Willy Wonka himself appeared to welcome them all." },
+
+  { ch:"Chapter 14 · Mr Willy Wonka", q:"What was Mr Wonka like in size?",
+    options:["He was a small man","He was a giant man","He was a stout man","He was a young boy"],
+    answer:0,
+    why:"Mr Wonka was a small man, and the children were surprised how little he looked." },
+
+  { ch:"Chapter 14 · Mr Willy Wonka", q:"What did Mr Wonka wear on his head?",
+    options:["A black top hat","A woolly red cap","A shiny gold crown","A wide straw hat"],
+    answer:0,
+    why:"On his head sat a smart black top hat." },
+
+  { ch:"Chapter 14 · Mr Willy Wonka", q:"What colour was Mr Wonka's velvet tail coat?",
+    options:["Plum-coloured","Bottle-green","Pearly grey","Jet black"],
+    answer:0,
+    why:"His tail coat was made of beautiful plum-coloured velvet." },
+
+  { ch:"Chapter 14 · Mr Willy Wonka", q:"What did Mr Wonka carry in his hand?",
+    options:["A gold-topped walking cane","A large black umbrella","A silver pocket watch","A bunch of bright balloons"],
+    answer:0,
+    why:"He carried a fine walking cane with a gold top." },
+
+  { ch:"Chapter 14 · Mr Willy Wonka", q:"What did Mr Wonka have on his chin?",
+    options:["A small pointed beard","A long bushy moustache","A pair of round glasses","A bright red bow tie"],
+    answer:0,
+    why:"He wore a small, neat, pointed black beard." },
+
+  { ch:"Chapter 14 · Mr Willy Wonka", q:"What was special about Mr Wonka's eyes?",
+    options:["They twinkled and sparkled","They were dull and tired","They were shut tight","They were sad and grey"],
+    answer:0,
+    why:"His eyes were marvellously bright, always sparkling and twinkling." },
+
+  { ch:"Chapter 14 · Mr Willy Wonka", q:"How did Mr Wonka greet the children?",
+    options:["Warmly, welcoming them in","Coldly, barely looking up","Crossly, telling them off","Shyly, hiding from them"],
+    answer:0,
+    why:"He greeted each child warmly and welcomed them to his factory." },
+
+  { ch:"Chapter 14 · Mr Willy Wonka", q:"How did each child come forward at the gates?",
+    options:["One at a time with a parent","In one big noisy group","Pushed ahead by the whole crowd","Called up by a loud guard"],
+    answer:0,
+    why:"Each child stepped up one by one, with a parent, to give their name." },
+
+  { ch:"Chapter 14 · Think About It", q:"What do Mr Wonka's twinkling eyes and lively manner tell us about him?",
+    options:["He is playful and full of fun","He is stern and rather strict","He is tired and very old","He is shy and quite fearful"],
+    answer:0,
+    why:"His sparkling eyes and quick, cheerful manner show a playful, fun-loving man." }
+];
+/* ===================== END EDIT AREA ===================== */
+
+document.body.className = 'theme-' + CONFIG.theme;
+const MARK = CONFIG.theme === 'river' ? '✓' : '⭐';
+document.getElementById('icon').textContent = CONFIG.icon;
+document.getElementById('title').textContent = CONFIG.title;
+document.getElementById('subtitle').textContent = CONFIG.subtitle;
+
+questions.forEach(item => {
+  const correct = item.options[item.answer];
+  for (let i = item.options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [item.options[i], item.options[j]] = [item.options[j], item.options[i]];
+  }
+  item.answer = item.options.indexOf(correct);
+});
+
+let current = 0, score = 0, answered = false;
+const passNeeded = Math.ceil(questions.length * CONFIG.passPct);
+const pctLabel = Math.round(CONFIG.passPct * 100);
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+const qcount = document.getElementById('qcount');
+const scoreboard = document.getElementById('scoreboard');
+const progress = document.getElementById('progress');
+document.getElementById('footer').textContent =
+  `For ${CONFIG.child} · Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})`;
+
+function render() {
+  answered = false;
+  const item = questions[current];
+  qcount.textContent = `Question ${current + 1} of ${questions.length}`;
+  scoreboard.textContent = `${MARK} ${score}`;
+  progress.style.width = `${(current / questions.length) * 100}%`;
+  const opts = item.options.map((o, i) => `<button class="opt" data-i="${i}" onclick="choose(${i})">${o}</button>`).join('');
+  quizArea.innerHTML = `
+    <div class="card">
+      <div class="qmeta">${item.ch}</div>
+      <div class="qtext">${item.q}</div>
+      ${opts}
+      <div class="feedback" id="fb"></div>
+      <div class="center"><button class="btn next" id="nextBtn" onclick="next()">Next →</button></div>
+    </div>`;
+}
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const item = questions[current];
+  const buttons = document.querySelectorAll('.opt');
+  buttons.forEach(b => b.disabled = true);
+  const fb = document.getElementById('fb');
+  if (i === item.answer) {
+    score++;
+    buttons[i].classList.add('correct');
+    fb.className = 'feedback good show';
+    fb.innerHTML = `✅ <strong>Correct!</strong> ${item.why}`;
+  } else {
+    buttons[i].classList.add('wrong');
+    buttons[item.answer].classList.add('correct');
+    fb.className = 'feedback bad show';
+    fb.innerHTML = `❌ <strong>Not quite.</strong> ${item.why}`;
+  }
+  scoreboard.textContent = `${MARK} ${score}`;
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function next() { current++; if (current < questions.length) render(); else showResult(); }
+
+function showResult() {
+  quizArea.classList.add('hidden');
+  document.querySelector('.bar').classList.add('hidden');
+  resultArea.classList.remove('hidden');
+  progress.style.width = '100%';
+  const pct = Math.round((score / questions.length) * 100);
+  const passed = score >= passNeeded;
+  let stars, msg, emoji;
+  if (pct === 100) { stars='⭐⭐⭐⭐⭐'; msg="Perfect score! You really know it."; emoji='🏆'; }
+  else if (passed) { stars='⭐⭐⭐⭐'; msg="Excellent! You passed with room to spare."; emoji='🎖️'; }
+  else if (pct >= 60) { stars='⭐⭐⭐'; msg=`So close! You need ${pctLabel}% to pass — review and try again.`; emoji='📖'; }
+  else if (pct >= 40) { stars='⭐⭐'; msg=`Good effort! You need ${pctLabel}% to pass. Re-read and give it another go.`; emoji='📚'; }
+  else { stars='⭐'; msg="Let's read it again carefully and try once more."; emoji='📗'; }
+  const banner = passed
+    ? `<div style="background:var(--correct-bg);color:var(--good-fg);border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">🎉 PASSED! 🎉</div>`
+    : `<div style="background:var(--bad-bg);color:var(--bad-fg);border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">Not passed yet — need ${pctLabel}%</div>`;
+  resultArea.innerHTML = `
+    <div class="big">${emoji}</div>
+    <h2>Quiz Complete!</h2>
+    ${banner}
+    <div class="stars">${stars}</div>
+    <div class="scoreline">You got <strong>${score}</strong> out of <strong>${questions.length}</strong> (${pct}%)</div>
+    <div style="font-size:15px;color:var(--footer);margin:-4px 0 8px;">Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})</div>
+    <p style="margin:10px 0 20px;font-size:17px;">${msg}</p>
+    <button class="btn" onclick="restart()">Try Again 🔄</button>`;
+}
+
+function restart() {
+  current = 0; score = 0; answered = false;
+  resultArea.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  document.querySelector('.bar').classList.remove('hidden');
+  render();
+}
+render();
+</script>
+</body>
+</html>
