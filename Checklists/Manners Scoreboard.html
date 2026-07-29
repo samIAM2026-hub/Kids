@@ -201,11 +201,21 @@ function genId(){ return 'c' + Date.now().toString(36) + Math.random().toString(
 function normalize(c){
   c = (c && typeof c === 'object') ? c : {};
   if (!Array.isArray(c.entries)){
-    // migrate legacy { yellow: N } data into yellow entries so old scores carry over
-    var legacy = Number(c.yellow) || 0, seeded = [];
-    for (var k = 0; k < legacy; k++) seeded.push({ id: genId(), type:'yellow', reason:'(before logging)', date: (typeof c.start === 'string' ? c.start : '') });
-    c.entries = seeded;
+    // Firebase drops empty arrays, so a synced record whose log is empty comes back with NO
+    // `entries` key at all. `migrated` tells the two cases apart: once a record has been migrated,
+    // a missing `entries` means "the log is genuinely empty", not "legacy data waiting to be seeded".
+    // Without this, deleting the last card re-seeded the old '(before logging)' entries forever.
+    if (c.migrated){
+      c.entries = [];
+    } else {
+      // migrate legacy { yellow: N } data into yellow entries so old scores carry over
+      var legacy = Number(c.yellow) || 0, seeded = [];
+      for (var k = 0; k < legacy; k++) seeded.push({ id: genId(), type:'yellow', reason:'(before logging)', date: (typeof c.start === 'string' ? c.start : '') });
+      c.entries = seeded;
+    }
   }
+  c.migrated = true;
+  delete c.yellow;   // the legacy counter now lives in `entries`; drop it so it can never re-seed
   c.entries = c.entries.filter(function(e){ return e && (e.type === 'yellow' || e.type === 'red'); });
   if (typeof c.start !== 'string') c.start = '';
   c.penalty = !!c.penalty;
