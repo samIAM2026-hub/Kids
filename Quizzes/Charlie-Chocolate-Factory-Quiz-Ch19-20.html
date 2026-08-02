@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charlie and the Chocolate Factory · Chapters 19–20</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --font:'Comic Sans MS','Trebuchet MS',system-ui,sans-serif;
+    --bg:linear-gradient(160deg,#ffe29a 0%,#ffb37b 50%,#ff8a5c 100%);
+    --ink:#4a2c0f;
+    --header-bg:#ff7043; --header-shadow:#d84315; --header-radius:24px;
+    --bar-bg:#fff3e0; --bar-shadow:#ffccbc; --track:#ffccbc; --fill:#43a047;
+    --card-bg:#fff; --card-shadow:#e0a96d; --card-radius:20px; --meta:#ef6c00;
+    --opt-bg:#fff8f0; --opt-border:#ffd2a8; --opt-hover:#ff9d57; --opt-radius:14px;
+    --correct-bg:#d7f5d3; --correct-border:#43a047; --wrong-bg:#ffd9d9; --wrong-border:#e53935;
+    --good-bg:#e8f7e6; --good-fg:#2e7d32; --bad-bg:#fdeaea; --bad-fg:#c62828;
+    --btn:#43a047; --btn-shadow:#2e7d32; --next:#ff7043; --next-shadow:#d84315;
+    --result-title:#ef6c00; --footer:#7a4a1f;
+  }
+  body.theme-river{
+    --font:'Georgia','Times New Roman',serif;
+    --bg:linear-gradient(160deg,#cfe8f0 0%,#a9d3c2 45%,#8bb98f 100%);
+    --ink:#2c2418;
+    --header-bg:#5b4636; --header-shadow:#3a2c20; --header-radius:18px;
+    --bar-bg:#f5ecd9; --bar-shadow:#c9b890; --track:#d9c9a3; --fill:#3a7d44;
+    --card-bg:#fffdf7; --card-shadow:#c9b890; --card-radius:16px; --meta:#8a6d3b;
+    --opt-bg:#f7f1e3; --opt-border:#ddcaa3; --opt-hover:#b89968; --opt-radius:12px;
+    --correct-bg:#d7f0d3; --correct-border:#3a7d44; --wrong-bg:#f6d6d6; --wrong-border:#c0392b;
+    --good-bg:#e8f5e6; --good-fg:#2e6b34; --bad-bg:#fbeaea; --bad-fg:#a5352a;
+    --btn:#3a7d44; --btn-shadow:#285a30; --next:#8a6d3b; --next-shadow:#5b4636;
+    --result-title:#5b4636; --footer:#4c4030;
+  }
+  body { font-family:var(--font); background:var(--bg); min-height:100vh; color:var(--ink); padding:20px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  header { background:var(--header-bg); border-radius:var(--header-radius); padding:26px 24px; text-align:center; color:#fff; box-shadow:0 8px 0 var(--header-shadow); margin-bottom:18px; }
+  header .ic { font-size:50px; line-height:1; }
+  header h1 { font-size:25px; margin:8px 0 4px; }
+  header p { font-size:16px; opacity:.95; }
+  .bar { background:var(--bar-bg); border-radius:14px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; font-weight:bold; margin-bottom:16px; box-shadow:0 4px 0 var(--bar-shadow); }
+  .progress-track { flex:1; height:14px; background:var(--track); border-radius:10px; margin:0 14px; overflow:hidden; }
+  .progress-fill { height:100%; width:0; background:var(--fill); border-radius:10px; transition:width .3s; }
+  .card { background:var(--card-bg); border-radius:var(--card-radius); padding:22px; box-shadow:0 6px 0 var(--card-shadow); margin-bottom:16px; }
+  .qmeta { font-size:13px; color:var(--meta); font-weight:bold; text-transform:uppercase; letter-spacing:.5px; }
+  .qtext { font-size:20px; margin:8px 0 16px; line-height:1.45; }
+  .opt { display:block; width:100%; text-align:left; background:var(--opt-bg); border:3px solid var(--opt-border); border-radius:var(--opt-radius); padding:13px 16px; font-size:17px; font-family:inherit; color:var(--ink); margin-bottom:10px; cursor:pointer; transition:transform .1s, background .15s, border-color .15s; }
+  .opt:hover:not(:disabled) { transform:translateX(4px); border-color:var(--opt-hover); }
+  .opt:disabled { cursor:default; }
+  .opt.correct { background:var(--correct-bg); border-color:var(--correct-border); }
+  .opt.wrong { background:var(--wrong-bg); border-color:var(--wrong-border); }
+  .feedback { margin-top:6px; padding:12px 14px; border-radius:12px; font-size:15px; line-height:1.45; display:none; }
+  .feedback.show { display:block; }
+  .feedback.good { background:var(--good-bg); color:var(--good-fg); }
+  .feedback.bad { background:var(--bad-bg); color:var(--bad-fg); }
+  .btn { background:var(--btn); color:#fff; border:none; border-radius:14px; padding:14px 28px; font-size:18px; font-family:inherit; font-weight:bold; cursor:pointer; box-shadow:0 5px 0 var(--btn-shadow); transition:transform .1s; }
+  .btn:active { transform:translateY(3px); box-shadow:0 2px 0 var(--btn-shadow); }
+  .btn.next { background:var(--next); box-shadow:0 5px 0 var(--next-shadow); display:none; margin-top:6px; }
+  .center { text-align:center; }
+  .result { background:var(--card-bg); border-radius:var(--card-radius); padding:34px 24px; text-align:center; box-shadow:0 6px 0 var(--card-shadow); }
+  .result .big { font-size:62px; }
+  .result h2 { font-size:27px; margin:10px 0; color:var(--result-title); }
+  .scoreline { font-size:22px; margin:14px 0; }
+  .stars { font-size:33px; letter-spacing:4px; margin:10px 0; }
+  .hidden { display:none; }
+  footer { text-align:center; font-size:13px; color:var(--footer); margin-top:10px; opacity:.85; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="ic" id="icon">🧪</div>
+    <h1 id="title">Book Title</h1>
+    <p id="subtitle">Reading Quiz · Chapter N</p>
+  </header>
+  <div class="bar">
+    <span id="qcount">Question 1</span>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <span id="scoreboard">0</span>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" class="result hidden"></div>
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* ======================= EDIT THIS ======================= */
+const CONFIG = {
+  title:    "Charlie and the Chocolate Factory",
+  subtitle: "Reading Quiz · Chapters 19–20",
+  child:    "Grace",
+  theme:    "peach",
+  icon:     "🧪",
+  passPct:  0.80
+};
+
+const questions = [
+  // ---------- Chapter 19 · The Inventing Room ----------
+  { ch:"Chapter 19 · The Inventing Room", q:"What did the Inventing Room look like when the group first walked in?",
+    options:["Like a witch's kitchen, full of bubbling steam","Like a quiet library lined with neat glass jars","Like a bright playroom filled with toys and games","Like a plain office with desks and paper files"],
+    answer:0,
+    why:"The Inventing Room was full of huge boiling pots, hissing kettles, and pipes, giving it the feel of a witch's kitchen." },
+
+  { ch:"Chapter 19 · The Inventing Room", q:"Why did Mr Wonka say he invented the Everlasting Gobstopper?",
+    options:["For children who only had a little pocket money","For dentists who wanted children to eat fewer sweets","For himself, since he loved sucking on candy","For a contest he was hoping to win"],
+    answer:0,
+    why:"Wonka explained he made the Gobstopper for kids who don't get much pocket money to spend on sweets." },
+
+  { ch:"Chapter 19 · The Inventing Room", q:"What made the Everlasting Gobstopper so special?",
+    options:["It stayed the very same size no matter what","It changed to a new flavor every single minute","It grew larger the longer a child sucked on it","It fizzed and popped inside your mouth"],
+    answer:0,
+    why:"Wonka said a child could suck an Everlasting Gobstopper for ages and it would stay exactly the same size." },
+
+  { ch:"Chapter 19 · The Inventing Room", q:"How did Mr Wonka prove the Gobstopper really lasted?",
+    options:["An Oompa-Loompa had sucked one for almost a year","He had one on display in a small museum","He showed everyone a chart tracking its exact size","He let Charlie suck one for an entire afternoon"],
+    answer:0,
+    why:"Wonka pointed out an Oompa-Loompa who had been sucking the very same Gobstopper for close to a year." },
+
+  { ch:"Chapter 19 · The Inventing Room", q:"What did the finished Everlasting Gobstoppers look like coming out of the machine?",
+    options:["Small green marbles rolling out one by one","Long red ropes piled up in little coils","Tiny silver stars scattered across a tray","Flat yellow discs stacked neatly in rows"],
+    answer:0,
+    why:"The Gobstoppers came out of the machine looking like small green marbles." },
+
+  { ch:"Chapter 19 · The Inventing Room", q:"What was Hair Toffee supposed to do?",
+    options:["Grow a full head of hair within thirty minutes","Turn grey hair back to its original color","Make hair shine without any washing at all","Stop hair from falling out so quickly"],
+    answer:0,
+    why:"Wonka explained the purple toffee was meant to grow a full head of hair in half an hour." },
+
+  { ch:"Chapter 19 · The Inventing Room", q:"What went wrong when Hair Toffee was tested on an Oompa-Loompa?",
+    options:["A huge beard grew so fast they had to mow it","The Oompa-Loompa's hair turned bright green","The toffee made the Oompa-Loompa's hair fall out","Barely any hair grew, no matter how long they waited"],
+    answer:0,
+    why:"The formula was too strong — a huge beard sprouted so quickly that they needed a lawn mower to trim it." },
+
+  { ch:"Chapter 19 · The Inventing Room", q:"How did Mr Wonka react to the Hair Toffee mishap?",
+    options:["He stayed determined to keep improving the recipe","He gave up on Hair Toffee completely","He blamed the Oompa-Loompa for testing it the wrong way","He decided to sell it exactly as it was"],
+    answer:0,
+    why:"Even after the beard mishap, Wonka remained determined to perfect his Hair Toffee formula." },
+
+  { ch:"Chapter 19 · The Inventing Room", q:"What did Mr Wonka warn the children not to do in the Inventing Room?",
+    options:["Touch anything inside the room","Speak louder than a whisper","Stand too close to the windows","Bring any food in from outside"],
+    answer:0,
+    why:"Wonka warned the children to keep their hands to themselves and not touch anything in his most secret room." },
+
+  { ch:"Chapter 19 · Think About It", q:"What does it show about Mr Wonka that he warns the children not to touch anything, yet happily samples his own inventions?",
+    options:["He trusts his own judgment more than others do","He forgets and breaks his own rules most of the time","He wants the children to feel unwelcome there","He is nervous about his inventions failing"],
+    answer:0,
+    why:"Wonka makes strict rules for visitors but freely tests his own creations, showing how confident he is in his own skill and judgment." },
+
+  // ---------- Chapter 20 · The Great Gum Machine ----------
+  { ch:"Chapter 20 · The Great Gum Machine", q:"Where was the great gum machine positioned in the Inventing Room?",
+    options:["Right in the center of the room","Tucked away in a far corner","Hanging from the ceiling above","Just outside the room's main door"],
+    answer:0,
+    why:"Wonka led the group to a huge machine standing right in the middle of the Inventing Room." },
+
+  { ch:"Chapter 20 · The Great Gum Machine", q:"What came out of the top of the machine?",
+    options:["Many thin glass tubes bending down to a tub","A single large funnel pointing straight upward","Rows of small blinking colored lights","Long metal arms that stirred all by themselves"],
+    answer:0,
+    why:"Dozens of thin glass tubes stuck out of the top of the machine, all curving down toward a giant tub." },
+
+  { ch:"Chapter 20 · The Great Gum Machine", q:"What happened right after Mr Wonka pressed the first buttons?",
+    options:["The machine rumbled, shook, and let off steam","The machine turned completely silent and still","A bell rang and colored lights flashed","The whole room suddenly went dark"],
+    answer:0,
+    why:"As soon as Wonka pressed the buttons, the machine rumbled loudly, shook, and puffed out steam." },
+
+  { ch:"Chapter 20 · The Great Gum Machine", q:"What poured down the tubes into the giant tub?",
+    options:["Colorful liquids, making a rainbow of color","Warm melted chocolate in several rich shades","Clouds of sweet-smelling colored smoke","Tiny candies in many different shapes"],
+    answer:0,
+    why:"Bright, colorful liquids streamed down through the tubes, filling the tub with a rainbow of color." },
+
+  { ch:"Chapter 20 · The Great Gum Machine", q:"What did the next button on the machine do?",
+    options:["Made the mixture whizz around into a frothy foam","Drained all the liquid straight into the floor below","Cooled the mixture down until it froze solid","Sprayed the mixture out over the whole room"],
+    answer:0,
+    why:"Pressing another button set the mixture whizzing round and round until it turned into a bubbling froth." },
+
+  { ch:"Chapter 20 · The Great Gum Machine", q:"What happened after the frothy mixture finished whizzing?",
+    options:["A loud sucking sound pulled it back inside","It overflowed out of the tub onto the floor","It turned solid and had to be chipped out","It slowly drained away down a hidden pipe"],
+    answer:0,
+    why:"Once the whizzing stopped, a loud sucking noise drew the frothy mixture back inside the machine." },
+
+  { ch:"Chapter 20 · The Great Gum Machine", q:"What finally came out of the machine's drawer?",
+    options:["Something small and grey","A large golden trophy","A stack of colorful wrapped candies","A tiny glowing crystal ball"],
+    answer:0,
+    why:"After all the noise and rumbling, the drawer popped open to reveal something surprisingly small and grey." },
+
+  { ch:"Chapter 20 · The Great Gum Machine", q:"How did Mike Teavee react when he saw what the machine made?",
+    options:["He felt let down that it looked so small","He cheered loudly and clapped both hands","He begged Wonka to make a bigger one","He refused to believe it was finished"],
+    answer:0,
+    why:"Mike Teavee was disappointed, since such an enormous machine had only produced one small, plain-looking object." },
+
+  { ch:"Chapter 20 · The Great Gum Machine", q:"Who figured out what the machine had made?",
+    options:["Violet, who knew right away it was chewing gum","Charlie, who remembered seeing one before","Grandpa Joe, who recognized the sweet smell","Mr Salt, who read the label on the drawer"],
+    answer:0,
+    why:"Violet Beauregarde excitedly guessed correctly that the little grey object was a stick of chewing gum." },
+
+  { ch:"Chapter 20 · Think About It", q:"What does the machine's huge build-up for such a small, plain result suggest about Mr Wonka's inventions?",
+    options:["Their true wonder is hidden inside something simple-looking","They are usually disappointing compared to the effort put in","They generally look as amazing as they really are","They rely more on noise than on real invention"],
+    answer:0,
+    why:"The giant, noisy machine producing one small grey stick hints that Wonka's real magic is hidden inside ordinary-looking things." }
+];
+/* ===================== END EDIT AREA ===================== */
+
+document.body.className = 'theme-' + CONFIG.theme;
+const MARK = CONFIG.theme === 'river' ? '✓' : '⭐';
+document.getElementById('icon').textContent = CONFIG.icon;
+document.getElementById('title').textContent = CONFIG.title;
+document.getElementById('subtitle').textContent = CONFIG.subtitle;
+
+questions.forEach(item => {
+  const correct = item.options[item.answer];
+  for (let i = item.options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [item.options[i], item.options[j]] = [item.options[j], item.options[i]];
+  }
+  item.answer = item.options.indexOf(correct);
+});
+
+let current = 0, score = 0, answered = false;
+const passNeeded = Math.ceil(questions.length * CONFIG.passPct);
+const pctLabel = Math.round(CONFIG.passPct * 100);
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+const qcount = document.getElementById('qcount');
+const scoreboard = document.getElementById('scoreboard');
+const progress = document.getElementById('progress');
+document.getElementById('footer').textContent =
+  `For ${CONFIG.child} · Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})`;
+
+function render() {
+  answered = false;
+  const item = questions[current];
+  qcount.textContent = `Question ${current + 1} of ${questions.length}`;
+  scoreboard.textContent = `${MARK} ${score}`;
+  progress.style.width = `${(current / questions.length) * 100}%`;
+  const opts = item.options.map((o, i) => `<button class="opt" data-i="${i}" onclick="choose(${i})">${o}</button>`).join('');
+  quizArea.innerHTML = `
+    <div class="card">
+      <div class="qmeta">${item.ch}</div>
+      <div class="qtext">${item.q}</div>
+      ${opts}
+      <div class="feedback" id="fb"></div>
+      <div class="center"><button class="btn next" id="nextBtn" onclick="next()">Next →</button></div>
+    </div>`;
+}
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const item = questions[current];
+  const buttons = document.querySelectorAll('.opt');
+  buttons.forEach(b => b.disabled = true);
+  const fb = document.getElementById('fb');
+  if (i === item.answer) {
+    score++;
+    buttons[i].classList.add('correct');
+    fb.className = 'feedback good show';
+    fb.innerHTML = `✅ <strong>Correct!</strong> ${item.why}`;
+  } else {
+    buttons[i].classList.add('wrong');
+    buttons[item.answer].classList.add('correct');
+    fb.className = 'feedback bad show';
+    fb.innerHTML = `❌ <strong>Not quite.</strong> ${item.why}`;
+  }
+  scoreboard.textContent = `${MARK} ${score}`;
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function next() { current++; if (current < questions.length) render(); else showResult(); }
+
+function showResult() {
+  quizArea.classList.add('hidden');
+  document.querySelector('.bar').classList.add('hidden');
+  resultArea.classList.remove('hidden');
+  progress.style.width = '100%';
+  const pct = Math.round((score / questions.length) * 100);
+  const passed = score >= passNeeded;
+  let stars, msg, emoji;
+  if (pct === 100) { stars='⭐⭐⭐⭐⭐'; msg="Perfect score! You really know it."; emoji='🏆'; }
+  else if (passed) { stars='⭐⭐⭐⭐'; msg="Excellent! You passed with room to spare."; emoji='🎖️'; }
+  else if (pct >= 60) { stars='⭐⭐⭐'; msg=`So close! You need ${pctLabel}% to pass — review and try again.`; emoji='📖'; }
+  else if (pct >= 40) { stars='⭐⭐'; msg=`Good effort! You need ${pctLabel}% to pass. Re-read and give it another go.`; emoji='📚'; }
+  else { stars='⭐'; msg="Let's read it again carefully and try once more."; emoji='📗'; }
+  const banner = passed
+    ? `<div style="background:var(--correct-bg);color:var(--good-fg);border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">🎉 PASSED! 🎉</div>`
+    : `<div style="background:var(--bad-bg);color:var(--bad-fg);border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">Not passed yet — need ${pctLabel}%</div>`;
+  resultArea.innerHTML = `
+    <div class="big">${emoji}</div>
+    <h2>Quiz Complete!</h2>
+    ${banner}
+    <div class="stars">${stars}</div>
+    <div class="scoreline">You got <strong>${score}</strong> out of <strong>${questions.length}</strong> (${pct}%)</div>
+    <div style="font-size:15px;color:var(--footer);margin:-4px 0 8px;">Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})</div>
+    <p style="margin:10px 0 20px;font-size:17px;">${msg}</p>
+    <button class="btn" onclick="restart()">Try Again 🔄</button>`;
+}
+
+function restart() {
+  current = 0; score = 0; answered = false;
+  resultArea.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  document.querySelector('.bar').classList.remove('hidden');
+  render();
+}
+render();
+</script>
+</body>
+</html>
