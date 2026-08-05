@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Solutions — Portions &amp; Percents</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #eef4f2 55%, #d9e8e5 100%);
+    min-height: 100vh; color: #1c2a28; padding: 22px 16px 50px;
+  }
+  .wrap { max-width: 800px; margin: 0 auto; }
+
+  header { background: #146b63; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f2faf8; box-shadow: 0 8px 0 #0d443f; margin-bottom: 18px; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+
+  .card { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 6px 0 #cbdedb; margin-bottom: 18px; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16px; line-height: 1.55; }
+  .intro p + p { margin-top: 10px; }
+
+  .qmeta { font-size: 13px; color: #146b63; font-weight: bold; text-transform: uppercase; letter-spacing: .6px; }
+  .qtext { font-size: 20px; margin: 8px 0 6px; line-height: 1.45; font-weight: bold; }
+  .qsrc { font-size: 13px; color: #8a8579; margin-bottom: 14px; }
+
+  .opt { display: block; width: 100%; text-align: left; background: #f3f8f7; border: 3px solid #cbdedb; border-radius: 12px; padding: 12px 16px; font-size: 17px; font-family: inherit; color: #1c2a28; margin-bottom: 9px; cursor: pointer; transition: transform .1s, background .15s, border-color .15s; }
+  .opt:hover:not(:disabled) { transform: translateX(4px); border-color: #4f9f96; }
+  .opt:disabled { cursor: default; }
+  .opt.correct { background: #d7f0d3; border-color: #3a7d44; font-weight: bold; }
+  .opt.wrong { background: #fbeaea; border-color: #c0392b; }
+
+  .feedback { margin-top: 4px; padding: 12px 14px; border-radius: 10px; font-size: 15px; line-height: 1.5; display: none; }
+  .feedback.show { display: block; }
+  .feedback.good { background: #e8f5e6; color: #2e6b34; }
+  .feedback.bad { background: #fbeaea; color: #a5352a; }
+
+  .btn { background: #146b63; color: #fff; border: none; border-radius: 12px; padding: 12px 24px; font-size: 16px; font-family: inherit; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #0d443f; transition: transform .1s; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #0d443f; }
+  .btn.amber { background: #c9761d; box-shadow: 0 5px 0 #8f5211; }
+  .center { text-align: center; }
+
+  .steps { display: none; margin-top: 16px; border-top: 2px dashed #cbdedb; padding-top: 16px; }
+  .steps.show { display: block; }
+  .step { display: flex; gap: 12px; margin-bottom: 16px; }
+  .step .num { flex: 0 0 30px; height: 30px; border-radius: 50%; background: #146b63; color: #fff; font-weight: bold; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+  .step .body { flex: 1; font-size: 16px; line-height: 1.55; }
+  .step .body b { color: #0d443f; }
+  .math { display: block; background: #f3f8f7; border-left: 5px solid #4f9f96; border-radius: 8px; padding: 11px 14px; margin: 9px 0; font-size: 18px; font-family: 'Courier New', monospace; font-weight: bold; color: #0d443f; }
+  .math.answer { background: #d7f0d3; border-left-color: #3a7d44; color: #23572c; }
+
+  table.traps { width: 100%; border-collapse: collapse; margin: 10px 0 4px; font-size: 15px; }
+  table.traps th { text-align: left; background: #f0ece2; color: #6b6152; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; padding: 8px 10px; }
+  table.traps td { padding: 9px 10px; border-top: 1px solid #e6e1d5; line-height: 1.45; vertical-align: top; }
+  table.traps td.pick { font-weight: bold; white-space: nowrap; color: #a5352a; }
+  table.traps tr.right td.pick { color: #2e6b34; }
+  table.traps tr.right td { background: #eef8ec; }
+
+  .takeaway { background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 14px 16px; font-size: 16px; line-height: 1.55; margin-top: 6px; }
+  .takeaway .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; color: #a06a1e; margin-bottom: 5px; }
+
+  .warnbox { background: #fbeaea; border-left: 5px solid #c0392b; border-radius: 8px; padding: 12px 14px; font-size: 15px; line-height: 1.5; color: #7d2b21; margin-top: 6px; }
+
+  h2.sect { font-size: 21px; color: #0d443f; margin: 26px 0 12px; text-align: center; }
+  .prac { border-left: 6px solid #c9761d; }
+  .prac .pq { font-size: 17px; line-height: 1.45; margin-bottom: 10px; }
+  .prow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .prow input { flex: 1; min-width: 130px; font-family: inherit; font-size: 17px; padding: 10px 12px; border: 3px solid #cbdedb; border-radius: 10px; background: #f9fcfb; color: #1c2a28; }
+  .prow input:focus { outline: none; border-color: #c9761d; }
+  .prow input.ok { border-color: #3a7d44; background: #eef8ec; }
+  .prow input.no { border-color: #c0392b; background: #fbeaea; }
+  .pbtn { background: #c9761d; color: #fff; border: none; border-radius: 10px; padding: 10px 16px; font-family: inherit; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #8f5211; }
+  .pbtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #8f5211; }
+  .pbtn.ghost { background: #fff; color: #8a8579; box-shadow: 0 4px 0 #ddd6c8; border: 2px solid #e6e1d5; }
+  .pfb { margin-top: 9px; font-size: 15px; line-height: 1.5; display: none; padding: 10px 12px; border-radius: 9px; }
+  .pfb.show { display: block; }
+  .pfb.good { background: #e8f5e6; color: #2e6b34; }
+  .pfb.bad { background: #fbeaea; color: #a5352a; }
+
+  .scorebox { background: #146b63; color: #f2faf8; border-radius: 14px; padding: 16px; text-align: center; font-size: 17px; font-weight: bold; box-shadow: 0 6px 0 #0d443f; }
+
+  a.home { display: inline-block; margin-top: 16px; color: #56736e; text-decoration: none; font-size: 14px; }
+  a.home:hover { text-decoration: underline; }
+  footer { text-align: center; font-size: 12px; color: #7f938f; margin-top: 18px; }
+
+  @media (max-width: 520px) {
+    .qtext { font-size: 18px; }
+    .math { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="ic">🧮</div>
+    <h1>Math Solutions</h1>
+    <p>Portions &amp; Percents · two worked problems, step by step</p>
+  </header>
+
+  <div class="card intro">
+    <p><strong>How to use this page.</strong> Each problem starts with the question and the same answer choices you saw on the test. Pick an answer first — even if you are not sure. Then open the steps and see whether your thinking matched.</p>
+    <p>Both problems here are really testing <strong>one skill</strong>: finding <em>the whole</em> before you divide. Get the whole right and the arithmetic is easy.</p>
+  </div>
+
+  <!-- ============ QUESTION 14 ============ -->
+  <div class="card" id="c14">
+    <div class="qmeta">Problem 14 · Portions</div>
+    <div class="qtext">A sheet of brownies cut into 100 servings will be shared equally by a group of 50 people. What portion of the brownies will each person receive?</div>
+    <div class="qsrc">Choose one:</div>
+
+    <button class="opt" data-i="0" onclick="pick(14,0)">(A) 0.01</button>
+    <button class="opt" data-i="1" onclick="pick(14,1)">(B) 0.02</button>
+    <button class="opt" data-i="2" onclick="pick(14,2)">(C) 0.05</button>
+    <button class="opt" data-i="3" onclick="pick(14,3)">(D) 0.2</button>
+    <button class="opt" data-i="4" onclick="pick(14,4)">(E) 0.5</button>
+
+    <div class="feedback" id="fb14"></div>
+    <div class="center" style="margin-top:12px;"><button class="btn" id="show14" onclick="showSteps(14)">Show me the steps →</button></div>
+
+    <div class="steps" id="st14">
+
+      <div class="step">
+        <div class="num">1</div>
+        <div class="body">
+          <b>Spot the trap in the word "portion."</b> The question is <em>not</em> asking how many <em>servings</em> each person gets. It is asking what <b>fraction of the whole sheet</b> each person gets. Those are two different numbers — and the wrong answer is sitting right there in choice (A) waiting for you.
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">2</div>
+        <div class="body">
+          <b>How many servings does each person get?</b> Share 100 servings among 50 people:
+          <span class="math">100 ÷ 50 = 2 servings each</span>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">3</div>
+        <div class="body">
+          <b>Turn that into a portion of the whole sheet.</b> The whole sheet is 100 servings, and you have 2 of them:
+          <span class="math">2 ÷ 100 = 2/100 = 1/50 = 0.02</span>
+          <span class="math answer">Answer: (B) 0.02</span>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">4</div>
+        <div class="body">
+          <b>The one-second shortcut.</b> If 50 people split something equally, each person gets <b>1/50 of it</b> — it does not matter how it was sliced. 1 ÷ 50 = 0.02. The "100 servings" detail exists mainly to create the wrong answer.
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">5</div>
+        <div class="body">
+          <b>Why each wrong choice is there.</b>
+          <table class="traps">
+            <tr><th>Choice</th><th>Where it comes from</th></tr>
+            <tr><td class="pick">(A) 0.01</td><td>= 1/100. That is the size of <em>one serving</em>, not one person's share. You divided by the number of <em>slices</em> instead of the number of <em>people</em>. Since there are twice as many slices as people, the real answer is exactly double.</td></tr>
+            <tr class="right"><td class="pick">(B) 0.02</td><td>✓ Correct. 2 servings out of 100 = 1/50 of the sheet.</td></tr>
+            <tr><td class="pick">(C) 0.05</td><td>= 1/20. That would be right if only 20 people were sharing.</td></tr>
+            <tr><td class="pick">(D) 0.2</td><td>= 1/5. Only 5 people sharing.</td></tr>
+            <tr><td class="pick">(E) 0.5</td><td>= half the whole sheet. With 50 people at the table, nobody is walking away with half the brownies — you can cross this off without any math.</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="takeaway">
+        <span class="lbl">Remember this</span>
+        "What portion of ___ ?" always means <strong>your share ÷ the whole thing</strong>. The denominator is the whole object — not the number of pieces it happened to be cut into.
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ QUESTION 15 ============ -->
+  <div class="card" id="c15">
+    <div class="qmeta">Problem 15 · Percent of a number</div>
+    <div class="qtext">The number <em>n</em> is 15% of 104. What is the value of <em>n</em>?</div>
+    <div class="qsrc">Choose one:</div>
+
+    <button class="opt" data-i="0" onclick="pick(15,0)">(A) 6.9</button>
+    <button class="opt" data-i="1" onclick="pick(15,1)">(B) 10.4</button>
+    <button class="opt" data-i="2" onclick="pick(15,2)">(C) 15.6</button>
+    <button class="opt" data-i="3" onclick="pick(15,3)">(D) 119</button>
+    <button class="opt" data-i="4" onclick="pick(15,4)">(E) 1,560</button>
+
+    <div class="feedback" id="fb15"></div>
+    <div class="center" style="margin-top:12px;"><button class="btn" id="show15" onclick="showSteps(15)">Show me the steps →</button></div>
+
+    <div class="steps" id="st15">
+
+      <div class="step">
+        <div class="num">1</div>
+        <div class="body">
+          <b>Translate the English into math, word by word.</b> This is the single most useful habit for percent problems:
+          <table class="traps">
+            <tr><th>English</th><th>Math</th></tr>
+            <tr><td class="pick" style="color:#146b63">"is"</td><td>=</td></tr>
+            <tr><td class="pick" style="color:#146b63">"of"</td><td>×  (multiply)</td></tr>
+            <tr><td class="pick" style="color:#146b63">"15%"</td><td>0.15  (percent means ÷ 100)</td></tr>
+          </table>
+          So <em>"n is 15% of 104"</em> becomes:
+          <span class="math">n = 0.15 × 104</span>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">2</div>
+        <div class="body">
+          <b>Do it in your head by splitting 15% into 10% + 5%.</b>
+          <span class="math">10% of 104 = 10.4  (move the decimal one place left)<br>5% of 104 = half of 10.4 = 5.2<br>10.4 + 5.2 = 15.6</span>
+          <span class="math answer">Answer: (C) 15.6</span>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">3</div>
+        <div class="body">
+          <b>Estimate first — it kills three answers instantly.</b> 15% is a small slice, a little less than one-sixth. So the answer has to be <em>well below</em> 104, somewhere in the mid-teens. Only one choice is anywhere near that. You could answer this in five seconds without finishing the arithmetic.
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">4</div>
+        <div class="body">
+          <b>Why each wrong choice is there.</b>
+          <table class="traps">
+            <tr><th>Choice</th><th>Where it comes from</th></tr>
+            <tr><td class="pick">(A) 6.9</td><td>A decimal-shifted echo of 693 — what you get if you flip the problem around and solve 104 = 0.15 × n. Wrong number treated as the whole.</td></tr>
+            <tr><td class="pick">(B) 10.4</td><td>That is 10% of 104. You stopped one step early and never added the 5%.</td></tr>
+            <tr class="right"><td class="pick">(C) 15.6</td><td>✓ Correct. 0.15 × 104 = 15.6.</td></tr>
+            <tr><td class="pick">(D) 119</td><td>That is 104 + 15 — adding the percent instead of taking a percent. It is also <em>bigger than 104</em>, and a part can never be bigger than the whole.</td></tr>
+            <tr><td class="pick">(E) 1,560</td><td>That is 104 × 15 — you forgot to turn 15% into 0.15. This is 15 <em>times</em> 104, not 15 <em>percent</em> of it.</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="warnbox">
+        <strong>Watch out for the flipped version.</strong> This question says "<em>n</em> is 15% of 104," which gives n = 0.15 × 104 = 15.6. A near-identical question says "<strong>104 is 15% of n</strong>," which is a completely different equation: 104 = 0.15n, so n = 104 ÷ 0.15 ≈ 693. Always find the number that comes right after the word <strong>"of"</strong> — that one is the whole.
+      </div>
+
+      <div class="takeaway" style="margin-top:12px;">
+        <span class="lbl">Remember this</span>
+        <strong>is → =</strong> · <strong>of → ×</strong> · <strong>% → divide by 100</strong>. Write the equation before you touch the numbers, then estimate to throw out impossible answers.
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PRACTICE ============ -->
+  <h2 class="sect">✏️ Now try five on your own</h2>
+
+  <div class="card prac">
+    <div class="pq"><strong>1.</strong> A pizza is cut into 24 slices and shared equally by 8 people. What portion of the whole pizza does each person get? <span style="color:#8a8579;font-size:14px;">(decimal or fraction)</span></div>
+    <div class="prow">
+      <input id="p0" placeholder="your answer" onkeydown="if(event.key==='Enter')check(0)">
+      <button class="pbtn" onclick="check(0)">Check</button>
+      <button class="pbtn ghost" onclick="reveal(0)">Show</button>
+    </div>
+    <div class="pfb" id="pf0"></div>
+  </div>
+
+  <div class="card prac">
+    <div class="pq"><strong>2.</strong> What is 15% of 60?</div>
+    <div class="prow">
+      <input id="p1" placeholder="your answer" onkeydown="if(event.key==='Enter')check(1)">
+      <button class="pbtn" onclick="check(1)">Check</button>
+      <button class="pbtn ghost" onclick="reveal(1)">Show</button>
+    </div>
+    <div class="pfb" id="pf1"></div>
+  </div>
+
+  <div class="card prac">
+    <div class="pq"><strong>3.</strong> The number <em>n</em> is 25% of 84. What is <em>n</em>?</div>
+    <div class="prow">
+      <input id="p2" placeholder="your answer" onkeydown="if(event.key==='Enter')check(2)">
+      <button class="pbtn" onclick="check(2)">Check</button>
+      <button class="pbtn ghost" onclick="reveal(2)">Show</button>
+    </div>
+    <div class="pfb" id="pf2"></div>
+  </div>
+
+  <div class="card prac">
+    <div class="pq"><strong>4.</strong> A cake is cut into 40 pieces and shared equally by 10 people. What portion of the cake does each person receive? <span style="color:#8a8579;font-size:14px;">(decimal or fraction)</span></div>
+    <div class="prow">
+      <input id="p3" placeholder="your answer" onkeydown="if(event.key==='Enter')check(3)">
+      <button class="pbtn" onclick="check(3)">Check</button>
+      <button class="pbtn ghost" onclick="reveal(3)">Show</button>
+    </div>
+    <div class="pfb" id="pf3"></div>
+  </div>
+
+  <div class="card prac">
+    <div class="pq"><strong>5.</strong> Careful — this one is flipped. <strong>18 is 15% of <em>n</em>.</strong> What is <em>n</em>?</div>
+    <div class="prow">
+      <input id="p4" placeholder="your answer" onkeydown="if(event.key==='Enter')check(4)">
+      <button class="pbtn" onclick="check(4)">Check</button>
+      <button class="pbtn ghost" onclick="reveal(4)">Show</button>
+    </div>
+    <div class="pfb" id="pf4"></div>
+  </div>
+
+  <div class="scorebox" id="score">Practice score: 0 of 5</div>
+
+  <div class="center"><a class="home" href="index.html">← Back to Quizzes</a></div>
+  <footer>Kids · Math Solutions · Portions &amp; Percents</footer>
+</div>
+
+<script>
+/* ---------- the two test questions ---------- */
+const Q = {
+  14: {
+    answer: 1,
+    good: "That's it. Each person gets 2 servings, and 2 out of 100 is 1/50 = 0.02 of the whole sheet.",
+    bad: "The answer is (B) 0.02 — each person gets 2 servings, and 2 out of 100 = 1/50 = 0.02. Open the steps below and see exactly where the thinking goes wrong."
+  },
+  15: {
+    answer: 2,
+    good: "Correct. 0.15 × 104 = 15.6 — and it's the only choice near the mid-teens, so estimating alone gets you there.",
+    bad: "The answer is (C) 15.6, because 0.15 × 104 = 15.6. Open the steps below to see which trap each of the other choices was set for."
+  }
+};
+const done = {};
+
+function pick(qid, i) {
+  if (done[qid]) return;
+  done[qid] = true;
+  const card = document.getElementById('c' + qid);
+  const btns = card.querySelectorAll('.opt');
+  btns.forEach(b => b.disabled = true);
+  const correct = Q[qid].answer;
+  const fb = document.getElementById('fb' + qid);
+  if (i === correct) {
+    btns[i].classList.add('correct');
+    fb.className = 'feedback good show';
+    fb.innerHTML = '✅ <strong>Correct!</strong> ' + Q[qid].good;
+  } else {
+    btns[i].classList.add('wrong');
+    btns[correct].classList.add('correct');
+    fb.className = 'feedback bad show';
+    fb.innerHTML = '❌ <strong>Not quite.</strong> ' + Q[qid].bad;
+  }
+}
+
+function showSteps(qid) {
+  document.getElementById('st' + qid).classList.add('show');
+  document.getElementById('show' + qid).style.display = 'none';
+  // if they never picked, still mark the right choice so the page reads clearly
+  if (!done[qid]) {
+    done[qid] = true;
+    const card = document.getElementById('c' + qid);
+    const btns = card.querySelectorAll('.opt');
+    btns.forEach(b => b.disabled = true);
+    btns[Q[qid].answer].classList.add('correct');
+  }
+}
+
+/* ---------- practice ---------- */
+const P = [
+  { ans: ["0.125", ".125", "1/8", "3/24"],
+    why: "8 people share it, so each gets 1/8 of the whole pizza = 0.125. The 24 slices is a distraction: each person gets 3 slices, and 3 ÷ 24 = 1/8." },
+  { ans: ["9"],
+    why: "10% of 60 = 6, and 5% is half of that = 3. 6 + 3 = 9. (Or straight: 0.15 × 60 = 9.)" },
+  { ans: ["21"],
+    why: "25% is one quarter. 84 ÷ 4 = 21." },
+  { ans: ["0.1", "1/10", "4/40"],
+    why: "10 people share it, so each gets 1/10 of the cake = 0.1. Check it the long way: each person gets 40 ÷ 10 = 4 pieces, and 4 ÷ 40 = 1/10. Same answer." },
+  { ans: ["120"],
+    why: "Here 18 is the PART and n is the whole: 18 = 0.15 × n, so n = 18 ÷ 0.15 = 120. Notice you divide this time instead of multiplying — because the unknown sits after the word \"of\"." }
+];
+const pDone = [false,false,false,false,false];
+let pScore = 0;
+
+function norm(s) {
+  return s.trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '').replace(/^\+/, '');
+}
+function matches(input, list) {
+  const v = norm(input);
+  if (!v) return false;
+  if (list.some(a => norm(a) === v)) return true;
+  // accept any numerically-equal decimal, incl. fractions typed as a/b
+  let num = NaN;
+  if (/^\d+(\.\d+)?\/\d+(\.\d+)?$/.test(v)) {
+    const p = v.split('/'); num = parseFloat(p[0]) / parseFloat(p[1]);
+  } else if (/^\.?\d+(\.\d+)?$/.test(v)) {
+    num = parseFloat(v);
+  }
+  if (isNaN(num)) return false;
+  return list.some(a => {
+    let t = NaN;
+    const an = norm(a);
+    if (an.indexOf('/') > -1) { const p = an.split('/'); t = parseFloat(p[0]) / parseFloat(p[1]); }
+    else t = parseFloat(an);
+    return !isNaN(t) && Math.abs(num - t) < 0.005;
+  });
+}
+
+function check(i) {
+  const box = document.getElementById('p' + i);
+  const fb = document.getElementById('pf' + i);
+  const ok = matches(box.value, P[i].ans);
+  box.classList.remove('ok', 'no');
+  if (ok) {
+    box.classList.add('ok');
+    fb.className = 'pfb good show';
+    fb.innerHTML = '✅ <strong>Yes!</strong> ' + P[i].why;
+    if (!pDone[i]) { pDone[i] = true; pScore++; updateScore(); }
+  } else {
+    box.classList.add('no');
+    fb.className = 'pfb bad show';
+    fb.innerHTML = '❌ <strong>Try again.</strong> Re-read the question and ask yourself: what is the <em>whole</em> here? Tap <strong>Show</strong> if you want the worked answer.';
+  }
+}
+
+function reveal(i) {
+  const fb = document.getElementById('pf' + i);
+  document.getElementById('p' + i).value = P[i].ans[0];
+  document.getElementById('p' + i).classList.remove('no');
+  fb.className = 'pfb good show';
+  fb.innerHTML = '💡 <strong>Answer: ' + P[i].ans[0] + '</strong> — ' + P[i].why;
+  pDone[i] = true;
+  updateScore();
+}
+
+function updateScore() {
+  const el = document.getElementById('score');
+  el.textContent = 'Practice score: ' + pScore + ' of 5';
+  if (pScore === 5) el.textContent = '🏆 Practice score: 5 of 5 — you have got this!';
+}
+</script>
+</body>
+</html>
