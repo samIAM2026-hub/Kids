@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Master Vocabulary Trainer · Warren</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#1c1a17; --cream:#f6f3ed; --paper:#fffdf7; --line:#ddd5c6;
+    --navy:#2f4f5e; --navy2:#3f6a7d; --gold:#b4622f; --sand:#efe6d4;
+    --green:#3a7d44; --greenbg:#e8f2e6; --red:#c0392b; --redbg:#fbeaea;
+    --mute:#7a6a55;
+  }
+  body{font-family:Georgia,'Iowan Old Style',serif;background:var(--cream);color:var(--ink);
+       padding:0 0 60px;line-height:1.55;-webkit-text-size-adjust:100%}
+  .wrap{max-width:840px;margin:0 auto;padding:0 16px}
+
+  header{background:linear-gradient(160deg,#2f4f5e 0%,#3f6a7d 100%);color:#fff;padding:22px 0 16px;margin-bottom:0}
+  header h1{font-size:26px;letter-spacing:.2px}
+  header .sub{font-size:13.5px;opacity:.85;margin-top:3px}
+  .cloud{display:inline-block;font-size:11px;font-family:ui-monospace,Menlo,monospace;
+         background:rgba(255,255,255,.15);padding:3px 9px;border-radius:999px;margin-top:9px}
+  .cloud.on{background:rgba(120,220,150,.25)}
+
+  nav{background:var(--paper);border-bottom:2px solid var(--line);position:sticky;top:0;z-index:20;
+      box-shadow:0 2px 8px rgba(0,0,0,.05)}
+  nav .wrap{display:flex;gap:2px;overflow-x:auto}
+  nav button{font-family:inherit;font-size:14px;background:none;border:none;cursor:pointer;
+      padding:13px 15px;color:var(--mute);border-bottom:3px solid transparent;white-space:nowrap}
+  nav button.on{color:var(--navy);border-bottom-color:var(--gold);font-weight:bold}
+
+  section.tab{display:none;padding-top:22px}
+  section.tab.on{display:block}
+
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;
+        box-shadow:0 2px 0 rgba(0,0,0,.04)}
+  h2{font-size:19px;color:var(--navy);margin-bottom:10px}
+  h3{font-size:15px;color:var(--gold);margin-bottom:8px;letter-spacing:.3px}
+  p.note{font-size:13.5px;color:var(--mute);margin-bottom:12px}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+  .stat{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:center}
+  .stat .n{font-size:26px;font-weight:bold;color:var(--navy);line-height:1.1}
+  .stat .l{font-size:11.5px;color:var(--mute);text-transform:uppercase;letter-spacing:.6px;margin-top:3px}
+
+  .bar{height:14px;background:var(--sand);border-radius:999px;overflow:hidden;display:flex;margin:10px 0 6px}
+  .bar i{display:block;height:100%}
+  .legend{font-size:12px;color:var(--mute);display:flex;gap:14px;flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+  button.go{font-family:inherit;font-size:16px;background:var(--navy);color:#fff;border:none;border-radius:10px;
+      padding:13px 24px;cursor:pointer;box-shadow:0 3px 0 #223c48}
+  button.go:hover{background:var(--navy2)}
+  button.go:active{transform:translateY(2px);box-shadow:0 1px 0 #223c48}
+  button.go.alt{background:var(--gold);box-shadow:0 3px 0 #8a4a22}
+  button.go.alt:hover{background:#c9743d}
+  button.go:disabled{background:#b9b1a3;box-shadow:0 3px 0 #9a9285;cursor:not-allowed}
+  button.mini{font-family:inherit;font-size:13px;background:var(--paper);border:1px solid var(--line);
+      border-radius:8px;padding:7px 13px;cursor:pointer;color:var(--ink)}
+  button.mini:hover{border-color:var(--navy);color:var(--navy)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+  /* flashcard */
+  .fc{background:var(--paper);border:2px solid var(--navy);border-radius:16px;padding:30px 22px;text-align:center;
+      min-height:220px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;user-select:none}
+  .fc .word{font-size:38px;font-weight:bold;color:var(--navy);letter-spacing:.5px}
+  .fc .pos{font-size:14px;color:var(--mute);font-style:italic;margin-top:4px}
+  .fc .hint{font-size:12.5px;color:var(--mute);margin-top:18px}
+  .fc .def{font-size:20px;margin-top:14px}
+  .fc .syn{font-size:16px;color:var(--gold);margin-top:10px}
+  .fc .syn b{font-family:ui-monospace,Menlo,monospace;font-size:15px;letter-spacing:.5px}
+  .counter{font-size:13px;color:var(--mute);text-align:center;margin:12px 0}
+
+  /* quiz */
+  .qhead{display:flex;justify-content:space-between;font-size:12.5px;color:var(--mute);margin-bottom:6px}
+  .qbar{height:7px;background:var(--sand);border-radius:999px;overflow:hidden;margin-bottom:18px}
+  .qbar i{display:block;height:100%;background:var(--gold);transition:width .25s}
+  .stem{font-size:15px;color:var(--mute);margin-bottom:4px}
+  .stemword{font-size:32px;font-weight:bold;color:var(--navy);margin-bottom:18px;letter-spacing:.5px}
+  .stemword em{font-size:15px;color:var(--mute);font-weight:normal;margin-left:8px}
+  .opts{display:flex;flex-direction:column;gap:9px}
+  .opt{font-family:inherit;font-size:16px;text-align:left;background:var(--paper);border:2px solid var(--line);
+       border-radius:11px;padding:13px 16px;cursor:pointer;line-height:1.4;color:var(--ink);transition:border-color .12s}
+  .opt:hover:not(:disabled){border-color:var(--navy)}
+  .opt:disabled{cursor:default}
+  .opt.right{background:var(--greenbg);border-color:var(--green);color:#20502a;font-weight:bold}
+  .opt.wrong{background:var(--redbg);border-color:var(--red);color:#8e2c20}
+  .why{margin-top:14px;padding:13px 15px;border-radius:11px;font-size:14.5px;background:var(--sand);border-left:4px solid var(--gold)}
+  .why b{color:var(--navy)}
+
+  /* results */
+  .score{font-size:52px;font-weight:bold;text-align:center;line-height:1.1}
+  .scorelbl{text-align:center;font-size:14px;color:var(--mute);margin-bottom:14px}
+  .misslist{list-style:none;font-size:14.5px}
+  .misslist li{padding:8px 0;border-bottom:1px dashed var(--line)}
+  .misslist li:last-child{border:none}
+  .misslist b{color:var(--navy)}
+  .misslist span{color:var(--mute)}
+
+  /* word list */
+  .tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .tools input{font-family:inherit;font-size:15px;padding:9px 12px;border:1px solid var(--line);
+      border-radius:9px;background:var(--paper);flex:1;min-width:170px;color:var(--ink)}
+  .tools select{font-family:inherit;font-size:14px;padding:9px 10px;border:1px solid var(--line);
+      border-radius:9px;background:var(--paper);color:var(--ink)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--mute);
+     padding:8px 6px;border-bottom:2px solid var(--line)}
+  td{padding:9px 6px;border-bottom:1px solid #eee6d8;vertical-align:top}
+  td.w{font-weight:bold;color:var(--navy);white-space:nowrap}
+  td.p{color:var(--mute);font-style:italic;font-size:12.5px;white-space:nowrap}
+  td.s{color:var(--gold);font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+  .pill{display:inline-block;font-size:10.5px;font-family:ui-monospace,Menlo,monospace;padding:2px 8px;
+        border-radius:999px;white-space:nowrap}
+  .pill.new{background:#eee7d8;color:#8a7a5b}
+  .pill.learn{background:#fdf0d8;color:#96601c}
+  .pill.almost{background:#e2eef5;color:#2f5d86}
+  .pill.master{background:var(--greenbg);color:#20502a}
+
+  /* charts */
+  .chart{display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:8px}
+  .chart .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;min-width:0}
+  .chart .col i{display:block;width:100%;max-width:26px;background:var(--navy2);border-radius:3px 3px 0 0}
+  .chart .col i.low{background:var(--red)}
+  .chart .col i.mid{background:var(--gold)}
+  .chart .col small{font-size:9.5px;color:var(--mute);font-family:ui-monospace,Menlo,monospace}
+  .empty{font-size:14px;color:var(--mute);font-style:italic;padding:14px 0}
+
+  .hidden{display:none!important}
+  footer{text-align:center;font-size:12px;color:var(--mute);margin-top:26px}
+  footer a{color:var(--mute)}
+  @media(max-width:520px){
+    .fc .word{font-size:30px} .stemword{font-size:26px} .score{font-size:42px}
+    td.d{font-size:13px} header h1{font-size:21px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>SSAT Master Vocabulary Trainer</h1>
+    <div class="sub">Warren · Middle Level SSAT · <span id="totalWords">326</span> words · meanings &amp; synonyms only, no spelling</div>
+    <div class="cloud" id="cloudPill">saving on this device</div>
+  </div>
+</header>
+
+<nav><div class="wrap">
+  <button data-tab="today" class="on">Today</button>
+  <button data-tab="progress">Progress</button>
+  <button data-tab="words">Word List</button>
+  <button data-tab="exam">Exams</button>
+  <button data-tab="help">How it works</button>
+</div></nav>
+
+<div class="wrap">
+
+<!-- ============ TODAY ============ -->
+<section class="tab on" id="tab-today">
+  <div class="stats" id="topStats"></div>
+
+  <div id="todayHome" class="card">
+    <h2 id="dayTitle">Day 1</h2>
+    <p class="note" id="dayNote"></p>
+    <div class="bar" id="dayBar"></div>
+    <div class="legend">
+      <span><i class="dot" style="background:#b9b1a3"></i>Not started</span>
+      <span><i class="dot" style="background:#e0a33c"></i>Learning</span>
+      <span><i class="dot" style="background:#3f6a7d"></i>Almost there</span>
+      <span><i class="dot" style="background:#3a7d44"></i>Mastered</span>
+    </div>
+    <div class="row" style="margin-top:18px">
+      <button class="go" id="btnStudy">Study today's words</button>
+      <button class="go alt" id="btnTest">Go straight to the test</button>
+    </div>
+    <p class="note" id="doneNote" style="margin-top:14px"></p>
+  </div>
+
+  <div id="studyBox" class="hidden">
+    <div class="card">
+      <h3 id="studyLbl">New word 1 of 15</h3>
+      <div class="fc" id="flash"></div>
+      <div class="row" style="margin-top:14px;justify-content:space-between">
+        <button class="mini" id="fcPrev">&larr; Back</button>
+        <button class="go" id="fcNext">Next &rarr;</button>
+      </div>
+      <p class="note" style="margin-top:12px">Tap the card to flip it. Say the meaning out loud before you flip — that is what makes it stick.</p>
+    </div>
+  </div>
+
+  <div id="quizBox" class="hidden">
+    <div class="card">
+      <div class="qhead"><span id="qLbl">Question 1 of 15</span><span id="qScore">0 correct</span></div>
+      <div class="qbar"><i id="qFill" style="width:0%"></i></div>
+      <div class="stem" id="qStem"></div>
+      <div class="stemword" id="qWord"></div>
+      <div class="opts" id="qOpts"></div>
+      <div class="why hidden" id="qWhy"></div>
+      <div class="row" style="margin-top:16px;justify-content:flex-end">
+        <button class="go hidden" id="qNext">Next &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultBox" class="hidden">
+    <div class="card">
+      <div class="score" id="rScore"></div>
+      <div class="scorelbl" id="rLbl"></div>
+      <div id="rMsg" class="why"></div>
+      <div id="rMiss" style="margin-top:18px"></div>
+      <div class="row" style="margin-top:18px">
+        <button class="go" id="rDone">Back to today</button>
+        <button class="mini" id="rRetry">Retry the ones I missed</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROGRESS ============ -->
+<section class="tab" id="tab-progress">
+  <div class="stats" id="progStats"></div>
+  <div class="card">
+    <h2>Where every word stands</h2>
+    <div class="bar" id="progBar"></div>
+    <div class="legend">
+      <span><i class="dot" style="background:#b9b1a3"></i>Not started <b id="cNew"></b></span>
+      <span><i class="dot" style="background:#e0a33c"></i>Learning <b id="cLearn"></b></span>
+      <span><i class="dot" style="background:#3f6a7d"></i>Almost <b id="cAlmost"></b></span>
+      <span><i class="dot" style="background:#3a7d44"></i>Mastered <b id="cMaster"></b></span>
+    </div>
+    <p class="note" style="margin-top:12px">A word is <b>Mastered</b> after you get it right three separate times, spread over about two&nbsp;weeks. Miss it once and it goes back to Learning.</p>
+  </div>
+  <div class="card">
+    <h2>Daily test scores</h2>
+    <div class="chart" id="scoreChart"></div>
+    <p class="note" style="margin-top:10px">Green bars are 80% or better — the SSAT passing habit.</p>
+  </div>
+  <div class="card">
+    <h2>Words to watch</h2>
+    <p class="note">The ones Warren has missed most. Worth an extra look before bed.</p>
+    <ul class="misslist" id="tricky"></ul>
+  </div>
+  <div class="card">
+    <h2>Backup &amp; transfer</h2>
+    <p class="note">Copy this text to move progress to another device, or paste a backup in to restore it.</p>
+    <div class="tools"><input id="backupBox" placeholder="press Export to fill this"></div>
+    <div class="row">
+      <button class="mini" id="btnExport">Export</button>
+      <button class="mini" id="btnImport">Import</button>
+      <button class="mini" id="btnReset" style="color:#c0392b">Reset everything</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WORD LIST ============ -->
+<section class="tab" id="tab-words">
+  <div class="card">
+    <h2>All <span id="wlTotal"></span> words</h2>
+    <div class="tools">
+      <input id="wlSearch" placeholder="Search a word, meaning, or synonym…">
+      <select id="wlFilter">
+        <option value="all">Every word</option>
+        <option value="seen">Started</option>
+        <option value="new">Not started</option>
+        <option value="learn">Learning</option>
+        <option value="almost">Almost</option>
+        <option value="master">Mastered</option>
+        <option value="miss">Missed at least once</option>
+      </select>
+      <select id="wlSort">
+        <option value="day">By day</option>
+        <option value="az">A → Z</option>
+        <option value="hard">Hardest first</option>
+      </select>
+    </div>
+    <p class="note" id="wlCount"></p>
+    <table><thead><tr><th>Word</th><th>Meaning</th><th>Synonym</th><th>Status</th></tr></thead>
+    <tbody id="wlBody"></tbody></table>
+  </div>
+</section>
+
+<!-- ============ EXAM ============ -->
+<section class="tab" id="tab-exam">
+  <div class="card">
+    <h2>Checkpoint exam</h2>
+    <p class="note">25 questions drawn from <b>every word Warren has met so far</b> — no warning, no studying first. This is the honest read on how much has actually stuck. Take one whenever you like; a good rhythm is every Sunday.</p>
+    <div class="row"><button class="go" id="btnCheckpoint">Start checkpoint exam</button></div>
+  </div>
+  <div class="card">
+    <h2>Final exam</h2>
+    <p class="note" id="finalNote">50 questions across the whole list. Unlocks once all <span id="finalTotal"></span> words have been introduced.</p>
+    <div class="row"><button class="go alt" id="btnFinal">Start final exam</button></div>
+  </div>
+  <div class="card">
+    <h2>Exam history</h2>
+    <ul class="misslist" id="examHist"></ul>
+  </div>
+</section>
+
+<!-- ============ HELP ============ -->
+<section class="tab" id="tab-help">
+  <div class="card">
+    <h2>The plan in one minute</h2>
+    <p class="note">Every study day has two parts. Early on it is about six minutes; in the busiest review weeks, closer to ten.</p>
+    <h3>1 · Study — 15 new words</h3>
+    <p style="margin-bottom:14px">Flip through fifteen cards. Word on the front, meaning and synonym on the back. Try to say the meaning before you flip.</p>
+    <h3>2 · Test — the new words plus whatever is due</h3>
+    <p style="margin-bottom:14px">Today's fifteen come back as questions, mixed with older words the schedule says it is time to check. Each question is multiple choice: either <b>what does this word mean</b> or <b>which word means the same thing</b>. No spelling, ever — the SSAT never asks you to spell.</p>
+    <h3>3 · The schedule decides when a word comes back</h3>
+    <p style="margin-bottom:14px">Get a word right and it goes quiet for 2 days, then 5, then 12 — and after that third correct answer it is <b>Mastered</b> and stops appearing. Get it wrong and it comes back tomorrow, from the start. That spacing is what moves a word into long-term memory instead of tomorrow-morning memory.</p>
+    <h3>4 · The words are ordered easy to hard</h3>
+    <p style="margin-bottom:14px">Day 1 is <i>vital, genuine, remote</i>. Day 22 is <i>saunter, exasperate, admonish</i>. Every day is a small step up, so it never feels like a wall.</p>
+    <h3>5 · Missing a day is fine</h3>
+    <p>Nothing is lost — the overdue words simply queue up and the next session takes them a batch at a time.</p><h3 style="margin-top:16px">6 · How long the whole thing takes</h3><p>All 326 words are <b>introduced in 22 days</b> at fifteen a day. Getting every one of them to Mastered takes longer, because each word has to survive three correct answers spread over two weeks — expect <b>about six to eight weeks</b> of daily sessions, and the last stretch is review only, no new words. A typical day is fifteen new words plus up to twenty-five reviews. If that runs long, open this file in a text editor and lower <code>REVIEW_CAP</code> in the <code>CONFIG</code> block at the top of the script — nothing else needs to change.</p>
+  </div>
+  <div class="card">
+    <h2>A note on the source list</h2>
+    <p class="note">These 326 words come from the Middle Level SSAT Master Vocabulary List PDF. Two entries in the scanned original were garbled and have been corrected here: <b>dawdle</b>'s synonym reads "daily" in the scan and should be <i>dally</i>, and <b>trek</b>'s definition lost a space ("difficultjourney").</p>
+  </div>
+</section>
+
+<footer>
+  <a href="index.html">&larr; Back to the quiz hub</a>
+</footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+var WORDS=[{"w":"minute","p":"adj.","d":"extremely small","s":"tiny","z":4.98},{"w":"significant","p":"adj.","d":"important; meaningful","s":"major","z":4.98},{"w":"prior","p":"adj.","d":"earlier; coming before","s":"previous","z":4.85},{"w":"frank","p":"adj.","d":"honest and direct","s":"candid","z":4.75},{"w":"unique","p":"adj.","d":"one of a kind","s":"singular","z":4.75},{"w":"urban","p":"adj.","d":"relating to a city","s":"city","z":4.65},{"w":"capable","p":"adj.","d":"having the ability to do something well","s":"competent","z":4.61},{"w":"essential","p":"adj.","d":"absolutely necessary","s":"vital","z":4.61},{"w":"rural","p":"adj.","d":"relating to the countryside","s":"country","z":4.59},{"w":"vast","p":"adj.","d":"extremely large in area or amount","s":"immense","z":4.49},{"w":"remote","p":"adj.","d":"far away; isolated","s":"distant","z":4.41},{"w":"vital","p":"adj.","d":"necessary for life; extremely important","s":"essential","z":4.38},{"w":"genuine","p":"adj.","d":"real; sincere","s":"authentic","z":4.37},{"w":"prominent","p":"adj.","d":"well known; standing out","s":"famous","z":4.33},{"w":"apparent","p":"adj.","d":"easily seen or understood","s":"obvious","z":4.32},{"w":"sufficient","p":"adj.","d":"enough","s":"adequate","z":4.32},{"w":"grave","p":"adj.","d":"very serious","s":"solemn","z":4.31},{"w":"summit","p":"n.","d":"the highest point","s":"peak","z":4.3},{"w":"distinct","p":"adj.","d":"clearly different; easy to notice","s":"separate","z":4.29},{"w":"chaos","p":"n.","d":"total confusion and disorder","s":"mayhem","z":4.27},{"w":"dispute","p":"n/v.","d":"an argument; to argue","s":"quarrel","z":4.27},{"w":"mutual","p":"adj.","d":"shared by two or more people","s":"shared","z":4.26},{"w":"pursue","p":"v.","d":"to chase; to work toward a goal","s":"chase","z":4.26},{"w":"conventional","p":"adj.","d":"usual or traditional","s":"ordinary","z":4.25},{"w":"opponent","p":"n.","d":"a person on the other side of a contest","s":"rival","z":4.2},{"w":"bias","p":"n.","d":"an unfair preference for or against something","s":"prejudice","z":4.18},{"w":"anonymous","p":"adj.","d":"of unknown name or identity","s":"unnamed","z":4.17},{"w":"yield","p":"v.","d":"to give in; to produce","s":"surrender; produce","z":4.16},{"w":"retain","p":"v.","d":"to keep possession of","s":"keep","z":4.16},{"w":"urgent","p":"adj.","d":"needing immediate attention","s":"pressing","z":4.15},{"w":"keen","p":"adj.","d":"sharp; very eager","s":"enthusiastic","z":4.13},{"w":"precise","p":"adj.","d":"exact and accurate","s":"exact","z":4.13},{"w":"flexible","p":"adj.","d":"able to bend or change easily","s":"adaptable","z":4.13},{"w":"humble","p":"adj.","d":"modest; not proud","s":"modest","z":4.11},{"w":"subtle","p":"adj.","d":"not obvious; delicate","s":"faint","z":4.08},{"w":"inevitable","p":"adj.","d":"certain to happen; unavoidable","s":"unavoidable","z":4.08},{"w":"assess","p":"v.","d":"to judge the value or quality of something","s":"evaluate","z":4.07},{"w":"hostile","p":"adj.","d":"unfriendly; acting like an enemy","s":"aggressive","z":4.07},{"w":"notable","p":"adj.","d":"worth noticing; important","s":"remarkable","z":4.07},{"w":"animated","p":"adj.","d":"full of life and energy","s":"lively","z":4.07},{"w":"elaborate","p":"adj.","d":"detailed and complicated","s":"intricate","z":4.06},{"w":"detect","p":"v.","d":"to notice or discover","s":"spot","z":4.05},{"w":"comply","p":"v.","d":"to follow a rule or request","s":"obey","z":4.04},{"w":"enhance","p":"v.","d":"to improve or make greater","s":"strengthen","z":4.04},{"w":"authentic","p":"adj.","d":"real; not fake","s":"genuine","z":4.04},{"w":"cease","p":"v.","d":"to stop","s":"halt","z":4.03},{"w":"modest","p":"adj.","d":"humble; not showy","s":"humble","z":4.03},{"w":"sympathy","p":"n.","d":"shared sorrow or understanding for another","s":"compassion","z":4.01},{"w":"evident","p":"adj.","d":"easy to see or understand","s":"obvious","z":3.99},{"w":"adapt","p":"v.","d":"to change in order to fit new conditions","s":"adjust","z":3.98},{"w":"dense","p":"adj.","d":"tightly packed; thick","s":"compact","z":3.98},{"w":"sensible","p":"adj.","d":"showing good judgment","s":"reasonable","z":3.98},{"w":"trek","p":"n/v.","d":"a long, difficult journey","s":"hike","z":3.96},{"w":"compassion","p":"n.","d":"sympathy and concern for others' suffering","s":"kindness","z":3.95},{"w":"robust","p":"adj.","d":"strong and healthy","s":"sturdy","z":3.94},{"w":"debris","p":"n.","d":"scattered pieces of something broken or destroyed","s":"wreckage","z":3.92},{"w":"gratitude","p":"n.","d":"thankfulness","s":"appreciation","z":3.92},{"w":"refuge","p":"n.","d":"a place of safety","s":"shelter","z":3.91},{"w":"stern","p":"adj.","d":"strict and serious","s":"severe","z":3.9},{"w":"verify","p":"v.","d":"to prove something is true","s":"confirm","z":3.88},{"w":"immense","p":"adj.","d":"extremely large","s":"huge","z":3.88},{"w":"vague","p":"adj.","d":"unclear; not exact","s":"hazy","z":3.87},{"w":"surplus","p":"n.","d":"an amount left over; extra","s":"excess","z":3.87},{"w":"optimistic","p":"adj.","d":"expecting the best to happen","s":"hopeful","z":3.87},{"w":"hardy","p":"adj.","d":"strong and able to survive difficult conditions","s":"robust","z":3.86},{"w":"lethal","p":"adj.","d":"deadly","s":"fatal","z":3.86},{"w":"prompt","p":"adj.","d":"on time; done without delay","s":"punctual","z":3.86},{"w":"fragile","p":"adj.","d":"easily broken","s":"delicate","z":3.86},{"w":"utter","p":"adj./v.","d":"complete, total; to speak","s":"absolute; say","z":3.85},{"w":"clarify","p":"v.","d":"to make clear or easier to understand","s":"explain","z":3.85},{"w":"obscure","p":"adj.","d":"not well known; hard to understand","s":"unclear","z":3.85},{"w":"envy","p":"n.","d":"jealousy of what someone else has","s":"jealousy","z":3.84},{"w":"tolerate","p":"v.","d":"to put up with","s":"endure","z":3.84},{"w":"imply","p":"v.","d":"to suggest without saying directly","s":"hint","z":3.83},{"w":"vicious","p":"adj.","d":"cruel and violent","s":"brutal","z":3.83},{"w":"endure","p":"v.","d":"to suffer through something difficult; to last","s":"withstand","z":3.82},{"w":"despair","p":"n.","d":"total loss of hope","s":"hopelessness","z":3.82},{"w":"reckless","p":"adj.","d":"careless about danger","s":"rash","z":3.82},{"w":"deliberate","p":"adj.","d":"done on purpose","s":"intentional","z":3.82},{"w":"kindle","p":"v.","d":"to start a fire; to stir up a feeling","s":"ignite","z":3.81},{"w":"reluctant","p":"adj.","d":"unwilling; hesitant","s":"hesitant","z":3.81},{"w":"vacant","p":"adj.","d":"empty; not occupied","s":"unoccupied","z":3.8},{"w":"cautious","p":"adj.","d":"careful to avoid danger","s":"wary","z":3.79},{"w":"abundant","p":"adj.","d":"existing in large amounts; more than enough","s":"plentiful","z":3.77},{"w":"merge","p":"v.","d":"to combine into one","s":"unite","z":3.75},{"w":"naive","p":"adj.","d":"innocent and too trusting","s":"gullible","z":3.75},{"w":"rigid","p":"adj.","d":"stiff; not able to bend or change","s":"inflexible","z":3.75},{"w":"vivid","p":"adj.","d":"bright; producing sharp, clear images","s":"brilliant","z":3.75},{"w":"vain","p":"adj.","d":"overly proud of one's looks; unsuccessful","s":"conceited; futile","z":3.74},{"w":"arrogant","p":"adj.","d":"overly proud of oneself","s":"conceited","z":3.74},{"w":"thrive","p":"v.","d":"to grow strong; to succeed","s":"flourish","z":3.73},{"w":"solitary","p":"adj.","d":"alone; done without others","s":"lone","z":3.73},{"w":"anticipate","p":"v.","d":"to expect or look forward to","s":"foresee","z":3.73},{"w":"strive","p":"v.","d":"to try very hard","s":"struggle","z":3.72},{"w":"condemn","p":"v.","d":"to express strong disapproval of","s":"denounce","z":3.72},{"w":"obstacle","p":"n.","d":"something that blocks the way","s":"barrier","z":3.72},{"w":"perceive","p":"v.","d":"to become aware of; to notice","s":"observe","z":3.72},{"w":"ample","p":"adj.","d":"more than enough; generous in size","s":"plentiful","z":3.71},{"w":"hazardous","p":"adj.","d":"dangerous","s":"risky","z":3.71},{"w":"spontaneous","p":"adj.","d":"done without planning","s":"impulsive","z":3.71},{"w":"idle","p":"adj.","d":"not working or active; lazy","s":"inactive","z":3.7},{"w":"wrath","p":"n.","d":"great anger","s":"fury","z":3.7},{"w":"grim","p":"adj.","d":"harsh, stern, and gloomy","s":"bleak","z":3.69},{"w":"durable","p":"adj.","d":"long-lasting; hard to wear out","s":"sturdy","z":3.68},{"w":"rigorous","p":"adj.","d":"very strict or demanding","s":"tough","z":3.68},{"w":"skeptical","p":"adj.","d":"doubting; not easily convinced","s":"doubtful","z":3.68},{"w":"unanimous","p":"adj.","d":"agreed upon by everyone","s":"united","z":3.68},{"w":"lure","p":"v.","d":"to tempt or attract, often into a trap","s":"entice","z":3.67},{"w":"reside","p":"v.","d":"to live in a place","s":"dwell","z":3.67},{"w":"vibrant","p":"adj.","d":"full of life, energy, or bright color","s":"vivid","z":3.67},{"w":"peculiar","p":"adj.","d":"odd or strange","s":"unusual","z":3.67},{"w":"forbid","p":"v.","d":"to order someone not to do something","s":"prohibit","z":3.66},{"w":"morale","p":"n.","d":"the confidence and spirit of a person or group","s":"spirit","z":3.66},{"w":"trivial","p":"adj.","d":"of little importance","s":"minor","z":3.66},{"w":"obsolete","p":"adj.","d":"no longer in use; out of date","s":"outdated","z":3.65},{"w":"formidable","p":"adj.","d":"causing fear or respect because of power or size","s":"intimidating","z":3.65},{"w":"dread","p":"v/n.","d":"to fear greatly; great fear","s":"fear","z":3.64},{"w":"drastic","p":"adj.","d":"extreme and sudden","s":"severe","z":3.63},{"w":"presume","p":"v.","d":"to suppose something is true without proof","s":"assume","z":3.62},{"w":"weary","p":"adj.","d":"very tired","s":"exhausted","z":3.61},{"w":"scarce","p":"adj.","d":"in short supply; hard to find","s":"rare","z":3.61},{"w":"flaw","p":"n.","d":"a defect or imperfection","s":"fault","z":3.6},{"w":"sinister","p":"adj.","d":"evil or threatening","s":"menacing","z":3.6},{"w":"gracious","p":"adj.","d":"kind, polite, and generous","s":"courteous","z":3.59},{"w":"wary","p":"adj.","d":"cautious; on guard against danger","s":"careful","z":3.57},{"w":"majestic","p":"adj.","d":"grand and impressive","s":"magnificent","z":3.57},{"w":"ambiguous","p":"adj.","d":"having more than one possible meaning; unclear","s":"vague","z":3.57},{"w":"vow","p":"n/v.","d":"a serious promise; to promise","s":"pledge","z":3.56},{"w":"eminent","p":"adj.","d":"famous and respected","s":"distinguished","z":3.56},{"w":"prevail","p":"v.","d":"to win out; to prove stronger","s":"triumph","z":3.55},{"w":"intricate","p":"adj.","d":"very detailed and complex","s":"complicated","z":3.55},{"w":"menace","p":"n.","d":"a threat or danger","s":"threat","z":3.54},{"w":"hoax","p":"n.","d":"a trick meant to fool people","s":"prank","z":3.53},{"w":"conform","p":"v.","d":"to behave the way everyone else does; to follow rules","s":"comply","z":3.53},{"w":"persist","p":"v.","d":"to keep trying despite difficulty","s":"persevere","z":3.53},{"w":"flourish","p":"v.","d":"to grow well; to succeed","s":"thrive","z":3.53},{"w":"descend","p":"v.","d":"to go down","s":"drop","z":3.51},{"w":"dedicate","p":"v.","d":"to devote time or effort to a purpose","s":"commit","z":3.51},{"w":"avid","p":"adj.","d":"very eager or enthusiastic","s":"keen","z":3.5},{"w":"bland","p":"adj.","d":"lacking flavor or interest","s":"dull","z":3.5},{"w":"tedious","p":"adj.","d":"long, boring, and tiresome","s":"dull","z":3.5},{"w":"mimic","p":"v.","d":"to imitate, often playfully","s":"copy","z":3.49},{"w":"radiant","p":"adj.","d":"glowing brightly; beaming with joy","s":"brilliant","z":3.49},{"w":"deter","p":"v.","d":"to discourage someone from acting","s":"prevent","z":3.48},{"w":"abolish","p":"v.","d":"to end or do away with completely","s":"eliminate","z":3.48},{"w":"ordeal","p":"n.","d":"a difficult or painful experience","s":"trial","z":3.47},{"w":"turbulent","p":"adj.","d":"wild, stormy, and full of disorder","s":"chaotic","z":3.47},{"w":"concise","p":"adj.","d":"brief and to the point","s":"succinct","z":3.46},{"w":"diminish","p":"v.","d":"to make or become smaller","s":"decrease","z":3.46},{"w":"vigorous","p":"adj.","d":"full of energy and strength","s":"energetic","z":3.46},{"w":"heed","p":"v.","d":"to pay careful attention to","s":"obey","z":3.45},{"w":"candid","p":"adj.","d":"honest and direct","s":"frank","z":3.45},{"w":"audible","p":"adj.","d":"loud enough to be heard","s":"hearable","z":3.45},{"w":"cunning","p":"adj.","d":"clever in a sneaky way","s":"sly","z":3.45},{"w":"prosper","p":"v.","d":"to succeed; to do well","s":"thrive","z":3.45},{"w":"swarm","p":"n/v.","d":"a large moving crowd; to move in a crowd","s":"throng","z":3.44},{"w":"sturdy","p":"adj.","d":"strong and solidly built","s":"durable","z":3.44},{"w":"mourn","p":"v.","d":"to grieve over a loss","s":"grieve","z":3.43},{"w":"lavish","p":"adj.","d":"very generous or luxurious","s":"extravagant","z":3.42},{"w":"novice","p":"n.","d":"a beginner","s":"rookie","z":3.41},{"w":"solemn","p":"adj.","d":"very serious and dignified","s":"grave","z":3.41},{"w":"dormant","p":"adj.","d":"inactive, as if asleep","s":"inactive","z":3.41},{"w":"prudent","p":"adj.","d":"wise and careful","s":"sensible","z":3.41},{"w":"peril","p":"n.","d":"serious danger","s":"hazard","z":3.4},{"w":"barren","p":"adj.","d":"unable to produce plants or fruit; empty","s":"infertile","z":3.4},{"w":"embark","p":"v.","d":"to begin a journey or project","s":"begin","z":3.4},{"w":"extravagant","p":"adj.","d":"spending or costing too much; excessive","s":"lavish","z":3.4},{"w":"soar","p":"v.","d":"to fly high; to rise quickly","s":"climb","z":3.39},{"w":"evade","p":"v.","d":"to avoid or escape by being clever","s":"dodge","z":3.39},{"w":"futile","p":"adj.","d":"useless; having no chance of success","s":"pointless","z":3.39},{"w":"resent","p":"v.","d":"to feel bitter or angry about","s":"begrudge","z":3.38},{"w":"deceive","p":"v.","d":"to trick or mislead","s":"fool","z":3.38},{"w":"impartial","p":"adj.","d":"fair; not taking sides","s":"unbiased","z":3.38},{"w":"obnoxious","p":"adj.","d":"extremely unpleasant or annoying","s":"offensive","z":3.38},{"w":"arid","p":"adj.","d":"extremely dry","s":"parched","z":3.37},{"w":"surpass","p":"v.","d":"to do better than; to go beyond","s":"exceed","z":3.37},{"w":"colossal","p":"adj.","d":"extremely large","s":"enormous","z":3.37},{"w":"wretched","p":"adj.","d":"miserable; very unhappy or of poor quality","s":"miserable","z":3.37},{"w":"immaculate","p":"adj.","d":"perfectly clean; without flaws","s":"spotless","z":3.37},{"w":"exert","p":"v.","d":"to put forth effort or force","s":"apply","z":3.36},{"w":"sparse","p":"adj.","d":"thinly scattered; not dense","s":"scanty","z":3.36},{"w":"tyrant","p":"n.","d":"a cruel and unfair ruler","s":"dictator","z":3.36},{"w":"plentiful","p":"adj.","d":"existing in large amounts","s":"abundant","z":3.36},{"w":"ponder","p":"v.","d":"to think deeply about","s":"consider","z":3.35},{"w":"ingenious","p":"adj.","d":"very clever and inventive","s":"brilliant","z":3.35},{"w":"contradict","p":"v.","d":"to say the opposite of what someone else said","s":"dispute","z":3.35},{"w":"conspicuous","p":"adj.","d":"easily seen; attracting attention","s":"obvious","z":3.35},{"w":"lofty","p":"adj.","d":"very high; noble","s":"elevated","z":3.34},{"w":"malice","p":"n.","d":"a desire to harm others","s":"spite","z":3.34},{"w":"adept","p":"adj.","d":"highly skilled","s":"proficient","z":3.33},{"w":"eerie","p":"adj.","d":"strange and frightening","s":"creepy","z":3.33},{"w":"inhabit","p":"v.","d":"to live in a place","s":"occupy","z":3.33},{"w":"uncanny","p":"adj.","d":"strange in a mysterious or eerie way","s":"mysterious","z":3.33},{"w":"negligent","p":"adj.","d":"careless; failing to take proper care","s":"careless","z":3.33},{"w":"meek","p":"adj.","d":"quiet, gentle, and obedient","s":"submissive","z":3.32},{"w":"perish","p":"v.","d":"to die or be destroyed","s":"die","z":3.32},{"w":"treacherous","p":"adj.","d":"full of hidden danger; disloyal","s":"hazardous","z":3.32},{"w":"smug","p":"adj.","d":"overly pleased with oneself","s":"self-satisfied","z":3.31},{"w":"linger","p":"v.","d":"to stay longer than necessary","s":"remain","z":3.31},{"w":"nurture","p":"v.","d":"to care for and help grow","s":"nourish","z":3.31},{"w":"valiant","p":"adj.","d":"brave","s":"courageous","z":3.31},{"w":"oblivious","p":"adj.","d":"completely unaware","s":"unaware","z":3.31},{"w":"intimidate","p":"v.","d":"to frighten someone, often to force them to act","s":"threaten","z":3.31},{"w":"illuminate","p":"v.","d":"to light up; to make clear","s":"brighten","z":3.3},{"w":"hasty","p":"adj.","d":"done too quickly, without enough thought","s":"rushed","z":3.29},{"w":"adversary","p":"n.","d":"an enemy or opponent","s":"foe","z":3.29},{"w":"zeal","p":"n.","d":"great enthusiasm and energy for a cause","s":"passion","z":3.28},{"w":"compel","p":"v.","d":"to force someone to do something","s":"require","z":3.28},{"w":"brittle","p":"adj.","d":"hard but easily broken","s":"fragile","z":3.28},{"w":"predicament","p":"n.","d":"a difficult situation","s":"dilemma","z":3.28},{"w":"quaint","p":"adj.","d":"charmingly old-fashioned","s":"picturesque","z":3.27},{"w":"serene","p":"adj.","d":"calm and peaceful","s":"tranquil","z":3.27},{"w":"dismal","p":"adj.","d":"gloomy and depressing","s":"dreary","z":3.26},{"w":"timid","p":"adj.","d":"shy and easily frightened","s":"shy","z":3.25},{"w":"lament","p":"v.","d":"to express deep sorrow","s":"mourn","z":3.25},{"w":"commend","p":"v.","d":"to praise","s":"applaud","z":3.25},{"w":"sluggish","p":"adj.","d":"slow-moving; lacking energy","s":"lethargic","z":3.25},{"w":"pessimistic","p":"adj.","d":"expecting the worst to happen","s":"gloomy","z":3.25},{"w":"shun","p":"v.","d":"to deliberately avoid","s":"avoid","z":3.24},{"w":"ascend","p":"v.","d":"to climb or go up","s":"rise","z":3.24},{"w":"luminous","p":"adj.","d":"giving off light; glowing","s":"radiant","z":3.24},{"w":"hoard","p":"v.","d":"to collect and store away, often secretly","s":"stockpile","z":3.23},{"w":"diligent","p":"adj.","d":"hardworking and careful","s":"industrious","z":3.23},{"w":"wilt","p":"v.","d":"to droop from lack of water or energy","s":"droop","z":3.22},{"w":"feeble","p":"adj.","d":"weak","s":"frail","z":3.21},{"w":"mingle","p":"v.","d":"to mix or socialize with others","s":"socialize","z":3.21},{"w":"defiant","p":"adj.","d":"boldly refusing to obey","s":"rebellious","z":3.21},{"w":"eloquent","p":"adj.","d":"skilled and expressive in speaking","s":"articulate","z":3.21},{"w":"ferocious","p":"adj.","d":"fierce and violent","s":"savage","z":3.21},{"w":"brisk","p":"adj.","d":"quick and energetic","s":"lively","z":3.2},{"w":"courteous","p":"adj.","d":"polite and respectful","s":"civil","z":3.2},{"w":"ornate","p":"adj.","d":"highly decorated","s":"fancy","z":3.19},{"w":"deprive","p":"v.","d":"to take something away from; to deny","s":"withhold","z":3.19},{"w":"obedient","p":"adj.","d":"willing to follow orders or rules","s":"dutiful","z":3.19},{"w":"devour","p":"v.","d":"to eat quickly and hungrily","s":"gobble","z":3.17},{"w":"desolate","p":"adj.","d":"empty, lifeless, and lonely","s":"barren","z":3.17},{"w":"curt","p":"adj.","d":"rudely brief in speech","s":"abrupt","z":3.16},{"w":"overwhelm","p":"v.","d":"to overpower completely","s":"overcome","z":3.15},{"w":"tranquil","p":"adj.","d":"calm and quiet","s":"peaceful","z":3.14},{"w":"scorn","p":"n/v.","d":"strong disrespect; to look down on","s":"contempt","z":3.13},{"w":"blunder","p":"n.","d":"a careless mistake","s":"error","z":3.13},{"w":"lenient","p":"adj.","d":"not strict; merciful","s":"easygoing","z":3.13},{"w":"murky","p":"adj.","d":"dark, cloudy, and hard to see through","s":"gloomy","z":3.12},{"w":"fickle","p":"adj.","d":"frequently changing one's mind or loyalty","s":"changeable","z":3.12},{"w":"exhilarating","p":"adj.","d":"thrilling and exciting","s":"thrilling","z":3.12},{"w":"frugal","p":"adj.","d":"careful with money; avoiding waste","s":"thrifty","z":3.11},{"w":"shrewd","p":"adj.","d":"sharp and clever, especially in practical matters","s":"astute","z":3.11},{"w":"astute","p":"adj.","d":"clever and quick at understanding","s":"shrewd","z":3.1},{"w":"cordial","p":"adj.","d":"warm and friendly","s":"gracious","z":3.1},{"w":"gullible","p":"adj.","d":"easily fooled or tricked","s":"naive","z":3.1},{"w":"revere","p":"v.","d":"to respect deeply","s":"honor","z":3.09},{"w":"lull","p":"n/v.","d":"a calm pause; to soothe to sleep","s":"calm","z":3.08},{"w":"dreary","p":"adj.","d":"dull, dark, and gloomy","s":"bleak","z":3.08},{"w":"unruly","p":"adj.","d":"hard to control","s":"disorderly","z":3.08},{"w":"distort","p":"v.","d":"to twist out of shape; to misrepresent","s":"warp","z":3.08},{"w":"humiliate","p":"v.","d":"to embarrass someone deeply","s":"shame","z":3.08},{"w":"omit","p":"v.","d":"to leave out","s":"exclude","z":3.07},{"w":"banish","p":"v.","d":"to send away as punishment","s":"exile","z":3.07},{"w":"nimble","p":"adj.","d":"quick and light in movement","s":"agile","z":3.07},{"w":"outlandish","p":"adj.","d":"strange and unusual","s":"bizarre","z":3.07},{"w":"meager","p":"adj.","d":"small in amount; barely enough","s":"scanty","z":3.05},{"w":"somber","p":"adj.","d":"dark, gloomy, and serious","s":"grave","z":3.05},{"w":"replenish","p":"v.","d":"to fill up again","s":"restock","z":3.04},{"w":"erode","p":"v.","d":"to wear away gradually","s":"wear down","z":3.03},{"w":"devious","p":"adj.","d":"dishonest and sneaky","s":"deceitful","z":3.03},{"w":"wither","p":"v.","d":"to dry up and shrivel","s":"shrivel","z":3.02},{"w":"placid","p":"adj.","d":"calm and peaceful","s":"serene","z":3.01},{"w":"savory","p":"adj.","d":"pleasant tasting or smelling","s":"tasty","z":3.0},{"w":"aloof","p":"adj.","d":"distant and unfriendly in manner","s":"detached","z":2.99},{"w":"frigid","p":"adj.","d":"extremely cold","s":"freezing","z":2.98},{"w":"inquisitive","p":"adj.","d":"eager to learn; full of questions","s":"curious","z":2.98},{"w":"yearn","p":"v.","d":"to long for something deeply","s":"crave","z":2.97},{"w":"elated","p":"adj.","d":"extremely happy","s":"overjoyed","z":2.97},{"w":"coax","p":"v.","d":"to persuade gently","s":"urge","z":2.96},{"w":"taunt","p":"v.","d":"to tease in a cruel way","s":"mock","z":2.96},{"w":"monotonous","p":"adj.","d":"boring because it never changes","s":"repetitive","z":2.95},{"w":"docile","p":"adj.","d":"calm and easy to manage or teach","s":"obedient","z":2.93},{"w":"grueling","p":"adj.","d":"extremely tiring and demanding","s":"exhausting","z":2.93},{"w":"painstaking","p":"adj.","d":"done with great care and effort","s":"meticulous","z":2.93},{"w":"confide","p":"v.","d":"to share a secret with someone trusted","s":"entrust","z":2.9},{"w":"reprimand","p":"v.","d":"to scold, especially officially","s":"scold","z":2.9},{"w":"quench","p":"v.","d":"to satisfy thirst; to put out a fire","s":"extinguish","z":2.89},{"w":"retort","p":"n/v.","d":"a sharp or witty reply","s":"comeback","z":2.89},{"w":"parched","p":"adj.","d":"extremely dry or thirsty","s":"dehydrated","z":2.88},{"w":"thrifty","p":"adj.","d":"careful with money","s":"frugal","z":2.86},{"w":"boisterous","p":"adj.","d":"noisy, energetic, and rowdy","s":"rambunctious","z":2.86},{"w":"plummet","p":"v.","d":"to fall sharply and quickly","s":"plunge","z":2.85},{"w":"quiver","p":"v.","d":"to shake slightly","s":"tremble","z":2.84},{"w":"gaudy","p":"adj.","d":"flashy or showy in a tasteless way","s":"garish","z":2.83},{"w":"contaminate","p":"v.","d":"to make dirty or impure","s":"pollute","z":2.83},{"w":"falter","p":"v.","d":"to hesitate, stumble, or lose confidence","s":"waver","z":2.82},{"w":"legible","p":"adj.","d":"clear enough to read","s":"readable","z":2.8},{"w":"industrious","p":"adj.","d":"hardworking","s":"diligent","z":2.79},{"w":"elude","p":"v.","d":"to escape or avoid cleverly","s":"evade","z":2.78},{"w":"irate","p":"adj.","d":"very angry","s":"furious","z":2.78},{"w":"ravenous","p":"adj.","d":"extremely hungry","s":"famished","z":2.76},{"w":"jovial","p":"adj.","d":"cheerful and jolly","s":"merry","z":2.74},{"w":"nonchalant","p":"adj.","d":"calmly unconcerned; relaxed","s":"casual","z":2.74},{"w":"pacify","p":"v.","d":"to calm someone down","s":"soothe","z":2.73},{"w":"obstinate","p":"adj.","d":"stubborn; refusing to change one's mind","s":"headstrong","z":2.73},{"w":"baffle","p":"v.","d":"to confuse completely","s":"puzzle","z":2.72},{"w":"recede","p":"v.","d":"to move back or withdraw","s":"retreat","z":2.71},{"w":"procrastinate","p":"v.","d":"to put off doing something","s":"delay","z":2.71},{"w":"meander","p":"v.","d":"to wander slowly without a clear direction","s":"roam","z":2.69},{"w":"haughty","p":"adj.","d":"arrogantly proud; looking down on others","s":"snobbish","z":2.68},{"w":"deplete","p":"v.","d":"to use up a supply of something","s":"exhaust","z":2.65},{"w":"jubilant","p":"adj.","d":"extremely joyful, especially over a success","s":"triumphant","z":2.63},{"w":"gloat","p":"v.","d":"to brag or take pleasure in one's own success","s":"boast","z":2.62},{"w":"mirth","p":"n.","d":"laughter and fun","s":"merriment","z":2.62},{"w":"dwindle","p":"v.","d":"to gradually shrink or lessen","s":"diminish","z":2.61},{"w":"gingerly","p":"adv.","d":"very carefully and cautiously","s":"cautiously","z":2.59},{"w":"feign","p":"v.","d":"to fake or pretend","s":"pretend","z":2.58},{"w":"cower","p":"v.","d":"to shrink back or crouch in fear","s":"cringe","z":2.55},{"w":"bashful","p":"adj.","d":"shy and easily embarrassed","s":"timid","z":2.54},{"w":"glum","p":"adj.","d":"sad and gloomy","s":"dejected","z":2.52},{"w":"captivate","p":"v.","d":"to hold the attention of; to charm","s":"fascinate","z":2.52},{"w":"scowl","p":"v.","d":"to frown angrily","s":"glower","z":2.51},{"w":"famished","p":"adj.","d":"extremely hungry","s":"starving","z":2.39},{"w":"irk","p":"v.","d":"to annoy","s":"irritate","z":2.38},{"w":"miserly","p":"adj.","d":"stingy; hating to spend money","s":"cheap","z":2.33},{"w":"admonish","p":"v.","d":"to warn or scold gently","s":"caution","z":2.29},{"w":"saunter","p":"v.","d":"to walk in a slow, relaxed way","s":"stroll","z":2.23},{"w":"jeer","p":"v.","d":"to mock or make fun of loudly","s":"taunt","z":2.14},{"w":"dawdle","p":"v.","d":"to waste time; to move slowly","s":"dally","z":1.97},{"w":"exasperate","p":"v.","d":"to annoy greatly","s":"frustrate","z":1.9},{"w":"bewilder","p":"v.","d":"to confuse or puzzle","s":"perplex","z":1.74}];
+var CONF={"0":[31,113,147],"1":[13,14,18,38,48,128,186],"3":[151],"7":[11],"9":[60,62,83,97,176,182],"11":[7],"12":[44],"13":[1,14,18,38,48,66,70,128,186],"14":[1,13,18,38,48,128,186],"16":[102,160,177,212,217,235,242,252,261,314],"18":[1,13,14,38,48,128,186,254],"20":[185],"27":[42,72,75,133,150,233,241],"28":[221,262],"30":[93,134,137,138,206,222,278,292],"31":[0,113,147],"32":[86],"33":[46,194,213,276,313],"37":[74,98,115,122,131,163,196,202,228],"38":[1,13,14,18,48,128,186],"39":[109,149,229,272,296,306,308],"40":[130],"41":[143],"42":[27,53,72,75,133,150,207,233,241],"43":[90,135,154],"44":[12],"46":[33,194,213,276,313],"47":[53,76,157,214],"48":[1,13,14,18,38,128,186],"51":[153,162,184,189,246,247,264],"52":[303,321],"53":[42,47,76,157,207,214],"54":[64,86,103,149,156],"58":[86,104,117,226,253,299],"60":[9,62,83,97,176,182],"61":[70,126,300,325],"62":[9,60,83,97,175,176,182],"63":[217],"64":[54,86,103,149,156],"66":[13],"67":[208,224],"70":[13,61,126,300,325],"71":[185],"72":[27,42,75,133,150,233,241],"74":[37,98,115,122,131,163,196,202,228],"75":[27,42,72,133,150,233,241],"76":[47,53,157,214],"80":[82,105,124,162],"82":[80,105,124,162,245],"83":[9,60,62,97,176,182,260],"85":[132,171,249,311],"86":[32,54,58,64,103,104,149,156,226,253,299],"87":[109,142,184,203,220],"88":[89,169,187,197,304],"89":[88,187,197,304],"90":[43,135,154,284],"93":[30,134,137,138,206,222,278,292],"94":[141,197,239,274,280,307,320,322],"95":[299],"97":[9,60,62,83,176,182],"98":[37,74,115,122,131,163,196,202,228],"100":[119,161,198,216,224,290,302,323],"101":[170,173,188,294,318,324],"102":[16,160,177,212,217,235,242,252,261,314],"103":[54,64,86,149,156],"104":[58,86,226,253,299],"105":[80,82,124,162],"107":[207,273,315],"108":[191],"109":[39,87,149,272,296,306,308],"110":[190,192,210,259],"111":[143,232,256],"113":[0,31,147],"115":[37,74,98,122,131,163,196,202,228],"116":[213,252,312],"117":[58],"119":[100,198,216,224,290,302,323],"120":[180,245,260,284,319],"122":[37,74,98,115,131,163,196,202,228],"123":[230,248],"124":[80,82,105,162,310],"125":[158,166,231,288],"126":[61,70,300,325],"128":[1,13,14,18,38,48,186],"130":[40],"131":[37,74,98,115,122,163,196,202,228],"132":[85,171,249,311],"133":[27,42,72,75,150,233,241,279],"134":[30,93,137,138,206,222,278,292],"135":[43,90,154],"137":[30,93,134,138,206,222,278,292],"138":[30,93,134,137,206,222,278,292],"139":[140],"140":[139],"141":[94,197,239,274,280,307,320,322],"142":[87,184,203,220],"143":[41,111,232,256],"147":[0,31,113],"148":[195,223,263,265,301,305,309],"149":[39,54,64,86,103,109,156],"150":[27,42,72,75,133,233,241],"151":[3],"153":[51,162,184,189,246,247,264],"154":[43,90,135],"156":[54,64,86,103,149],"157":[47,53,76,214],"158":[125,166,231,288],"160":[16,102,177,212,217,235,242,252,261,314],"161":[100],"162":[51,80,82,105,124,153,184,189,246,247,264],"163":[37,74,98,115,122,131,195,196,202,228],"164":[235],"166":[125,158,231,288],"167":[219],"168":[218,257,293],"169":[88],"170":[101,173,188,294,318,324],"171":[85,132,249,311],"173":[101,170,188,294,318,324],"174":[234,283,295,317],"175":[62],"176":[9,60,62,83,97,182],"177":[16,102,160,212,217,235,242,252,261,314],"180":[120,245,260,284,319],"182":[9,60,62,83,97,176],"184":[51,87,142,153,162,189,246,247,264],"185":[20,71,289],"186":[1,13,14,18,38,48,128],"187":[88,89,197,304],"188":[101,170,173,294,318,324],"189":[51,153,162,184,246,247,264],"190":[110,192,210,259],"191":[108],"192":[110,190,210,259],"194":[33,46,213,276,313],"195":[148,163,223,263,265,301,305,309],"196":[37,74,98,115,122,131,163,202,228],"197":[88,89,94,141,187,239,274,280,304,307,320,322],"198":[100,119,216,224,290,302,323],"202":[37,74,98,115,122,131,163,196,228],"203":[87,142,220],"206":[30,93,134,137,138,222,278,292],"207":[42,53,107,273,315],"208":[67,224],"210":[110,190,192,259],"211":[238,251,266,298],"212":[16,102,160,177,217,235,242,252,261,314],"213":[33,46,116,194,276,312,313],"214":[47,53,76,157],"216":[100,119,198,224,290,302,323],"217":[16,63,102,160,177,212,235,242,252,261,314],"218":[168,257,293],"219":[167],"220":[87,142,203],"221":[28,262],"222":[30,93,134,137,138,206,278,292],"223":[148,195,263,265,301,305,309],"224":[67,100,119,198,208,216,290,302,323],"226":[58,86,104,253,299],"228":[37,74,98,115,122,131,163,196,202],"229":[39],"230":[123],"231":[125,158,166,288],"232":[111,143,256],"233":[27,42,72,75,133,150,241,276],"234":[174,283,295,317],"235":[16,102,160,164,177,212,217,242,252,261,314],"238":[211,251,266,298],"239":[94,141,197,274,280,307,320,322],"241":[27,42,72,75,133,150,233],"242":[16,102,160,177,212,217,235,252,261,314],"243":[299],"245":[82,120,180,260,284,319],"246":[51,153,162,184,189,247,264],"247":[51,153,162,184,189,246,264],"248":[123],"249":[85,132,171,311],"251":[211,238,266,298],"252":[16,102,116,160,177,212,217,235,242,261,314],"253":[58,86,104,226,299],"254":[18],"256":[111,143,232],"257":[168,218,293],"259":[110,190,192,210],"260":[83,120,180,245,284,319],"261":[16,102,160,177,212,217,235,242,252,314],"262":[28,221],"263":[148,195,223,265,301,305,309],"264":[51,153,162,184,189,246,247],"265":[148,195,223,263,301,305,309],"266":[211,238,251,298],"272":[39,109,296,306,308],"273":[107,207,315],"274":[94,141,197,239,280,307,320,322],"276":[33,46,194,213,233,313],"278":[30,93,134,137,138,206,222,292],"279":[133],"280":[94,141,197,239,274,307,320,322],"283":[174,234,295,317],"284":[90,120,180,245,260,319],"288":[125,158,166,231],"289":[185],"290":[100,119,198,216,224,302,323],"292":[30,93,134,137,138,206,222,278],"293":[168,218,257],"294":[101,170,173,188,318,324],"295":[174,234,283,317],"296":[39,109,272,306,308],"298":[211,238,251,266],"299":[58,86,95,104,226,243,253],"300":[61,70,126,325],"301":[148,195,223,263,265,305,309],"302":[100,119,198,216,224,290,323],"303":[52,321],"304":[88,89,187,197],"305":[148,195,223,263,265,301,309],"306":[39,109,272,296,308],"307":[94,141,197,239,274,280,320,322],"308":[39,109,272,296,306],"309":[148,195,223,263,265,301,305],"310":[124],"311":[85,132,171,249],"312":[116,213],"313":[33,46,194,213,276],"314":[16,102,160,177,212,217,235,242,252,261],"315":[107,207,273],"317":[174,234,283,295],"318":[101,170,173,188,294,324],"319":[120,180,245,260,284],"320":[94,141,197,239,274,280,307,322],"321":[52,303],"322":[94,141,197,239,274,280,307,320],"323":[100,119,198,216,224,290,302],"324":[101,170,173,188,294,318],"325":[61,70,126,300]};
+
+/* ============================================================
+   SSAT Master Vocabulary Trainer — logic
+   Edit CONFIG only. Everything else derives from it.
+   ============================================================ */
+var CONFIG = {
+  CHILD:        'Warren',
+  NEW_PER_DAY:  15,     // new words introduced each study day
+  REVIEW_CAP:   25,     // most review questions allowed in one session
+  INTERVALS:    [2,5,12],// days until a word returns, after 1st / 2nd / 3rd correct answer
+  PASS:         0.8,    // 80% = a good day
+  CHECKPOINT:   25,     // questions in a checkpoint exam
+  FINAL:        50,     // questions in the final exam
+  CLOUD_KEY:    'checklists/warren_ssat_vocab',
+  STORAGE_KEY:  'warren_ssat_vocab_v1'
+};
+var BOX_MAX = CONFIG.INTERVALS.length;   // box 3 == mastered
+
+/* ---------- tiny helpers ---------- */
+var $ = function(id){ return document.getElementById(id); };
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function todayISO(){ var d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10); }
+function addDays(iso,n){ var d=new Date(iso+'T12:00:00'); d.setDate(d.getDate()+n);
+  return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10); }
+function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+function sample(a,n){ return shuffle(a.slice()).slice(0,n); }
+function pct(a,b){ return b? Math.round(a/b*100):0; }
+
+/* ---------- state ---------- */
+var ST = null;
+function blankState(){
+  return { v:1, intro:0, w:{}, days:[], exams:[], session:null, started:todayISO() };
+}
+function loadState(){
+  try{ var raw=localStorage.getItem(CONFIG.STORAGE_KEY);
+       if(raw){ var s=JSON.parse(raw); if(s && s.w) return s; } }catch(e){}
+  return blankState();
+}
+function saveState(){
+  try{ localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(ST)); }catch(e){}
+  Cloud.push(ST);
+}
+function ws(i){                     // word state, created on demand
+  if(!ST.w[i]) ST.w[i] = { b:0, due:todayISO(), r:0, x:0 };
+  return ST.w[i];
+}
+function status(i){
+  var s = ST.w[i];
+  if(!s) return 'new';
+  if(s.b>=BOX_MAX) return 'master';
+  if(s.b===0) return 'learn';
+  if(s.b===1) return 'learn';
+  return 'almost';
+}
+var LABEL = { 'new':'Not started', 'learn':'Learning', 'almost':'Almost', 'master':'Mastered' };
+var COLOR = { 'new':'#b9b1a3', 'learn':'#e0a33c', 'almost':'#3f6a7d', 'master':'#3a7d44' };
+
+/* ---------- optional cloud sync (silently falls back) ---------- */
+var Cloud = (function(){
+  var ref=null, ok=false, ignore=false;
+  function pill(t,on){ var p=$('cloudPill'); if(!p) return; p.textContent=t; p.className='cloud'+(on?' on':''); }
+  function init(){
+    if(!window.firebase){ pill('saving on this device',false); return; }
+    try{
+      if(!firebase.apps.length) firebase.initializeApp({
+        apiKey:'AIzaSyDMKUeccjFtMbotXulnMhYcoykWpw4Y7ls',
+        authDomain:'family-checklist-acc6b.firebaseapp.com',
+        databaseURL:'https://family-checklist-acc6b-default-rtdb.firebaseio.com',
+        projectId:'family-checklist-acc6b',
+        storageBucket:'family-checklist-acc6b.firebasestorage.app',
+        messagingSenderId:'127899043154', appId:'1:127899043154:web:5a49cce9a1913fbc41e68b'
+      });
+      firebase.auth().signInAnonymously().then(function(){
+        ref = firebase.database().ref(CONFIG.CLOUD_KEY);
+        return ref.once('value');
+      }).then(function(snap){
+        ok = true; pill('synced across devices', true);
+        var remote = snap.val();
+        if(remote && remote.json){
+          try{
+            var r = JSON.parse(remote.json);
+            var mine = ST.days.length + ST.exams.length + Object.keys(ST.w).length;
+            var theirs = r.days.length + r.exams.length + Object.keys(r.w).length;
+            if(theirs > mine){ ST = r; try{localStorage.setItem(CONFIG.STORAGE_KEY,remote.json);}catch(e){} renderAll(); }
+          }catch(e){}
+        }
+        push(ST);
+      }).catch(function(){ ok=false; pill('saving on this device', false); });
+    }catch(e){ pill('saving on this device', false); }
+  }
+  function push(s){
+    if(!ok || !ref) return;
+    ref.set({ json: JSON.stringify(s), at: Date.now() }).catch(function(){
+      ok=false; pill('saving on this device', false);
+    });
+  }
+  return { init:init, push:push };
+})();
+
+/* ============================================================
+   QUESTION BUILDING
+   Two types only: word -> meaning, word -> synonym.
+   A distractor is never a word the target could reasonably mean.
+   ============================================================ */
+function pool(i){
+  var bad = {}; (CONF[String(i)]||[]).forEach(function(j){ bad[j]=1; });
+  var out=[];
+  for(var j=0;j<WORDS.length;j++) if(j!==i && !bad[j]) out.push(j);
+  return out;
+}
+function buildQ(i, type){
+  if(!type) type = Math.random()<0.5 ? 'def' : 'syn';
+  var p = pool(i), me = WORDS[i];
+  var same = p.filter(function(j){ return WORDS[j].p===me.p; });
+  var src  = same.length>=20 ? same : p;
+  // prefer words of similar difficulty so the choices feel fair
+  src = src.slice().sort(function(a,b){
+    return Math.abs(WORDS[a].z-me.z)-Math.abs(WORDS[b].z-me.z); }).slice(0,40);
+  var text = function(j){ return type==='def' ? WORDS[j].d : WORDS[j].s; };
+  var picked=[], usedText={}; usedText[text(i).toLowerCase()]=1;
+  var cand = shuffle(src);
+  for(var k=0;k<cand.length && picked.length<3;k++){
+    var t = text(cand[k]).toLowerCase();
+    if(usedText[t]) continue;
+    usedText[t]=1; picked.push(cand[k]);
+  }
+  var opts = picked.concat([i]);
+  shuffle(opts);
+  return { i:i, type:type, opts:opts, answer:opts.indexOf(i) };
+}
+
+/* ---------- scheduling ---------- */
+function dueList(t){
+  var out=[];
+  for(var k in ST.w){ var s=ST.w[k];
+    if(s.b<BOX_MAX && s.due<=t) out.push(parseInt(k,10)); }
+  out.sort(function(a,b){
+    var A=ST.w[a], B=ST.w[b];
+    if(A.due!==B.due) return A.due<B.due?-1:1;
+    return A.b-B.b;
+  });
+  return out;
+}
+function dayNumber(){ return ST.days.length + 1; }
+function newBatch(){
+  var out=[];
+  for(var k=ST.intro; k<Math.min(ST.intro+CONFIG.NEW_PER_DAY, WORDS.length); k++) out.push(k);
+  return out;
+}
+function gradeWord(i, right){
+  var s = ws(i), t = todayISO();
+  if(right){
+    s.r++;
+    s.b = Math.min(s.b+1, BOX_MAX);
+    s.due = s.b>=BOX_MAX ? '9999-12-31' : addDays(t, CONFIG.INTERVALS[s.b-1]);
+  } else {
+    s.x++; s.b = 0; s.due = addDays(t,1);
+  }
+}
+
+/* ============================================================
+   TODAY
+   ============================================================ */
+function todayDone(){ var t=todayISO(); return ST.days.some(function(d){ return d.date===t; }); }
+
+function renderToday(){
+  var t = todayISO(), fresh = newBatch(), due = dueList(t);
+  var counts = tally();
+  $('topStats').innerHTML =
+    stat(dayNumber(),'Study day') +
+    stat(ST.intro+' / '+WORDS.length,'Words introduced') +
+    stat(counts.master,'Mastered') +
+    stat(streak(),'Day streak');
+
+  var dayTotalDays = Math.ceil(WORDS.length/CONFIG.NEW_PER_DAY);
+  $('dayTitle').textContent = ST.intro>=WORDS.length
+      ? 'Review day '+dayNumber()
+      : 'Day '+dayNumber()+' of '+dayTotalDays+' new-word days';
+
+  var reviewN = Math.min(due.length, CONFIG.REVIEW_CAP);
+  var parts=[];
+  if(fresh.length) parts.push('<b>'+fresh.length+' new words</b> to study');
+  if(reviewN) parts.push('<b>'+reviewN+' words due for review</b>'+(due.length>reviewN?' (of '+due.length+' waiting)':''));
+  $('dayNote').innerHTML = parts.length
+      ? 'Today: '+parts.join(' · ')+' — about '+Math.max(5,Math.round((fresh.length+reviewN)/4))+' minutes.'
+      : 'Nothing is due today. Every word is either mastered or resting. Take a checkpoint exam if you want a challenge.';
+
+  $('dayBar').innerHTML = barHTML(counts);
+  $('btnStudy').disabled = fresh.length===0;
+  $('btnTest').disabled  = (fresh.length+due.length)===0;
+  $('btnStudy').textContent = fresh.length? "Study today's "+fresh.length+' new words' : 'No new words today';
+  $('btnTest').textContent  = fresh.length? 'Go straight to the test' : (due.length? 'Start review test ('+reviewN+')' : 'Nothing to test');
+
+  var mid = ST.session && ST.session.date===t && ST.session.pos < ST.session.q.length;
+  if(mid){
+    $('doneNote').innerHTML = 'You have a test in progress — press <b>Go straight to the test</b> to pick it up where you left off.';
+  } else if(todayDone()){
+    // spacing only works if the days are actually spaced out
+    $('btnStudy').disabled = true;
+    $('btnStudy').textContent = 'Done for today';
+    $('doneNote').innerHTML = '&#10003; Today\u2019s session is finished. Stop here — the gap between now and tomorrow is the part that moves these words into long-term memory. ' +
+      'If you really want more, take a <b>checkpoint exam</b> instead of pulling tomorrow\u2019s words forward. ' +
+      '<button class="mini" id="btnAhead" style="margin-left:6px">Study ahead anyway</button>';
+    var ba = $('btnAhead');
+    if(ba) ba.onclick = function(){
+      if(confirm('Studying the next 15 words now means today counts as two days, and the review spacing shifts with it. Carry on?')){
+        $('btnStudy').disabled=false; startStudy();
+      }
+    };
+  } else {
+    $('doneNote').innerHTML = '';
+  }
+}
+function stat(n,l){ return '<div class="stat"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>'; }
+function tally(){
+  var c={ 'new':0,'learn':0,'almost':0,'master':0 };
+  for(var i=0;i<WORDS.length;i++) c[status(i)]++;
+  return c;
+}
+function barHTML(c){
+  var n=WORDS.length, keys=['new','learn','almost','master'], h='';
+  keys.forEach(function(k){ if(c[k]) h+='<i style="width:'+(c[k]/n*100)+'%;background:'+COLOR[k]+'"></i>'; });
+  return h;
+}
+function streak(){
+  if(!ST.days.length) return 0;
+  var n=0, d=todayISO(), have={};
+  ST.days.forEach(function(x){ have[x.date]=1; });
+  if(!have[d]) d = addDays(d,-1);
+  while(have[d]){ n++; d = addDays(d,-1); }
+  return n;
+}
+
+/* ---------- flashcards ---------- */
+var FC = { list:[], pos:0, flipped:false };
+function startStudy(){
+  FC.list = newBatch(); FC.pos=0; FC.flipped=false;
+  if(!FC.list.length) return;
+  show('studyBox'); drawCard();
+}
+function drawCard(){
+  var i = FC.list[FC.pos], w = WORDS[i];
+  $('studyLbl').textContent = 'New word '+(FC.pos+1)+' of '+FC.list.length;
+  $('flash').innerHTML = FC.flipped
+    ? '<div class="word">'+esc(w.w)+'</div><div class="pos">'+esc(w.p)+'</div>'+
+      '<div class="def">'+esc(w.d)+'</div>'+
+      '<div class="syn">same as &nbsp;<b>'+esc(w.s)+'</b></div>'
+    : '<div class="word">'+esc(w.w)+'</div><div class="pos">'+esc(w.p)+'</div>'+
+      '<div class="hint">say what you think it means, then tap to check</div>';
+  $('fcPrev').disabled = FC.pos===0;
+  $('fcNext').textContent = FC.pos===FC.list.length-1 ? "Start today's test →" : 'Next →';
+}
+function show(which){
+  ['todayHome','studyBox','quizBox','resultBox'].forEach(function(id){
+    $(id).classList.toggle('hidden', id!==which);
+  });
+  window.scrollTo(0,0);
+}
+
+/* ---------- the test ---------- */
+var QZ = null;
+function buildSession(){
+  var t = todayISO(), fresh = newBatch(), due = dueList(t);
+  var freshSet={}; fresh.forEach(function(i){ freshSet[i]=1; });
+  due = due.filter(function(i){ return !freshSet[i]; }).slice(0, CONFIG.REVIEW_CAP);
+  var ids = fresh.concat(due);
+  if(!ids.length) return null;
+  var q = shuffle(ids).map(function(i){ return buildQ(i); });
+  return { date:t, q:q, pos:0, right:0, miss:[], newIds:fresh, kind:'daily' };
+}
+function startTest(){
+  var t = todayISO();
+  if(ST.session && ST.session.date===t && ST.session.pos < ST.session.q.length){
+    QZ = ST.session;                       // resume
+  } else {
+    QZ = buildSession();
+    if(!QZ){ renderToday(); show('todayHome'); return; }
+    ST.session = QZ; saveState();
+  }
+  show('quizBox'); drawQ();
+}
+function startExam(kind){
+  var seen=[];
+  for(var i=0;i<(kind==='final'?WORDS.length:ST.intro);i++) seen.push(i);
+  if(seen.length<4){ alert('Study at least one day first — there is nothing to examine yet.'); return; }
+  var n = Math.min(kind==='final'?CONFIG.FINAL:CONFIG.CHECKPOINT, seen.length);
+  QZ = { date:todayISO(), q:sample(seen,n).map(function(i){ return buildQ(i); }),
+         pos:0, right:0, miss:[], newIds:[], kind:kind };
+  tab('today'); show('quizBox'); drawQ();
+}
+function startRetry(ids){
+  QZ = { date:todayISO(), q:shuffle(ids.slice()).map(function(i){ return buildQ(i); }),
+         pos:0, right:0, miss:[], newIds:[], kind:'retry' };
+  show('quizBox'); drawQ();
+}
+function drawQ(){
+  var q = QZ.q[QZ.pos], w = WORDS[q.i];
+  $('qLbl').textContent = 'Question '+(QZ.pos+1)+' of '+QZ.q.length;
+  $('qScore').textContent = QZ.right+' correct';
+  $('qFill').style.width = (QZ.pos/QZ.q.length*100)+'%';
+  $('qStem').textContent = q.type==='def' ? 'What does this word mean?' : 'Which word means the same thing?';
+  $('qWord').innerHTML = esc(w.w)+' <em>'+esc(w.p)+'</em>';
+  $('qWhy').classList.add('hidden'); $('qNext').classList.add('hidden');
+  var h='';
+  q.opts.forEach(function(j,k){
+    var txt = q.type==='def' ? WORDS[j].d : WORDS[j].s;
+    h += '<button class="opt" data-k="'+k+'">'+esc(txt)+'</button>';
+  });
+  $('qOpts').innerHTML = h;
+  Array.prototype.forEach.call($('qOpts').children, function(b){
+    b.onclick = function(){ answer(parseInt(b.dataset.k,10)); };
+  });
+}
+function answer(k){
+  var q = QZ.q[QZ.pos], w = WORDS[q.i], right = (k===q.answer);
+  Array.prototype.forEach.call($('qOpts').children, function(b,idx){
+    b.disabled = true;
+    if(idx===q.answer) b.classList.add('right');
+    else if(idx===k)   b.classList.add('wrong');
+  });
+  if(right){ QZ.right++; } else { QZ.miss.push(q.i); }
+  if(QZ.kind!=='retry') gradeWord(q.i, right);
+  $('qWhy').classList.remove('hidden');
+  $('qWhy').innerHTML = (right? '<b>Yes.</b> ' : '<b>Not quite.</b> ') +
+      '<b>'+esc(w.w)+'</b> <i>'+esc(w.p)+'</i> — '+esc(w.d)+
+      '. Closest single word: <b>'+esc(w.s)+'</b>.';
+  $('qScore').textContent = QZ.right+' correct';
+  $('qNext').classList.remove('hidden');
+  $('qNext').textContent = QZ.pos===QZ.q.length-1 ? 'See results →' : 'Next →';
+  QZ.pos++;
+  if(QZ.kind==='daily'){ ST.session = QZ; }
+  saveState();
+}
+function finishTest(){
+  var n=QZ.q.length, r=QZ.right, p=pct(r,n);
+  if(QZ.kind==='daily'){
+    ST.intro = Math.min(ST.intro + QZ.newIds.length, WORDS.length);
+    if(!ST.days.some(function(d){ return d.date===QZ.date; }))
+      ST.days.push({ date:QZ.date, score:r, total:n });
+    else {
+      var d = ST.days.filter(function(x){ return x.date===QZ.date; })[0];
+      d.score = Math.max(d.score, r); d.total = Math.max(d.total, n);
+    }
+    ST.session = null;
+  } else if(QZ.kind!=='retry'){
+    ST.exams.push({ date:QZ.date, kind:QZ.kind, score:r, total:n });
+  }
+  saveState();
+  $('rScore').textContent = p+'%';
+  $('rScore').style.color = p>=CONFIG.PASS*100 ? '#3a7d44' : (p>=60?'#b4622f':'#c0392b');
+  $('rLbl').textContent = r+' out of '+n+' correct';
+  var msg;
+  if(p===100) msg = 'Perfect. Every one of those words is now scheduled further out — you will not see them again for a while.';
+  else if(p>=CONFIG.PASS*100) msg = 'Above the 80% line. The ones you missed come back tomorrow; everything else moves down the road.';
+  else if(p>=60) msg = 'Solid effort. The missed words reset to the start of the schedule, which is exactly what they need.';
+  else msg = 'A hard set. Nothing is lost — every word you missed comes back tomorrow, and it usually clicks on the second or third pass.';
+  $('rMsg').innerHTML = msg;
+  if(QZ.miss.length){
+    var h='<h3>Come back to these</h3><ul class="misslist">';
+    QZ.miss.forEach(function(i){ var w=WORDS[i];
+      h+='<li><b>'+esc(w.w)+'</b> <span>'+esc(w.p)+'</span> — '+esc(w.d)+' <span>('+esc(w.s)+')</span></li>'; });
+    $('rMiss').innerHTML = h+'</ul>';
+    $('rRetry').classList.remove('hidden');
+    $('rRetry').onclick = function(){ startRetry(QZ.miss); };
+  } else {
+    $('rMiss').innerHTML = '<h3>Nothing missed. Clean sheet.</h3>';
+    $('rRetry').classList.add('hidden');
+  }
+  show('resultBox');
+  renderAll();
+}
+
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+function renderProgress(){
+  var c = tally();
+  var tests = ST.days.concat(ST.exams);
+  var tot = tests.reduce(function(a,d){ return a+d.total; },0);
+  var got = tests.reduce(function(a,d){ return a+d.score; },0);
+  $('progStats').innerHTML =
+    stat(pct(c.master,WORDS.length)+'%','Mastered') +
+    stat(ST.days.length,'Days studied') +
+    stat(pct(got,tot)+'%','Overall accuracy') +
+    stat(ST.exams.length,'Exams taken');
+  $('progBar').innerHTML = barHTML(c);
+  $('cNew').textContent=c['new']; $('cLearn').textContent=c.learn;
+  $('cAlmost').textContent=c.almost; $('cMaster').textContent=c.master;
+
+  var days = ST.days.slice(-24);
+  $('scoreChart').innerHTML = days.length ? days.map(function(d,k){
+    var p = pct(d.score,d.total);
+    var cls = p>=80?'':(p>=60?'mid':'low');
+    return '<div class="col"><i class="'+cls+'" style="height:'+Math.max(4,p)+'%"></i><small>'+
+           (days.length>14 && k%2 ? '' : d.date.slice(5))+'</small></div>';
+  }).join('') : '<div class="empty">No tests yet — the chart fills in after day one.</div>';
+  if(days.length) $('scoreChart').style.display='flex'; else $('scoreChart').style.display='block';
+
+  var trick = Object.keys(ST.w).map(function(k){ return [parseInt(k,10), ST.w[k].x]; })
+      .filter(function(p){ return p[1]>0; })
+      .sort(function(a,b){ return b[1]-a[1]; }).slice(0,12);
+  $('tricky').innerHTML = trick.length ? trick.map(function(p){
+    var w=WORDS[p[0]];
+    return '<li><b>'+esc(w.w)+'</b> <span>'+esc(w.p)+'</span> — '+esc(w.d)+
+           ' <span>('+esc(w.s)+') · missed '+p[1]+'&times;</span></li>';
+  }).join('') : '<li class="empty">Nothing missed yet.</li>';
+
+  $('examHist').innerHTML = ST.exams.length ? ST.exams.slice().reverse().map(function(e){
+    var p=pct(e.score,e.total);
+    return '<li><b>'+(e.kind==='final'?'Final exam':'Checkpoint')+'</b> <span>'+e.date+'</span> — '+
+           '<b style="color:'+(p>=80?'#3a7d44':(p>=60?'#b4622f':'#c0392b'))+'">'+p+'%</b> <span>('+e.score+'/'+e.total+')</span></li>';
+  }).join('') : '<li class="empty">No exams yet.</li>';
+}
+
+/* ============================================================
+   WORD LIST
+   ============================================================ */
+function renderWords(){
+  var q = ($('wlSearch').value||'').toLowerCase().trim();
+  var f = $('wlFilter').value, sortBy = $('wlSort').value;
+  var rows=[];
+  for(var i=0;i<WORDS.length;i++){
+    var w=WORDS[i], st=status(i), s=ST.w[i];
+    if(q && (w.w+' '+w.d+' '+w.s).toLowerCase().indexOf(q)<0) continue;
+    if(f==='seen'  && st==='new') continue;
+    if(f==='new'   && st!=='new') continue;
+    if(f==='learn' && st!=='learn') continue;
+    if(f==='almost'&& st!=='almost') continue;
+    if(f==='master'&& st!=='master') continue;
+    if(f==='miss'  && !(s&&s.x>0)) continue;
+    rows.push(i);
+  }
+  if(sortBy==='az') rows.sort(function(a,b){ return WORDS[a].w<WORDS[b].w?-1:1; });
+  if(sortBy==='hard') rows.sort(function(a,b){ return WORDS[a].z-WORDS[b].z; });
+  $('wlCount').innerHTML = rows.length+' word'+(rows.length===1?'':'s')+' shown'+
+    (q||f!=='all' ? ' · <a href="#" id="wlClear">clear filters</a>' : '');
+  $('wlBody').innerHTML = rows.map(function(i){
+    var w=WORDS[i], st=status(i), s=ST.w[i];
+    var day = Math.floor(i/CONFIG.NEW_PER_DAY)+1;
+    return '<tr><td class="w">'+esc(w.w)+'<br><span style="font-weight:normal;color:#a99c85;font-size:11px">day '+day+'</span></td>'+
+      '<td class="d">'+esc(w.d)+'</td><td class="s">'+esc(w.s)+'</td>'+
+      '<td><span class="pill '+st+'">'+LABEL[st]+'</span>'+
+      (s&&s.x?'<br><span style="font-size:10.5px;color:#c0392b">missed '+s.x+'&times;</span>':'')+'</td></tr>';
+  }).join('');
+  var cl=$('wlClear'); if(cl) cl.onclick=function(e){ e.preventDefault();
+    $('wlSearch').value=''; $('wlFilter').value='all'; renderWords(); };
+}
+
+/* ============================================================
+   WIRING
+   ============================================================ */
+function tab(name){
+  Array.prototype.forEach.call(document.querySelectorAll('nav button'), function(b){
+    b.classList.toggle('on', b.dataset.tab===name); });
+  Array.prototype.forEach.call(document.querySelectorAll('section.tab'), function(s){
+    s.classList.toggle('on', s.id==='tab-'+name); });
+  window.scrollTo(0,0);
+  renderAll();
+}
+function renderAll(){ renderToday(); renderProgress(); renderWords(); renderExamTab(); }
+function renderExamTab(){
+  var done = ST.intro>=WORDS.length;
+  $('btnFinal').disabled = !done;
+  $('btnCheckpoint').disabled = ST.intro<4;
+  $('finalNote').innerHTML = done
+    ? 'All '+WORDS.length+' words have been introduced. 50 questions, drawn from the whole list. This is the one that counts.'
+    : '50 questions across the whole list. Unlocks once all '+WORDS.length+' words have been introduced — '+
+      (WORDS.length-ST.intro)+' still to go.';
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  ST = loadState();
+  $('totalWords').textContent = WORDS.length;
+  $('wlTotal').textContent = WORDS.length;
+  $('finalTotal').textContent = WORDS.length;
+
+  Array.prototype.forEach.call(document.querySelectorAll('nav button'), function(b){
+    b.onclick = function(){ tab(b.dataset.tab); }; });
+
+  $('btnStudy').onclick = startStudy;
+  $('btnTest').onclick  = startTest;
+  $('flash').onclick    = function(){ FC.flipped=!FC.flipped; drawCard(); };
+  $('fcPrev').onclick   = function(){ if(FC.pos>0){ FC.pos--; FC.flipped=false; drawCard(); } };
+  $('fcNext').onclick   = function(){
+    if(FC.pos<FC.list.length-1){ FC.pos++; FC.flipped=false; drawCard(); }
+    else startTest();
+  };
+  $('qNext').onclick = function(){ if(QZ.pos<QZ.q.length) drawQ(); else finishTest(); };
+  $('rDone').onclick = function(){ renderAll(); show('todayHome'); };
+
+  $('btnCheckpoint').onclick = function(){ startExam('checkpoint'); };
+  $('btnFinal').onclick      = function(){ startExam('final'); };
+
+  $('wlSearch').oninput = renderWords;
+  $('wlFilter').onchange= renderWords;
+  $('wlSort').onchange  = renderWords;
+
+  $('btnExport').onclick = function(){ $('backupBox').value = JSON.stringify(ST); $('backupBox').select(); };
+  $('btnImport').onclick = function(){
+    try{ var s=JSON.parse($('backupBox').value); if(!s.w) throw 0;
+         ST=s; saveState(); renderAll(); alert('Progress restored.'); }
+    catch(e){ alert('That does not look like a backup. Paste the whole exported line.'); }
+  };
+  $('btnReset').onclick = function(){
+    if(confirm('Erase all of '+CONFIG.CHILD+"'s progress and start again at Day 1?")){
+      ST = blankState(); saveState(); renderAll(); show('todayHome');
+    }
+  };
+
+  renderAll();
+  Cloud.init();
+});
+
+</script>
+</body>
+</html>
