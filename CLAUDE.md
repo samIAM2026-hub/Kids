@@ -115,6 +115,20 @@ Never commit account data, and keep child references to **first names only** (as
 ## Index sync — do this every time a page is added/renamed/moved
 
 1. Add/adjust its card in the matching **hub** (`Quizzes/index.html` or `Interest Lessons/index.html`).
+   **Quizzes hub only — always stamp the card with the date you added it:**
+   `<a class="quiz" href="…" data-added="YYYY-MM-DD">`. A script at the bottom of
+   `Quizzes/index.html` reads that attribute, and while the card is newer than `NEW_DAYS`
+   (currently **1** — i.e. added *today*) it gets a red **NEW** badge, a red outline, gets moved
+   to the front of its section, and is counted in a "🆕 N new quizzes added today" line under the
+   subtitle. A card with no `data-added` simply never shows the badge — it is not an error, but
+   don't leave it off new cards. To make the badge linger longer, change the single `NEW_DAYS`
+   constant at the top of that script.
+   **New *section* in the Quizzes hub?** Give its wrapper div an `id` and a short
+   `data-tab="🍑 Label"`. A second script builds the sticky tab strip at the top of the page from
+   every `[data-tab][id]` element — one tab per section, click to smooth-scroll there, active tab
+   tracked on scroll via IntersectionObserver, a red dot on any tab whose section holds a NEW
+   quiz, and `#section-id` deep links. Nothing in the script needs editing; a section without
+   `data-tab` just never gets a tab.
 2. Update the repo-root `../index.html` if the page is surfaced there (it currently links the two
    checklists, both hubs, the board game, and the Victoria explorer quest — under 👧🧒 孩子们 and
    🤖/🌲 sections).
