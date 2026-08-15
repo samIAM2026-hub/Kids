@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fractions Workshop — Adding &amp; Subtracting (Unit 3)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #eef4f2 55%, #d9e8e5 100%);
+    min-height: 100vh; color: #1c2a28; padding: 22px 14px 60px;
+  }
+  .wrap { max-width: 840px; margin: 0 auto; }
+
+  header { background: #146b63; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f2faf8; box-shadow: 0 8px 0 #0d443f; margin-bottom: 16px; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+
+  /* sticky progress */
+  .progwrap { position: sticky; top: 0; z-index: 30; background: rgba(255,253,247,.94); backdrop-filter: blur(4px); border-radius: 12px; padding: 9px 12px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(13,68,63,.12); }
+  .progtop { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; color: #0d443f; margin-bottom: 5px; }
+  .bar { height: 11px; background: #dbe9e6; border-radius: 99px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg,#4f9f96,#3a7d44); border-radius: 99px; transition: width .35s; }
+
+  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 6px 0 #cbdedb; margin-bottom: 16px; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16px; line-height: 1.55; }
+  .intro p + p { margin-top: 10px; }
+
+  h2.sect { font-size: 20px; color: #0d443f; margin: 26px 0 12px; text-align: center; }
+  h2.sect span { background: #d9e8e5; border-radius: 99px; padding: 5px 16px; display: inline-block; }
+
+  .qmeta { font-size: 12px; color: #146b63; font-weight: bold; text-transform: uppercase; letter-spacing: .6px; }
+  .qtext { font-size: 18px; margin: 6px 0 10px; line-height: 1.45; font-weight: bold; }
+  .qsub { font-size: 14px; color: #8a8579; margin-bottom: 10px; }
+
+  /* fraction display */
+  .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 3px; font-family: 'Courier New', monospace; font-weight: bold; line-height: 1.05; }
+  .fr i { font-style: normal; padding: 0 4px; border-bottom: 2px solid currentColor; }
+  .fr b { padding: 0 4px; }
+  .big .fr { font-size: 21px; }
+
+  .expr { font-size: 21px; font-weight: bold; color: #0d443f; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+
+  /* answer input */
+  .ansrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .fracin { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; background: #f3f8f7; border: 3px solid #cbdedb; border-radius: 12px; padding: 7px 9px; }
+  .fracin input { width: 62px; text-align: center; font-family: 'Courier New', monospace; font-size: 20px; font-weight: bold; padding: 5px 2px; border: 2px solid #cbdedb; border-radius: 7px; background: #fff; color: #0d443f; }
+  .fracin input:focus { outline: none; border-color: #c9761d; }
+  .fracin .rule { width: 62px; height: 3px; background: #0d443f; border-radius: 2px; }
+  .fracin.ok { border-color: #3a7d44; background: #eef8ec; }
+  .fracin.no { border-color: #c0392b; background: #fbeaea; }
+
+  .btn { background: #146b63; color: #fff; border: none; border-radius: 12px; padding: 11px 20px; font-size: 15px; font-family: inherit; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #0d443f; transition: transform .1s; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #0d443f; }
+  .btn.amber { background: #c9761d; box-shadow: 0 5px 0 #8f5211; }
+  .btn.ghost { background: #fff; color: #56736e; box-shadow: 0 4px 0 #dfe9e7; border: 2px solid #dfe9e7; }
+  .btn.sm { padding: 8px 14px; font-size: 14px; }
+  .center { text-align: center; }
+
+  .fb { margin-top: 10px; padding: 11px 13px; border-radius: 10px; font-size: 15px; line-height: 1.5; display: none; }
+  .fb.show { display: block; }
+  .fb.good { background: #e8f5e6; color: #2e6b34; }
+  .fb.bad { background: #fbeaea; color: #a5352a; }
+  .fb.warm { background: #fff5e3; color: #94590f; }
+
+  .steps { display: none; margin-top: 14px; border-top: 2px dashed #cbdedb; padding-top: 14px; }
+  .steps.show { display: block; }
+  .step { display: flex; gap: 11px; margin-bottom: 14px; }
+  .step .num { flex: 0 0 28px; height: 28px; border-radius: 50%; background: #146b63; color: #fff; font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .step .body { flex: 1; font-size: 15.5px; line-height: 1.55; }
+  .step .body b { color: #0d443f; }
+  .math { display: block; background: #f3f8f7; border-left: 5px solid #4f9f96; border-radius: 8px; padding: 10px 13px; margin: 8px 0; font-size: 17px; font-family: 'Courier New', monospace; font-weight: bold; color: #0d443f; }
+  .math.answer { background: #d7f0d3; border-left-color: #3a7d44; color: #23572c; }
+
+  .pies { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+  .pies .lab { text-align: center; font-size: 13px; color: #56736e; }
+  .pies .op { font-size: 26px; font-weight: bold; color: #146b63; }
+
+  .takeaway { background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 13px 15px; font-size: 15.5px; line-height: 1.55; }
+  .takeaway .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; color: #a06a1e; margin-bottom: 5px; }
+
+  /* recipe */
+  .recipe { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 12px; }
+  .recipe .r { background: #f3f8f7; border: 2px solid #cbdedb; border-radius: 12px; padding: 12px; text-align: center; }
+  .recipe .r .n { display: inline-block; width: 26px; height: 26px; line-height: 26px; border-radius: 50%; background: #146b63; color: #fff; font-weight: bold; font-size: 14px; margin-bottom: 6px; }
+  .recipe .r .t { font-weight: bold; font-size: 15px; color: #0d443f; }
+  .recipe .r .d { font-size: 13.5px; color: #56736e; margin-top: 4px; line-height: 1.4; }
+
+  /* lab */
+  .lab { background: #0d443f; color: #eaf6f4; border-radius: 14px; padding: 18px; }
+  .lab h3 { font-size: 17px; margin-bottom: 4px; }
+  .lab p { font-size: 14.5px; opacity: .9; line-height: 1.5; }
+  .labrow { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 14px; }
+  .lab input[type=range] { flex: 1; min-width: 180px; accent-color: #ffd479; }
+  .labout { font-family: 'Courier New', monospace; font-weight: bold; font-size: 20px; background: rgba(255,255,255,.12); border-radius: 10px; padding: 8px 14px; }
+
+  /* letter grid */
+  .lgrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+  .lcell { background: #f9fcfb; border: 3px solid #cbdedb; border-radius: 12px; padding: 12px; position: relative; }
+  .lcell .tag { position: absolute; top: -11px; right: 10px; background: #146b63; color: #fff; font-weight: bold; font-size: 14px; width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+  .lcell.done { border-color: #3a7d44; background: #eef8ec; }
+  .lcell .fracin { padding: 5px 7px; }
+  .lcell .fracin input, .lcell .fracin .rule { width: 48px; }
+  .lcell .fracin input { font-size: 17px; }
+
+  .wordstrip { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 16px; }
+  .ws { width: 46px; text-align: center; }
+  .ws .box { height: 42px; border: 3px solid #cbdedb; border-radius: 8px; background: #f9fcfb; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; color: #0d443f; }
+  .ws .box.lit { background: #d7f0d3; border-color: #3a7d44; }
+  .ws .f { font-size: 12px; color: #56736e; margin-top: 3px; }
+
+  .reveal { display: none; margin-top: 14px; text-align: center; font-size: 19px; font-weight: bold; color: #23572c; background: #d7f0d3; border-radius: 12px; padding: 14px; }
+  .reveal.show { display: block; }
+
+  /* star */
+  .starbox { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .starlist { flex: 1 1 320px; display: grid; gap: 8px; }
+  .srow { display: flex; align-items: center; gap: 8px; background: #f9fcfb; border: 2px solid #cbdedb; border-radius: 10px; padding: 7px 9px; }
+  .srow.done { border-color: #3a7d44; background: #eef8ec; }
+  .srow .i { flex: 0 0 24px; height: 24px; border-radius: 50%; background: #cbdedb; color: #0d443f; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+  .srow.done .i { background: #3a7d44; color: #fff; }
+  .srow .fracin { padding: 3px 6px; }
+  .srow .fracin input, .srow .fracin .rule { width: 40px; }
+  .srow .fracin input { font-size: 15px; padding: 3px 2px; }
+  .starsvg { flex: 0 0 300px; }
+  @media (max-width: 700px) { .starsvg { flex: 1 1 100%; } .recipe { grid-template-columns: 1fr; } .lgrid { grid-template-columns: 1fr; } }
+
+  a.home { display: inline-block; margin-top: 16px; color: #56736e; text-decoration: none; font-size: 14px; }
+  a.home:hover { text-decoration: underline; }
+  footer { text-align: center; font-size: 12px; color: #7f938f; margin-top: 18px; }
+
+  .finale { background: #146b63; color: #f2faf8; border-radius: 16px; padding: 22px; text-align: center; box-shadow: 0 7px 0 #0d443f; }
+  .finale h3 { font-size: 21px; margin-bottom: 6px; }
+  .finale p { font-size: 15px; opacity: .93; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="ic">🍕</div>
+    <h1>Fractions Workshop</h1>
+    <p>Unit 3 · Adding &amp; subtracting fractions — do them yourself, step by step</p>
+  </header>
+
+  <div class="progwrap">
+    <div class="progtop"><span>Your progress</span><span id="pcount">0 of 27 solved</span></div>
+    <div class="bar"><i id="pbar"></i></div>
+  </div>
+
+  <div class="card intro">
+    <p><strong>How this page works.</strong> Every question from your worksheet is here. <strong>You</strong> type the answer, press <em>Check</em>, and the page tells you whether it's right and <em>why</em>. Stuck? Press <em>Show me how</em> and walk through it one step at a time.</p>
+    <p>Type answers in <strong>simplest form</strong> — if the page says "almost!", it means your maths is right but the fraction can still be made smaller.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2 class="sect"><span>🔑 The one big idea</span></h2>
+
+  <div class="card">
+    <div class="qtext">You can only add or subtract slices that are the same size.</div>
+    <p style="font-size:15.5px;line-height:1.6;color:#3d5652;">Imagine a pizza cut into <strong>halves</strong> and another cut into <strong>quarters</strong>. If someone asks "what is one half take away one quarter?", you can't do it while the slices are different sizes. So you <strong>re-cut the halves into quarters</strong> — the amount of pizza doesn't change, only the number of cuts. Now both are quarters, and you can just count.</p>
+
+    <div class="pies" id="ideaPies"></div>
+
+    <div class="recipe">
+      <div class="r"><span class="n">1</span><div class="t">Same bottom</div><div class="d">Make both denominators match. Usually you only need to re-cut <em>one</em> of them.</div></div>
+      <div class="r"><span class="n">2</span><div class="t">Add / take away the tops</div><div class="d">The bottom number does <strong>not</strong> change. Only the top numbers move.</div></div>
+      <div class="r"><span class="n">3</span><div class="t">Simplify</div><div class="d">Divide top and bottom by the same number until you can't any more.</div></div>
+    </div>
+  </div>
+
+  <div class="card lab">
+    <h3>🔬 Equivalent-fraction lab</h3>
+    <p>Drag the slider. Watch the circle get cut into more and more pieces — but the shaded amount never changes. That's <em>why</em> re-cutting is allowed.</p>
+    <div class="labrow">
+      <input type="range" id="eqSlider" min="1" max="6" value="1">
+      <div class="labout" id="eqOut">1/2</div>
+    </div>
+    <div class="labrow" id="eqPie"></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2 class="sect"><span>📘 Exercise 4 · Question 1 (page 73)</span></h2>
+  <div class="card intro" style="margin-bottom:16px;">
+    <p>The book has already re-cut the first fraction for you. Your job is just the last line: <strong>take the tops away and simplify.</strong></p>
+  </div>
+  <div id="secA"></div>
+
+  <!-- ============================================================ -->
+  <h2 class="sect"><span>🔤 Exercise 4 · Question 2 — the secret word</span></h2>
+  <div class="card">
+    <p style="font-size:15.5px;line-height:1.55;">Solve all nine. Each answer unlocks its letter. When they're all in, the letters spell the answer to: <em>"A 3-sided figure is called a triangle. What is a 4-sided figure called?"</em></p>
+    <div class="lgrid" id="secB" style="margin-top:16px;"></div>
+    <div class="wordstrip" id="wordStrip"></div>
+    <div class="reveal" id="wordReveal">🎉 A 4-sided figure is called a <strong>QUADRILATERAL</strong>!</div>
+    <div class="center" style="margin-top:14px;"><button class="btn ghost sm" onclick="toggle('stB')">Show me how each one works</button></div>
+    <div class="steps" id="stB"></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2 class="sect"><span>⭐ Page 72 · Question 2 — draw the star</span></h2>
+  <div class="card">
+    <p style="font-size:15.5px;line-height:1.55;">Ten addition sums, in the order the arrows send you. Every correct answer lights up a dot — and when two dots next to each other are lit, the line between them is drawn. Get all ten and you'll have a star.</p>
+    <div class="starbox" style="margin-top:16px;">
+      <div class="starlist" id="secC"></div>
+      <div class="starsvg" id="starSvg"></div>
+    </div>
+    <div class="reveal" id="starReveal">⭐ A perfect star! Ten sums, ten dots, no mistakes.</div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2 class="sect"><span>📝 Word problems (pages 75 &amp; 76)</span></h2>
+  <div class="card intro" style="margin-bottom:16px;">
+    <p><strong>The reading trick.</strong> Before you touch the numbers, ask two questions: <em>What is the whole?</em> and <em>am I putting together (+) or taking away (−)?</em> Draw a bar if it helps. Most mistakes in word problems are reading mistakes, not maths mistakes.</p>
+  </div>
+  <div id="secD"></div>
+
+  <div class="card finale">
+    <h3 id="finTitle">Keep going — you're doing great 💪</h3>
+    <p id="finText">Finish every question and this box will change.</p>
+  </div>
+
+  <div class="center"><a class="home" href="index.html">← Back to the quiz hub</a></div>
+  <footer>Made for Grace · Unit 3: Fractions</footer>
+</div>
+
+<script>
+/* ---------- helpers ---------- */
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a||1; }
+function fr(n,d){ return '<span class="fr"><i>'+n+'</i><b>'+d+'</b></span>'; }
+
+function pie(n,d,size,fill){
+  fill = fill || '#4f9f96';
+  var r=size/2-3, cx=size/2, cy=size/2, s='<svg viewBox="0 0 '+size+' '+size+'" width="'+size+'" height="'+size+'">';
+  if(d<=1){
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+(n>=1?fill:'#fff')+'" stroke="#0d443f" stroke-width="1.6"/>';
+    return s+'</svg>';
+  }
+  for(var i=0;i<d;i++){
+    var a0=-Math.PI/2+2*Math.PI*i/d, a1=-Math.PI/2+2*Math.PI*(i+1)/d;
+    var x0=(cx+r*Math.cos(a0)).toFixed(2), y0=(cy+r*Math.sin(a0)).toFixed(2);
+    var x1=(cx+r*Math.cos(a1)).toFixed(2), y1=(cy+r*Math.sin(a1)).toFixed(2);
+    var large=(2*Math.PI/d)>Math.PI?1:0;
+    s+='<path d="M'+cx+','+cy+' L'+x0+','+y0+' A'+r+','+r+' 0 '+large+',1 '+x1+','+y1+' Z" fill="'+(i<n?fill:'#fff')+'" stroke="#0d443f" stroke-width="1.4"/>';
+  }
+  return s+'</svg>';
+}
+function pieLab(n,d,size,fill){ return '<div>'+pie(n,d,size,fill)+'<div style="text-align:center;font-size:13px;color:#56736e;margin-top:2px;">'+n+'/'+d+'</div></div>'; }
+
+/* ---------- progress ---------- */
+var TOTAL=27, solved={};
+function markSolved(id){
+  if(solved[id]) return;
+  solved[id]=1;
+  var n=Object.keys(solved).length;
+  document.getElementById('pcount').textContent=n+' of '+TOTAL+' solved';
+  document.getElementById('pbar').style.width=(100*n/TOTAL)+'%';
+  if(n>=TOTAL){
+    document.getElementById('finTitle').textContent='🏆 Every single one — done!';
+    document.getElementById('finText').textContent='You added, you subtracted, you simplified, you spelled QUADRILATERAL and you drew a star. That is the whole unit.';
+  }
+}
+function toggle(id){ document.getElementById(id).classList.toggle('show'); }
+
+/* ---------- generic checker ---------- */
+function fracInput(id){
+  return '<div class="fracin" id="in'+id+'">'+
+    '<input type="number" id="n'+id+'" inputmode="numeric" aria-label="top number">'+
+    '<div class="rule"></div>'+
+    '<input type="number" id="d'+id+'" inputmode="numeric" aria-label="bottom number"></div>';
+}
+function check(id, tn, td, hint, onOK){
+  var nEl=document.getElementById('n'+id), dEl=document.getElementById('d'+id);
+  var box=document.getElementById('in'+id), fb=document.getElementById('fb'+id);
+  var n=parseInt(nEl.value,10), d=parseInt(dEl.value,10);
+  box.classList.remove('ok','no'); if(fb){ fb.className='fb show'; }
+  if(isNaN(n)||isNaN(d)||d===0){ box.classList.add('no'); if(fb){ fb.classList.add('bad'); fb.innerHTML='Fill in <strong>both</strong> boxes — a top number and a bottom number.'; } return; }
+  if(n*td===tn*d){
+    var g=gcd(n,d);
+    if(g!==1){
+      box.classList.add('no');
+      if(fb){ fb.classList.add('warm'); fb.innerHTML='<strong>So close!</strong> '+fr(n,d)+' is the right amount, but it isn\'t in simplest form. Both '+n+' and '+d+' divide by '+g+' — try again.'; }
+      return;
+    }
+    box.classList.add('ok');
+    if(fb){ fb.classList.add('good'); fb.innerHTML='<strong>Correct — '+fr(tn,td)+'</strong> ✅ '+hint; }
+    markSolved(id); if(onOK) onOK();
+  } else {
+    box.classList.add('no');
+    if(fb){ fb.classList.add('bad'); fb.innerHTML='Not quite. Check step 1: are <strong>both bottom numbers the same</strong> before you touch the tops?'; }
+  }
+}
+function enterKey(id, fn){
+  ['n'+id,'d'+id].forEach(function(k){
+    document.getElementById(k).addEventListener('keydown',function(e){ if(e.key==='Enter') fn(); });
+  });
+}
+
+/* ---------- big idea pies ---------- */
+document.getElementById('ideaPies').innerHTML =
+  pieLab(1,2,86) + '<div class="op">=</div>' +
+  pieLab(2,4,86) + '<div class="op">−</div>' +
+  pieLab(1,4,86,'#c9761d') + '<div class="op">=</div>' +
+  pieLab(1,4,86,'#3a7d44');
+
+/* ---------- equivalence lab ---------- */
+var eqS=document.getElementById('eqSlider');
+function drawEq(){
+  var k=parseInt(eqS.value,10);
+  document.getElementById('eqOut').textContent=(1*k)+'/'+(2*k)+(k>1?'  =  1/2':'');
+  document.getElementById('eqPie').innerHTML='<div>'+pie(k,2*k,150,'#ffd479')+'</div>'+
+    '<div style="font-size:14.5px;opacity:.92;max-width:340px;line-height:1.5;">Cut into <strong>'+(2*k)+'</strong> pieces, shade <strong>'+k+'</strong> of them. Same yellow, more lines. That is what "re-cutting" means.</div>';
+}
+eqS.addEventListener('input',drawEq); drawEq();
+
+/* ============================================================
+   SECTION A — Exercise 4 Q1
+   ============================================================ */
+var secA=[
+ { id:'A1', label:'(a)', a:[3,4], b:[1,2], l2a:[3,4], l2b:[2,4], ans:[1,4],
+   why:'Halves are twice as big as quarters, so one half = two quarters.',
+   steps:[
+     ['Look at the bottoms.','You have quarters and halves. Different sizes — you can\'t subtract yet.'],
+     ['Re-cut the halves into quarters.','2 goes into 4 exactly <b>2</b> times, so multiply top and bottom of <span class="fr"><i>1</i><b>2</b></span> by 2.<span class="math">1/2 = (1×2)/(2×2) = 2/4</span>'],
+     ['Now subtract the tops only.','<span class="math">3/4 − 2/4 = 1/4</span>Three quarters take away two quarters leaves one quarter. The bottom stays 4.'],
+     ['Simplify?','1 and 4 share no factor except 1, so <b>1/4</b> is already as simple as it gets.<span class="math answer">Answer: 1/4</span>']
+   ]},
+ { id:'A2', label:'(b)', a:[5,6], b:[2,3], l2a:[5,6], l2b:[4,6], ans:[1,6],
+   why:'Thirds are twice as big as sixths, so 2/3 = 4/6.',
+   steps:[
+     ['Which bottom fits inside which?','6 and 3. Because 3 × 2 = 6, you only need to change <b>one</b> fraction — the thirds.'],
+     ['Re-cut the thirds into sixths.','<span class="math">2/3 = (2×2)/(3×2) = 4/6</span>That is the 4 the book already wrote in the box.'],
+     ['Subtract the tops.','<span class="math">5/6 − 4/6 = 1/6</span>'],
+     ['Simplify?','1 and 6 share nothing, so you are done.<span class="math answer">Answer: 1/6</span>']
+   ]},
+ { id:'A3', label:'(c)', a:[2,3], b:[1,12], l2a:[8,12], l2b:[1,12], ans:[7,12],
+   why:'Thirds re-cut into twelfths: each third becomes 4 twelfths.',
+   steps:[
+     ['Find the matching bottom.','3 and 12. Since 3 × 4 = 12, turn the thirds into twelfths.'],
+     ['Re-cut.','<span class="math">2/3 = (2×4)/(3×4) = 8/12</span>Cutting each third into 4 tiny pieces gives 8 twelfths.'],
+     ['Subtract the tops.','<span class="math">8/12 − 1/12 = 7/12</span>'],
+     ['Simplify?','7 is prime and does not divide 12, so <b>7/12</b> stays.<span class="math answer">Answer: 7/12</span>']
+   ]}
+];
+(function(){
+  var html='';
+  secA.forEach(function(q){
+    html+='<div class="card">'+
+      '<div class="qmeta">Exercise 4 · Q1 '+q.label+'</div>'+
+      '<div class="expr" style="margin:8px 0 4px;">'+fr(q.a[0],q.a[1])+' − '+fr(q.b[0],q.b[1])+' &nbsp;=&nbsp; '+fr(q.l2a[0],q.l2a[1])+' − '+fr(q.l2b[0],q.l2b[1])+' &nbsp;=&nbsp; ?</div>'+
+      '<div class="pies">'+
+        pieLab(q.l2a[0],q.l2a[1],76)+'<div class="op">−</div>'+
+        pieLab(q.l2b[0],q.l2b[1],76,'#c9761d')+'<div class="op">=</div>'+
+        pieLab(q.ans[0],q.ans[1],76,'#3a7d44')+
+      '</div>'+
+      '<div class="ansrow">'+fracInput(q.id)+
+        '<button class="btn" onclick="checkA(\''+q.id+'\')">Check</button>'+
+        '<button class="btn ghost sm" onclick="toggle(\'st'+q.id+'\')">Show me how</button></div>'+
+      '<div class="fb" id="fb'+q.id+'"></div>'+
+      '<div class="steps" id="st'+q.id+'">'+q.steps.map(function(s,i){
+        return '<div class="step"><div class="num">'+(i+1)+'</div><div class="body"><b>'+s[0]+'</b> '+s[1]+'</div></div>';
+      }).join('')+'</div></div>';
+  });
+  document.getElementById('secA').innerHTML=html;
+})();
+function checkA(id){ var q=secA.find(function(x){return x.id===id;}); check(id,q.ans[0],q.ans[1],q.why); }
+secA.forEach(function(q){ enterKey(q.id,function(){checkA(q.id);}); });
+
+/* ============================================================
+   SECTION B — Exercise 4 Q2 (letters)
+   ============================================================ */
+var secB=[
+ {L:'A', a:[1,2], b:[1,6], ans:[1,3], mid:[3,6], note:'Halves become sixths (×3): 1/2 = 3/6. Then 3/6 − 1/6 = 2/6, and 2/6 simplifies to 1/3.'},
+ {L:'D', a:[3,4], b:[5,8], ans:[1,8], mid:[6,8], note:'Quarters become eighths (×2): 3/4 = 6/8. Then 6/8 − 5/8 = 1/8.'},
+ {L:'E', a:[2,3], b:[2,9], ans:[4,9], mid:[6,9], note:'Thirds become ninths (×3): 2/3 = 6/9. Then 6/9 − 2/9 = 4/9.'},
+ {L:'I', a:[3,4], b:[1,12], ans:[2,3], mid:[9,12], note:'Quarters become twelfths (×3): 3/4 = 9/12. Then 9/12 − 1/12 = 8/12, which simplifies to 2/3 (divide both by 4).'},
+ {L:'L', a:[2,5], b:[1,10], ans:[3,10], mid:[4,10], note:'Fifths become tenths (×2): 2/5 = 4/10. Then 4/10 − 1/10 = 3/10.'},
+ {L:'Q', a:[5,6], b:[5,12], ans:[5,12], mid:[10,12], note:'Sixths become twelfths (×2): 5/6 = 10/12. Then 10/12 − 5/12 = 5/12. Careful — the two 5s do NOT cancel!'},
+ {L:'R', a:[4,5], b:[3,10], ans:[1,2], mid:[8,10], note:'Fifths become tenths (×2): 4/5 = 8/10. Then 8/10 − 3/10 = 5/10, which is exactly one half.'},
+ {L:'T', a:[1,2], b:[5,12], ans:[1,12], mid:[6,12], note:'Halves become twelfths (×6): 1/2 = 6/12. Then 6/12 − 5/12 = 1/12.'},
+ {L:'U', a:[7,12], b:[1,3], ans:[1,4], mid:[4,12], note:'Thirds become twelfths (×4): 1/3 = 4/12. Then 7/12 − 4/12 = 3/12, which simplifies to 1/4 (divide both by 3).'}
+];
+var WORD=[
+ {f:[5,12],L:'Q'},{f:[1,4],L:'U'},{f:[1,3],L:'A'},{f:[1,8],L:'D'},{f:[1,2],L:'R'},
+ {f:[2,3],L:'I'},{f:[3,10],L:'L'},{f:[1,3],L:'A'},{f:[1,12],L:'T'},{f:[4,9],L:'E'},
+ {f:[1,2],L:'R'},{f:[1,3],L:'A'},{f:[3,10],L:'L'}
+];
+(function(){
+  document.getElementById('secB').innerHTML = secB.map(function(q){
+    return '<div class="lcell" id="cell'+q.L+'"><div class="tag">'+q.L+'</div>'+
+      '<div class="expr" style="font-size:18px;margin-bottom:8px;">'+fr(q.a[0],q.a[1])+' − '+fr(q.b[0],q.b[1])+'</div>'+
+      '<div class="ansrow" style="margin-top:4px;">'+fracInput('B'+q.L)+
+      '<button class="btn sm" onclick="checkB(\''+q.L+'\')">Check</button></div>'+
+      '<div class="fb" id="fbB'+q.L+'" style="font-size:14px;"></div></div>';
+  }).join('');
+  document.getElementById('wordStrip').innerHTML = WORD.map(function(w,i){
+    return '<div class="ws"><div class="box" id="ws'+i+'"></div><div class="f">'+w.f[0]+'/'+w.f[1]+'</div></div>';
+  }).join('');
+  document.getElementById('stB').innerHTML = secB.map(function(q,i){
+    return '<div class="step"><div class="num">'+q.L+'</div><div class="body"><b>'+q.a[0]+'/'+q.a[1]+' − '+q.b[0]+'/'+q.b[1]+'</b> — '+q.note+
+      '<span class="math answer">= '+q.ans[0]+'/'+q.ans[1]+'</span></div></div>';
+  }).join('');
+})();
+function checkB(L){
+  var q=secB.find(function(x){return x.L===L;});
+  check('B'+L, q.ans[0], q.ans[1], 'That unlocks the letter <strong>'+L+'</strong>.', function(){
+    document.getElementById('cell'+L).classList.add('done');
+    WORD.forEach(function(w,i){ if(w.L===L){ var b=document.getElementById('ws'+i); b.textContent=L; b.classList.add('lit'); } });
+    if(secB.every(function(x){ return solved['B'+x.L]; })) document.getElementById('wordReveal').classList.add('show');
+  });
+}
+secB.forEach(function(q){ enterKey('B'+q.L,function(){checkB(q.L);}); });
+
+/* ============================================================
+   SECTION C — page 72 additions + star
+   ============================================================ */
+var secC=[
+ {a:[1,2],b:[1,4],ans:[3,4],note:'1/2 = 2/4, so 2/4 + 1/4 = 3/4.'},
+ {a:[1,6],b:[2,3],ans:[5,6],note:'2/3 = 4/6, so 1/6 + 4/6 = 5/6.'},
+ {a:[1,9],b:[2,3],ans:[7,9],note:'2/3 = 6/9, so 1/9 + 6/9 = 7/9.'},
+ {a:[2,9],b:[2,3],ans:[8,9],note:'2/3 = 6/9, so 2/9 + 6/9 = 8/9.'},
+ {a:[1,5],b:[1,10],ans:[3,10],note:'1/5 = 2/10, so 2/10 + 1/10 = 3/10.'},
+ {a:[3,10],b:[1,5],ans:[1,2],note:'1/5 = 2/10, so 3/10 + 2/10 = 5/10 = 1/2.'},
+ {a:[3,8],b:[1,4],ans:[5,8],note:'1/4 = 2/8, so 3/8 + 2/8 = 5/8.'},
+ {a:[1,8],b:[3,4],ans:[7,8],note:'3/4 = 6/8, so 1/8 + 6/8 = 7/8.'},
+ {a:[1,12],b:[2,3],ans:[3,4],note:'2/3 = 8/12, so 1/12 + 8/12 = 9/12 = 3/4.'},
+ {a:[1,4],b:[1,12],ans:[1,3],note:'1/4 = 3/12, so 3/12 + 1/12 = 4/12 = 1/3.'}
+];
+(function(){
+  document.getElementById('secC').innerHTML = secC.map(function(q,i){
+    return '<div class="srow" id="srow'+i+'"><div class="i">'+(i+1)+'</div>'+
+      '<div class="expr" style="font-size:16px;flex:1;">'+fr(q.a[0],q.a[1])+' + '+fr(q.b[0],q.b[1])+' =</div>'+
+      fracInput('C'+i)+'<button class="btn sm" onclick="checkC('+i+')">✓</button></div>'+
+      '<div class="fb" id="fbC'+i+'" style="font-size:14px;margin-top:-2px;"></div>';
+  }).join('');
+
+  // star geometry: 10 vertices alternating outer/inner => tracing them in order draws a star outline
+  var S=300, cx=150, cy=152, R=118, r=48, pts=[];
+  for(var k=0;k<5;k++){
+    var ao=-Math.PI/2 + 2*Math.PI*k/5;
+    var ai=-Math.PI/2 + 2*Math.PI*k/5 + Math.PI/5;
+    pts.push([cx+R*Math.cos(ao), cy+R*Math.sin(ao)]);
+    pts.push([cx+r*Math.cos(ai), cy+r*Math.sin(ai)]);
+  }
+  var svg='<svg viewBox="0 0 '+S+' '+S+'" width="100%" style="max-width:320px;">';
+  for(var i=0;i<10;i++){
+    var p=pts[i], q=pts[(i+1)%10];
+    svg+='<line id="ln'+i+'" x1="'+p[0].toFixed(1)+'" y1="'+p[1].toFixed(1)+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="#e0b03c" stroke-width="4" stroke-linecap="round" opacity="0"/>';
+  }
+  for(var i=0;i<10;i++){
+    var p=pts[i], lx=p[0], ly=p[1];
+    var offx = (lx-cx)*0.20, offy=(ly-cy)*0.20;
+    svg+='<circle id="dot'+i+'" cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="6" fill="#fff" stroke="#8aa8a3" stroke-width="2.5"/>';
+    svg+='<text id="dtx'+i+'" x="'+(lx+offx).toFixed(1)+'" y="'+(ly+offy+ (ly<cy? -10: 16)).toFixed(1)+'" text-anchor="middle" font-size="12" font-family="Courier New, monospace" font-weight="bold" fill="#8aa8a3">'+secC[i].ans[0]+'/'+secC[i].ans[1]+'</text>';
+  }
+  svg+='</svg>';
+  document.getElementById('starSvg').innerHTML=svg;
+})();
+function checkC(i){
+  var q=secC[i];
+  check('C'+i, q.ans[0], q.ans[1], q.note, function(){
+    document.getElementById('srow'+i).classList.add('done');
+    var d=document.getElementById('dot'+i); d.setAttribute('fill','#e0b03c'); d.setAttribute('stroke','#a3761c');
+    document.getElementById('dtx'+i).setAttribute('fill','#0d443f');
+    for(var k=0;k<10;k++){
+      if(solved['C'+k] && solved['C'+((k+1)%10)]) document.getElementById('ln'+k).setAttribute('opacity','1');
+    }
+    if(secC.every(function(_,k){ return solved['C'+k]; })) document.getElementById('starReveal').classList.add('show');
+  });
+}
+secC.forEach(function(q,i){ enterKey('C'+i,function(){checkC(i);}); });
+
+/* ============================================================
+   SECTION D — word problems
+   ============================================================ */
+var secD=[
+ { id:'D1', tag:'Exercise 5 · Q1 (page 75)',
+   q:'Meredith bought a piece of cloth. She used <b>3/8</b> of it to make a dress. What fraction of the cloth did she have left?',
+   unit:'', ans:[5,8],
+   why:'The whole cloth is 1, and 1 = 8/8.',
+   steps:[
+     ['What is the whole?','The whole piece of cloth. As a fraction that is <b>1</b>, and since we are working in eighths, <b>1 = 8/8</b>.'],
+     ['Put together or take away?','She <em>used</em> some, so we take away.<span class="math">8/8 − 3/8 = 5/8</span>'],
+     ['Answer in words.','She had <b>5/8</b> of the cloth left.<span class="math answer">5/8</span>']
+   ]},
+ { id:'D2', tag:'Exercise 5 · Q2 (page 75)',
+   q:'How much longer is the stick than the string? The stick is <b>3/4</b> m and the string is <b>5/12</b> m.',
+   unit:' m', ans:[1,3],
+   why:'"How much longer" always means subtract: big − small.',
+   steps:[
+     ['Spot the key words.','"How much <b>longer</b>" means find the <em>difference</em> — the longer one minus the shorter one.'],
+     ['Same bottom.','4 and 12. Because 4 × 3 = 12, re-cut the quarters into twelfths.<span class="math">3/4 = (3×3)/(4×3) = 9/12</span>'],
+     ['Subtract.','<span class="math">9/12 − 5/12 = 4/12</span>'],
+     ['Simplify.','4 and 12 both divide by 4.<span class="math answer">4/12 = 1/3 m</span>The stick is 1/3 m longer than the string.']
+   ]},
+ { id:'D3', tag:'Exercise 5 · Q3 (page 75)',
+   q:'John spent <b>1/2</b> of his money on a toy car and <b>1/6</b> of his money on a pen. What fraction of his money did he spend altogether?',
+   unit:'', ans:[2,3],
+   why:'"Altogether" means add.',
+   steps:[
+     ['Spot the key word.','"Altogether" = put the two amounts together = <b>add</b>.'],
+     ['Same bottom.','2 and 6. Since 2 × 3 = 6, re-cut the halves into sixths.<span class="math">1/2 = 3/6</span>'],
+     ['Add the tops.','<span class="math">3/6 + 1/6 = 4/6</span>'],
+     ['Simplify.','4 and 6 both divide by 2.<span class="math answer">4/6 = 2/3 of his money</span>']
+   ]},
+ { id:'D4', tag:'Page 76 · Q4  (two-step!)',
+   q:'Mary drank <b>3/10</b> litre of orange juice. Jim drank <b>1/5</b> litre <em>less than</em> Mary. How much orange juice did they drink altogether?',
+   unit:' litre', ans:[2,5],
+   why:'Two steps: find Jim first, then add the two together.',
+   steps:[
+     ['Careful — this is a two-step question.','You are <em>not</em> told how much Jim drank. You are told how much <b>less</b> he drank than Mary. So find Jim first.'],
+     ['Step 1 — how much did Jim drink?','Jim = Mary − 1/5. Re-cut fifths into tenths: 1/5 = 2/10.<span class="math">3/10 − 2/10 = 1/10 litre</span>'],
+     ['Step 2 — altogether.','"Altogether" = add Mary and Jim.<span class="math">3/10 + 1/10 = 4/10</span>'],
+     ['Simplify.','4 and 10 both divide by 2.<span class="math answer">4/10 = 2/5 litre altogether</span>'],
+     ['The classic trap.','If you answered <b>1/10</b>, you stopped after step 1 — that is only Jim. If you answered <b>1/2</b>, you added 3/10 + 1/5 and forgot that Jim drank <em>less</em>.']
+   ]},
+ { id:'D5', tag:'Page 76 · Q5  (two-step!)',
+   q:'Lily bought <b>1</b> yd of ribbon. She used <b>1/2</b> yd to tie a package and <b>3/10</b> yd to make a bow. How much ribbon did she have left?',
+   unit:' yd', ans:[1,5],
+   why:'Take both pieces away from the whole yard.',
+   steps:[
+     ['What is the whole?','1 whole yard. We will work in tenths, so write <b>1 = 10/10</b>.'],
+     ['Change everything to tenths.','<span class="math">1/2 = 5/10</span>3/10 is already in tenths.'],
+     ['Take both pieces away.','<span class="math">10/10 − 5/10 − 3/10 = 2/10</span>Tip: you can also add the two pieces first (5/10 + 3/10 = 8/10) and then do 10/10 − 8/10. Same answer.'],
+     ['Simplify.','2 and 10 both divide by 2.<span class="math answer">2/10 = 1/5 yd left</span>']
+   ]}
+];
+(function(){
+  document.getElementById('secD').innerHTML = secD.map(function(q){
+    return '<div class="card"><div class="qmeta">'+q.tag+'</div>'+
+      '<div class="qtext" style="font-weight:normal;font-size:16.5px;">'+q.q+'</div>'+
+      '<div class="ansrow">'+fracInput(q.id)+
+        '<span style="font-weight:bold;color:#0d443f;font-size:16px;">'+q.unit+'</span>'+
+        '<button class="btn" onclick="checkD(\''+q.id+'\')">Check</button>'+
+        '<button class="btn ghost sm" onclick="toggle(\'st'+q.id+'\')">Show me how</button></div>'+
+      '<div class="fb" id="fb'+q.id+'"></div>'+
+      '<div class="steps" id="st'+q.id+'">'+q.steps.map(function(s,i){
+        return '<div class="step"><div class="num">'+(i+1)+'</div><div class="body"><b>'+s[0]+'</b> '+s[1]+'</div></div>';
+      }).join('')+'</div></div>';
+  }).join('');
+})();
+function checkD(id){ var q=secD.find(function(x){return x.id===id;}); check(id,q.ans[0],q.ans[1],q.why); }
+secD.forEach(function(q){ enterKey(q.id,function(){checkD(q.id);}); });
+</script>
+</body>
+</html>
