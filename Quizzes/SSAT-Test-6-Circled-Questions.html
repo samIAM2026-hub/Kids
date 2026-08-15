@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Test 6 · Circled Questions — Try It, Then Learn It</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family:'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg,#fffdf7 0%,#eceff6 55%,#dde3ef 100%);
+    min-height:100vh; color:#1e2433; padding:22px 16px 70px; }
+  .wrap { max-width:920px; margin:0 auto; }
+
+  header { background:#2c3e63; border-radius:18px; padding:26px 24px; text-align:center; color:#f2f5fb;
+    box-shadow:0 8px 0 #1a2745; margin-bottom:16px; }
+  header .ic { font-size:44px; line-height:1; }
+  header h1 { font-size:24px; margin:8px 0 4px; }
+  header p { font-size:15px; opacity:.92; }
+  header .who { display:inline-block; margin-top:10px; font-size:13px; letter-spacing:.6px; text-transform:uppercase;
+    background:rgba(255,255,255,.14); padding:4px 12px; border-radius:999px; }
+
+  .card { background:#fff; border-radius:16px; padding:20px 22px; box-shadow:0 6px 0 #ccd4e6; margin-bottom:16px; }
+  .intro { background:#fff8ec; border:3px solid #e8c489; }
+  .intro p { font-size:15.5px; line-height:1.6; }
+  .intro p + p { margin-top:9px; }
+  .intro b { color:#8a5a12; }
+
+  /* sticky score bar */
+  .bar { position:sticky; top:0; z-index:20; background:#2c3e63; color:#fff; border-radius:14px;
+    padding:11px 14px; margin-bottom:14px; box-shadow:0 5px 0 #1a2745;
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .bar .stat { font-size:13px; letter-spacing:.4px; }
+  .bar .stat b { font-size:18px; }
+  .meter { flex:1 1 130px; height:11px; background:rgba(255,255,255,.18); border-radius:99px; overflow:hidden; min-width:110px; }
+  .meter i { display:block; height:100%; width:0%; background:#6fcf8b; transition:width .35s ease; }
+  .bar button { font-family:inherit; font-size:12px; font-weight:bold; letter-spacing:.4px; cursor:pointer;
+    background:rgba(255,255,255,.15); color:#fff; border:2px solid rgba(255,255,255,.3);
+    padding:5px 11px; border-radius:99px; }
+  .bar button:hover { background:rgba(255,255,255,.28); }
+
+  /* tabs */
+  .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+  .tabs button { font-family:inherit; font-size:13.5px; font-weight:bold; cursor:pointer;
+    background:#fff; color:#2c3e63; border:2px solid #ccd4e6; padding:7px 14px; border-radius:99px;
+    box-shadow:0 3px 0 #ccd4e6; }
+  .tabs button.on { background:#2c3e63; color:#fff; border-color:#1a2745; box-shadow:0 3px 0 #1a2745; }
+
+  h2.sect { font-size:21px; color:#1a2745; margin:26px 0 4px; text-align:center; }
+  p.sectsub { text-align:center; font-size:13.5px; color:#6b7690; margin-bottom:14px; }
+
+  /* question card */
+  .q { background:#fff; border-radius:14px; padding:16px 18px; box-shadow:0 5px 0 #ccd4e6; margin-bottom:14px;
+    border-left:7px solid #7d90b8; }
+  .q.math   { border-left-color:#c9761d; }
+  .q.read   { border-left-color:#4f9f96; }
+  .q.verbal { border-left-color:#8461b5; }
+  .q.done   { box-shadow:0 5px 0 #dfe4ee; }
+  .qh { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:9px; }
+  .qn { background:#2c3e63; color:#fff; font-size:11.5px; font-weight:bold; padding:3px 10px; border-radius:999px;
+    white-space:nowrap; }
+  .chip { font-size:10.5px; font-weight:bold; letter-spacing:.5px; text-transform:uppercase; padding:3px 9px;
+    border-radius:999px; background:#eef1f7; color:#5b6580; }
+  .chip.ma { background:#f7ead9; color:#9b5a13; }
+  .chip.re { background:#e3f1ef; color:#2f6b64; }
+  .chip.ve { background:#efe8f8; color:#5c3f8a; }
+
+  .setup { font-size:13.5px; line-height:1.5; color:#6b7690; background:#f4f6fb; border-radius:9px;
+    padding:9px 12px; margin-bottom:9px; font-style:italic; }
+  .qt { font-size:16.5px; line-height:1.5; color:#1a2745; margin-bottom:11px; }
+  .qt em { color:#7a4bb5; font-style:normal; font-weight:bold; }
+
+  .opts { display:flex; flex-direction:column; gap:7px; }
+  .opt { font-family:inherit; text-align:left; font-size:15.5px; line-height:1.45; cursor:pointer;
+    background:#f8f9fc; border:2px solid #dde3ef; border-radius:10px; padding:9px 13px; color:#2b3450;
+    display:flex; gap:10px; align-items:flex-start; transition:background .15s, border-color .15s; }
+  .opt:hover:not(:disabled) { background:#eef2fa; border-color:#a9b7d6; }
+  .opt .let { font-weight:bold; color:#7d879e; flex:none; }
+  .opt:disabled { cursor:default; }
+  .opt.right { background:#e7f4e9; border-color:#3a7d44; color:#22562c; font-weight:bold; }
+  .opt.right .let { color:#3a7d44; }
+  .opt.wrong { background:#fbeaea; border-color:#c0392b; color:#8e2b20; }
+  .opt.wrong .let { color:#c0392b; }
+  .opt.faded { opacity:.5; }
+
+  .verdict { margin-top:12px; font-size:15px; font-weight:bold; padding:8px 12px; border-radius:9px; }
+  .verdict.ok  { background:#e7f4e9; color:#22562c; }
+  .verdict.no  { background:#fbeaea; color:#8e2b20; }
+
+  .sol { margin-top:11px; border-top:2px dashed #dde3ef; padding-top:12px; }
+  .sol h4 { font-size:13px; letter-spacing:.6px; text-transform:uppercase; color:#5b6580; margin-bottom:8px; }
+  ol.steps { padding-left:20px; }
+  ol.steps li { font-size:15px; line-height:1.55; color:#3b4560; margin-bottom:7px; }
+  ol.steps li b { color:#1a2745; }
+  ol.steps li code { background:#f1f4fa; border-radius:5px; padding:1px 6px; font-size:14.5px; color:#2c3e63; }
+
+  .trap, .rule { font-size:14.5px; line-height:1.55; border-radius:9px; padding:10px 13px; margin-top:10px; }
+  .trap { background:#fdf1ec; border-left:5px solid #d0703f; color:#7a3d1c; }
+  .rule { background:#eef2fa; border-left:5px solid #2c3e63; color:#2b3450; }
+  .trap b, .rule b { display:block; font-size:11px; letter-spacing:.8px; text-transform:uppercase; margin-bottom:3px; opacity:.75; }
+
+  .hidden { display:none !important; }
+  footer { text-align:center; font-size:13px; color:#7d879e; margin-top:26px; }
+  .back { display:inline-block; margin-top:10px; color:#2c3e63; font-weight:bold; text-decoration:none;
+    border-bottom:2px solid #b9c4dd; }
+
+  @media print {
+    @page { size: letter; margin: 12mm; }
+    body { background:#fff; padding:0; }
+    header, .bar { box-shadow:none; }
+    .bar, .tabs, .back { display:none; }
+    .card, .q { box-shadow:none; border:1px solid #ccd4e6; page-break-inside:avoid; }
+    .sol { display:block !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="ic">✏️</div>
+    <h1>SSAT Middle Level · Practice Test 6</h1>
+    <p>The 42 questions circled in pink — try each one first, then learn the method</p>
+    <div class="who">Section 1 Math · Section 2 Reading · Section 3 Verbal</div>
+  </header>
+
+  <div class="card intro">
+    <p><b>How this page works.</b> Every circled question is here as a fresh attempt. Pick an answer
+    <b>before</b> you look at anything else — the walkthrough only unlocks after you commit. Getting it
+    wrong on purpose teaches you nothing; getting it wrong honestly teaches you a lot.</p>
+    <p>Each solution has three parts: the <b>steps</b> (how to actually do it), the <b>trap</b> (why the
+    tempting wrong answer is tempting), and the <b>rule</b> (the one sentence to carry into the next test).
+    The rules matter more than the answers — there are only about a dozen of them in the whole SSAT.</p>
+    <p><b>Scoring reminder:</b> +1 right, −¼ wrong, 0 blank. A blind five-way guess is worth zero on
+    average — but cross out even one choice and guessing pays. So: eliminate, commit, move on.</p>
+  </div>
+
+  <div class="bar">
+    <div class="stat">Tried <b id="nTried">0</b>/<span id="nTotal">0</span></div>
+    <div class="stat">Right <b id="nRight">0</b></div>
+    <div class="meter"><i id="meter"></i></div>
+    <button id="btnReveal">Reveal all</button>
+    <button id="btnReset">Start over</button>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div id="board"></div>
+
+  <footer>
+    Made for practice, not for perfection — a missed question you can now explain is worth more than a lucky one.
+    <br><a class="back" href="index.html">← Back to the quiz hub</a>
+  </footer>
+</div>
+
+<script>
+/* ────────────────────────────────────────────────────────────────
+   Question data.  sec: 1 Math · 2 Reading · 3 Verbal
+   a = index of the correct option (0-based)
+   ──────────────────────────────────────────────────────────────── */
+const DATA = [
+
+/* ══ SECTION 1 · QUANTITATIVE ══════════════════════════════════ */
+{sec:1,n:11,tag:"Algebra · translate",
+ q:"A triangle has a perimeter of 57 inches. Side <em>a</em> is 3 inches shorter than twice side <em>b</em>, and side <em>c</em> is 4 inches longer than side <em>b</em>. How many inches long is side <em>a</em>?",
+ o:["10","14","18","24","25"],a:4,
+ steps:[
+  "<b>Pick the variable everything else is described by.</b> Both other sides are described in terms of <em>b</em>, so <em>b</em> is the one to solve for first.",
+  "<b>Translate sentence by sentence.</b> “3 shorter than twice b” → <code>a = 2b − 3</code>. “4 longer than b” → <code>c = b + 4</code>.",
+  "<b>Perimeter means add all three.</b> <code>(2b − 3) + b + (b + 4) = 57</code>",
+  "<b>Combine like terms.</b> <code>4b + 1 = 57</code> → <code>4b = 56</code> → <code>b = 14</code>",
+  "<b>Answer the actual question.</b> It asked for <em>a</em>, not <em>b</em>: <code>a = 2(14) − 3 = 25</code>"],
+ trap:"Solve for <em>b</em> and stop, and you get 14 — which is sitting there as choice (B). Choice (D) 24 is what you get from a small slip like <code>2b − 4</code>. Both decoys exist because the test knows you will find <em>b</em> first.",
+ rule:"Before you start, circle the letter the question is actually asking for. Then check it at the end."},
+
+{sec:1,n:17,tag:"Perimeter vs area",
+ q:"The perimeter of a rectangle measuring 3 × 8 units is equal to the…",
+ o:["area of the same rectangle in square units","perimeter of a regular pentagon with side lengths of 3 units","area of a triangle with base length 3 units and height 8 units","area in square units of a rectangle measuring 2 units by 11 units","area in square units of a square measuring 22 units on a side"],a:3,
+ steps:[
+  "<b>Get your target number first.</b> Perimeter = <code>2(3 + 8) = 22</code>. Now you are just hunting for 22.",
+  "<b>Turn every choice into a plain number.</b> (A) area = 3 × 8 = <code>24</code> ✗",
+  "(B) pentagon = 5 × 3 = <code>15</code> ✗ &nbsp;·&nbsp; (C) triangle = ½ × 3 × 8 = <code>12</code> ✗",
+  "(D) 2 × 11 = <code>22</code> ✓ &nbsp;·&nbsp; (E) 22 × 22 = <code>484</code> ✗",
+  "Only one choice equals 22 → <b>(D)</b>."],
+ trap:"(E) is bait because the number 22 appears inside it. Test-writers love hiding the right <em>number</em> inside a wrong <em>calculation</em> — seeing 22 is not the same as equalling 22.",
+ rule:"Compute the target first, then convert every choice to a number. Never compare in words."},
+
+{sec:1,n:18,tag:"Remainder · word problem",
+ q:"Sophie is making bows for packages and uses 1.25 m of ribbon per bow. If she has 12 m of ribbon and makes as many bows as possible, how much ribbon will she have left?",
+ o:["0.6 m","2.4 m","0.72 m","0.7 m","0.75 m"],a:4,
+ steps:[
+  "<b>Spot the signal.</b> “As many as possible” means whole objects only — this is division <em>with a remainder</em>, not plain division.",
+  "<b>Divide.</b> <code>12 ÷ 1.25 = 9.6</code>. She cannot make 0.6 of a bow, so she makes <b>9</b> bows.",
+  "<b>Find the ribbon used.</b> <code>9 × 1.25 = 11.25 m</code>",
+  "<b>Subtract.</b> <code>12 − 11.25 = 0.75 m</code> ✓ <b>(E)</b>",
+  "<b>Faster mental route:</b> 1.25 × 8 = 10, so 8 bows leaves 2 m. One more bow costs 1.25, leaving <code>0.75</code>."],
+ trap:"(B) 2.4 m comes from grabbing the 9.6 and doing something with it. The decimal from the division is a count of bows, not a length of ribbon — different units entirely.",
+ rule:"“As many as possible” → drop the decimal, multiply back, then subtract."},
+
+{sec:1,n:21,tag:"Fraction operations",
+ q:"<code>½ ○ ¼ = N</code> &nbsp; The value of <em>N</em> will be greatest when which of the following symbols is put in the circle above?",
+ o:["+","−","×","÷","The value of N will be the same for each of the symbols."],a:3,
+ steps:[
+  "<b>There are only four options — just compute all four.</b> This is faster than reasoning about it.",
+  "<code>½ + ¼ = ¾ = 0.75</code>",
+  "<code>½ − ¼ = ¼ = 0.25</code>",
+  "<code>½ × ¼ = ⅛ = 0.125</code>",
+  "<code>½ ÷ ¼ = ½ × 4 = 2</code> ← the winner by a mile → <b>(D)</b>"],
+  trap:"(A) + feels safe because in whole-number land adding makes things bigger and dividing makes things smaller. With fractions below 1 that instinct flips: dividing <em>grows</em> the number, multiplying <em>shrinks</em> it.",
+ rule:"Dividing by a fraction less than 1 always makes a number bigger. Multiplying by one always makes it smaller."},
+
+{sec:1,n:22,tag:"Square roots · estimating",
+ q:"“When a number is multiplied by itself, the product is 4,096. What is the number?” Leigh Anne must give the number in at most two tries. Which two numbers should she give to be sure she will win?",
+ o:["20 and 23","33 and 48","60 and 70","64 and 66","2,046 and 2,048"],a:3,
+ steps:[
+  "<b>Decode the words.</b> “Multiplied by itself” = squared. You need <code>√4096</code>.",
+  "<b>Bracket it with squares you know.</b> <code>60² = 3,600</code> (too small), <code>70² = 4,900</code> (too big). So the number is in the sixties.",
+  "<b>Use the last digit.</b> 4,096 ends in 6. Only numbers ending in <b>4</b> or <b>6</b> square to something ending in 6 → the candidates are 64 and 66.",
+  "<b>Check.</b> <code>64 × 64 = 4,096</code> ✓ Only choice (D) contains 64.",
+  "<b>Bonus route:</b> 4,096 is a power of 2 — <code>2¹² = 4,096</code>, so <code>√4096 = 2⁶ = 64</code>."],
+ trap:"(E) 2,046 and 2,048 is the halving trap: 4,096 ÷ 2 ≈ 2,048. Halving is not square-rooting. (C) 60 and 70 is the “I bracketed it and stopped” answer — the bracket is the middle of the work, not the end.",
+ rule:"Bracket with two easy squares, then let the last digit choose between the two survivors."},
+
+/* ══ SECTION 2 · READING ═══════════════════════════════════════ */
+{sec:2,n:1,tag:"Cause · detail",
+ setup:"Passage 1 — piranha have a killer reputation, but the author argues humans have little to fear from them.",
+ q:"Piranha have a reputation for being killers because…",
+ o:["their teeth are razor sharp","they can devour a meal very quickly","the local natives tell stories of attacks","they hunt humans swimming in water","they feed in large groups, so it looks like they hunt for food together"],a:4,
+ steps:[
+  "<b>The stem says “because”</b> — so the passage must state a cause somewhere. Go find that sentence rather than reasoning it out.",
+  "<b>Proof line:</b> “A lot of these stories come from the fact that the piranha feed in packs, so it seems as though they hunt in groups.”",
+  "<b>“Stories come from the fact that…” is literally the reason.</b> Feeding in packs → looks like group hunting → killer reputation.",
+  "Match that to the choices → <b>(E)</b>."],
+ trap:"(A) razor-sharp teeth is <em>true in the passage</em> — that's what makes it dangerous. But it is never given as the source of the reputation. On the SSAT, true and answer are two different things.",
+ rule:"For a “because” question, hunt the passage's own cause words: because, since, comes from, so, as a result."},
+
+{sec:2,n:2,tag:"Vocabulary in context",
+ setup:"Passage 1 — piranha, the “vampire fish”, live around the Amazon.",
+ q:"Piranha are sometimes known as “vampire fish” (line 6) because they…",
+ o:["feed only at night","are related to rodents","suck blood out of their prey","are found in the Amazon River","are drawn to blood in the water"],a:4,
+ steps:[
+  "<b>Go to the line reference and read one sentence past it.</b> Explanations almost always follow the term, not precede it.",
+  "<b>Proof line:</b> “They are attracted by traces of blood in the water.”",
+  "<b>Notice the exact verb.</b> The passage says <em>attracted by</em> blood — it never says they drink it.",
+  "So the nickname comes from the attraction, not the diet → <b>(E)</b>."],
+ trap:"(C) “suck blood out of their prey” is what a vampire does in your head. That is outside knowledge, and this question is built to catch it — the passage explicitly gives a different reason.",
+ rule:"Answer from the sentence on the page, not from the association in your head."},
+
+{sec:2,n:4,tag:"Which is true",
+ setup:"Passage 1 — piranha feed in packs, are attracted to blood, are eaten by locals, and do not hunt humans.",
+ q:"Which of the following is true of piranha?",
+ o:["They are inedible.","They hunt in packs.","They feed on blood.","They travel in packs.","They feed on humans."],a:3,
+ steps:[
+  "<b>A “which is true” question is five mini true/false questions.</b> Test each against the text; don't look for the best-sounding one.",
+  "(A) ✗ — “these fish are used as a food source by the locals.”",
+  "(B) ✗ — careful: the passage says it only <em>seems</em> as though they hunt in groups. Seeming is not being.",
+  "(C) ✗ attracted by blood ≠ feeds on blood. &nbsp; (E) ✗ “They do not, however, hunt humans swimming in the water.”",
+  "(D) ✓ — “Scout piranha <b>in the pack</b> will signal to the rest,” and “groups of fish can contain hundreds of members.”"],
+ trap:"(B) and (D) differ by exactly one word: <em>hunt</em> vs <em>travel</em>. The passage spends a whole sentence explaining that pack-hunting is the misunderstanding — that sentence exists to make (B) wrong.",
+ rule:"When two choices differ by one word, that word <em>is</em> the question. Go find the sentence that separates them."},
+
+{sec:2,n:6,tag:"Main idea",
+ setup:"Passage 2 — Greek myths: gods who were like men, quarrelled, were immortal, were subject to a higher power called Necessity, and were seen as friendly yet frightening.",
+ q:"The author is primarily concerned with…",
+ o:["discussing life in ancient Greece","telling a story involving the Greek gods","explaining the role of Necessity in Greek myths","describing the Greeks' belief about their gods","explaining why the Greeks believed in many gods"],a:3,
+ steps:[
+  "<b>“Primarily concerned with” = main idea.</b> Ask what <em>every</em> sentence is about, not what the most interesting sentence is about.",
+  "<b>Paragraph 1:</b> what the gods were like and what they were subject to. <b>Paragraph 2:</b> what the Greeks thought and feared about them.",
+  "<b>Both paragraphs are about Greek beliefs.</b> Find the choice wide enough to hold both.",
+  "(D) is the only umbrella. (A) is too wide — no daily life here. (B) there's no story. (E) the passage never explains <em>why</em> they believed."],
+ trap:"(C) Necessity gets exactly one sentence. A detail mentioned once can never be the main idea — and main-idea decoys are almost always real details that are simply too small.",
+ rule:"Main idea = the umbrella that covers every paragraph. If a choice only covers part, it's a detail."},
+
+{sec:2,n:12,tag:"EXCEPT",
+ setup:"Passage 3 — Kala, an ape, raises a slow-growing human child. The narrator measures the child's age in “moons”; twelve moons since she found him, thirteen before that, still helpless at twenty-five.",
+ q:"The author uses moons to emphasize all of the following EXCEPT the child's…",
+ o:["outlook","shortcomings","time with Kala","physical growth","dependence on Kala"],a:0,
+ steps:[
+  "<b>On an EXCEPT question, prove the four <em>right</em> ones first.</b> The leftover is your answer — that's faster and far safer than hunting for the odd one out.",
+  "“more than twelve moons had passed since Kala had come upon it” → <b>time with Kala</b> ✓ (C)",
+  "“as far advanced in two or three moons as was this little stranger after twenty-five” → <b>physical growth</b> ✓ (D) and <b>shortcomings</b> ✓ (B)",
+  "“it could not even find food alone” after all those moons → <b>dependence on Kala</b> ✓ (E)",
+  "Nothing anywhere measures his <b>outlook</b> — his attitude or view of life → <b>(A)</b>."],
+ trap:"Your instinct on EXCEPT is to scan for the wrong one, which means judging five vague statements at once. Tick off the four you can point at and the answer arrives by itself.",
+ rule:"EXCEPT = prove four, keep the orphan."},
+
+{sec:2,n:14,tag:"Character attitude",
+ setup:"Passage 3 — Tublat argues the child should be abandoned. Kala answers him.",
+ q:"Which adjective best describes Kala's attitude toward the child?",
+ o:["hopeless","resigned","diffident","confused","resolute"],a:4,
+ steps:[
+  "<b>Find where the character actually speaks.</b> A character's own words beat any description of them.",
+  "<b>Proof line:</b> “Never, Broken Nose,” replied Kala. “If I must carry him forever, so be it.”",
+  "<b>Read the two halves.</b> “Never” is a flat refusal; “so be it” is a promise to keep going regardless.",
+  "Firm refusal + long-term commitment = <b>resolute</b> ✓ <b>(E)</b>."],
+ trap:"(B) resigned is the near-miss — “so be it” <em>sounds</em> like giving in. But she says “Never” first: she is choosing him, not surrendering to him. (D) confused belongs to the <em>other</em> apes, who “could not understand” — right word, wrong character.",
+ rule:"Before picking an adjective, check whose feeling it is. Half of these questions are testing attribution, not vocabulary."},
+
+{sec:2,n:15,tag:"EXCEPT · one speaker",
+ setup:"Passage 3 — Tublat: “He will never be a great ape… Always will you have to carry him and protect him. What good will he be to the tribe? None; only a burden.”",
+ q:"According to the passage, Tublat suggests abandoning the child for all of the following reasons EXCEPT that he…",
+ o:["is weak","looks different","requires extra care","contributes nothing to the tribe","will never distinguish himself"],a:1,
+ steps:[
+  "<b>Narrow the evidence.</b> The stem says <em>Tublat suggests</em>, so only Tublat's speech counts. Narration is out of bounds.",
+  "“He will never be a great ape” → <b>will never distinguish himself</b> ✓ (E) and <b>is weak</b> ✓ (A)",
+  "“Always will you have to carry him and protect him” → <b>requires extra care</b> ✓ (C)",
+  "“What good will he be to the tribe? None; only a burden.” → <b>contributes nothing</b> ✓ (D)",
+  "Tublat never once mentions how the child <em>looks</em> → <b>(B)</b>."],
+ trap:"The narrator calls him a “little stranger”, which makes “looks different” feel supported. But that's the narrator's word, not Tublat's — and the stem named Tublat on purpose.",
+ rule:"Underline the “who” in the stem. Evidence spoken by anyone else does not count."},
+
+{sec:2,n:18,tag:"NOT mentioned",
+ setup:"Passage 4 — on snow and ice the judgment of a climb's safety rests with the leader: estimating the length of the climb, knowing at a glance if there is avalanche danger, recognising when speed is essential, staying alert to fatigue and adjusting the pace.",
+ q:"Knowledge of which of the following is NOT mentioned by the author as being required of a leader of a mountain-climbing expedition?",
+ o:["the indications of a sudden snow slide","the approximate length of time the climb will require","the difficulties encountered by previous climbers on the mountain","the factors which make it necessary for the party to move more slowly","the factors which make it necessary for the party to move more quickly"],a:2,
+ steps:[
+  "<b>A NOT-question is a scavenger hunt.</b> Find and physically tick off each choice in the passage.",
+  "“know at a glance if there is avalanche danger” → <b>(A)</b> ✓ found",
+  "“estimate the length of the climb” → <b>(B)</b> ✓ found",
+  "“alert to fatigue in others and adjust the pace accordingly” → <b>(D)</b> ✓ found",
+  "“instantly recognize those situations in which speed is essential” → <b>(E)</b> ✓ found",
+  "Previous climbers are never mentioned anywhere → <b>(C)</b>."],
+ trap:"(C) is excellent mountaineering advice — which is exactly why it's the answer. The SSAT builds NOT-answers out of statements that are sensible and absent, never out of statements that are silly.",
+ rule:"“Sensible” is not “stated”. Either point at the line, or cross it off."},
+
+{sec:2,n:19,tag:"Vocabulary in context",
+ setup:"Passage 4 — “…even calling retreat if the physical condition of a member of his group has <u>deteriorated</u> to the point wherein safety of the party may be jeopardized.”",
+ q:"As used in the passage, “deteriorated” (line 8) most likely means…",
+ o:["crumbled","rusted","worsened","corrupted","consumed"],a:2,
+ steps:[
+  "<b>Cover the word with your finger</b> and read the sentence with a blank: “…if the physical condition of a member has ______ to the point where safety may be jeopardized.”",
+  "<b>Predict your own word before you look.</b> Something like “gotten worse”.",
+  "<b>Now match.</b> The only choice that means got-worse in this sentence is <b>(C) worsened</b>.",
+  "<b>Sanity-check the rest in this sentence.</b> A person's condition doesn't crumble or rust. “Corrupted” is about morals or data, not fitness. “Consumed” is being eaten."],
+ trap:"All five are real, dictionary-legal shades of “deteriorate” in <em>some</em> context — that's the design. Vocabulary-in-context questions test the sentence, never the dictionary.",
+ rule:"Cover, predict, then match. If you look at the choices before predicting, they will choose for you."},
+
+{sec:2,n:21,tag:"Detail · timeline",
+ setup:"Passage 5 — in 1836 Andrew Crosse believed he saw insects appear as a by-product of his research; later Bastian and Burke made similar claims their colleagues could not confirm.",
+ q:"When Andrew Crosse began his experiments, he was trying to…",
+ o:["test the reactions of the genus Arcurus to light","determine the number of legs characteristic of the genus Arcurus","prove that microscopic insects grow from electrified minerals","study certain minerals to determine their ability to conduct electrical current","produce artificial minerals through the application of electrical current to chemicals"],a:4,
+ steps:[
+  "<b>Notice the timeline word: “began”.</b> You need what he wanted <em>before</em> anything surprising happened.",
+  "<b>Proof line:</b> “He had wanted to create minerals artificially by sending an electrical current through certain chemicals.”",
+  "<b>Restate it in your own words:</b> make minerals + electricity + chemicals.",
+  "That is exactly <b>(E)</b>."],
+ trap:"(B) and (C) describe what he ended up <em>claiming</em>, after the insects appeared. The insects were the accident; minerals were the goal. Choices built from the later half of a passage are the standard trap on “began” questions.",
+ rule:"Watch the timeline word in the stem — began, later, after, finally. It tells you which sentence you're allowed to use."},
+
+{sec:2,n:24,tag:"Inference · author's view",
+ setup:"Passage 5 — Crosse's colleagues repeated his experiments with precautions and got nothing; other scientists failed to confirm Burke's “radiobes”.",
+ q:"Which of the following would the author probably believe best establishes the truth or falsehood of a scientist's claims?",
+ o:["reading the scientist's notes","repeating the scientist's original experiment","checking the scientist's background and qualifications","examining the scientist's equipment for defects","studying the previous scientific investigation in the field"],a:1,
+ steps:[
+  "<b>“The author probably believes” = inference,</b> but an inference still has to sit on top of a sentence.",
+  "<b>Find where a claim actually gets tested in the passage.</b> Proof line 1: “when his colleagues repeated his experiments, taking precautions against bacteria in the air, the results were disappointing.”",
+  "<b>Proof line 2:</b> Burke's radiobes — “Other scientists, however, failed to confirm Burke's findings.”",
+  "<b>Both times, the test is the same move:</b> someone else runs the experiment again → <b>(B)</b>."],
+ trap:"(D) examining equipment for defects is a perfectly reasonable scientific idea — but the passage never does it or mentions it. An inference with no footprint in the text is just an opinion.",
+ rule:"An inference is one small step from a sentence. If you can't point at the sentence, you're guessing."},
+
+{sec:2,n:27,tag:"Apply the rule",
+ setup:"Passage 6 — in Hopi society “the fields, the crops, the pueblos, belong to women”, descent is traced through women, and “if a marriage is broken, women typically retain property rights.”",
+ q:"If a Hopi marriage fails, the couple's fields are probably…",
+ o:["confiscated by the clan","held in trust for the children","turned over to the entire tribe","kept in the wife's possession","reverted to the husband's family"],a:3,
+ steps:[
+  "<b>“Probably” means the passage hands you a rule and you apply it</b> to a case it doesn't spell out.",
+  "<b>Rule from the text:</b> fields belong to women, and women retain property rights when a marriage breaks.",
+  "<b>Plug the case in:</b> marriage fails → the woman keeps the property → the wife keeps the fields.",
+  "That's <b>(D)</b>."],
+ trap:"(B) “held in trust for the children” sounds fair and modern — it's how a Canadian court might think. The passage gives you the Hopi rule, and the whole point is to apply <em>their</em> rule, not yours.",
+ rule:"Find the general rule stated in the passage, then plug the question's specific case into it."},
+
+{sec:2,n:31,tag:"Cause · nearby decoy",
+ setup:"Passage 7 (The Old Man and the Sea) — the old man rows before dawn, pities the small dark terns “that were always flying and looking and almost never finding”, and thinks the birds have a harder life than people.",
+ q:"The old man believes most birds have a harder life than people because they…",
+ o:["are so delicate and fine","live far from the smell of land","fly, dipping and hunting, with sad voices","have difficulty finding food on the open sea","have stiff set wings that make a hissing sound as they soar away"],a:3,
+ steps:[
+  "<b>Find the phrase “harder life”</b> and read the clause chained to it.",
+  "<b>Proof line:</b> “He was sorry for the birds, especially the small delicate dark terns that were always flying and looking and almost never finding, and he thought, the birds have a harder life than we do…”",
+  "<b>Decode “always flying and looking and almost never finding.”</b> Looking for what? Food. Almost never finding it.",
+  "Struggling to find food at sea → <b>(D)</b>."],
+ trap:"(A) “delicate and fine” lives in that very sentence, which makes it magnetic. But delicate is <em>why he pities them</em>; the <em>hardness</em> is the never-finding. Words nearest the keyword are the strongest decoys on the whole test.",
+ rule:"Ask what the sentence is <em>claiming</em>, not which words it happens to contain."},
+
+{sec:2,n:32,tag:"Detail · which side of the contrast",
+ setup:"Passage 7 — the old man calls the sea <em>la mar</em> (feminine). The younger fishermen with motorboats, “bought when the shark livers had brought much money”, call it <em>el mar</em>.",
+ q:"According to the passage, when the shark livers brought much money, some fishermen spoke of the sea as…",
+ o:["an enemy","an equal","a female","la mar","a friend"],a:0,
+ steps:[
+  "<b>Locate the exact phrase from the stem</b> — “shark livers”. Detail questions reward finding, not thinking.",
+  "<b>Proof line:</b> the younger fishermen “spoke of her as <em>el mar</em> which is masculine… They spoke of her as a contestant or a place or even an enemy.”",
+  "<b>Compare that list to the choices:</b> contestant, place, enemy. Only <b>enemy</b> appears among the five.",
+  "→ <b>(A)</b>."],
+ trap:"(D) <em>la mar</em> is in italics, so your eye remembers it — but that is the <em>old man's</em> word for the sea. The stem is asking about the younger fishermen: opposite side of the contrast, opposite word.",
+ rule:"When a passage is built on a contrast, first check which side of it the question is standing on."},
+
+{sec:2,n:35,tag:"Main idea",
+ setup:"Passage 7 — ¶1: the old man pities the birds and finds the sea both kind and cruel. ¶2: he thinks of the sea as <em>la mar</em>, feminine; the younger fishermen call it <em>el mar</em>, an enemy.",
+ q:"What is the main idea of the passage?",
+ o:["people think differently about the sea","the man respects and is one with the sea","you are never alone when you are on the sea","fishing in the early morning yields more fish","the sea is complex with all of its animal life"],a:0,
+ steps:[
+  "<b>Summarise each paragraph in about four words.</b> ¶1: the sea is kind and cruel. ¶2: old man vs young fishermen — two names for the sea.",
+  "<b>Ask what links the two.</b> The passage sets up one sea and two very different ways of seeing it.",
+  "<b>(A) covers both halves.</b> The whole second paragraph exists to show disagreement.",
+  "Check the rest: (C), (D), (E) are never claimed; (B) is only half the passage."],
+ trap:"(B) is genuinely true of the old man — and that's the trap. It covers ¶1 and ignores ¶2, and ¶2 was written precisely to introduce people who disagree with him.",
+ rule:"If a choice is true of only one paragraph, it's a detail. The main idea must survive the whole passage."},
+
+{sec:2,n:39,tag:"Sequence",
+ setup:"Passage 8 — Alex is tired of Melanie's purse. The bracelet hangs on her chair-back; he takes its strand “without disturbing Melanie”, doodles on it, lays it on his desk, and “a moment later when Melanie leaned forward, the bracelet moved off Alex's desk”.",
+ q:"At the time Alex doodled on her bracelet, Melanie was…",
+ o:["facing Alex","standing up","leaning back in her seat","leaning forward over a book","leaning over to pick up a pencil"],a:2,
+ steps:[
+  "<b>Draw a two-step timeline:</b> what happened <em>then</em>, and what happened <em>a moment later</em>.",
+  "<b>During the doodling:</b> the bracelet is on her chair-back and he takes it “without disturbing Melanie” — she is still settled against the chair.",
+  "<b>Proof of the change:</b> “a moment later when Melanie leaned forward, the bracelet moved off Alex's desk.”",
+  "<b>If she leaned forward a moment later, she had not leaned forward yet.</b> Before that she was leaning back → <b>(C)</b>."],
+ trap:"(D) leaning forward is the verb you literally just read — but it belongs to the <em>next</em> moment. Sequence questions punish grabbing the nearest action instead of placing it on a timeline.",
+ rule:"For “at the time…” questions, sketch before → after. The answer is almost always the <em>before</em>."},
+
+/* ══ SECTION 3 · VERBAL ════════════════════════════════════════ */
+{sec:3,n:5,tag:"Synonym",
+ q:"HEED",
+ o:["introduce","farm","notice","row","ignore"],a:2,
+ steps:[
+  "<b>Put it in a phrase you have actually heard.</b> “Heed my warning.” “He paid no heed.”",
+  "<b>What does that phrase mean?</b> Pay attention to it. Take notice of it.",
+  "<b>Match:</b> pay attention → <b>(C) notice</b>.",
+  "<b>Scan for the planted opposite:</b> (E) ignore is the exact reverse — cross it out with confidence."],
+ trap:"(E) ignore. Opposites feel “connected”, and connected gets mistaken for same. Every synonym set on the SSAT hides at least one antonym.",
+ rule:"Put the word in a phrase you've genuinely heard before you look at the choices."},
+
+{sec:3,n:9,tag:"Synonym · roots",
+ q:"INFUSE",
+ o:["inject","insult","merge","release","accelerate"],a:0,
+ steps:[
+  "<b>Split the word.</b> <code>in-</code> means into. <code>-fuse</code> (as in transfusion, diffuse) means pour.",
+  "<b>Rebuild the meaning:</b> to pour something into something else — “infuse the team with energy”, “infuse tea”.",
+  "<b>Match:</b> pour into = <b>(A) inject</b>.",
+  "Check the rest: insult, release and accelerate share nothing with pouring-in."],
+ trap:"(C) merge is the near-miss. Merging is two things becoming one, with no direction. Infusing has a direction: one thing goes <em>into</em> another. When two choices are close, the difference is usually direction or degree.",
+ rule:"Prefix + root beats guessing. <code>in</code> + <code>pour</code> gets you there without ever having seen the word."},
+
+{sec:3,n:13,tag:"Synonym",
+ q:"OPEN-MINDED",
+ o:["dismissive","flexible","intolerant","wise","quiescent"],a:1,
+ steps:[
+  "<b>Define it plainly:</b> willing to consider ideas that aren't yours.",
+  "<b>Kill the opposites first.</b> (A) dismissive and (C) intolerant are the reverse — gone, two down.",
+  "<b>Willing to bend your view = <b>(B) flexible</b>.</b>",
+  "<b>Test by substitution:</b> “an open-minded person” / “a flexible person” — both work in the same sentence."],
+ trap:"(D) wise. Open-minded people often <em>are</em> wise, but a synonym has to be a substitute, not a compliment. “Wise” is a judgment about someone; “flexible” describes the same trait.",
+ rule:"Ask “can I swap these two words in a real sentence?” If not, it isn't a synonym."},
+
+{sec:3,n:16,tag:"Synonym",
+ q:"PERFORATE",
+ o:["deviate","impale","puncture","administer","wield"],a:2,
+ steps:[
+  "<b>Recall where you've seen it in real life:</b> the perforated edge of a sheet of stamps, or a tear-off notebook page — a line of tiny holes.",
+  "<b>So perforate = make holes in something.</b>",
+  "<b>Match:</b> <b>(C) puncture</b>.",
+  "Deviate (wander off course), administer (manage/give) and wield (handle a tool) aren't about holes at all."],
+ trap:"(B) impale means to run something through with a single stake — much more violent, and singular. Perforate is many small holes. Same rough neighbourhood, wrong house.",
+ rule:"Think of the everyday object that uses the word before you read the choices."},
+
+{sec:3,n:18,tag:"Synonym · false friend",
+ q:"DISQUIET",
+ o:["unease","noise","loudness","scare","composure"],a:0,
+ steps:[
+  "<b>Resist reading it as “not quiet”.</b> That misreading is exactly what the word is testing.",
+  "<b>Here “quiet” means calm, not silent.</b> <code>dis-</code> = away from → disquiet = away from calm.",
+  "<b>Away from calm = <b>(A) unease</b>.</b> “The news caused her great disquiet” means worry, not volume.",
+  "<b>(E) composure</b> is calmness itself — the planted opposite."],
+ trap:"(B) noise and (C) loudness both come from the same wrong reading of “quiet”. Two decoys pointing the same direction is a strong signal that the direction is wrong — the test built both to catch one mistake.",
+ rule:"When two wrong choices agree with each other, suspect they share a misreading — and go the other way."},
+
+{sec:3,n:21,tag:"Synonym",
+ q:"ABATE",
+ o:["burn","power","concise","spin","diminish"],a:4,
+ steps:[
+  "<b>Phrase you know:</b> “the storm abated” — it died down, it eased off.",
+  "<b>Died down = got smaller.</b>",
+  "<b>Match:</b> <b>(E) diminish</b>.",
+  "<b>Bonus:</b> a tax abatement is a <em>reduction</em> in tax — same root, same shrinking."],
+ trap:"(A) burn, because <em>abate</em> looks a little like <em>ablaze</em>. Look-alike words are the single most common synonym trap on the SSAT, and they work because you decide in half a second.",
+ rule:"Sounds-like is not means-like. Slow down on any word that resembles a word you know."},
+
+{sec:3,n:22,tag:"Synonym · roots",
+ q:"TACITURN",
+ o:["appropriate","repulsive","humble","reticent","tedious"],a:3,
+ steps:[
+  "<b>Find the root:</b> <em>tacit</em> means unspoken — a tacit agreement is one nobody said out loud.",
+  "<b>So taciturn describes a person who doesn't say much.</b>",
+  "<b>Match:</b> <b>(D) reticent</b> — reserved, holding back speech. Same idea exactly.",
+  "The other four say nothing about speech."],
+ trap:"(C) humble. Quiet people read as modest, so the association is strong. But taciturn measures <em>how much you speak</em>, not how highly you rate yourself.",
+ rule:"Match the definition, not the personality type you picture."},
+
+{sec:3,n:23,tag:"Synonym · homograph",
+ q:"REDRESS",
+ o:["clothing","remedy","proposal","counteract","benefit"],a:1,
+ steps:[
+  "<b>Ignore the picture of re-dressing.</b> (A) clothing is there purely to catch that reading.",
+  "<b>Real meaning:</b> to set right a wrong — “to redress the damage”, “to seek redress in court”.",
+  "<b>Set right = <b>(B) remedy</b>.</b>",
+  "<b>Substitution check:</b> “redress the injustice” / “remedy the injustice” — identical sense."],
+ trap:"(D) counteract is the genuine near-miss. Counteract only cancels a force; redress repairs a wrong and makes up for it. When two choices are close, ask what each one <em>leaves out</em> — counteract leaves out the fixing.",
+ rule:"On close pairs, name the shade of meaning the weaker choice is missing."},
+
+{sec:3,n:24,tag:"Synonym",
+ q:"RANCID",
+ o:["gross","fast","rotten","sane","ugly"],a:2,
+ steps:[
+  "<b>Where do you meet the word?</b> Rancid butter, rancid oil — fat that has gone off.",
+  "<b>Gone off = <b>(C) rotten</b>.</b>",
+  "<b>Substitution check:</b> “rancid butter” / “rotten butter” — same claim about the butter."],
+ trap:"(A) gross is how rancid butter makes you <em>feel</em>, not what the word <em>means</em>. Reaction words — gross, awful, nasty — are almost never the synonym, and they're almost always offered.",
+ rule:"Separate the definition from your reaction to it. The SSAT tests the first and offers the second."},
+
+{sec:3,n:27,tag:"Synonym · roots",
+ q:"CIRCUMSPECT",
+ o:["tolerable","sane","cautious","obscure","relevant"],a:2,
+ steps:[
+  "<b>Two roots you already know.</b> <code>circum-</code> = around (circumference, circumnavigate). <code>-spect</code> = look (inspect, spectator, spectacles).",
+  "<b>Rebuild:</b> someone who looks all around before acting.",
+  "<b>Looking around before acting = careful = <b>(C) cautious</b>.</b>"],
+ trap:"(B) sane. Careful and sane both land near “sensible”, so they blur. But circumspect describes <em>behaviour before an action</em>; sane describes a state of mind. Different category entirely.",
+ rule:"Two roots you know can crack a word you've never met. Build the meaning before you read the choices."},
+
+{sec:3,n:32,tag:"Analogy · opposites",
+ q:"Ornate is to plain as…",
+ o:["noise is to shush","sleep is to dream","bird is to egg","conniving is to naive","dull is to uninteresting"],a:3,
+ steps:[
+  "<b>Build a bridge sentence first, before looking down.</b> Ornate means heavily decorated. “<b>Ornate is the opposite of plain.</b>”",
+  "<b>Now force every choice through that exact sentence.</b>",
+  "“Conniving is the opposite of naive”? Conniving = scheming and sly; naive = innocent and trusting. ✓ <b>(D)</b>",
+  "The rest fail: sleep isn't the opposite of dream, a bird isn't the opposite of an egg."],
+ trap:"(E) dull and uninteresting are <em>synonyms</em> — the mirror-image trap. Whenever the bridge is “opposite”, the writers plant a “same” pair, because both feel like a tidy matched set.",
+ rule:"Say your bridge out loud as a full sentence <em>before</em> you read the answers. Half the analogy score is in that habit."},
+
+{sec:3,n:35,tag:"Analogy · reversal trap",
+ q:"Colony is to ants as…",
+ o:["jungle is to monkey","stadium is to fans","cow is to herd","populace is to town","shepherd is to flock"],a:0,
+ steps:[
+  "<b>Bridge sentence:</b> “A colony is <b>where ants live</b>.”",
+  "Test (A): “A jungle is where monkeys live.” ✓ True.",
+  "Test (B): “A stadium is where fans live”? No — fans <em>visit</em> a stadium; nobody lives there.",
+  "Test (C): “A cow is where herds live”? No — that's backwards. A <em>herd</em> is a group of <em>cows</em>.",
+  "Test (D) and (E) the same way — neither survives. → <b>(A)</b>"],
+ trap:"(C) cow is to herd is the classic <b>reversal trap</b>: right idea, wrong order. On analogies the order is part of the answer. (B) stadium is the “gathering place but not a home” near-miss — it's the one most students take.",
+ rule:"If a choice only works when you flip it around, it is wrong. Never flip a choice to make it fit."},
+
+{sec:3,n:43,tag:"Analogy · maker & product",
+ q:"Photography is to images as…",
+ o:["painting is to talent","sculpture is to forms","knitting is to dexterity","caricature is to etchings","statistics is to mathematics"],a:1,
+ steps:[
+  "<b>Bridge:</b> “Photography <b>produces</b> images.”",
+  "Test (B): “Sculpture produces forms.” ✓",
+  "Test (A): “Painting produces talent”? No — talent is what the painter <em>needs</em>, not what the art makes.",
+  "Test (C): same flaw — dexterity is a requirement, not a product. → <b>(B)</b>"],
+ trap:"(A) and (C) both quietly swap “what the art <em>makes</em>” for “what the artist <em>needs</em>”. Watch for choices that change the <em>type</em> of noun — product vs. requirement — while keeping the same topic.",
+ rule:"For art and craft analogies, decide first whether the bridge is <em>makes</em>, <em>needs</em>, or <em>is a kind of</em>."},
+
+{sec:3,n:47,tag:"Analogy · part & whole",
+ q:"Cabinet is to drawer as…",
+ o:["house is to door","blanket is to bed","button is to jacket","wood is to splinter","mailbox is to letter"],a:0,
+ steps:[
+  "<b>Bridge, made specific:</b> “A drawer is a <b>working part built into</b> a cabinet.” Not just “inside” — built in, with a job.",
+  "Test (A): “A door is a working part built into a house.” ✓",
+  "Test (C): button is to jacket — true relationship, but <em>reversed</em> (part first, whole second).",
+  "Test (D): a splinter is a broken-off <em>piece</em> of wood, not a designed part. Test (E): a letter is a visitor inside a mailbox. → <b>(A)</b>"],
+ trap:"(E) mailbox is to letter. “Goes inside” feels the same as “part of”, but a drawer is built into the cabinet and stays; a letter comes and goes. That distinction is the entire question.",
+ rule:"Part-of-whole means the piece is <em>built in</em> and <em>has a job</em>. Add both words to your bridge."},
+
+{sec:3,n:52,tag:"Analogy · workplace",
+ q:"Cockpit is to pilot as…",
+ o:["cab is to trucker","forest is to ranger","mast is to mariner","bridge is to engineer","radio is to broadcaster"],a:0,
+ steps:[
+  "<b>Loose bridge first:</b> “A cockpit is where a pilot works.” Now check — does more than one choice survive? Yes. So tighten it.",
+  "<b>Tight bridge:</b> “A cockpit is the <b>enclosed compartment</b> a pilot sits in <b>to operate the vehicle</b>.”",
+  "Test (A): “A cab is the enclosed compartment a trucker sits in to drive the truck.” ✓",
+  "(B) a forest is where a ranger works, but he doesn't drive it. (C) a mast isn't a compartment. (D) a ship's bridge belongs to the captain. → <b>(A)</b>"],
+ trap:"(B) forest is to ranger passes the loose bridge and fails the tight one. That's why the loose bridge is dangerous: it lets three answers through and then you pick by feel.",
+ rule:"If more than one choice survives your bridge, your bridge is too vague. Add a verb and run it again."},
+
+{sec:3,n:53,tag:"Analogy · scale up",
+ q:"Contract is to individuals as…",
+ o:["treaty is to nations","license is to permits","cohesion is to unions","marriage is to proposal","alliance is to permanence"],a:0,
+ steps:[
+  "<b>Bridge:</b> “A contract is a <b>binding agreement between</b> individuals.”",
+  "Test (A): “A treaty is a binding agreement between nations.” ✓ Same idea, bigger players.",
+  "Test the rest: a license isn't an agreement between permits; cohesion isn't an agreement between unions.",
+  "→ <b>(A)</b>"],
+ trap:"(D) marriage is to proposal is about <em>sequence</em> — the proposal comes first. It borrows the wedding vocabulary from “agreement” without matching the relationship.",
+ rule:"Scale-up pairs — person → nation, drop → ocean, minute → year — are one of the standard six analogy bridges. Learn to spot the pattern."},
+
+{sec:3,n:54,tag:"Analogy · degree",
+ q:"Drowsy is to comatose as untidy is to…",
+ o:["stern","slovenly","saturated","doubtful","dejected"],a:1,
+ steps:[
+  "<b>Bridge:</b> “Drowsy is the <b>mild</b> version; comatose is the <b>extreme</b> version.” Same idea, volume turned all the way up.",
+  "<b>Apply it:</b> untidy is mild. What is the extreme of untidy?",
+  "<b>Slovenly</b> = filthy, careless in the extreme. ✓ <b>(B)</b>",
+  "Check the others — stern, saturated, doubtful, dejected have nothing to do with tidiness."],
+ trap:"Degree analogies feel like synonym questions, so students grab whichever word is closest in meaning. Always confirm the second word is genuinely <em>stronger</em>, not just similar.",
+ rule:"Ask “is this the same word with the volume turned up?” Mild → extreme is a bridge in its own right."},
+
+{sec:3,n:56,tag:"Analogy · needs a verb",
+ q:"Broker is to stocks as…",
+ o:["monitor is to classes","realtor is to properties","astronaut is to spaceships","philosopher is to theories","physicist is to experiments"],a:1,
+ steps:[
+  "<b>Notice the design:</b> every choice is “a person + the thing they work with”. So “works with” cannot be your bridge.",
+  "<b>Tight bridge:</b> “A broker <b>buys and sells</b> stocks <b>on someone else's behalf</b>.”",
+  "Test (B): “A realtor buys and sells properties on someone else's behalf.” ✓",
+  "(C) an astronaut rides a spaceship. (D) a philosopher creates theories. (E) a physicist runs experiments. None is buying and selling. → <b>(B)</b>"],
+ trap:"The whole answer set is deliberately built from the same loose relationship. When you notice that, it's a signal — the real bridge must be more specific than the one you first thought of.",
+ rule:"If four choices survive, add a verb to your bridge and start again."},
+
+{sec:3,n:58,tag:"Analogy · flows through",
+ q:"Blood is to artery as…",
+ o:["horn is to bull","wine is to grape","chord is to piano","muscle is to bone","traffic is to tunnel"],a:4,
+ steps:[
+  "<b>Bridge:</b> “Blood <b>flows through</b> an artery.”",
+  "Test (E): “Traffic flows through a tunnel.” ✓ Exact match.",
+  "Test (B): wine comes <em>from</em> grapes — that's made-from, not flows-through.",
+  "Test (A) and (C): a horn is part of a bull; a chord is produced by a piano. → <b>(E)</b>"],
+ trap:"(D) muscle is to bone. Both are body parts, so it feels like the same neighbourhood as blood and arteries. Being from the same topic is not the same as having the same relationship — and the SSAT counts on that confusion.",
+ rule:"Never pick a choice because it shares a subject with the question. Topic match ≠ relationship match."},
+
+{sec:3,n:59,tag:"Analogy · person gives thing",
+ q:"Humanitarian is to aid as…",
+ o:["advisor is to counsel","debater is to business","entertainer is to circus","organizer is to society","evaluator is to computer"],a:0,
+ steps:[
+  "<b>Bridge:</b> “A humanitarian <b>gives</b> aid.”",
+  "Test (A): “An advisor gives counsel.” ✓ (Counsel means advice.)",
+  "Test (C): an entertainer might <em>work at</em> a circus — that's a place, not something given.",
+  "Test (E): an evaluator gives <em>evaluations</em>, not computers. → <b>(A)</b>"],
+ trap:"(E) evaluator is to computer sounds technical and grown-up, which makes it feel like the sophisticated choice. Ask what the person actually <em>hands over</em> and it collapses instantly.",
+ rule:"For person-to-thing analogies the verb is usually <em>gives, makes, studies</em> or <em>uses</em>. Choose one, then test all five."},
+
+{sec:3,n:60,tag:"Analogy · one of many",
+ q:"Soldier is to battalion as…",
+ o:["leaf is to rake","wing is to bird","lake is to water","captain is to ship","planet is to galaxy"],a:4,
+ steps:[
+  "<b>Bridge:</b> “A soldier is <b>one of many</b> soldiers that make up a battalion.”",
+  "Test (E): “A planet is one of many planets that make up a galaxy.” ✓",
+  "Test (B): a bird has exactly <em>two</em> wings, and a wing isn't the same kind of thing as a bird — a battalion is made of soldiers, all alike.",
+  "Test (C): a lake is <em>made of</em> water — substance, not membership. → <b>(E)</b>"],
+ trap:"(D) captain is to ship. A captain does belong to a ship — but there's only <em>one</em> captain, and the ship isn't made of captains. “Belongs to” is not the same as “is one of many that compose”.",
+ rule:"Member-of-a-large-group needs <em>many identical members</em>. If there's only one of them, it's a different bridge."}
+];
+
+/* ────────────────────────────────────────────────────────────── */
+const SECTIONS = {
+  1:{key:"math",  chip:"ma", label:"Section 1 · Quantitative", sub:"Circled: 11, 17, 18, 21, 22"},
+  2:{key:"read",  chip:"re", label:"Section 2 · Reading",      sub:"Circled: 1, 2, 4, 6, 12, 14, 15, 18, 19, 21, 24, 27, 31, 32, 35, 39"},
+  3:{key:"verbal",chip:"ve", label:"Section 3 · Verbal",       sub:"Circled: 5, 9, 13, 16, 18, 21–24, 27, 32, 35, 43, 47, 52–54, 56, 58–60"}
+};
+const LET = ["A","B","C","D","E"];
+const board = document.getElementById('board');
+let filter = 0;
+
+function build(){
+  board.innerHTML = '';
+  [1,2,3].forEach(s => {
+    const items = DATA.filter(d => d.sec === s);
+    if (!items.length) return;
+    const meta = SECTIONS[s];
+    const h = document.createElement('h2'); h.className='sect'; h.textContent = meta.label;
+    const p = document.createElement('p');  p.className='sectsub'; p.textContent = meta.sub;
+    const holder = document.createElement('div');
+    holder.dataset.sec = s;
+    holder.appendChild(h); holder.appendChild(p);
+    items.forEach(d => holder.appendChild(makeCard(d, meta)));
+    board.appendChild(holder);
+  });
+  applyFilter();
+}
+
+function makeCard(d, meta){
+  const c = document.createElement('div');
+  c.className = 'q ' + meta.key;
+
+  const head = document.createElement('div'); head.className='qh';
+  head.innerHTML = '<span class="qn">S' + d.sec + ' · Q' + d.n + '</span>' +
+                   '<span class="chip ' + meta.chip + '">' + d.tag + '</span>';
+  c.appendChild(head);
+
+  if (d.setup){
+    const s = document.createElement('div'); s.className='setup'; s.innerHTML = d.setup; c.appendChild(s);
+  }
+  const qt = document.createElement('div'); qt.className='qt'; qt.innerHTML = d.q; c.appendChild(qt);
+
+  const opts = document.createElement('div'); opts.className='opts';
+  d.o.forEach((text, i) => {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.innerHTML = '<span class="let">(' + LET[i] + ')</span><span>' + text + '</span>';
+    b.addEventListener('click', () => choose(c, d, i));
+    opts.appendChild(b);
+  });
+  c.appendChild(opts);
+
+  const v = document.createElement('div'); v.className='verdict hidden'; c.appendChild(v);
+
+  const sol = document.createElement('div'); sol.className='sol hidden';
+  let html = '<h4>▸ How to do it</h4><ol class="steps">';
+  d.steps.forEach(s => html += '<li>' + s + '</li>');
+  html += '</ol>';
+  html += '<div class="trap"><b>The trap</b>' + d.trap + '</div>';
+  html += '<div class="rule"><b>Rule to remember</b>' + d.rule + '</div>';
+  sol.innerHTML = html;
+  c.appendChild(sol);
+
+  c._data = d;
+  return c;
+}
+
+function choose(card, d, i){
+  if (card.classList.contains('done')) return;
+  card.classList.add('done');
+  card._picked = i;
+  const btns = card.querySelectorAll('.opt');
+  btns.forEach((b, j) => {
+    b.disabled = true;
+    if (j === d.a) b.classList.add('right');
+    else if (j === i) b.classList.add('wrong');
+    else b.classList.add('faded');
+  });
+  const v = card.querySelector('.verdict');
+  v.classList.remove('hidden');
+  if (i === d.a){ v.className = 'verdict ok';  v.textContent = '✓ Correct — now read why, so it sticks.'; }
+  else          { v.className = 'verdict no';  v.textContent = '✗ Not this time. The right answer is (' + LET[d.a] + ') — here is the road to it.'; }
+  card.querySelector('.sol').classList.remove('hidden');
+  tally();
+}
+
+function tally(){
+  const cards = board.querySelectorAll('.q');
+  let tried = 0, right = 0;
+  const visible = [...cards].filter(c => !c.closest('[data-sec]').classList.contains('hidden'));
+  const total = visible.length;
+  visible.forEach(c => {
+    if (c.classList.contains('done')) { tried++; if (c._picked === c._data.a) right++; }
+  });
+  document.getElementById('nTried').textContent = tried;
+  document.getElementById('nTotal').textContent = total;
+  document.getElementById('nRight').textContent = right;
+  document.getElementById('meter').style.width = total ? (tried/total*100) + '%' : '0%';
+}
+
+function applyFilter(){
+  board.querySelectorAll('[data-sec]').forEach(g => {
+    g.classList.toggle('hidden', filter !== 0 && +g.dataset.sec !== filter);
+  });
+  tally();
+}
+
+/* tabs */
+const tabDefs = [[0,'All 42'],[1,'🔢 Math (5)'],[2,'📖 Reading (16)'],[3,'🔤 Verbal (21)']];
+const tabs = document.getElementById('tabs');
+tabDefs.forEach(([v,label]) => {
+  const b = document.createElement('button');
+  b.textContent = label;
+  if (v === 0) b.classList.add('on');
+  b.addEventListener('click', () => {
+    filter = v;
+    [...tabs.children].forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    applyFilter();
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+  tabs.appendChild(b);
+});
+
+document.getElementById('btnReveal').addEventListener('click', () => {
+  board.querySelectorAll('.q').forEach(c => {
+    if (c.classList.contains('done')) return;
+    c.classList.add('done');
+    c.querySelectorAll('.opt').forEach((b,j) => {
+      b.disabled = true;
+      if (j === c._data.a) b.classList.add('right'); else b.classList.add('faded');
+    });
+    c.querySelector('.sol').classList.remove('hidden');
+  });
+  tally();
+});
+
+document.getElementById('btnReset').addEventListener('click', () => { build(); window.scrollTo({top:0,behavior:'smooth'}); });
+
+build();
+</script>
+</body>
+</html>
