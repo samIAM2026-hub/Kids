@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《纸船和风筝》真人录音棚 · Voice Recorder</title>
+<style>
+  :root{
+    --bg1:#eaf6ff; --bg2:#fff4e8; --ink:#2c3a42;
+    --stream:#3a8dc4; --deep:#26688f; --kite:#e8842a; --green:#3f7d4e; --red:#c0392b;
+    --yellow:#ffd93d; --purple:#a97bd6; --card:#fffdf7; --muted:#7d8b93;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:"Comic Sans MS","Segoe UI Rounded","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:linear-gradient(160deg,var(--bg1),var(--bg2));
+    color:var(--ink); min-height:100vh; padding:18px 14px 60px;
+  }
+  .wrap{max-width:820px; margin:0 auto;}
+  .card{background:var(--card); border-radius:26px; padding:24px 22px; box-shadow:0 14px 40px rgba(40,90,130,.18);}
+  h1{text-align:center; margin:.1em 0 .2em; font-size:1.7rem;
+     background:linear-gradient(90deg,var(--stream),var(--purple),var(--kite));
+     -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .sub{text-align:center; margin:0 0 16px; color:var(--muted); font-size:.92rem; line-height:1.6;}
+
+  .steps{background:#f2f8fc; border:2px solid #cfe4f2; border-radius:18px; padding:14px 18px; margin-bottom:16px; font-size:.92rem; line-height:1.75; color:#5a6b74;}
+  .steps b{color:var(--deep);}
+  .steps ol{margin:6px 0 0; padding-left:20px;}
+
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center; margin-bottom:14px;}
+  .tb{border:none; cursor:pointer; border-radius:16px; padding:11px 18px; font-family:inherit; font-size:.95rem;
+      font-weight:bold; color:#fff; box-shadow:0 4px 0 rgba(0,0,0,.12);}
+  .tb:active{transform:translateY(3px); box-shadow:0 1px 0 rgba(0,0,0,.12);}
+  .tb.pick{background:linear-gradient(135deg,#7ec8f5,#3a8dc4);}
+  .tb.dl{background:linear-gradient(135deg,#ffb14e,#e8842a);}
+  .tb.ghost{background:#a8b4bb;}
+  .status{width:100%; text-align:center; font-size:.88rem; color:var(--muted); margin-top:4px; line-height:1.6;}
+  .status.ok{color:var(--green); font-weight:bold;}
+  .status.bad{color:var(--red); font-weight:bold;}
+
+  .bar{height:12px; background:#e6eef3; border-radius:8px; overflow:hidden; margin:6px 0 18px;}
+  .bar > div{height:100%; width:0%; background:linear-gradient(90deg,var(--yellow),var(--green)); transition:width .3s;}
+
+  h2{font-size:1.05rem; color:var(--deep); margin:22px 0 8px;}
+  h2 .note{font-size:.78rem; color:var(--muted); font-weight:normal;}
+  table{width:100%; border-collapse:collapse;}
+  tr{border-bottom:1px solid #eef3f6;}
+  td{padding:8px 4px; vertical-align:middle;}
+  td.hz{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",serif; font-size:1.5rem; white-space:nowrap;}
+  td.hz.long{font-size:1.15rem; white-space:normal; line-height:1.5;}
+  td.py{color:var(--stream); font-weight:bold; font-size:.95rem; white-space:nowrap;}
+  td.act{text-align:right; white-space:nowrap;}
+  .dot{display:inline-block; width:12px; height:12px; border-radius:50%; background:#dde6ec; margin-right:8px; vertical-align:middle;}
+  .dot.done{background:var(--green);}
+  .b{border:none; cursor:pointer; border-radius:14px; padding:8px 13px; font-family:inherit; font-size:.88rem; font-weight:bold;
+     color:#fff; margin-left:6px; box-shadow:0 3px 0 rgba(0,0,0,.12);}
+  .b:active{transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.12);}
+  .b.rec{background:var(--red);}
+  .b.rec.on{background:#7a1f16; animation:pulse .8s infinite alternate;}
+  @keyframes pulse{to{opacity:.55;}}
+  .b.play{background:var(--stream);}
+  .b.save{background:var(--kite);}
+  .b:disabled{background:#cdd7dd; cursor:default; box-shadow:none;}
+  tr.active{background:#fff6e6;}
+  a.home{display:inline-block; margin-top:18px; color:#93a1a8; text-decoration:none; font-size:.85rem;}
+  a.home:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>🎙️ 《纸船和风筝》真人录音棚</h1>
+    <p class="sub">给拼音乐园录上真人读音 · 一个词读一遍就好，大约 5 分钟<br>
+      录好的声音会存进 <b>audio/zhichuan/</b> 文件夹，游戏会自动用真人声音代替机器音。</p>
+
+    <div class="steps">
+      <b>怎么用：</b>
+      <ol>
+        <li>用 <b>Chrome</b> 打开这一页（Chrome 才能直接把文件写进文件夹）。</li>
+        <li>点 <b>「选择 audio 文件夹」</b> → 选 <code>Kids/Quizzes/audio/zhichuan</code> → 允许「保存更改」。</li>
+        <li>逐行点 <b>🎙 录</b>，清楚地读一遍，再点 <b>⏹ 停</b>（最长 6 秒会自动停）。点 <b>▶️</b> 试听，不满意就重录。</li>
+        <li>录完就好了，直接打开拼音乐园 —— 声音自动换成你的。</li>
+      </ol>
+      如果没有出现文件夹选择（例如用 Safari），就用 <b>「⬇️ 下载全部」</b>，再把下载好的文件拖进 <code>audio/zhichuan</code> 文件夹，文件名不要改。
+    </div>
+
+    <div class="toolbar">
+      <button class="tb pick" id="pickDir">📁 选择 audio 文件夹</button>
+      <button class="tb dl" id="dlAll">⬇️ 下载全部已录</button>
+      <button class="tb ghost" id="micBtn">🎤 打开麦克风</button>
+      <div class="status" id="status">还没有连接文件夹 —— 录音会先存在这个页面里。</div>
+    </div>
+    <div class="bar"><div id="prog"></div></div>
+
+    <div id="lists"></div>
+
+    <div style="text-align:center"><a class="home" href="Chinese-Pinyin-Game-Zhi-Chuan-He-Feng-Zheng.html">← 去拼音乐园试试效果</a></div>
+  </div>
+</div>
+
+<script>
+/* ================= 要录的内容 =================
+   id 必须和游戏页里的 id 完全一样，文件名就是 <id>.<ext>
+*/
+const GROUPS = [
+  { title:"✏️ 认读生字 · 15 个", note:"一个字读一遍，读清楚声调", items:[
+    {id:"c-zhe",       hz:"折", tone:"zhé"},
+    {id:"c-zhi",       hz:"纸", tone:"zhǐ"},
+    {id:"c-zhang",     hz:"张", tone:"zhāng"},
+    {id:"c-tiao",      hz:"条", tone:"tiáo"},
+    {id:"c-ju",        hz:"句", tone:"jù"},
+    {id:"c-zha",       hz:"扎", tone:"zhā"},
+    {id:"c-zhua",      hz:"抓", tone:"zhuā"},
+    {id:"c-xing",      hz:"幸", tone:"xìng"},
+    {id:"c-fu",        hz:"福", tone:"fú"},
+    {id:"c-chao",      hz:"吵", tone:"chǎo"},
+    {id:"c-piao-shui", hz:"漂", tone:"piāo（漂在水里）"},
+    {id:"c-piao-feng", hz:"飘", tone:"piāo（飘在风里）"},
+    {id:"c-mei",       hz:"莓", tone:"méi"},
+    {id:"c-huai",      hz:"坏", tone:"huài"},
+    {id:"c-chao-huo",  hz:"炒", tone:"chǎo（炒菜）"}
+  ]},
+  { title:"🧩 课文词语 · 14 个", note:"", items:[
+    {id:"w-songshu",   hz:"松鼠", tone:"sōng shǔ"},
+    {id:"w-xiaoxiong", hz:"小熊", tone:"xiǎo xióng"},
+    {id:"w-shanding",  hz:"山顶", tone:"shān dǐng"},
+    {id:"w-shanjiao",  hz:"山脚", tone:"shān jiǎo"},
+    {id:"w-xiaoxi",    hz:"小溪", tone:"xiǎo xī"},
+    {id:"w-zhichuan",  hz:"纸船", tone:"zhǐ chuán"},
+    {id:"w-fengzheng", hz:"风筝", tone:"fēng zheng"},
+    {id:"w-songguo",   hz:"松果", tone:"sōng guǒ"},
+    {id:"w-caomei",    hz:"草莓", tone:"cǎo méi"},
+    {id:"w-zhitiao",   hz:"纸条", tone:"zhǐ tiáo"},
+    {id:"w-xingfu",    hz:"幸福", tone:"xìng fú"},
+    {id:"w-kuaile",    hz:"快乐", tone:"kuài lè"},
+    {id:"w-chaojia",   hz:"吵架", tone:"chǎo jià"},
+    {id:"w-hehao",     hz:"和好", tone:"hé hǎo"}
+  ]},
+  { title:"📝 课文句子 · 8 句", note:"慢慢读，像讲故事一样", items:[
+    {id:"s-1", hz:"松鼠住在山顶，小熊住在山脚。"},
+    {id:"s-2", hz:"山上的小溪往下流，从小熊的家门口流过。"},
+    {id:"s-3", hz:"松鼠折了一只纸船，放在小溪里。"},
+    {id:"s-4", hz:"纸船上放着一个松果，还有一张纸条。"},
+    {id:"s-5", hz:"小熊扎了一只风筝，让它乘着风飞上山顶。"},
+    {id:"s-6", hz:"风筝上挂着一个草莓，香香甜甜的。"},
+    {id:"s-7", hz:"他们俩为了一点小事吵架了。"},
+    {id:"s-8", hz:"纸船又漂来了，他们俩和好了。"}
+  ]},
+  { title:"🌊 选字题的句子 · 9 句", note:"可录可不录 —— 不录就用机器音", items:[
+    {id:"p-1", hz:"纸船在小溪里漂哇漂，漂到小熊家门口。"},
+    {id:"p-2", hz:"风筝乘着风飘呀飘，飞到松鼠家门口。"},
+    {id:"p-3", hz:"松鼠抓住风筝的线，一看，乐坏了。"},
+    {id:"p-4", hz:"小熊扎了一只漂亮的风筝。"},
+    {id:"p-5", hz:"纸条上写着：祝你幸福！"},
+    {id:"p-6", hz:"小熊拿起纸船一看，乐坏了。"},
+    {id:"p-7", hz:"他们俩为了一点小事吵了一架。"},
+    {id:"p-8", hz:"妈妈在厨房里炒菜，真香！"},
+    {id:"p-9", hz:"纸船上还有一张纸条。"}
+  ]}
+];
+const ALL = GROUPS.flatMap(g=>g.items);
+
+/* ================= 录音格式 ================= */
+let MIME = '', EXT = 'webm';
+if (window.MediaRecorder){
+  if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) { MIME='audio/webm;codecs=opus'; EXT='webm'; }
+  else if (MediaRecorder.isTypeSupported('audio/webm'))         { MIME='audio/webm';            EXT='webm'; }
+  else if (MediaRecorder.isTypeSupported('audio/mp4'))          { MIME='audio/mp4';             EXT='m4a';  }
+}
+
+const $ = id => document.getElementById(id);
+const blobs = {};      // id -> Blob (this session)
+const havefile = {};   // id -> true (already on disk)
+let dirHandle = null, stream = null, rec = null, curId = null, autoStop = null;
+
+/* ================= 画表格 ================= */
+$('lists').innerHTML = GROUPS.map(g =>
+  '<h2>'+g.title+(g.note?' <span class="note">· '+g.note+'</span>':'')+'</h2><table>'
+  + g.items.map(it =>
+      '<tr id="row-'+it.id+'">'
+      + '<td class="hz'+(it.hz.length>6?' long':'')+'"><span class="dot" id="dot-'+it.id+'"></span>'+it.hz+'</td>'
+      + '<td class="py">'+(it.tone||'')+'</td>'
+      + '<td class="act">'
+      +   '<button class="b rec" data-rec="'+it.id+'">🎙 录</button>'
+      +   '<button class="b play" data-play="'+it.id+'" disabled>▶️</button>'
+      +   '<button class="b save" data-save="'+it.id+'" disabled>⬇️</button>'
+      + '</td></tr>'
+    ).join('')
+  + '</table>'
+).join('');
+
+function setStatus(msg, cls){ const s=$('status'); s.textContent=msg; s.className='status'+(cls?' '+cls:''); }
+function markDone(id){
+  $('dot-'+id).classList.add('done');
+  document.querySelector('[data-play="'+id+'"]').disabled = false;
+  document.querySelector('[data-save="'+id+'"]').disabled = !blobs[id];
+  const done = ALL.filter(i=>blobs[i.id]||havefile[i.id]).length;
+  $('prog').style.width = (done/ALL.length*100)+'%';
+}
+
+/* ================= 文件夹 ================= */
+$('pickDir').addEventListener('click', async ()=>{
+  if(!window.showDirectoryPicker){
+    setStatus('这个浏览器不支持直接写文件夹 —— 请用 Chrome，或改用「⬇️ 下载全部已录」。','bad');
+    return;
+  }
+  try{
+    dirHandle = await window.showDirectoryPicker({mode:'readwrite'});
+    if(dirHandle.requestPermission){
+      const p = await dirHandle.requestPermission({mode:'readwrite'});
+      if(p!=='granted'){ setStatus('没有拿到写入权限。','bad'); dirHandle=null; return; }
+    }
+    setStatus('已连接文件夹「'+dirHandle.name+'」—— 录完自动保存 ✅','ok');
+    for await (const [name, h] of dirHandle.entries()){
+      if(h.kind!=='file') continue;
+      const id = name.replace(/\.(webm|m4a|mp3|wav|ogg)$/i,'');
+      if(ALL.some(i=>i.id===id)){ havefile[id]=true; markDone(id); }
+    }
+  }catch(e){ if(e.name!=='AbortError') setStatus('打开文件夹失败：'+e.message,'bad'); }
+});
+
+async function saveToDir(id, blob){
+  if(!dirHandle) return false;
+  const fh = await dirHandle.getFileHandle(id+'.'+EXT, {create:true});
+  const w = await fh.createWritable();
+  await w.write(blob); await w.close();
+  havefile[id] = true;
+  return true;
+}
+function download(id){
+  const b = blobs[id]; if(!b) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download = id+'.'+EXT;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+$('dlAll').addEventListener('click', async ()=>{
+  const ids = Object.keys(blobs);
+  if(!ids.length){ setStatus('还没有录音可以下载。','bad'); return; }
+  for(const id of ids){ download(id); await new Promise(r=>setTimeout(r,350)); }
+  setStatus('下载了 '+ids.length+' 个文件 —— 把它们拖进 audio/zhichuan 文件夹，文件名别改。','ok');
+});
+
+/* ================= 麦克风 ================= */
+async function getMic(){
+  if(stream) return stream;
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)
+    throw new Error('这个浏览器/打开方式不支持录音。请用 Chrome 打开这个文件。');
+  stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true}});
+  return stream;
+}
+$('micBtn').addEventListener('click', async ()=>{
+  try{ await getMic(); setStatus('麦克风已就绪 🎤 可以开始录了。','ok'); }
+  catch(e){ setStatus('麦克风打不开：'+e.message,'bad'); }
+});
+
+document.addEventListener('click', async ev=>{
+  const r = ev.target.closest('[data-rec]');
+  const p = ev.target.closest('[data-play]');
+  const s = ev.target.closest('[data-save]');
+  if(r) return toggleRec(r.dataset.rec, r);
+  if(p) return playBack(p.dataset.play);
+  if(s) return download(s.dataset.save);
+});
+
+async function toggleRec(id, btn){
+  if(curId === id){ stopRec(); return; }
+  if(curId) stopRec();
+  try{ await getMic(); }
+  catch(e){ setStatus('麦克风打不开：'+e.message,'bad'); return; }
+
+  const chunks = [];
+  rec = MIME ? new MediaRecorder(stream, {mimeType:MIME}) : new MediaRecorder(stream);
+  rec.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
+  rec.onstop = async ()=>{
+    const blob = new Blob(chunks, {type: MIME || 'audio/webm'});
+    blobs[id] = blob;
+    let saved = false;
+    try{ saved = await saveToDir(id, blob); }catch(e){ setStatus('保存失败：'+e.message,'bad'); }
+    markDone(id);
+    setStatus(saved ? ('已保存 '+id+'.'+EXT+' ✅') : ('录好了（还没写进文件夹，可用 ⬇️ 下载）'), saved?'ok':'');
+  };
+  rec.start();
+  curId = id; btn.textContent = '⏹ 停'; btn.classList.add('on');
+  $('row-'+id).classList.add('active');
+  setStatus('正在录音…… 读完点「⏹ 停」（6 秒自动停）');
+  autoStop = setTimeout(stopRec, 6000);
+}
+function stopRec(){
+  if(!rec || !curId) return;
+  clearTimeout(autoStop);
+  try{ rec.stop(); }catch(e){}
+  const btn = document.querySelector('[data-rec="'+curId+'"]');
+  if(btn){ btn.textContent='🎙 重录'; btn.classList.remove('on'); }
+  $('row-'+curId).classList.remove('active');
+  curId = null; rec = null;
+}
+
+async function playBack(id){
+  let url = null;
+  if(blobs[id]) url = URL.createObjectURL(blobs[id]);
+  else if(dirHandle && havefile[id]){
+    for(const ext of ['webm','m4a','mp3','wav','ogg']){
+      try{ const fh = await dirHandle.getFileHandle(id+'.'+ext); url = URL.createObjectURL(await fh.getFile()); break; }catch(e){}
+    }
+  }
+  if(!url){ setStatus('还没有这个词的录音。','bad'); return; }
+  const a = new Audio(url); a.play();
+  a.onended = ()=> URL.revokeObjectURL(url);
+}
+
+if(!window.MediaRecorder) setStatus('这个浏览器不支持录音，请改用 Chrome。','bad');
+</script>
+</body>
+</html>
