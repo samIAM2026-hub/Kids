@@ -9,6 +9,15 @@ cd "$(dirname "$0")" || exit 1
 OUT="audio/zhichuan"
 mkdir -p "$OUT"
 
+# ---- 保护真人录音：文件夹里有 .webm（录音棚录的）就先问一句 ----
+HUMAN=$(ls "$OUT"/*.webm 2>/dev/null | wc -l | tr -d ' ')
+if [ "$HUMAN" -gt 0 ]; then
+  echo "⚠️  检测到 $HUMAN 个真人录音（.webm）。"
+  echo "   继续生成会覆盖掉现在游戏里正在用的 .m4a（那是从真人录音转出来的）。"
+  read -p "   确定要用机器音覆盖吗？输入 yes 继续，直接回车取消： " ans
+  if [ "$ans" != "yes" ]; then echo "已取消 —— 真人录音保持不变。"; read -n 1 -s -p "按任意键关闭…"; exit 0; fi
+fi
+
 # ---- 挑一个最好的中文声音（优先增强/高级版）----
 VOICES=$(say -v '?' 2>/dev/null)
 VOICE=""
