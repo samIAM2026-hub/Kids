@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diary of a Wimpy Kid · Pages 1–40</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --font:'Comic Sans MS','Trebuchet MS',system-ui,sans-serif;
+    --bg:linear-gradient(160deg,#f4f1e6 0%,#e6e2d3 50%,#d8d3c2 100%);
+    --ink:#2f2a22;
+    --header-bg:#3f4a56; --header-shadow:#28313a; --header-radius:20px;
+    --bar-bg:#fffdf7; --bar-shadow:#c9c2ad; --track:#ddd6c2; --fill:#3a7d44;
+    --card-bg:#fffdf7; --card-shadow:#c9c2ad; --card-radius:16px; --meta:#a8781a;
+    --opt-bg:#f8f5ea; --opt-border:#ddd6c2; --opt-hover:#d99a1f; --opt-radius:12px;
+    --correct-bg:#d7f0d3; --correct-border:#3a7d44; --wrong-bg:#fbeaea; --wrong-border:#c0392b;
+    --good-bg:#e8f5e6; --good-fg:#2e6b34; --bad-bg:#fbeaea; --bad-fg:#a5352a;
+    --btn:#3a7d44; --btn-shadow:#285a30; --next:#d99a1f; --next-shadow:#a8781a;
+    --result-title:#3f4a56; --footer:#5b5344;
+  }
+  body.theme-wimpy{ /* notebook slate + mustard — the Wimpy Kid accent */ }
+  body { font-family:var(--font); background:var(--bg); min-height:100vh; color:var(--ink); padding:20px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  header { background:var(--header-bg); border-radius:var(--header-radius); padding:26px 24px; text-align:center; color:#fff; box-shadow:0 8px 0 var(--header-shadow); margin-bottom:18px; }
+  header .ic { font-size:50px; line-height:1; }
+  header h1 { font-size:25px; margin:8px 0 4px; }
+  header p { font-size:16px; opacity:.95; }
+  .bar { background:var(--bar-bg); border-radius:14px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; font-weight:bold; margin-bottom:16px; box-shadow:0 4px 0 var(--bar-shadow); }
+  .progress-track { flex:1; height:14px; background:var(--track); border-radius:10px; margin:0 14px; overflow:hidden; }
+  .progress-fill { height:100%; width:0; background:var(--fill); border-radius:10px; transition:width .3s; }
+  .card { background:var(--card-bg); border-radius:var(--card-radius); padding:22px; box-shadow:0 6px 0 var(--card-shadow); margin-bottom:16px; }
+  .qmeta { font-size:13px; color:var(--meta); font-weight:bold; text-transform:uppercase; letter-spacing:.5px; }
+  .qtext { font-size:20px; margin:8px 0 16px; line-height:1.45; }
+  .opt { display:block; width:100%; text-align:left; background:var(--opt-bg); border:3px solid var(--opt-border); border-radius:var(--opt-radius); padding:13px 16px; font-size:17px; font-family:inherit; color:var(--ink); margin-bottom:10px; cursor:pointer; transition:transform .1s, background .15s, border-color .15s; }
+  .opt:hover:not(:disabled) { transform:translateX(4px); border-color:var(--opt-hover); }
+  .opt:disabled { cursor:default; }
+  .opt.correct { background:var(--correct-bg); border-color:var(--correct-border); }
+  .opt.wrong { background:var(--wrong-bg); border-color:var(--wrong-border); }
+  .feedback { margin-top:6px; padding:12px 14px; border-radius:12px; font-size:15px; line-height:1.45; display:none; }
+  .feedback.show { display:block; }
+  .feedback.good { background:var(--good-bg); color:var(--good-fg); }
+  .feedback.bad { background:var(--bad-bg); color:var(--bad-fg); }
+  .btn { background:var(--btn); color:#fff; border:none; border-radius:14px; padding:14px 28px; font-size:18px; font-family:inherit; font-weight:bold; cursor:pointer; box-shadow:0 5px 0 var(--btn-shadow); transition:transform .1s; }
+  .btn:active { transform:translateY(3px); box-shadow:0 2px 0 var(--btn-shadow); }
+  .btn.next { background:var(--next); box-shadow:0 5px 0 var(--next-shadow); display:none; margin-top:6px; }
+  .center { text-align:center; }
+  .result { background:var(--card-bg); border-radius:var(--card-radius); padding:34px 24px; text-align:center; box-shadow:0 6px 0 var(--card-shadow); }
+  .result .big { font-size:62px; }
+  .result h2 { font-size:27px; margin:10px 0; color:var(--result-title); }
+  .scoreline { font-size:22px; margin:14px 0; }
+  .stars { font-size:33px; letter-spacing:4px; margin:10px 0; }
+  .hidden { display:none; }
+  footer { text-align:center; font-size:13px; color:var(--footer); margin-top:10px; opacity:.85; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="ic" id="icon">📓</div>
+    <h1 id="title">Book Title</h1>
+    <p id="subtitle">Reading Quiz</p>
+  </header>
+  <div class="bar">
+    <span id="qcount">Question 1</span>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <span id="scoreboard">0</span>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" class="result hidden"></div>
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* ======================= EDIT THIS ======================= */
+const CONFIG = {
+  title:    "Diary of a Wimpy Kid",
+  subtitle: "Reading Quiz · Book 1, Pages 1–40",
+  child:    "Warren",
+  theme:    "wimpy",
+  icon:     "📓",
+  passPct:  0.80
+};
+
+const questions = [
+  // ---------- Greg and his journal ----------
+  { ch:"Greg's Journal", q:"Why does Greg keep insisting that his book is a journal and not a diary?",
+    options:["He does not want other kids teasing him about it",
+             "He thinks journals are meant for older students",
+             "His teacher told the class to call it a journal",
+             "He plans to turn it into a real book someday"],
+    answer:0,
+    why:"Greg says right at the start that he asked for one without the word 'diary' on it, because he does not want anyone getting the wrong idea about him." },
+
+  { ch:"Greg's Journal", q:"Who got Greg the book he writes in?",
+    options:["His mom picked it out and bought it for him",
+             "His dad brought it home from work one day",
+             "His teacher handed one to every kid in class",
+             "Rowley gave it to him as a birthday present"],
+    answer:0,
+    why:"Greg's mom bought it for him — which is why he grumbles that she got one with 'diary' printed on the front." },
+
+  { ch:"Greg's Journal", q:"What reason does Greg give for writing in it at all?",
+    options:["One day he will be famous and busy with questions",
+             "He wants to remember middle school when he is older",
+             "He is hoping to earn extra credit in English class",
+             "His mom promised him a new video game for it"],
+    answer:0,
+    why:"Greg figures he will be rich and famous someday, and this book will save him from answering everyone's questions all day long." },
+
+  // ---------- Middle school ----------
+  { ch:"Middle School", q:"What does Greg say is the biggest problem with middle school?",
+    options:["Tiny kids are mixed in with kids who already shave",
+             "Teachers pile on much more homework than before",
+             "Students must switch rooms for every single subject",
+             "The building is far older than his old school was"],
+    answer:0,
+    why:"Greg complains that little kids who have not grown yet are put right next to big kids who are old enough to shave." },
+
+  { ch:"Middle School", q:"What happens after Greg carefully decorates his name card on the first day?",
+    options:["The teacher moves everyone into new assigned seats",
+             "The teacher hangs his card up in front of the class",
+             "Another kid knocks a drink over the whole card",
+             "He gets picked to pass the cards out to the class"],
+    answer:0,
+    why:"Greg puts effort into his name card while sitting with kids he likes, and then the teacher reassigns the seats anyway — so all that work is wasted." },
+
+  { ch:"Middle School", q:"About where does Greg say he ranks in popularity at his school?",
+    options:["Somewhere around 52nd or 53rd place",
+             "Somewhere inside the top ten of his grade",
+             "Right in the middle at about 25th place",
+             "Down near the bottom, behind even Rowley"],
+    answer:0,
+    why:"Greg keeps a mental ranking and puts himself at about 52nd or 53rd — with a plan for climbing higher." },
+
+  // ---------- Greg's family ----------
+  { ch:"Greg's Family", q:"What trick does Rodrick play on his brother in the summer?",
+    options:["He wakes Greg in the night saying school starts now",
+             "He hides Greg's school backpack on the first morning",
+             "He tells Greg that the school bus stop has moved",
+             "He sets every clock in the house an hour ahead"],
+    answer:0,
+    why:"Rodrick shakes Greg awake and tells him he slept through the whole summer and is about to be late for the first day of school." },
+
+  { ch:"Greg's Family", q:"How does Greg finally find out that Rodrick tricked him?",
+    options:["Dad comes down and says it is three in the morning",
+             "He looks outside and sees the neighbors still asleep",
+             "Rowley phones him to ask why he is awake so early",
+             "He spots the tags still hanging on his school clothes"],
+    answer:0,
+    why:"Greg gets dressed and goes downstairs, and it is his dad coming down who tells him it is three o'clock in the morning." },
+
+  { ch:"Greg's Family", q:"Why does Greg feel nervous around his little brother Manny?",
+    options:["Manny knows an embarrassing baby name for Greg",
+             "Manny is much stronger than a toddler should be",
+             "Manny hides Greg's things and will not give them back",
+             "Manny copies whatever Greg does around the house"],
+    answer:0,
+    why:"Manny knows Greg's old baby nickname, and Greg is terrified he will shout it out in front of his friends." },
+
+  { ch:"Greg's Family", q:"What baby nickname does Manny call Greg?",
+    options:["Bubby", "Buster", "Bibby", "Bunny"],
+    answer:0,
+    why:"Manny calls him 'Bubby' — a name left over from when Greg was little, and one he would rather nobody else ever heard." },
+
+  { ch:"Greg's Family", q:"Why does Manny seem to get away with so much?",
+    options:["Greg's parents go easy on him for being the baby",
+             "He is careful to make trouble where nobody sees him",
+             "He blames things on Rodrick before Greg can speak up",
+             "He cries so hard that Greg feels sorry for him"],
+    answer:0,
+    why:"Greg is sure his parents treat Manny differently because he is the youngest, so Manny is hardly ever punished for anything." },
+
+  // ---------- Rowley ----------
+  { ch:"Rowley", q:"What does Greg tell Rowley to stop saying to people?",
+    options:["\"Do you want to come over and play?\"",
+             "\"Do you want to be best friends forever?\"",
+             "\"Do you want to see my new toy trucks?\"",
+             "\"Do you want to sit next to me at lunch?\""],
+    answer:0,
+    why:"Greg tells Rowley that middle schoolers say 'hang out,' not 'play' — one of the many ways Greg tries to coach him." },
+
+  { ch:"Rowley", q:"How did Greg's friendship with his best friend begin?",
+    options:["Rowley moved into the neighborhood a while back",
+             "They were put together as partners in class",
+             "They met at a summer camp a few years ago",
+             "Their moms were already friends beforehand"],
+    answer:0,
+    why:"Rowley moved into Greg's neighborhood, and the two of them have been friends since then." },
+
+  // ---------- The Cheese Touch ----------
+  { ch:"The Cheese Touch", q:"What exactly is the Cheese Touch?",
+    options:["A curse you catch by touching the cheese on the blacktop",
+             "A game where kids toss the old cheese at each other",
+             "A rule keeping students off the blacktop at recess",
+             "A prize for whoever dares to take a bite of the cheese"],
+    answer:0,
+    why:"The Cheese Touch is the curse a kid gets from touching the mouldy slice on the blacktop — and it then passes by touch." },
+
+  { ch:"The Cheese Touch", q:"Who touched the cheese first and started the whole thing?",
+    options:["Darren Walsh", "Abe Hall", "Chris Hosey", "Rowley Jefferson"],
+    answer:0,
+    why:"Darren Walsh was the one who touched the cheese, and after that the Cheese Touch spread around the school." },
+
+  { ch:"The Cheese Touch", q:"How can a kid keep from catching the Cheese Touch?",
+    options:["By crossing his fingers before it gets passed to him",
+             "By washing his hands at the fountain straight away",
+             "By staying off the blacktop until the cheese is gone",
+             "By touching the cheese first before anyone reaches him"],
+    answer:0,
+    why:"Crossing your fingers is the protection the kids agree on — if your fingers are crossed, the Cheese Touch cannot be handed to you." },
+
+  { ch:"The Cheese Touch", q:"What became of the Cheese Touch in the end?",
+    options:["Abe Hall moved to California and took it with him",
+             "A teacher finally scraped the cheese off the blacktop",
+             "Rain washed the old cheese away over the summer",
+             "The kids agreed to stop playing the game for good"],
+    answer:0,
+    why:"Abe Hall was stuck with the Cheese Touch, and when he moved away to California the curse went with him." },
+
+  // ---------- Think About It ----------
+  { ch:"Think About It", q:"What does Greg's popularity ranking tell you about him?",
+    options:["Looking popular matters more to him than his friendships",
+             "He is asked to report the rankings back to his classmates",
+             "He is hoping to pull Rowley up the list along with him",
+             "He is worried about what his brothers think of him"],
+    answer:0,
+    why:"Greg measures almost everything by how it will affect his rank, which shows he cares more about status than about the people around him." },
+
+  { ch:"Think About It", q:"What does the way Greg treats Rowley show about their friendship?",
+    options:["He likes Rowley but is embarrassed by how young he acts",
+             "He is quietly trying to become more like Rowley himself",
+             "He wants Rowley to end up more popular than he is",
+             "He is looking for an excuse to end the friendship"],
+    answer:0,
+    why:"Greg sticks with Rowley and enjoys his company, yet keeps correcting him — he is fond of Rowley and embarrassed by him at the same time." },
+
+  { ch:"Think About It", q:"Why is the Cheese Touch such a big deal to the kids at school?",
+    options:["Nobody wants to be the one everyone else avoids",
+             "The cheese actually makes the kids who touch it sick",
+             "Teachers hand out punishments for passing it around",
+             "Whoever ends up with it has to clean the blacktop"],
+    answer:0,
+    why:"The real fear is being left out — a kid with the Cheese Touch gets avoided by everyone, which matters far more than the cheese itself." }
+];
+/* ===================== END EDIT AREA ===================== */
+
+document.body.className = 'theme-' + CONFIG.theme;
+const MARK = '⭐';
+document.getElementById('icon').textContent = CONFIG.icon;
+document.getElementById('title').textContent = CONFIG.title;
+document.getElementById('subtitle').textContent = CONFIG.subtitle;
+
+questions.forEach(item => {
+  const correct = item.options[item.answer];
+  for (let i = item.options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [item.options[i], item.options[j]] = [item.options[j], item.options[i]];
+  }
+  item.answer = item.options.indexOf(correct);
+});
+
+let current = 0, score = 0, answered = false;
+const passNeeded = Math.ceil(questions.length * CONFIG.passPct);
+const pctLabel = Math.round(CONFIG.passPct * 100);
+const quizArea = document.getElementById('quizArea');
+const resultArea = document.getElementById('resultArea');
+const qcount = document.getElementById('qcount');
+const scoreboard = document.getElementById('scoreboard');
+const progress = document.getElementById('progress');
+document.getElementById('footer').textContent =
+  `For ${CONFIG.child} · Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})`;
+
+function render() {
+  answered = false;
+  const item = questions[current];
+  qcount.textContent = `Question ${current + 1} of ${questions.length}`;
+  scoreboard.textContent = `${MARK} ${score}`;
+  progress.style.width = `${(current / questions.length) * 100}%`;
+  const opts = item.options.map((o, i) => `<button class="opt" data-i="${i}" onclick="choose(${i})">${o}</button>`).join('');
+  quizArea.innerHTML = `
+    <div class="card">
+      <div class="qmeta">${item.ch}</div>
+      <div class="qtext">${item.q}</div>
+      ${opts}
+      <div class="feedback" id="fb"></div>
+      <div class="center"><button class="btn next" id="nextBtn" onclick="next()">Next →</button></div>
+    </div>`;
+}
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const item = questions[current];
+  const buttons = document.querySelectorAll('.opt');
+  buttons.forEach(b => b.disabled = true);
+  const fb = document.getElementById('fb');
+  if (i === item.answer) {
+    score++;
+    buttons[i].classList.add('correct');
+    fb.className = 'feedback good show';
+    fb.innerHTML = `✅ <strong>Correct!</strong> ${item.why}`;
+  } else {
+    buttons[i].classList.add('wrong');
+    buttons[item.answer].classList.add('correct');
+    fb.className = 'feedback bad show';
+    fb.innerHTML = `❌ <strong>Not quite.</strong> ${item.why}`;
+  }
+  scoreboard.textContent = `${MARK} ${score}`;
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function next() { current++; if (current < questions.length) render(); else showResult(); }
+
+function showResult() {
+  quizArea.classList.add('hidden');
+  document.querySelector('.bar').classList.add('hidden');
+  resultArea.classList.remove('hidden');
+  progress.style.width = '100%';
+  const pct = Math.round((score / questions.length) * 100);
+  const passed = score >= passNeeded;
+  let stars, msg, emoji;
+  if (pct === 100) { stars='⭐⭐⭐⭐⭐'; msg="Perfect score! You really know this book."; emoji='🏆'; }
+  else if (passed) { stars='⭐⭐⭐⭐'; msg="Excellent! You passed with room to spare."; emoji='🎖️'; }
+  else if (pct >= 60) { stars='⭐⭐⭐'; msg=`So close! You need ${pctLabel}% to pass — review and try again.`; emoji='📖'; }
+  else if (pct >= 40) { stars='⭐⭐'; msg=`Good effort! You need ${pctLabel}% to pass. Re-read and give it another go.`; emoji='📚'; }
+  else { stars='⭐'; msg="Let's read those pages again together and try once more."; emoji='📗'; }
+  const banner = passed
+    ? `<div style="background:var(--correct-bg);color:var(--good-fg);border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">🎉 PASSED! 🎉</div>`
+    : `<div style="background:var(--bad-bg);color:var(--bad-fg);border-radius:12px;padding:14px;font-size:24px;font-weight:bold;margin:14px 0;">Not passed yet — need ${pctLabel}%</div>`;
+  resultArea.innerHTML = `
+    <div class="big">${emoji}</div>
+    <h2>Quiz Complete!</h2>
+    ${banner}
+    <div class="stars">${stars}</div>
+    <div class="scoreline">You got <strong>${score}</strong> out of <strong>${questions.length}</strong> (${pct}%)</div>
+    <div style="font-size:15px;color:var(--footer);margin:-4px 0 8px;">Passing score: ${pctLabel}% (${passNeeded} of ${questions.length})</div>
+    <p style="margin:10px 0 20px;font-size:17px;">${msg}</p>
+    <button class="btn" onclick="restart()">Try Again 🔄</button>`;
+}
+
+function restart() {
+  current = 0; score = 0; answered = false;
+  resultArea.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  document.querySelector('.bar').classList.remove('hidden');
+  render();
+}
+render();
+</script>
+</body>
+</html>
