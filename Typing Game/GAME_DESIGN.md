@@ -277,3 +277,52 @@ Flat, calm, adult design (white/navy, no game art) — one scrollable page match
 - **Data to log per keystroke:** target key, pressed key, correct?, latency — this powers the heat map and adaptive difficulty.
 - **Fonts/colors:** large rounded sans-serif (e.g., Baloo 2 / Quicksand), pastel palette, high contrast text, generous spacing. Sound: soft chimes and pops, master mute.
 - **Accessibility:** all instructions read aloud (she shouldn't need to *read* fluently to learn to *type*), toggleable animations, adjustable font size.
+
+---
+
+## 14. Built Additions — Finger School & Story Scrolls *(added 2026-08-30)*
+
+Two screens were added to `index.html` on top of the original three mini-games.
+
+### 🖐️ Finger School (`#fingers`) — the two-hand lesson
+A read-and-do lesson, not a game. Five blocks:
+
+1. **Sit like a wizard** — posture, curled fingers, eyes on the screen.
+2. **The Home Row** — `A S D F` / `J K L ;`, both thumbs on space; fingers always hop home.
+3. **Every finger has its own keys** — two CSS hand diagrams (colour-coded finger bars + palm),
+   a per-hand key list, and a full colour-painted reference keyboard (`#kbdRef`, built by
+   `buildRefKbd()`).
+4. **Find the two secret bumps** — interactive: pressing **F** then **J** lights both tiles green,
+   awards 3 ⭐ and the 🖐️ *Found the F & J Bumps* badge. Sets `S.homeRowFound`.
+5. **Two hands sharing the work** — opposite-pinky Shift, thumb space, right-pinky Backspace,
+   "slow and right beats fast and wrong".
+
+### 📖 Story Scrolls (`#story`) — paragraph typing
+Full ~40-word paragraphs (4 sentences each), 18 total across three sets:
+`canada` 🍁 · `animals` 🐼 · `stories` ✨. All are written to use **only keys present on the
+on-screen keyboard** and **only characters with a finger mapping** — no contractions, no
+apostrophes, no semicolons. A script check enforces this; keep it true when adding paragraphs.
+
+- **Blocking validation** (same contract as `makeTypingLine`): a wrong key wiggles the character
+  red and logs a miss, but never advances. **Backspace** steps back one character.
+- **Live stats:** % done, accuracy (shown as `–` until 5 keystrokes so a first miss never reads
+  as 0%; `Math.floor` so 99.5% is not rounded up to a fake 100%), words/min (capped at 200),
+  pages written. Progress bar above the text.
+- **On finish:** +10 ⭐, confetti, best-WPM / best-accuracy saved. No auto-advance — a
+  **🔄 Different paragraph** button keeps the pace hers.
+
+### The finger engine (shared by every game)
+- `KEY_FINGER` maps each key to one of nine finger codes (`LP LR LM LI RI RM RR RP TH`);
+  `FINGERS` holds each finger's display name, hand, colour and CSS classes.
+- Every key on `#kbd` carries a coloured base shadow for its finger; `#kbdRef` uses tinted
+  backgrounds for the same mapping.
+- `hintKey(char)` now also calls `showFingerTip(char)`, which renders the line under the keyboard:
+  *"Use your **right pointer** finger + hold **Shift** with your left pinky"*. Shift is always
+  attributed to the **opposite** hand's pinky. Because it hangs off `hintKey`, Bloom Burst and
+  Dragon Snacks get the finger coaching for free.
+
+### State added to the save blob
+`paras`, `bestWpm`, `bestAcc`, `homeRowFound` — plus four badges (`homeRow`, `firstPara`,
+`para10`, `sharp`). The Grown-Ups dashboard gained *Paragraphs typed* and *Best words/min*, and
+its suggestion ladder now starts by sending the parent to Finger School and ends with the
+benchmark note: **15–20 wpm at 95% accuracy is excellent for a nine-year-old.**
