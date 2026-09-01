@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grace · Clue Sentences — Marked</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --ink:#1c1a17; --soft:#5b4636; --cream:#f6f3ed; --paper:#fffdf7;
+    --rust:#b4622f; --green:#3f7d4e; --green-soft:#eaf3ec;
+    --red:#c0392b; --red-soft:#fbeaea; --line:#e2d9c9; --gold:#c9a227; --blue:#2c3e63;
+  }
+  body{
+    font-family: Georgia, "Times New Roman", serif;
+    background:var(--cream); color:var(--ink);
+    line-height:1.75; font-size:1.05rem; padding:34px 18px 70px;
+  }
+  .wrap{ max-width:820px; margin:0 auto; }
+
+  header{ border-bottom:3px double var(--line); padding-bottom:22px; margin-bottom:32px; }
+  .eyebrow{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.7rem; letter-spacing:.16em; text-transform:uppercase; color:var(--rust); margin-bottom:8px;
+  }
+  h1{ font-size:1.85rem; line-height:1.2; letter-spacing:-.4px; }
+  .byline{ color:var(--soft); font-size:.95rem; margin-top:8px; font-style:italic; }
+
+  section{ margin-top:46px; }
+  h2{
+    font-size:1.28rem; display:flex; align-items:baseline; gap:10px;
+    padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:18px;
+  }
+  h2 .n{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.75rem; color:var(--rust); letter-spacing:.1em;
+  }
+  h3{ font-size:1.05rem; margin:26px 0 9px; color:var(--soft); }
+  p{ margin-bottom:13px; }
+  .lead{ color:var(--soft); font-size:.97rem; margin-bottom:16px; }
+
+  .instr{
+    background:var(--paper); border:1px solid var(--line); border-left:5px solid var(--blue);
+    border-radius:0 10px 10px 0; padding:17px 21px; margin-bottom:16px;
+  }
+  .instr .rn{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.63rem; letter-spacing:.12em; text-transform:uppercase; color:var(--blue); margin-bottom:5px;
+  }
+  .instr b{ font-size:1.06rem; }
+  .instr p{ margin:7px 0 0; font-size:.96rem; color:var(--soft); }
+
+  .wordbox{
+    background:#fff9ec; border:1px solid var(--gold); border-radius:9px;
+    padding:13px 17px; margin:15px 0; font-size:.96rem;
+  }
+  .wordbox .wl{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:#8a7220;
+    display:block; margin-bottom:4px;
+  }
+
+  /* the demo */
+  .demo{
+    background:var(--paper); border:1px solid var(--line); border-radius:11px;
+    padding:20px 22px; margin:18px 0;
+  }
+  .demoline{ font-size:1.14rem; line-height:2; margin-bottom:6px; }
+  .tw{
+    background:#f3e6d6; border-bottom:2px solid var(--rust); border-radius:3px;
+    padding:1px 4px; transition:background .15s ease;
+  }
+  .tw.hidden{ background:var(--ink); color:transparent; border-bottom-color:var(--ink); }
+  .btn{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.68rem; letter-spacing:.09em; text-transform:uppercase;
+    background:var(--paper); border:1px solid var(--line); border-radius:20px;
+    padding:8px 16px; cursor:pointer; color:var(--soft); margin-top:8px;
+  }
+  .btn:hover{ border-color:var(--rust); color:var(--rust); }
+  .verdict{
+    margin-top:12px; padding:11px 15px; border-radius:8px; font-size:.95rem; display:none;
+  }
+  .verdict.show{ display:block; }
+  .verdict.bad{ background:var(--red-soft); border:1px solid #e8bdb6; }
+  .verdict.bad b{ color:var(--red); }
+  .verdict.good{ background:var(--green-soft); border:1px solid #bcd8c4; }
+  .verdict.good b{ color:var(--green); }
+
+  /* sentence cards */
+  .s{
+    background:var(--paper); border:1px solid var(--line); border-radius:11px;
+    padding:20px 22px; margin-bottom:20px; border-left:5px solid var(--red);
+  }
+  .s .sh{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; color:var(--soft); margin-bottom:9px;
+  }
+  .hand{
+    font-family:"Bradley Hand","Segoe Script","Comic Sans MS",cursive;
+    background:#fffaf0; border:1px dashed #d9c9a8; border-radius:7px;
+    padding:10px 14px; display:block; font-size:1.1rem; color:#3f342a; margin-bottom:14px;
+  }
+  .sic{ border-bottom:2px dotted var(--red); }
+  .checks{ display:grid; gap:8px; margin-bottom:14px; }
+  .ck{ display:grid; grid-template-columns:26px 1fr; gap:9px; font-size:.95rem; align-items:start; }
+  .ck .m{ font-weight:700; text-align:center; }
+  .ck.y .m{ color:var(--green); }
+  .ck.n .m{ color:var(--red); }
+  .ck .t b{ color:var(--ink); }
+  .ck .t{ color:var(--soft); }
+  .fix{
+    background:var(--green-soft); border:1px solid #bcd8c4; border-radius:8px;
+    padding:13px 16px; font-size:1rem; line-height:1.8;
+  }
+  .fix .fl{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.62rem; letter-spacing:.11em; text-transform:uppercase; color:var(--green);
+    display:block; margin-bottom:6px;
+  }
+  .fix b{ color:var(--green); }
+
+  /* clue card template */
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:11px;
+    padding:18px 21px; margin-bottom:15px;
+  }
+  .card .cl{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.62rem; letter-spacing:.11em; text-transform:uppercase; color:var(--rust);
+    display:block; margin-bottom:9px;
+  }
+  .field{ margin-bottom:13px; }
+  .field .fk{ font-size:.9rem; color:var(--soft); margin-bottom:3px; }
+  .field .fv{ border-bottom:1px solid var(--line); min-height:30px; padding:3px 2px; }
+  .field .fv.tall{ min-height:56px; }
+  .filled .fv{ border-bottom-style:dashed; color:var(--ink); }
+
+  ol.steps{ counter-reset:s; list-style:none; display:grid; gap:12px; margin:16px 0; }
+  ol.steps li{ position:relative; padding-left:44px; font-size:.97rem; }
+  ol.steps li::before{
+    counter-increment:s; content:"Step " counter(s);
+    position:absolute; left:0; top:2px;
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.55rem; letter-spacing:.06em; text-transform:uppercase;
+    background:var(--blue); color:#fff; border-radius:5px;
+    padding:3px 5px; width:34px; text-align:center; line-height:1.3;
+  }
+
+  .checklist{ display:grid; gap:9px; }
+  .chk{
+    display:flex; align-items:flex-start; gap:11px; cursor:pointer;
+    background:var(--paper); border:1px solid var(--line); border-radius:9px; padding:13px 15px;
+    user-select:none;
+  }
+  .chk .box{
+    flex:none; width:21px; height:21px; border:2px solid var(--soft); border-radius:5px;
+    display:flex; align-items:center; justify-content:center; font-size:.8rem; color:#fff; margin-top:3px;
+  }
+  .chk.done{ background:var(--green-soft); border-color:var(--green); }
+  .chk.done .box{ background:var(--green); border-color:var(--green); }
+  .chk.done .box::after{ content:"\2713"; }
+  .chk.done .txt{ color:var(--green); }
+  .chk .txt{ font-size:.98rem; }
+  .chk .txt small{ display:block; color:var(--soft); font-size:.86rem; margin-top:3px; }
+  .progress{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.78rem; color:var(--soft); margin-top:12px; letter-spacing:.06em;
+  }
+
+  .endnote{ background:#fff9ec; border:1px solid var(--gold); border-radius:10px; padding:22px 25px; }
+  .endnote p:last-child{ margin-bottom:0; }
+  .endnote .sig{ font-style:italic; color:var(--soft); font-size:.9rem; margin-top:14px; }
+
+  footer{
+    margin-top:52px; padding-top:18px; border-top:1px solid var(--line);
+    color:var(--soft); font-size:.82rem; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+  footer a{ color:var(--rust); }
+
+  @media (max-width:600px){
+    body{ padding:24px 13px 50px; }
+    h1{ font-size:1.45rem; }
+  }
+  @media print{
+    body{ background:#fff; }
+    .s, .card, .chk{ break-inside:avoid; }
+    .btn{ display:none; }
+    .verdict{ display:block !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Unit 1 · Context Clues · the “cover the word” page</div>
+    <h1>Your four clue sentences</h1>
+    <p class="byline">Grace, age 9 · this page is only about that one sheet · plus the homework at the bottom</p>
+  </header>
+
+  <!-- 01 -->
+  <section style="margin-top:32px">
+    <h2><span class="n">01</span> What that sheet was asking you to do</h2>
+
+    <div class="instr">
+      <div class="rn">The instruction at the top of the page</div>
+      <b>“Then test it: cover the target word and read the sentence aloud. Can the meaning still be guessed? If not, the clue is too weak — fix it now.”</b>
+    </div>
+
+    <p>That is a long sentence. Let me say it in a shorter way.</p>
+
+    <div class="wordbox">
+      <span class="wl">What it really means</span>
+      Write a sentence using the hard word. Then <b>hide the hard word with your thumb</b> and read the
+      sentence out loud. If somebody who has never seen that word could still <b>guess</b> what it
+      means — your sentence is good. If they could not guess — your sentence needs more help in it.
+    </div>
+
+    <p><b>The word “target word” just means the hard word</b> — immaculate, dubious, haggle,
+      contemplated. That is the word you are hiding.</p>
+
+    <p>You wrote four sentences. Every one of them uses the word correctly. That part is good.
+      But <b>none of them would pass the thumb test</b>. Try it below and you will feel why.</p>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <h2><span class="n">02</span> Try the thumb test yourself</h2>
+    <p class="lead">Press the button. The word turns into a black block. Then read the sentence out
+      loud and try to guess what the missing word means.</p>
+
+    <div class="demo">
+      <div class="sh" style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);margin-bottom:8px">Your sentence</div>
+      <div class="demoline">My room is <span class="tw" id="w1">immaculate</span>.</div>
+      <button class="btn" data-t="w1" data-v="v1">Cover the word</button>
+      <div class="verdict bad" id="v1">
+        <b>Could you guess it?</b> No. The missing word could be <i>messy</i>, <i>small</i>,
+        <i>blue</i>, <i>cold</i>, <i>warm</i> — anything at all. Nothing in the sentence points to
+        <b>clean</b>. So this sentence has <b>no clue</b> in it.
+      </div>
+    </div>
+
+    <div class="demo">
+      <div class="sh" style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);margin-bottom:8px">The same sentence, with a clue added</div>
+      <div class="demoline">My room is <span class="tw" id="w2">immaculate</span> — there is not one sock on the floor, and every book is straight on the shelf.</div>
+      <button class="btn" data-t="w2" data-v="v2">Cover the word</button>
+      <div class="verdict good" id="v2">
+        <b>Now you can guess it.</b> No socks on the floor. Books all straight. The missing word must
+        mean <b>very clean and tidy</b>. That is what a clue does — it points at the meaning without
+        saying it.
+      </div>
+    </div>
+
+    <p class="lead">That is the whole lesson on this sheet. The extra words after the dash
+      are the clue. Everything below is just doing the same repair to your other three sentences.</p>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <h2><span class="n">03</span> Your four sentences, one at a time</h2>
+    <p class="lead">For each one I check three things: is the word used correctly, is the spelling and
+      grammar right, and does it pass the thumb test.</p>
+
+    <!-- 1 -->
+    <div class="s">
+      <div class="sh">Sentence 1 · immaculate</div>
+      <span class="hand">My room is immaculate</span>
+      <div class="checks">
+        <div class="ck y"><span class="m">✓</span><span class="t"><b>Word used correctly?</b> Yes. A room really can be immaculate. Good choice.</span></div>
+        <div class="ck y"><span class="m">✓</span><span class="t"><b>Spelling and grammar?</b> All correct. Well done — that is a hard word to spell.</span></div>
+        <div class="ck n"><span class="m">✗</span><span class="t"><b>Passes the thumb test?</b> No. Cover the word and it could be any word at all.</span></div>
+      </div>
+      <div class="fix">
+        <span class="fl">Fixed — the clue is after the dash</span>
+        My room is <b>immaculate</b> — there is not one sock on the floor, and every book is straight
+        on the shelf.
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="s">
+      <div class="sh">Sentence 2 · contemplated</div>
+      <span class="hand">I <span class="sic">bot</span> a new hat and my mom <span class="sic">wa</span> contemplated.</span>
+      <div class="checks">
+        <div class="ck n"><span class="m">✗</span><span class="t"><b>Word used correctly?</b> Not quite. You <b>contemplate something</b> — there is always a thing after it. “My mom was contemplated” does not work. She has to contemplate <i>the hat</i>.</span></div>
+        <div class="ck n"><span class="m">✗</span><span class="t"><b>Spelling?</b> <span class="sic">bot</span> should be <b>bought</b>. And <span class="sic">wa</span> should just be cut out.</span></div>
+        <div class="ck n"><span class="m">✗</span><span class="t"><b>Passes the thumb test?</b> No clue at all.</span></div>
+      </div>
+      <div class="wordbox">
+        <span class="wl">The bit to remember</span>
+        <b>Contemplate</b> = look at something and think hard about it for a long time.
+        You always need to say <b>what</b> she was thinking about.<br>
+        ✗ She contemplated.<br>
+        ✓ She contemplated <b>the hat</b>.
+      </div>
+      <div class="fix">
+        <span class="fl">Fixed</span>
+        I bought a new hat, and my mom <b>contemplated</b> it for a long minute, turning it around and
+        thinking hard before she said anything.
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="s">
+      <div class="sh">Sentence 3 · haggling</div>
+      <span class="hand">My mom and dad <span class="sic">was</span> haggling about a <span class="sic">braslet</span></span>
+      <div class="checks">
+        <div class="ck y"><span class="m">✓</span><span class="t"><b>Word used correctly?</b> Yes — and this is your <b>best sentence of the four</b>. Two people arguing about the price of something is exactly what haggling is.</span></div>
+        <div class="ck n"><span class="m">✗</span><span class="t"><b>Grammar?</b> “mom and dad” is <b>two</b> people, so it is <b>were</b>, not was. Count the people first: one person → was, two people → were.</span></div>
+        <div class="ck n"><span class="m">✗</span><span class="t"><b>Spelling?</b> <span class="sic">braslet</span> → <b>bracelet</b>. Two little words stuck together: <b>brace</b> + <b>let</b>.</span></div>
+        <div class="ck n"><span class="m">✗</span><span class="t"><b>Passes the thumb test?</b> Still no. Cover “haggling” and it could be <i>talking</i>, <i>arguing</i>, <i>reading</i>, <i>dreaming</i>.</span></div>
+      </div>
+      <div class="fix">
+        <span class="fl">Fixed — the clue is the back-and-forth numbers</span>
+        My mom and dad <b>were haggling</b> over a bracelet, going back and forth — twenty dollars,
+        no, fifteen, no, eighteen — until they finally shook hands.
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="s">
+      <div class="sh">Sentence 4 · dubious</div>
+      <span class="hand">I was dubious</span>
+      <div class="checks">
+        <div class="ck y"><span class="m">✓</span><span class="t"><b>Word used correctly?</b> Yes. “I was dubious” is real English and it is right.</span></div>
+        <div class="ck y"><span class="m">✓</span><span class="t"><b>Spelling?</b> Perfect.</span></div>
+        <div class="ck n"><span class="m">✗</span><span class="t"><b>Passes the thumb test?</b> No — and here the problem is <b>length</b>. Four words is not enough room to hide a clue in. A clue needs somewhere to live.</span></div>
+      </div>
+      <div class="fix">
+        <span class="fl">Fixed — say what made you doubt it</span>
+        He said he had cleaned his whole room in two minutes, and I was <b>dubious</b> — I raised one
+        eyebrow and did not believe a single word.
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <h2><span class="n">04</span> Three easy ways to build a clue</h2>
+    <p class="lead">You do not have to invent something clever. Pick one of these three and use it
+      every time.</p>
+
+    <div class="instr">
+      <div class="rn">Way 1 · the dash</div>
+      <b>Put a dash — then describe it.</b>
+      <p>“The bike was immaculate <b>— not a speck of rust, not a scratch.</b>”<br>
+        This is the one the story itself uses. Copy it.</p>
+    </div>
+    <div class="instr">
+      <div class="rn">Way 2 · because</div>
+      <b>Add the word “because” and explain.</b>
+      <p>“I was dubious <b>because</b> nobody cleans a whole room in two minutes.”</p>
+    </div>
+    <div class="instr">
+      <div class="rn">Way 3 · an example</div>
+      <b>Show it happening.</b>
+      <p>“They were haggling — <b>twenty dollars, no, fifteen, no, eighteen.</b>”</p>
+    </div>
+
+    <p><b>Then always finish with the thumb test.</b> Cover the word. Read it out loud to Mom or Dad.
+      Can they guess? If yes, you are done.</p>
+  </section>
+
+  <!-- 05 -->
+  <section>
+    <h2><span class="n">05</span> Now you try — rewrite your four</h2>
+    <p class="lead">Do not copy my sentences. Write your own about your own life. Use one of the
+      three ways above. Then do the thumb test on each one.</p>
+
+    <div class="card">
+      <span class="cl">Write yours here</span>
+      <div class="field"><div class="fk">1 · immaculate</div><div class="fv tall"></div></div>
+      <div class="field"><div class="fk">2 · contemplated <span style="color:var(--rust)">(remember: contemplated <b>something</b>)</span></div><div class="fv tall"></div></div>
+      <div class="field"><div class="fk">3 · haggling <span style="color:var(--rust)">(remember: two people → <b>were</b>)</span></div><div class="fv tall"></div></div>
+      <div class="field"><div class="fk">4 · dubious <span style="color:var(--rust)">(make it longer than four words)</span></div><div class="fv tall"></div></div>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section>
+    <h2><span class="n">06</span> The homework at the bottom of the sheet</h2>
+
+    <div class="instr">
+      <div class="rn">Copied from your page — and there is a quiz on it</div>
+      <b>“Collect 3 unknown words from anything you read this week. Make a clue card for each: copy the whole sentence, circle the clue, write your guess, then check a dictionary and tick or correct it. Warm-up quiz next lesson.”</b>
+      <p>That last line matters — <b>your teacher is going to test you on these next lesson.</b>
+        So this one is not optional.</p>
+    </div>
+
+    <p><b>A “clue card” has four parts, in this order:</b></p>
+    <ol class="steps">
+      <li><b>Copy the whole sentence</b> the word came in. The whole sentence — not just the word on its own.</li>
+      <li><b>Circle the clue</b> inside that sentence. The clue is the <b>other</b> words that helped you. Not the hard word.</li>
+      <li><b>Write your guess</b> at the meaning. Guess <b>before</b> you look it up. Always. That is the part that trains your brain.</li>
+      <li><b>Check a dictionary.</b> Then tick your guess if you got it, or write the correct meaning if you did not.</li>
+    </ol>
+
+    <div class="wordbox">
+      <span class="wl">Where to find your three words</span>
+      Any book you are reading. A page of a novel. A sign. Even the back of a cereal box.
+      Pick words you <b>truly do not know</b>. Picking easy ones wastes the homework — and the quiz
+      will use the words you picked.
+    </div>
+
+    <h3>Here is one done for you, so you can copy the shape</h3>
+    <div class="card filled">
+      <span class="cl">Clue card · example</span>
+      <div class="field"><div class="fk">1 · The whole sentence</div>
+        <div class="fv tall">“The green bike was <b>immaculate</b> — not a speck of rust, not a scratch on the frame, the chain oiled and gleaming.”</div></div>
+      <div class="field"><div class="fk">2 · The clue (circle this part on your card)</div>
+        <div class="fv tall"><span style="background:var(--green-soft);box-shadow:inset 0 -2px 0 var(--green);border-radius:3px;padding:0 3px">not a speck of rust, not a scratch, oiled and gleaming</span></div></div>
+      <div class="field"><div class="fk">3 · My guess (before the dictionary)</div>
+        <div class="fv">really clean and shiny</div></div>
+      <div class="field"><div class="fk">4 · Dictionary says</div>
+        <div class="fv">perfectly clean &nbsp; <span style="color:var(--green);font-weight:700">✓ my guess was right</span></div></div>
+    </div>
+
+    <h3>Your three cards — print this page, or copy it out</h3>
+
+    <div class="card">
+      <span class="cl">Clue card 1</span>
+      <div class="field"><div class="fk">Word</div><div class="fv"></div></div>
+      <div class="field"><div class="fk">1 · The whole sentence</div><div class="fv tall"></div></div>
+      <div class="field"><div class="fk">2 · The clue (circle it)</div><div class="fv tall"></div></div>
+      <div class="field"><div class="fk">3 · My guess</div><div class="fv"></div></div>
+      <div class="field"><div class="fk">4 · Dictionary says &nbsp;·&nbsp; ✓ or correct it</div><div class="fv"></div></div>
+    </div>
+
+    <div class="card">
+      <span class="cl">Clue card 2</span>
+      <div class="field"><div class="fk">Word</div><div class="fv"></div></div>
+      <div class="field"><div class="fk">1 · The whole sentence</div><div class="fv tall"></div></div>
+      <div class="field"><div class="fk">2 · The clue (circle it)</div><div class="fv tall"></div></div>
+      <div class="field"><div class="fk">3 · My guess</div><div class="fv"></div></div>
+      <div class="field"><div class="fk">4 · Dictionary says &nbsp;·&nbsp; ✓ or correct it</div><div class="fv"></div></div>
+    </div>
+
+    <div class="card">
+      <span class="cl">Clue card 3</span>
+      <div class="field"><div class="fk">Word</div><div class="fv"></div></div>
+      <div class="field"><div class="fk">1 · The whole sentence</div><div class="fv tall"></div></div>
+      <div class="field"><div class="fk">2 · The clue (circle it)</div><div class="fv tall"></div></div>
+      <div class="field"><div class="fk">3 · My guess</div><div class="fv"></div></div>
+      <div class="field"><div class="fk">4 · Dictionary says &nbsp;·&nbsp; ✓ or correct it</div><div class="fv"></div></div>
+    </div>
+  </section>
+
+  <!-- 07 -->
+  <section>
+    <h2><span class="n">07</span> Tick these off</h2>
+    <div class="checklist" id="checklist">
+      <div class="chk"><div class="box"></div><div class="txt">Do the thumb test in Section 02<small>Press both buttons and feel the difference.</small></div></div>
+      <div class="chk"><div class="box"></div><div class="txt">Rewrite all four sentences with a clue inside<small>Section 05. Your own life, not my examples.</small></div></div>
+      <div class="chk"><div class="box"></div><div class="txt">Thumb-test each new sentence on Mom or Dad<small>Cover the word. Can they guess? If not, add a because.</small></div></div>
+      <div class="chk"><div class="box"></div><div class="txt">Fix the three spelling words<small>bot → bought · braslet → bracelet · was → were</small></div></div>
+      <div class="chk"><div class="box"></div><div class="txt">Homework: 3 clue cards for 3 new words<small>There is a quiz on this next lesson. Section 06.</small></div></div>
+    </div>
+    <div class="progress" id="prog">0 of 5 done</div>
+  </section>
+
+  <!-- 08 -->
+  <section>
+    <h2><span class="n">08</span> One thing before you go</h2>
+    <div class="endnote">
+      <p>Grace — look at what you actually got right on this sheet. You used <b>all four hard words
+        correctly</b>. Immaculate, contemplated, haggling, dubious. You knew what they meant and you
+        put them in real sentences. That is the hard part, and you did it on your own.</p>
+      <p>What was missing was not understanding. It was just the <b>last step</b> — adding the clue.
+        And a clue is only a few extra words: a dash, a because, or an example.</p>
+      <p>So next time you write a sentence with a hard word in it, do not stop at the full stop.
+        Cover the word with your thumb, read it out loud, and ask: <b>could somebody guess?</b>
+        If not, add five more words. That is all it takes.</p>
+      <p class="sig">— marked with Dad, 31 August 2026</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Grace · Unit 1 clue sentences · marked feedback</span>
+    <span><a href="index.html">← Back to the quiz hub</a></span>
+  </footer>
+</div>
+
+<script>
+  document.querySelectorAll('.btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      var w = document.getElementById(b.dataset.t);
+      var v = document.getElementById(b.dataset.v);
+      var hid = w.classList.toggle('hidden');
+      v.classList.toggle('show', hid);
+      b.textContent = hid ? 'Show the word again' : 'Cover the word';
+    });
+  });
+
+  var chks = document.querySelectorAll('#checklist .chk');
+  var prog = document.getElementById('prog');
+  function refresh(){
+    var n = document.querySelectorAll('#checklist .chk.done').length;
+    prog.textContent = n + ' of ' + chks.length + ' done' + (n === chks.length ? '  ✦ all finished!' : '');
+  }
+  chks.forEach(function(c){
+    c.addEventListener('click', function(){ c.classList.toggle('done'); refresh(); });
+  });
+  refresh();
+</script>
+</body>
+</html>
