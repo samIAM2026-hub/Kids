@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《风娃娃》拼音打字乐园 · Pinyin Typing</title>
+<style>
+  :root{
+    --bg1:#e8f4fb; --bg2:#fff8e8; --ink:#2f3a34;
+    --sky:#4aa3df; --deep:#2b7cb0; --grass:#57a95a; --green:#3f7d4e; --red:#c0392b;
+    --yellow:#ffd93d; --purple:#a97bd6; --card:#fffdf7; --muted:#7d8b86;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; min-height:100%;}
+  body{
+    font-family:"Comic Sans MS","Segoe UI Rounded","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:linear-gradient(160deg,var(--bg1),var(--bg2));
+    color:var(--ink); min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:16px; overflow-x:hidden;
+  }
+  .wrap{width:100%; max-width:740px;}
+  .card{
+    background:var(--card); border-radius:28px; padding:26px 24px;
+    box-shadow:0 14px 40px rgba(40,110,130,.18); position:relative;
+  }
+  h1{ text-align:center; margin:.1em 0 .2em; font-size:1.85rem; letter-spacing:1px;
+      background:linear-gradient(90deg,var(--sky),var(--grass),var(--yellow));
+      -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .sub{text-align:center; margin:0 0 16px; color:var(--muted); font-size:.95rem;}
+
+  /* voice bar */
+  .voicebar{display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap;
+            background:#f1f8fc; border:2px solid #d5e8f3; border-radius:16px; padding:10px 12px; margin-bottom:16px;}
+  .voicebar label{font-size:.82rem; color:var(--deep); font-weight:bold;}
+  .voicebar select{font-family:inherit; font-size:.85rem; padding:6px 8px; border-radius:10px;
+                   border:2px solid #cfe4f2; background:#fff; color:var(--ink); max-width:230px;}
+  .vbtn{border:none; cursor:pointer; border-radius:12px; padding:7px 12px; font-family:inherit;
+        font-size:.82rem; font-weight:bold; color:#fff; background:var(--sky); box-shadow:0 3px 0 #2b7cb0;}
+  .vbtn:active{transform:translateY(2px); box-shadow:0 1px 0 #2b7cb0;}
+  .vbtn.slow{background:#8fbf6a; box-shadow:0 3px 0 #6d9a4d;}
+  .vbtn.slow.on{background:var(--grass); box-shadow:0 3px 0 #3f7d4e;}
+
+  /* menu */
+  .levels{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .level-btn{
+    border:none; cursor:pointer; border-radius:20px; padding:18px 14px;
+    font-size:1.05rem; font-family:inherit; color:#fff; font-weight:bold;
+    box-shadow:0 6px 0 rgba(0,0,0,.12); transition:transform .08s, box-shadow .08s;
+    display:flex; flex-direction:column; gap:4px; align-items:center; text-align:center;
+  }
+  .level-btn small{font-weight:normal; opacity:.95; font-size:.8rem;}
+  .level-btn:active{transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,.12);}
+  .lv0{background:linear-gradient(135deg,#ffd28a,#f0a742); grid-column:1 / -1;}
+  .lv1{background:linear-gradient(135deg,#7ec8f5,#3a8dc4);}
+  .lv2{background:linear-gradient(135deg,#8fd98f,#4a9b52);}
+  .lv3{background:linear-gradient(135deg,#c79bff,#8e6bff); grid-column:1 / -1;}
+  .hint-line{text-align:center; margin-top:16px; color:#93a1a8; font-size:.85rem; line-height:1.6;}
+
+  /* study */
+  .studywrap{margin-top:4px;}
+  .studygroup{margin-bottom:18px;}
+  .studygroup h3{margin:8px 0 10px; font-size:1.05rem; color:var(--deep);}
+  .cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(132px,1fr)); gap:10px;}
+  .sc{
+    background:#f2f8fc; border:2px solid #cfe4f2; border-radius:16px; padding:10px 8px;
+    text-align:center; cursor:pointer; transition:transform .08s;
+  }
+  .sc:active{transform:scale(.96);}
+  .sc .h{font-size:1.7rem; font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",serif; line-height:1.2;}
+  .sc .p{font-size:1rem; color:var(--deep); font-weight:bold; margin-top:2px;}
+  .sc .e{font-size:.72rem; color:var(--muted); margin-top:3px; line-height:1.3;}
+  .sc.ch{background:#f3faf3; border-color:#cfe8cf;}
+  .sc.ch .p{color:var(--grass);}
+
+  /* game */
+  .topbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:.95rem; gap:8px;}
+  .topbar .back{cursor:pointer; background:#eef3f6; border:none; border-radius:14px; padding:8px 14px; font-family:inherit; font-size:.9rem; color:#6b7a82;}
+  .stars{font-size:1.1rem; letter-spacing:2px;}
+  .roundtag{background:#fff3d6; border:2px solid #f2d99a; border-radius:999px; padding:4px 12px;
+            font-size:.8rem; color:#a5761c; font-weight:bold; white-space:nowrap;}
+  .progress-outer{height:14px; background:#e6eef3; border-radius:10px; overflow:hidden; margin-bottom:16px;}
+  .progress-inner{height:100%; width:0%; background:linear-gradient(90deg,var(--yellow),var(--sky)); border-radius:10px; transition:width .3s;}
+
+  .hanzi{font-size:3.4rem; text-align:center; line-height:1.15; margin:6px 0 2px; font-weight:bold;
+         font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",serif; letter-spacing:4px;}
+  .hanzi.single{font-size:5.2rem;}
+  .meaning{text-align:center; color:var(--muted); font-size:1rem; margin-bottom:12px; line-height:1.5;}
+  .speakrow{display:flex; gap:10px; justify-content:center; margin:0 0 14px; flex-wrap:wrap;}
+  .speak{background:var(--yellow); border:none; border-radius:50px;
+         padding:8px 20px; font-family:inherit; font-size:1rem; cursor:pointer; box-shadow:0 4px 0 #e6b800;}
+  .speak:active{transform:translateY(3px); box-shadow:0 1px 0 #e6b800;}
+  .speak.alt{background:#cfe9f7; box-shadow:0 4px 0 #a6cfe6; font-size:.92rem;}
+  .speak.alt:active{box-shadow:0 1px 0 #a6cfe6;}
+
+  .tiles{display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin:6px 0 18px;}
+  .syll{display:flex; gap:5px;}
+  .box{
+    width:32px; height:44px; border-radius:10px; background:#f1f6f9; border:2px dashed #cddbe3;
+    display:flex; align-items:center; justify-content:center; font-size:1.45rem; font-weight:bold;
+    color:#b9c8d1; text-transform:lowercase;
+  }
+  .box.filled{border-style:solid; border-color:var(--green); color:var(--green); background:#eafaec;}
+  .box.wrong{border-style:solid; border-color:var(--red); color:var(--red); background:#fbeaea;}
+
+  .inputrow{display:flex; gap:10px; justify-content:center; align-items:center;}
+  input.type{
+    font-family:inherit; font-size:1.5rem; text-align:center; padding:12px 16px;
+    border-radius:18px; border:3px solid var(--sky); width:min(360px,88%); outline:none;
+    letter-spacing:2px; color:var(--ink); background:#fbfdff;
+  }
+  input.type.good{border-color:var(--green); background:#f2fff4;}
+  input.type.bad{border-color:var(--red); background:#fff3f3;}
+
+  .btnrow{display:flex; gap:10px; justify-content:center; margin-top:16px; flex-wrap:wrap;}
+  .mini{border:none; cursor:pointer; border-radius:16px; padding:10px 18px; font-family:inherit; font-size:.95rem; font-weight:bold; color:#fff; box-shadow:0 4px 0 rgba(0,0,0,.12);}
+  .mini:active{transform:translateY(3px); box-shadow:0 1px 0 rgba(0,0,0,.12);}
+  .mini.hintb{background:var(--purple);}
+  .mini.skipb{background:#a8b4bb;}
+  .pinyin-hint{text-align:center; min-height:26px; margin-top:12px; font-size:1.25rem; color:var(--purple); font-weight:bold; letter-spacing:1px;}
+
+  .feedback{position:absolute; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; pointer-events:none;}
+  .feedback .big{font-size:4rem; animation:pop .5s ease;}
+  .feedback .msg{font-size:1.2rem; color:var(--green); font-weight:bold; background:#fff; padding:6px 18px; border-radius:20px; box-shadow:0 6px 18px rgba(0,0,0,.12); text-align:center;}
+  @keyframes pop{0%{transform:scale(.2); opacity:0;} 60%{transform:scale(1.25);} 100%{transform:scale(1); opacity:1;}}
+
+  /* end screen */
+  .endbig{font-size:3.2rem; text-align:center; margin:8px 0;}
+  .endstars{font-size:2.4rem; text-align:center; letter-spacing:6px; margin:8px 0;}
+  .endstat{text-align:center; font-size:1.15rem; color:#6b7a82; margin:8px 0 18px;}
+  .statgrid{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:6px 0 12px;}
+  .stat{background:#f1f6f9; border:2px solid #e0e9ee; border-radius:18px; padding:14px 18px; min-width:96px;}
+  .stat .sv{font-size:1.8rem; font-weight:bold; color:var(--green); line-height:1;}
+  .stat .sl{font-size:.8rem; color:var(--muted); margin-top:6px; line-height:1.2;}
+  .statnote{font-size:1rem; color:#6b7a82;}
+  .missed{margin:6px auto 16px; max-width:460px; text-align:left; background:#eef7fd; border:2px solid #cfe4f2; border-radius:16px; padding:12px 16px; font-size:.95rem; color:#5a6b74;}
+  .missed b{color:var(--deep);}
+  .again{display:block; margin:0 auto; background:linear-gradient(135deg,#5ec26a,#3f7d4e); color:#fff; border:none; border-radius:20px; padding:14px 30px; font-family:inherit; font-size:1.15rem; font-weight:bold; cursor:pointer; box-shadow:0 6px 0 #2e6b3c;}
+  .again:active{transform:translateY(4px); box-shadow:0 2px 0 #2e6b3c;}
+  .confetti{position:fixed; top:-20px; width:12px; height:16px; border-radius:3px; opacity:.9; animation:fall linear forwards; z-index:50;}
+  @keyframes fall{to{transform:translateY(105vh) rotate(720deg);}}
+  a.home{display:inline-block; margin-top:14px; color:#93a1a8; text-decoration:none; font-size:.85rem;}
+  a.home:hover{text-decoration:underline;}
+  .hidden{display:none !important;}
+  @media (max-width:420px){ .levels{grid-template-columns:1fr;} .lv0,.lv3{grid-column:auto;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+
+    <!-- ===== MENU ===== -->
+    <div id="menu">
+      <h1>🌬️ 《风娃娃》拼音打字乐园</h1>
+      <p class="sub">看汉字，打全拼！ Type the full pinyin · 二年级上册 · 认读生字复习</p>
+
+      <div class="voicebar">
+        <label for="voiceSel">🔊 读音</label>
+        <select id="voiceSel"></select>
+        <button class="vbtn" id="testVoice">试听 风娃娃</button>
+        <button class="vbtn slow" id="slowBtn">🐢 慢速</button>
+      </div>
+
+      <div class="levels">
+        <button class="level-btn lv0" data-lvl="study">📖 先学一学 Study first<small>25 张卡片 · 点一点就能听</small></button>
+        <button class="level-btn lv1" data-lvl="words">🧩 词语打字<small>13 个词语 × 2 遍</small></button>
+        <button class="level-btn lv2" data-lvl="chars">✏️ 生字打字<small>12 个单字 × 2 遍</small></button>
+        <button class="level-btn lv3" data-lvl="all">🏆 全部挑战 Everything<small>25 个 × 2 遍 · 词语 + 生字</small></button>
+      </div>
+      <p class="hint-line">
+        💡 只打字母，不用打声调。例如 帮助 → <b>bang zhu</b>（空格可有可无）<br>
+        📄 照着作业纸来：每个词语和生字都要<b>打两遍</b>，第二遍会重新洗牌。
+      </p>
+      <div style="text-align:center">
+        <a class="home" href="index.html">← 回到 Quizzes</a>
+      </div>
+    </div>
+
+    <!-- ===== STUDY ===== -->
+    <div id="study" class="hidden">
+      <div class="topbar">
+        <button class="back" id="backBtn0">◀ 返回</button>
+        <span style="color:var(--muted); font-size:.85rem;">点一点卡片听读音 · tap to hear</span>
+      </div>
+      <div class="studywrap" id="studyBody"></div>
+      <button class="again" id="toGameBtn">▶️ 学完了，开始打字！</button>
+      <p class="hint-line"><span id="backToMenu0" style="cursor:pointer; text-decoration:underline;">回到主菜单 Back to menu</span></p>
+    </div>
+
+    <!-- ===== GAME ===== -->
+    <div id="game" class="hidden">
+      <div class="topbar">
+        <button class="back" id="backBtn">◀ 返回</button>
+        <span class="roundtag" id="roundTag">第 1 遍</span>
+        <span id="counter">1 / 26</span>
+        <span class="stars" id="scoreStars">⭐ 0</span>
+      </div>
+      <div class="progress-outer"><div class="progress-inner" id="prog"></div></div>
+
+      <div class="hanzi" id="hanzi">帮助</div>
+      <div class="meaning" id="meaning"></div>
+      <div class="speakrow">
+        <button class="speak" id="speakBtn">🔊 听一听 Hear it</button>
+        <button class="speak alt hidden" id="speakWordBtn">🧩 听词语</button>
+      </div>
+
+      <div class="tiles" id="tiles"></div>
+      <div class="inputrow">
+        <input class="type" id="typeBox" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="打拼音…">
+      </div>
+      <div class="pinyin-hint" id="pyHint"></div>
+      <div class="btnrow">
+        <button class="mini hintb" id="hintBtn">💡 看拼音 Hint</button>
+        <button class="mini skipb" id="skipBtn">➡️ 跳过 Skip</button>
+      </div>
+
+      <div class="feedback" id="feedback"><div class="big" id="fbBig">🎉</div><div class="msg" id="fbMsg">太棒了！</div></div>
+    </div>
+
+    <!-- ===== END ===== -->
+    <div id="end" class="hidden">
+      <div class="endbig" id="endEmoji">🏆</div>
+      <h1 id="endTitle">全部完成！</h1>
+      <div class="endstars" id="endStars">⭐⭐⭐</div>
+      <div class="endstat" id="endStat"></div>
+      <div class="missed hidden" id="missedBox"></div>
+      <button class="again" id="againBtn">🔁 再玩一次 Play again</button>
+      <p class="hint-line" style="margin-top:16px;"><span id="backToMenu" style="cursor:pointer; text-decoration:underline;">回到主菜单 Back to menu</span></p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ================= DATA =================
+   py   = 全拼，只有字母，音节用空格分开 —— 孩子要打的
+   tone = 带声调的拼音（提示用）
+   say  = 朗读时实际读的文字（单字容易读成别的音时，用词语来读）
+   来源：作业纸《风娃娃》认读生字复习（二年级上册）
+*/
+const DATA = {
+  words: [
+    {hz:"帮助",     py:"bang zhu",       tone:"bāng zhù",       en:"to help 🤝"},
+    {hz:"使劲",     py:"shi jin",        tone:"shǐ jìn",        en:"to use all your strength 💪"},
+    {hz:"秧苗",     py:"yang miao",      tone:"yāng miáo",      en:"rice seedlings 🌱"},
+    {hz:"表示",     py:"biao shi",       tone:"biǎo shì",       en:"to show · to express"},
+    {hz:"摇摆",     py:"yao bai",        tone:"yáo bǎi",        en:"to sway back and forth"},
+    {hz:"摇头摆尾", py:"yao tou bai wei", tone:"yáo tóu bǎi wěi", en:"wagging head and tail — very pleased 🐟"},
+    {hz:"翻跟头",   py:"fan gen tou",    tone:"fān gēn tóu",    en:"to turn a somersault 🤸"},
+    {hz:"栽树",     py:"zai shu",        tone:"zāi shù",        en:"to plant a tree 🌳"},
+    {hz:"走路",     py:"zou lu",         tone:"zǒu lù",         en:"to walk"},
+    {hz:"栽花",     py:"zai hua",        tone:"zāi huā",        en:"to plant flowers 🌸"},
+    {hz:"责怪",     py:"ze guai",        tone:"zé guài",        en:"to blame someone"},
+    {hz:"伤心",     py:"shang xin",      tone:"shāng xīn",      en:"sad · heartbroken 😢"},
+    {hz:"出汗",     py:"chu han",        tone:"chū hàn",        en:"to sweat 💦"}
+  ],
+  chars: [
+    {hz:"助", py:"zhu",   tone:"zhù",  en:"组词：帮助 · to help",            word:"帮助"},
+    {hz:"使", py:"shi",   tone:"shǐ",  en:"组词：使劲 · to use / to make",   word:"使劲"},
+    {hz:"劲", py:"jin",   tone:"jìn",  en:"组词：使劲 · strength",           word:"使劲", say:"使劲"},
+    {hz:"帮", py:"bang",  tone:"bāng", en:"组词：帮助 · to help",            word:"帮助"},
+    {hz:"哗", py:"hua",   tone:"huā",  en:"组词：哗啦哗啦 · water sound 💧", word:"哗啦", say:"哗啦"},
+    {hz:"秧", py:"yang",  tone:"yāng", en:"组词：秧苗 · seedling 🌱",        word:"秧苗"},
+    {hz:"拉", py:"la",    tone:"lā",   en:"组词：拉车 · to pull",            word:"拉车"},
+    {hz:"表", py:"biao",  tone:"biǎo", en:"组词：表示 · to show",            word:"表示"},
+    {hz:"摆", py:"bai",   tone:"bǎi",  en:"组词：摇摆 · to sway",            word:"摇摆"},
+    {hz:"翻", py:"fan",   tone:"fān",  en:"组词：翻跟头 · to flip over",     word:"翻跟头"},
+    {hz:"栽", py:"zai",   tone:"zāi",  en:"组词：栽树 · to plant",           word:"栽树"},
+    {hz:"责", py:"ze",    tone:"zé",   en:"组词：责怪 · to blame",           word:"责怪"}
+  ]
+};
+
+const PRAISE = [
+  {e:"🎉", m:"太棒了！ Awesome!"},
+  {e:"🌬️", m:"风娃娃给你鼓掌！"},
+  {e:"👏", m:"打对啦！ Correct!"},
+  {e:"🌱", m:"秧苗喝饱水啦！"},
+  {e:"💯", m:"完美！ Perfect!"},
+  {e:"🪁", m:"风一吹，飞起来了！"},
+  {e:"🌟", m:"真厉害！ Amazing!"},
+  {e:"🤸", m:"翻个跟头庆祝一下！"}
+];
+
+const $ = id => document.getElementById(id);
+function norm(s){ return s.toLowerCase().replace(/[\s'’]/g,''); }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+/* ================= 读音 · VOICE =================
+   优先级：Google 普通话（中国大陆）→ Tingting → 其它 zh-CN 正常人声
+   （Eddy / Flo / Grandma / Rocko 这些是"趣味角色音"，念字不清楚，排在最后）
+*/
+const NOVELTY = /Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley|Bubbles|Jester|Superstar|Trinoids|Whisper|Wobble|Bahh|Boing|Bad News|Good News|Organ|Cellos|Zarvox/i;
+const VOICE_KEY = 'fww_voice_v1', SLOW_KEY = 'fww_slow_v1';
+/* 记住选的声音；有些浏览器（隐私模式 / 直接双击打开）不给存，存不了也照样能玩 */
+function memGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function memSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+let zhVoices = [], chosenVoice = null, slow = memGet(SLOW_KEY) === '1';
+
+function rankVoice(v){
+  const n = v.name, l = v.lang || '';
+  if(/Google/i.test(n) && /普通话|zh-CN/i.test(n + l)) return 0;   // 最清楚最标准
+  if(/Ting-?ting/i.test(n)) return 1;                              // macOS 系统标准女声
+  if(l === 'zh-CN' && !NOVELTY.test(n)) return 2;
+  if(/^zh/i.test(l) && !NOVELTY.test(n)) return 3;                 // 台湾/香港口音，退而求其次
+  return 4;                                                        // 趣味角色音
+}
+
+function loadVoices(){
+  if(!('speechSynthesis' in window)) return;
+  const all = window.speechSynthesis.getVoices();
+  zhVoices = all.filter(v => /^zh/i.test(v.lang) || /Chinese|普通话|中文/i.test(v.name));
+  zhVoices.sort((a,b)=> rankVoice(a) - rankVoice(b) || a.name.localeCompare(b.name));
+  if(!zhVoices.length) return;
+
+  const saved = memGet(VOICE_KEY);
+  chosenVoice = zhVoices.find(v => v.name === saved) || zhVoices[0];
+
+  const sel = $('voiceSel');
+  sel.innerHTML = zhVoices.map((v,i)=>{
+    const tag = rankVoice(v)===0 ? ' ⭐推荐' : (rankVoice(v)===1 ? ' ✅离线也能读' : '');
+    return '<option value="'+v.name.replace(/"/g,'&quot;')+'">'+v.name+tag+'</option>';
+  }).join('');
+  sel.value = chosenVoice.name;
+}
+
+if('speechSynthesis' in window){
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+$('voiceSel').addEventListener('change', e=>{
+  chosenVoice = zhVoices.find(v => v.name === e.target.value) || chosenVoice;
+  memSet(VOICE_KEY, e.target.value);
+  speak('风娃娃');
+});
+$('testVoice').addEventListener('click', ()=> speak('风娃娃，帮助，使劲'));
+function paintSlow(){ $('slowBtn').classList.toggle('on', slow); $('slowBtn').textContent = slow ? '🐢 慢速：开' : '🐢 慢速：关'; }
+$('slowBtn').addEventListener('click', ()=>{ slow = !slow; memSet(SLOW_KEY, slow?'1':'0'); paintSlow(); speak('风娃娃'); });
+paintSlow();
+
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN';
+    u.rate = slow ? 0.6 : 0.85;
+    if(chosenVoice) u.voice = chosenVoice;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function sayItem(w){ speak(w.say || w.hz); }
+
+/* ================= STUDY CARDS ================= */
+function buildStudy(){
+  const groups = [
+    {title:"🧩 词语 · Words（13）", items:DATA.words, cls:""},
+    {title:"✏️ 生字 · Characters（12）", items:DATA.chars, cls:"ch"}
+  ];
+  $('studyBody').innerHTML = groups.map(g =>
+    '<div class="studygroup"><h3>'+g.title+'</h3><div class="cards">'
+    + g.items.map((it,i) =>
+        '<div class="sc '+g.cls+'" data-g="'+(g.cls==='ch'?'chars':'words')+'" data-i="'+i+'">'
+        + '<div class="h">'+it.hz+'</div><div class="p">'+it.tone+'</div><div class="e">'+it.en+'</div></div>'
+      ).join('')
+    + '</div></div>'
+  ).join('');
+  document.querySelectorAll('.sc').forEach(c=>{
+    c.addEventListener('click', ()=> sayItem(DATA[c.dataset.g][+c.dataset.i]));
+  });
+}
+
+/* ================= STATE ================= */
+let queue = [], idx = 0, score = 0, total = 0, hintsUsed = 0, firstTryOK = 0;
+let startTime = 0, currentLvl = 'words', missed = [], perRound = 0;
+
+/* ================= FLOW ================= */
+document.querySelectorAll('.level-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    if(b.dataset.lvl==='study') showStudy(); else startLevel(b.dataset.lvl);
+  });
+});
+$('backBtn').addEventListener('click', showMenu);
+$('backBtn0').addEventListener('click', showMenu);
+$('backToMenu').addEventListener('click', showMenu);
+$('backToMenu0').addEventListener('click', showMenu);
+$('toGameBtn').addEventListener('click', ()=> startLevel('words'));
+$('againBtn').addEventListener('click', ()=> startLevel(currentLvl));
+
+function showStudy(){
+  $('menu').classList.add('hidden'); $('game').classList.add('hidden'); $('end').classList.add('hidden');
+  $('study').classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+function showMenu(){
+  $('game').classList.add('hidden'); $('study').classList.add('hidden'); $('end').classList.add('hidden');
+  $('menu').classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+
+function startLevel(lvl){
+  currentLvl = lvl;
+  const list = lvl==='all' ? [...DATA.words, ...DATA.chars] : DATA[lvl];
+  perRound = list.length;
+  // 打两遍：第一遍洗牌，第二遍重新洗牌
+  queue = [...shuffle(list), ...shuffle(list)];
+  idx = 0; score = 0; total = queue.length; hintsUsed = 0; firstTryOK = 0; missed = [];
+  startTime = Date.now();
+  $('menu').classList.add('hidden'); $('study').classList.add('hidden'); $('end').classList.add('hidden');
+  $('game').classList.remove('hidden');
+  loadWord();
+  window.scrollTo(0,0);
+}
+
+let cleanTry = true;
+function loadWord(){
+  const w = queue[idx];
+  cleanTry = true;
+  $('hanzi').textContent = w.hz;
+  $('hanzi').classList.toggle('single', w.hz.length===1);
+  $('meaning').textContent = w.en;
+  $('speakWordBtn').classList.toggle('hidden', !w.word);
+  if(w.word) $('speakWordBtn').textContent = '🧩 听词语「'+w.word+'」';
+  $('roundTag').textContent = (idx < perRound ? '第 1 遍' : '第 2 遍');
+  $('counter').textContent = (idx+1)+' / '+total;
+  $('scoreStars').textContent = '⭐ '+score;
+  $('prog').style.width = (idx/total*100)+'%';
+  $('pyHint').textContent = '';
+  const box = $('typeBox');
+  box.value=''; box.classList.remove('good','bad'); box.disabled=false;
+  buildTiles(w.py, '');
+  box.focus();
+}
+
+function buildTiles(py, typed){
+  const tiles = $('tiles'); tiles.innerHTML='';
+  const target = norm(py);
+  const tnorm = norm(typed);
+  const sylls = py.trim().split(/\s+/);
+  let gi = 0;
+  sylls.forEach(syl=>{
+    const sd = document.createElement('div'); sd.className='syll';
+    for(let k=0;k<syl.length;k++){
+      const b = document.createElement('div'); b.className='box';
+      if(gi < tnorm.length){
+        b.textContent = tnorm[gi];
+        if(tnorm[gi] === target[gi]) b.classList.add('filled'); else b.classList.add('wrong');
+      } else b.textContent = '_';
+      sd.appendChild(b); gi++;
+    }
+    tiles.appendChild(sd);
+  });
+}
+
+$('typeBox').addEventListener('input', ()=>{
+  const w = queue[idx];
+  const box = $('typeBox');
+  buildTiles(w.py, box.value);
+  const t = norm(box.value), target = norm(w.py);
+  box.classList.remove('good','bad');
+  if(t.length){
+    if(target.startsWith(t)) box.classList.add('good');
+    else { box.classList.add('bad'); cleanTry = false; }
+  }
+  if(t === target) correct();
+});
+$('typeBox').addEventListener('keydown', e=>{
+  if(e.key==='Enter' && norm($('typeBox').value)===norm(queue[idx].py)) correct();
+});
+
+function correct(){
+  $('typeBox').disabled = true;
+  score++;
+  if(cleanTry) firstTryOK++; else missed.push(queue[idx]);
+  $('scoreStars').textContent = '⭐ '+score;
+  const w = queue[idx];
+  const p = PRAISE[idx % PRAISE.length];
+  $('fbBig').textContent = p.e;
+  $('fbMsg').innerHTML = p.m + '<br><span style="font-size:.95rem;color:#6b7a82;">'+w.hz+' · '+w.tone+'</span>';
+  const fb = $('feedback'); fb.style.display='flex';
+  sayItem(w);
+  setTimeout(()=>{
+    fb.style.display='none';
+    idx++;
+    if(idx>=total) endGame(); else loadWord();
+  }, 1200);
+}
+
+$('hintBtn').addEventListener('click', ()=>{
+  $('pyHint').textContent = '👉 ' + queue[idx].tone;
+  hintsUsed++; cleanTry = false;
+  $('typeBox').focus();
+});
+$('skipBtn').addEventListener('click', ()=>{
+  cleanTry = false; missed.push(queue[idx]);
+  idx++;
+  if(idx>=total) endGame(); else loadWord();
+});
+$('speakBtn').addEventListener('click', ()=> sayItem(queue[idx]));
+$('speakWordBtn').addEventListener('click', ()=>{ const w = queue[idx]; if(w.word) speak(w.word); });
+
+function endGame(){
+  $('prog').style.width='100%';
+  $('game').classList.add('hidden');
+  $('end').classList.remove('hidden');
+  const pct = Math.round(firstTryOK/total*100);
+  const secs = Math.max(1, Math.round((Date.now() - startTime)/1000));
+  const mm = Math.floor(secs/60), ss = secs%60;
+  const timeStr = mm>0 ? (mm+':'+String(ss).padStart(2,'0')) : (ss+'秒');
+  let stars = 1;
+  if(pct>=90) stars=3; else if(pct>=60) stars=2;
+  $('endStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+  $('endEmoji').textContent = stars===3?'🏆':(stars===2?'🎉':'💪');
+  $('endTitle').textContent = stars===3?'完美通关！':'两遍都打完啦！';
+  $('endStat').innerHTML =
+    '<div class="statgrid">'
+    + '<div class="stat"><div class="sv">'+pct+'%</div><div class="sl">一次打对<br>First try</div></div>'
+    + '<div class="stat"><div class="sv">'+timeStr+'</div><div class="sl">用时<br>Time</div></div>'
+    + '<div class="stat"><div class="sv">'+score+'/'+total+'</div><div class="sl">完成<br>Done</div></div>'
+    + '</div>'
+    + '<div class="statnote">每个都打了两遍，一共 <b>'+total+'</b> 次！'
+    + (hintsUsed?(' · 用了 '+hintsUsed+' 次提示'):'') + '</div>';
+
+  const box = $('missedBox');
+  const uniq = [];
+  missed.forEach(m=>{ if(!uniq.some(u=>u.hz===m.hz)) uniq.push(m); });
+  if(uniq.length){
+    box.classList.remove('hidden');
+    box.innerHTML = '<div style="margin-bottom:6px;">📌 再练一练 Practise these again:</div>'
+      + uniq.map(m=>'<div><b>'+m.hz+'</b> — '+m.tone+'（'+m.py+'）</div>').join('');
+  } else box.classList.add('hidden');
+  if(stars===3) confetti();
+}
+
+function confetti(){
+  const colors=['#4aa3df','#ffd93d','#57a95a','#a97bd6','#ff9a76'];
+  for(let i=0;i<60;i++){
+    const c=document.createElement('div'); c.className='confetti';
+    c.style.left=(i*1.7)+'vw';
+    c.style.background=colors[i%colors.length];
+    c.style.animationDuration=(2.2+ (i%5)*0.4)+'s';
+    c.style.animationDelay=((i%10)*0.08)+'s';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 5000);
+  }
+}
+
+buildStudy();
+</script>
+</body>
+</html>
