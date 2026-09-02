@@ -3,77 +3,151 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SSAT Word Parts &mdash; The 66 That Pay</title>
+<title>SSAT Word Parts &mdash; Learn, Flip, Quiz</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:'Trebuchet MS', system-ui, sans-serif;
     background:linear-gradient(160deg,#fffdf7 0%,#f0f4ec 55%,#e2ebdd 100%);
     min-height:100vh; color:#1e2433; padding:22px 16px 60px; }
   .wrap { max-width:880px; margin:0 auto; }
-  header { background:#2f5540; border-radius:18px; padding:26px 24px; text-align:center; color:#f1f7f1;
-    box-shadow:0 8px 0 #1e3829; margin-bottom:18px; }
-  header .ic { font-size:44px; line-height:1; }
-  header h1 { font-size:25px; margin:8px 0 4px; }
-  header p { font-size:15px; opacity:.92; }
-  header .who { display:inline-block; margin-top:10px; font-size:13px; letter-spacing:.6px; text-transform:uppercase;
+  header { background:#2f5540; border-radius:18px; padding:24px; text-align:center; color:#f1f7f1;
+    box-shadow:0 8px 0 #1e3829; margin-bottom:16px; }
+  header .ic { font-size:40px; line-height:1; }
+  header h1 { font-size:24px; margin:6px 0 4px; }
+  header p { font-size:14.5px; opacity:.92; }
+  header .who { display:inline-block; margin-top:9px; font-size:12.5px; letter-spacing:.6px; text-transform:uppercase;
     background:rgba(255,255,255,.14); padding:4px 12px; border-radius:999px; }
+
+  /* ---- tabs ---- */
+  .tabs { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:14px; }
+  .tab { font-family:inherit; font-size:14.5px; font-weight:bold; cursor:pointer; padding:10px 18px;
+    border-radius:999px; border:2px solid #cfdcc9; background:#fff; color:#4a5c50; transition:all .12s; }
+  .tab:hover { transform:translateY(-2px); border-color:#2f5540; color:#2f5540; }
+  .tab.on { background:#2f5540; border-color:#2f5540; color:#fff; }
+
+  /* ---- tier filter ---- */
+  .filters { display:flex; gap:7px; flex-wrap:wrap; align-items:center; justify-content:center;
+    background:#fff; border:2px solid #cfdcc9; border-radius:14px; padding:11px 13px; margin-bottom:16px; }
+  .flabel { font-size:11px; font-weight:bold; text-transform:uppercase; letter-spacing:.6px; color:#6b7690; }
+  .fbtn { font-family:inherit; font-size:13.5px; font-weight:bold; cursor:pointer; padding:7px 13px;
+    border-radius:999px; border:2px solid #dfe7db; background:#f7faf5; color:#4a5c50; transition:all .12s; }
+  .fbtn:hover { border-color:#5b7f4f; }
+  .fbtn.on { background:#5b7f4f; border-color:#5b7f4f; color:#fff; }
+
   .card { background:#fff; border-radius:16px; padding:22px; box-shadow:0 6px 0 #cfdcc9; margin-bottom:18px; }
-  .intro { background:#fff8ec; border:3px solid #e8c489; }
-  .intro p { font-size:16px; line-height:1.58; }
-  .intro p + p { margin-top:10px; }
   .note { background:#f2f6f0; border-left:5px solid #7fa088; border-radius:9px; padding:12px 14px; font-size:15px;
     line-height:1.55; color:#3b4560; margin-top:12px; }
   .note.warn { background:#fdf6e8; border-left-color:#d6a94b; }
   .note.good { background:#eef7ee; border-left-color:#5a9a63; }
-  h2.sect { font-size:22px; color:#1e3829; margin:32px 0 4px; }
+  h2.sect { font-size:21px; color:#1e3829; margin:26px 0 4px; }
   p.sectsub { font-size:14px; color:#6b7690; margin-bottom:12px; }
-  table.cov { width:100%; border-collapse:collapse; font-size:15px; margin:12px 0 4px; }
-  table.cov th { text-align:left; padding:7px 8px; border-bottom:2px solid #e0d3b4; font-size:11px;
-    text-transform:uppercase; letter-spacing:.5px; color:#6b7690; }
-  table.cov td { padding:7px 8px; border-top:1px solid #eee5d2; }
-  table.cov td.pc { font-weight:bold; width:70px; }
+  .hidden { display:none !important; }
 
-  .tierhead { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:30px 0 2px; }
-  .tierbadge { font-size:12px; font-weight:bold; letter-spacing:.6px; text-transform:uppercase;
-    padding:5px 13px; border-radius:999px; color:#fff; }
+  /* ---- learn tables ---- */
+  .searchrow { display:flex; gap:9px; flex-wrap:wrap; margin-bottom:12px; }
+  #search { flex:1; min-width:190px; font-family:inherit; font-size:15px; padding:10px 14px;
+    border:2px solid #cfdcc9; border-radius:999px; background:#fff; color:#1e2433; }
+  #search:focus { outline:none; border-color:#2f5540; }
+  .toggle { font-family:inherit; font-size:14px; font-weight:bold; cursor:pointer; padding:9px 16px;
+    border-radius:999px; border:2px solid #2f5540; background:#fff; color:#2f5540; }
+  .toggle:hover, .toggle.on { background:#2f5540; color:#fff; }
+  .tierhead { display:flex; align-items:center; gap:11px; flex-wrap:wrap; margin:26px 0 4px; }
+  .tierbadge { font-size:11.5px; font-weight:bold; letter-spacing:.6px; text-transform:uppercase;
+    padding:5px 12px; border-radius:999px; color:#fff; }
   .t1 { background:#2f5540; } .t2 { background:#5b7f4f; } .t3 { background:#93a98a; }
-  .tierhead h2 { font-size:21px; color:#1e3829; }
+  .tierhead h3 { font-size:19px; color:#1e3829; }
   .count { font-size:13px; color:#6b7690; font-weight:bold; }
-
   table.parts { width:100%; border-collapse:collapse; font-size:15px; }
   table.parts th { background:#eef3ea; color:#4a5c50; font-size:10.5px; text-transform:uppercase;
-    letter-spacing:.5px; padding:8px 8px; text-align:left; }
+    letter-spacing:.5px; padding:8px; text-align:left; }
   table.parts td { padding:8px; border-top:1px solid #e8eee5; vertical-align:top; line-height:1.45; }
   table.parts td.p { font-weight:bold; color:#1e3829; font-family:'IBM Plex Mono',Consolas,monospace;
-    font-size:15px; white-space:nowrap; width:104px; }
+    white-space:nowrap; width:110px; }
   table.parts td.m { width:150px; font-weight:bold; color:#2f5540; }
   table.parts td.a { color:#5c6b62; font-size:14.5px; }
-  table.parts td.s { width:150px; font-size:14px; }
+  table.parts td.s { width:145px; font-size:14px; }
   table.parts td.s b { color:#8a5a1e; }
   table.parts tr.hide td.m, table.parts tr.hide td.a { color:transparent; text-shadow:0 0 9px rgba(70,90,75,.55); }
   table.parts tbody tr:hover { background:#f7faf5; }
   .wrapscroll { overflow-x:auto; }
 
-  .toggle { display:inline-flex; align-items:center; gap:8px; font-family:inherit; font-size:14px; font-weight:bold;
-    cursor:pointer; padding:9px 16px; border-radius:999px; border:2px solid #2f5540; background:#fff; color:#2f5540;
-    margin-bottom:12px; }
-  .toggle:hover { background:#2f5540; color:#fff; }
-  .toggle.on { background:#2f5540; color:#fff; }
+  /* ---- flashcards ---- */
+  .fcbar { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; align-items:center; margin-bottom:14px; }
+  .prog { flex:1; min-width:180px; height:11px; background:#e6ede2; border-radius:999px; overflow:hidden; }
+  .prog i { display:block; height:100%; background:#5b7f4f; width:0%; transition:width .3s; }
+  .progtxt { font-size:13px; font-weight:bold; color:#4a5c50; white-space:nowrap; }
+  .flash { position:relative; min-height:260px; background:#fff; border:3px solid #2f5540; border-radius:20px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    padding:30px 24px; cursor:pointer; box-shadow:0 8px 0 #cfdcc9; user-select:none; }
+  .flash:hover { box-shadow:0 8px 0 #bccdb5; }
+  .flash .side { font-size:11px; font-weight:bold; letter-spacing:.7px; text-transform:uppercase;
+    color:#93a98a; position:absolute; top:14px; left:0; right:0; }
+  .flash .tierpip { position:absolute; top:12px; right:16px; font-size:10.5px; font-weight:bold;
+    letter-spacing:.5px; text-transform:uppercase; padding:3px 9px; border-radius:999px; color:#fff; }
+  .flash .big { font-size:46px; font-weight:bold; color:#1e3829; font-family:'IBM Plex Mono',Consolas,monospace;
+    letter-spacing:1px; line-height:1.15; }
+  .flash .mean { font-size:31px; font-weight:bold; color:#2f5540; }
+  .flash .anchor { font-size:17px; color:#5c6b62; margin-top:14px; line-height:1.5; }
+  .flash .anchor b { color:#8a5a1e; }
+  .flash .tapme { font-size:13.5px; color:#93a98a; margin-top:18px; font-style:italic; }
+  .fcbtns { display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap; }
+  .fcbtn { font-family:inherit; font-size:15px; font-weight:bold; cursor:pointer; padding:12px 26px;
+    border-radius:999px; border:2px solid; transition:all .12s; }
+  .fcbtn.yes { border-color:#3a7d44; background:#eef7ee; color:#215c2b; }
+  .fcbtn.yes:hover { background:#3a7d44; color:#fff; }
+  .fcbtn.no { border-color:#c0392b; background:#fbeaea; color:#96271c; }
+  .fcbtn.no:hover { background:#c0392b; color:#fff; }
+  .fcbtn.plain { border-color:#93a98a; background:#fff; color:#4a5c50; }
+  .fcbtn.plain:hover { background:#93a98a; color:#fff; }
+  .doneblock { text-align:center; padding:22px; }
+  .doneblock .big { font-size:40px; }
 
-  .freebox { background:#fdf6e8; border:3px solid #e8c489; border-radius:14px; padding:18px; }
-  .freegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:10px; margin-top:10px; }
+  /* ---- quiz ---- */
+  .qcard { background:#fff; border-radius:16px; padding:22px; box-shadow:0 6px 0 #cfdcc9; }
+  .qnum { font-size:11.5px; font-weight:bold; letter-spacing:.6px; text-transform:uppercase; color:#6b7690; }
+  .qtext { font-size:21px; line-height:1.4; color:#1e3829; margin:8px 0 16px; }
+  .qtext code { font-family:'IBM Plex Mono',Consolas,monospace; background:#eef3ea; padding:3px 9px;
+    border-radius:7px; color:#1e3829; font-size:23px; font-weight:bold; }
+  .qopts { display:flex; flex-direction:column; gap:8px; }
+  .qopt { text-align:left; font-family:inherit; font-size:16.5px; cursor:pointer; padding:13px 16px;
+    border:2px solid #cfdcc9; background:#fff; color:#1e2433; border-radius:11px; transition:all .12s; }
+  .qopt:hover:not(:disabled) { transform:translateY(-2px); border-color:#2f5540; }
+  .qopt:disabled { cursor:default; }
+  .qopt.right { background:#e8f3e9; border-color:#3a7d44; color:#215c2b; font-weight:bold; }
+  .qopt.wrong { background:#fbeaea; border-color:#c0392b; color:#96271c; font-weight:bold; }
+  .qfb { margin-top:14px; font-size:15.5px; line-height:1.6; color:#3b4560;
+    background:#f2f6f0; border-left:5px solid #7fa088; border-radius:9px; padding:12px 14px; }
+  .qfb.bad { background:#fbeaea; border-left-color:#c0392b; }
+  .qfb b { color:#1e3829; }
+  .scorerow { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-bottom:14px; }
+  .sbox { background:#fff; border:2px solid #cfdcc9; border-radius:12px; padding:10px 16px; text-align:center; min-width:88px; }
+  .sbox .sl { font-size:10px; text-transform:uppercase; letter-spacing:.6px; color:#6b7690; font-weight:bold; }
+  .sbox .sv { font-size:22px; font-weight:bold; color:#2f5540; }
+  .sbox.ok .sv { color:#2e6b34; } .sbox.no .sv { color:#c0392b; }
+  .missrow { font-size:15px; padding:7px 0; border-top:1px solid #e8eee5; line-height:1.5; }
+  .missrow b { color:#1e3829; font-family:'IBM Plex Mono',Consolas,monospace; }
+
+  /* ---- plan ---- */
+  table.cov { width:100%; border-collapse:collapse; font-size:15px; margin:12px 0 4px; }
+  table.cov th { text-align:left; padding:7px 8px; border-bottom:2px solid #e0d3b4; font-size:11px;
+    text-transform:uppercase; letter-spacing:.5px; color:#6b7690; }
+  table.cov td { padding:7px 8px; border-top:1px solid #eee5d2; }
+  table.cov td.pc { font-weight:bold; width:70px; }
+  .freegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(205px,1fr)); gap:10px; margin-top:10px; }
   .freecard { background:#fff; border-radius:10px; padding:11px 13px; font-size:15px; border:2px solid #f0e0c0; }
   .freecard b { color:#8a5a1e; }
   .freecard span { color:#6b7690; font-size:13.5px; }
-
   ol.plan { padding-left:22px; }
   ol.plan li { font-size:16px; line-height:1.6; margin-bottom:10px; }
   ol.plan li b { color:#1e3829; }
   a.home { display:inline-block; margin-top:16px; color:#5b6580; text-decoration:none; font-size:14px; }
   a.home:hover { text-decoration:underline; }
   footer { text-align:center; font-size:12px; color:#8791a8; margin-top:18px; }
-  @media (max-width:620px) { table.parts td.s { display:none; } table.parts th:nth-child(4) { display:none; }
-    table.parts td.p { width:88px; } table.parts td.m { width:120px; } }
+  @media (max-width:620px) {
+    table.parts td.s { display:none; } table.parts th:nth-child(4) { display:none; }
+    table.parts td.p { width:92px; } table.parts td.m { width:118px; }
+    .flash .big { font-size:36px; } .flash .mean { font-size:25px; } .qtext { font-size:19px; }
+  }
 </style>
 </head>
 <body>
@@ -81,234 +155,134 @@
 
   <header>
     <div class="ic">&#129513;</div>
-    <h1>Word Parts &mdash; the ones that actually pay</h1>
+    <h1>Word Parts &mdash; learn them, flip them, test them</h1>
     <p>29 prefixes &middot; 37 roots &middot; 22 stretch roots</p>
     <div class="who">Warren &middot; tool #2 of the unknown-word method</div>
   </header>
 
-  <div class="card intro">
-    <p><strong>You asked how many to learn. Here is the honest answer, measured on your own papers.</strong>
-    We took all 66 SSAT-level words we have real data on &mdash; the 30 synonyms from Practice Test 5
-    plus both drill rounds &mdash; and checked how many actually yield to word parts.</p>
-
-    <table class="cov">
-      <tr><th>What cracks the word</th><th>Share</th><th></th></tr>
-      <tr><td>A <b>classical root</b> you would have to memorise</td><td class="pc">39%</td><td>worth learning</td></tr>
-      <tr><td>An <b>English word already hiding inside it</b></td><td class="pc">18%</td><td>free &mdash; nothing to memorise</td></tr>
-      <tr><td><b>Nothing</b> &mdash; word parts give you no help at all</td><td class="pc">42%</td><td>this is why twins comes first</td></tr>
-    </table>
-
-    <div class="note warn"><b>The finding that changes the plan.</b> In those 66 words,
-    <b>31 different roots unlocked only 26 words</b>. Just two roots repeated at all. So at SSAT size,
-    learning a root is close to a <b>one-root-for-one-word trade</b> &mdash; the famous promise that
-    "one root unlocks dozens of words" is much weaker than people say. (Fair warning: 66 words is a
-    small sample, and roots repeat more across the whole language than inside one test, so the payoff
-    is real &mdash; just slower than advertised.)</div>
-
-    <div class="note good"><b>But prefixes are a different deal, and this is the part worth your time.</b>
-    Prefixes are a <b>closed set of under 30</b> that turn up again and again and again
-    (<i>in-, dis-, con-, pre-, re-, sub-, ex-, per-</i>). Content roots are a <b>long tail of hundreds</b>,
-    each showing up about once. And a prefix hands you the thing elimination actually needs:
-    <b>direction</b> &mdash; not / against / before / away / under. So learn <b>Tier 1 cold</b>. Everything
-    after that has falling returns.</div>
-
-    <div class="note"><b>So: how many?</b> <b>Tier 1 (29 prefixes) is the real investment.</b>
-    Tier 2 (37 roots) is worth it if you have the weeks. Tier 3 is for a rainy day.
-    <b>Stop after Tier 2 &mdash; that is 66 parts.</b> Beyond that you are memorising a tail, and that time is better spent on the
-    twins drill, where the payoff does not depend on knowing anything.</div>
+  <div class="tabs">
+    <button class="tab on" data-view="learn">&#128214; Learn</button>
+    <button class="tab" data-view="flash">&#127183; Flashcards</button>
+    <button class="tab" data-view="quiz">&#9997;&#65039; Quiz</button>
+    <button class="tab" data-view="plan">&#127919; The plan</button>
   </div>
 
-  <div class="card freebox">
-    <h2 class="sect" style="margin-top:0">Tier 0 &mdash; free, nothing to memorise</h2>
-    <p class="sectsub">Before any Latin: <b>is there an ordinary English word hiding inside?</b>
-    This covers 18% of the words and costs nothing. You missed several of these on Test 5.</p>
-    <div class="freegrid">
-      <div class="freecard"><b>VIRTUOUS</b> → virtue <span>· you know what a virtue is</span></div>
-      <div class="freecard"><b>ORIGINATE</b> → origin <span>· where it began</span></div>
-      <div class="freecard"><b>RARITY</b> → rare <span>· hardly ever</span></div>
-      <div class="freecard"><b>MISERLY</b> → miser <span>· the gold-hoarder</span></div>
-      <div class="freecard"><b>TRIFLING</b> → trifle <span>· a tiny amount</span></div>
-      <div class="freecard"><b>STEADFAST</b> → steady + fast <span>· fixed firmly</span></div>
-      <div class="freecard"><b>DISJOINT</b> → dis + joint <span>· come apart</span></div>
-      <div class="freecard"><b>INCOMPARABLE</b> → in + compare <span>· cannot be matched</span></div>
-      <div class="freecard"><b>REASSURE</b> → re + assure <span>· make sure again</span></div>
-      <div class="freecard"><b>FASTEN</b> → fast <span>· as in "stuck fast"</span></div>
+  <div class="filters" id="filters">
+    <span class="flabel">Study set</span>
+    <button class="fbtn on" data-tier="1">Tier 1 &middot; prefixes</button>
+    <button class="fbtn" data-tier="2">Tier 2 &middot; roots</button>
+    <button class="fbtn" data-tier="3">Tier 3 &middot; stretch</button>
+    <button class="fbtn" data-tier="0">Everything</button>
+  </div>
+
+  <!-- ================= LEARN ================= -->
+  <div id="view-learn">
+    <div class="searchrow">
+      <input id="search" type="text" placeholder="&#128269;  Search a part, a meaning or a word&hellip;">
+      <button class="toggle" id="blur">&#128065; Hide meanings</button>
     </div>
-    <div class="note"><b>The habit:</b> before deciding a word is unknown, cover the ending
-    (<i>-ous, -ity, -ate, -ly, -ing</i>) and look at what is left. Half the time an English word you
-    have known for years is standing there.</div>
+    <div id="tables"></div>
+    <div class="note warn"><b>The one prefix trap.</b> <b>in-</b> and <b>im-</b> mean <i>not</i>
+    (invisible, impossible) <b>but also</b> <i>into</i> (include, import, inject). Same spelling, two
+    opposite jobs. So <b>in-</b> suggests a word is negative &mdash; never bet the whole question on it.</div>
+    <div class="note"><b>Endings do not give meaning &mdash; they give word type.</b>
+    <b>-ous, -ful, -ive, -able, -ic</b> make describing words &middot;
+    <b>-tion, -ity, -ness, -ment</b> make things and ideas &middot;
+    <b>-ise, -ate, -ify, -en</b> make actions. That is how you check an analogy pair has the same shape.</div>
   </div>
 
-  <button class="toggle" id="toggle">&#128065; Hide the meanings &mdash; test myself</button>
-
-  <div class="tierhead">
-    <span class="tierbadge t1">Tier 1</span>
-    <h2>The 29 prefixes &mdash; learn these cold</h2>
-    <span class="count">highest repeat rate in English</span>
+  <!-- ================= FLASHCARDS ================= -->
+  <div id="view-flash" class="hidden">
+    <div class="filters" style="margin-bottom:14px">
+      <span class="flabel">Card shows</span>
+      <button class="fbtn on" id="dir-pm">The part &rarr; you say the meaning</button>
+      <button class="fbtn" id="dir-mp">The meaning &rarr; you say the part</button>
+    </div>
+    <div class="fcbar">
+      <div class="prog"><i id="fc-bar"></i></div>
+      <div class="progtxt" id="fc-txt">0 / 0 learned</div>
+    </div>
+    <div id="fc-area"></div>
+    <div style="text-align:center"><button class="fcbtn plain" id="fc-restart" style="margin-top:16px">Shuffle and start again</button></div>
+    <div class="note"><b>How to use these.</b> Say the answer <i>out loud before you flip</i>. If you had
+    to think hard, press <b>Not yet</b> &mdash; that card comes back later in the round. The round is
+    finished when every card has been answered <b>Got it</b>. Struggling with a card is not failure;
+    it is the card doing its job.</div>
   </div>
-  <p class="sectsub">A prefix rarely gives you the whole meaning. It gives you the <b>direction</b> &mdash;
-  which is all you need to cross choices off.</p>
-  <div class="card wrapscroll"><table class="parts" id="tier1">
-    <thead><tr><th>Part</th><th>Means</th><th>Anchor words you already know</th><th>On your papers</th></tr></thead>
-    <tbody>
-      <tr><td class="p">a-, an-</td><td class="m">without</td><td class="a">atypical, anonymous, anaemic</td><td class="s">apathy</td></tr>
-      <tr><td class="p">ab-, abs-</td><td class="m">away from</td><td class="a">absent, abduct, absorb</td><td class="s"><b>ABSTAIN</b></td></tr>
-      <tr><td class="p">ad-</td><td class="m">toward, to</td><td class="a">adhere, adapt, advance</td><td class="s">adjacent</td></tr>
-      <tr><td class="p">ante-</td><td class="m">before</td><td class="a">anticipate, antique</td><td class="s">antecedent</td></tr>
-      <tr><td class="p">anti-</td><td class="m">against</td><td class="a">antidote, antisocial, antifreeze</td><td class="s">antipathy</td></tr>
-      <tr><td class="p">bi-</td><td class="m">two</td><td class="a">bicycle, bilingual, binary</td><td class="s">bisect</td></tr>
-      <tr><td class="p">circum-</td><td class="m">around</td><td class="a">circle, circumference</td><td class="s">circumvent</td></tr>
-      <tr><td class="p">co-, con-, com-</td><td class="m">with, together</td><td class="a">cooperate, connect, company</td><td class="s"><b>CONCUR</b></td></tr>
-      <tr><td class="p">contra-, counter-</td><td class="m">against</td><td class="a">contradict, counteract</td><td class="s">contrary</td></tr>
-      <tr><td class="p">de-</td><td class="m">down, away, undo</td><td class="a">descend, deduct, defrost</td><td class="s">demote</td></tr>
-      <tr><td class="p">dis-</td><td class="m">not, apart</td><td class="a">dislike, disappear, disarm</td><td class="s"><b>DISSENT</b>, <b>DISJOINT</b></td></tr>
-      <tr><td class="p">e-, ex-</td><td class="m">out of</td><td class="a">exit, exhale, export, emit</td><td class="s">extract</td></tr>
-      <tr><td class="p">extra-</td><td class="m">beyond, outside</td><td class="a">extraordinary, extraterrestrial</td><td class="s">extraneous</td></tr>
-      <tr><td class="p">in-, im-, il-, ir-</td><td class="m">not</td><td class="a">invisible, impossible, illegal, irregular</td><td class="s"><b>IMPECCABLE</b>, <b>INCOMPARABLE</b></td></tr>
-      <tr><td class="p">in-, im-</td><td class="m">into (the other one!)</td><td class="a">include, import, inject</td><td class="s">see the warning below</td></tr>
-      <tr><td class="p">inter-</td><td class="m">between</td><td class="a">international, internet, interval</td><td class="s"><b>INTERLUDE</b></td></tr>
-      <tr><td class="p">mis-</td><td class="m">wrong, badly</td><td class="a">mistake, misplace, misjudge</td><td class="s">misgiving</td></tr>
-      <tr><td class="p">non-</td><td class="m">not</td><td class="a">nonsense, nonstop, nonfiction</td><td class="s">nonchalant</td></tr>
-      <tr><td class="p">ob-, op-</td><td class="m">against, in the way</td><td class="a">obstacle, obstruct, oppose</td><td class="s">obstinate</td></tr>
-      <tr><td class="p">per-</td><td class="m">through, thoroughly</td><td class="a">persist, permanent, perforate</td><td class="s"><b>PERPETUAL</b></td></tr>
-      <tr><td class="p">post-</td><td class="m">after</td><td class="a">postpone, postscript</td><td class="s">posthumous</td></tr>
-      <tr><td class="p">pre-</td><td class="m">before</td><td class="a">predict, prevent, preview</td><td class="s"><b>PRESUME</b></td></tr>
-      <tr><td class="p">pro-</td><td class="m">forward, in favour of</td><td class="a">progress, promote, propel</td><td class="s">proponent</td></tr>
-      <tr><td class="p">re-</td><td class="m">again, back</td><td class="a">return, repeat, rewind</td><td class="s"><b>REASSURE</b>, <b>REMORSE</b></td></tr>
-      <tr><td class="p">sub-, sup-</td><td class="m">under, below</td><td class="a">submarine, subway, support</td><td class="s">subdue</td></tr>
-      <tr><td class="p">super-, sur-</td><td class="m">above, over</td><td class="a">superior, surface, surpass</td><td class="s">superfluous</td></tr>
-      <tr><td class="p">syn-, sym-</td><td class="m">together, same</td><td class="a">synchronise, sympathy, symmetry</td><td class="s">synthesis</td></tr>
-      <tr><td class="p">trans-</td><td class="m">across</td><td class="a">transport, translate, transfer</td><td class="s">transient</td></tr>
-      <tr><td class="p">un-</td><td class="m">not</td><td class="a">unhappy, unfair, undo</td><td class="s">unwavering</td></tr>
-    </tbody>
-  </table></div>
 
-  <div class="note warn"><b>The one prefix trap you must know.</b> <b>in-</b> and <b>im-</b> mean
-  <i>not</i> (invisible, impossible) <b>but also</b> <i>into</i> (include, import, inject). Two opposite
-  jobs, same spelling. So <b>in-</b> tells you a word is probably negative, but never bet the whole
-  question on it &mdash; check the choices before you commit.</div>
-
-  <div class="tierhead">
-    <span class="tierbadge t2">Tier 2</span>
-    <h2>The 37 roots worth the time</h2>
-    <span class="count">real but slower returns</span>
+  <!-- ================= QUIZ ================= -->
+  <div id="view-quiz" class="hidden">
+    <div class="scorerow">
+      <div class="sbox"><div class="sl">Question</div><div class="sv" id="q-n">1 / 12</div></div>
+      <div class="sbox ok"><div class="sl">Right</div><div class="sv" id="q-ok">0</div></div>
+      <div class="sbox no"><div class="sl">Wrong</div><div class="sv" id="q-no">0</div></div>
+      <div class="sbox"><div class="sl">Streak</div><div class="sv" id="q-st">0</div></div>
+    </div>
+    <div id="q-area"></div>
+    <div style="text-align:center"><button class="fcbtn plain" id="q-restart" style="margin-top:16px">New quiz</button></div>
   </div>
-  <p class="sectsub">Learn each one through its <b>anchor word</b> &mdash; a word you already use.
-  Never memorise "greg = flock" on its own; memorise "a <i>congregation</i> is a flock of people".</p>
-  <div class="card wrapscroll"><table class="parts" id="tier2">
-    <thead><tr><th>Part</th><th>Means</th><th>Anchor words you already know</th><th>On your papers</th></tr></thead>
-    <tbody>
-      <tr><td class="p">ambul, ambl</td><td class="m">walk</td><td class="a">ambulance, ambulatory</td><td class="s"><b>AMBLE</b></td></tr>
-      <tr><td class="p">anim</td><td class="m">life, spirit</td><td class="a">animal, animation, unanimous</td><td class="s"><b>ANIMOSITY</b>, <b>MAGNANIMOUS</b></td></tr>
-      <tr><td class="p">aud</td><td class="m">hear</td><td class="a">audible, audience, auditorium</td><td class="s">inaudible</td></tr>
-      <tr><td class="p">bene, bon</td><td class="m">good, well</td><td class="a">benefit, bonus, benign</td><td class="s">benevolent</td></tr>
-      <tr><td class="p">brev</td><td class="m">short</td><td class="a">brief, abbreviate</td><td class="s"><b>BREVITY</b></td></tr>
-      <tr><td class="p">cred</td><td class="m">believe</td><td class="a">credit, incredible, credentials</td><td class="s">credible</td></tr>
-      <tr><td class="p">cur, curr</td><td class="m">run, flow</td><td class="a">current, occur, cursive</td><td class="s"><b>CONCUR</b></td></tr>
-      <tr><td class="p">dic, dict</td><td class="m">say, speak</td><td class="a">dictate, predict, contradict</td><td class="s">indict</td></tr>
-      <tr><td class="p">doc</td><td class="m">teach</td><td class="a">doctor, document, doctrine</td><td class="s"><b>DOCILE</b></td></tr>
-      <tr><td class="p">dom</td><td class="m">house, master</td><td class="a">dominate, domain, kingdom</td><td class="s"><b>DOMESTIC</b></td></tr>
-      <tr><td class="p">duc, duct</td><td class="m">lead</td><td class="a">conduct, introduce, aqueduct</td><td class="s">induce</td></tr>
-      <tr><td class="p">fac, fact, fic</td><td class="m">make, do</td><td class="a">factory, manufacture, fiction</td><td class="s">proficient</td></tr>
-      <tr><td class="p">fid</td><td class="m">faith, trust</td><td class="a">confident, fidelity</td><td class="s">diffident</td></tr>
-      <tr><td class="p">fort</td><td class="m">strong</td><td class="a">fort, fortify, comfort</td><td class="s"><b>FORTITUDE</b></td></tr>
-      <tr><td class="p">gen</td><td class="m">birth, kind, create</td><td class="a">generate, genuine, genius</td><td class="s"><b>INGENIOUS</b></td></tr>
-      <tr><td class="p">grat</td><td class="m">pleasing, thankful</td><td class="a">grateful, gratitude, congratulate</td><td class="s">ingratiate</td></tr>
-      <tr><td class="p">greg</td><td class="m">flock, herd</td><td class="a">congregation, segregate</td><td class="s"><b>GREGARIOUS</b></td></tr>
-      <tr><td class="p">ject</td><td class="m">throw</td><td class="a">reject, project, eject</td><td class="s">dejected</td></tr>
-      <tr><td class="p">loqu, locut</td><td class="m">speak</td><td class="a">eloquent, ventriloquist</td><td class="s">loquacious</td></tr>
-      <tr><td class="p">luc, lum</td><td class="m">light</td><td class="a">illuminate, translucent, lucid</td><td class="s"><b>LUMINOUS</b></td></tr>
-      <tr><td class="p">magn</td><td class="m">great, large</td><td class="a">magnify, magnificent, magnitude</td><td class="s"><b>MAGNANIMOUS</b></td></tr>
-      <tr><td class="p">mal</td><td class="m">bad, evil</td><td class="a">malfunction, malnutrition</td><td class="s"><b>MALICE</b></td></tr>
-      <tr><td class="p">mit, miss</td><td class="m">send</td><td class="a">transmit, mission, dismiss</td><td class="s">remit</td></tr>
-      <tr><td class="p">mort</td><td class="m">death</td><td class="a">mortal, immortal</td><td class="s"><b>REMORSE</b></td></tr>
-      <tr><td class="p">nov</td><td class="m">new</td><td class="a">novel, innovate, renovate</td><td class="s"><b>NOVICE</b></td></tr>
-      <tr><td class="p">omni</td><td class="m">all</td><td class="a">omnivore, omnipresent</td><td class="s"><b>OMNIPOTENT</b></td></tr>
-      <tr><td class="p">pac, plac</td><td class="m">peace, calm, please</td><td class="a">pacify, Pacific, placid</td><td class="s"><b>PLACATE</b></td></tr>
-      <tr><td class="p">path</td><td class="m">feeling, suffering</td><td class="a">sympathy, empathy, pathetic</td><td class="s">apathy</td></tr>
-      <tr><td class="p">port</td><td class="m">carry</td><td class="a">transport, portable, export</td><td class="s">deportment</td></tr>
-      <tr><td class="p">pot</td><td class="m">power</td><td class="a">potential, potent</td><td class="s"><b>OMNIPOTENT</b></td></tr>
-      <tr><td class="p">scrib, script</td><td class="m">write</td><td class="a">describe, manuscript, subscribe</td><td class="s">inscription</td></tr>
-      <tr><td class="p">sent, sens</td><td class="m">feel</td><td class="a">sense, sentiment, resent</td><td class="s"><b>DISSENT</b></td></tr>
-      <tr><td class="p">spec, spic</td><td class="m">look, see</td><td class="a">inspect, spectator, suspicious</td><td class="s">conspicuous</td></tr>
-      <tr><td class="p">tac, tic</td><td class="m">silent</td><td class="a">tacit, reticent</td><td class="s"><b>TACITURN</b></td></tr>
-      <tr><td class="p">ten, tain</td><td class="m">hold, keep</td><td class="a">retain, contain, tenant</td><td class="s"><b>TENACIOUS</b>, <b>ABSTAIN</b></td></tr>
-      <tr><td class="p">ver</td><td class="m">true</td><td class="a">verify, verdict</td><td class="s"><b>VERACITY</b></td></tr>
-      <tr><td class="p">vid, vis</td><td class="m">see</td><td class="a">video, visible, evidence</td><td class="s">envision</td></tr>
-    </tbody>
-  </table></div>
 
-  <div class="tierhead">
-    <span class="tierbadge t3">Tier 3</span>
-    <h2>22 more &mdash; only if Tiers 1 and 2 are solid</h2>
-    <span class="count">diminishing returns start here</span>
-  </div>
-  <div class="card wrapscroll"><table class="parts" id="tier3">
-    <thead><tr><th>Part</th><th>Means</th><th>Anchor words you already know</th><th>Example</th></tr></thead>
-    <tbody>
-      <tr><td class="p">ann, enn</td><td class="m">year</td><td class="a">annual, anniversary</td><td class="s">perennial</td></tr>
-      <tr><td class="p">cap, capt</td><td class="m">take, seize</td><td class="a">capture, captive</td><td class="s">captivate</td></tr>
-      <tr><td class="p">ced, cess</td><td class="m">go, yield</td><td class="a">proceed, recede, concede</td><td class="s">accede</td></tr>
-      <tr><td class="p">chron</td><td class="m">time</td><td class="a">chronological, synchronise</td><td class="s">anachronism</td></tr>
-      <tr><td class="p">cid, cis</td><td class="m">cut, kill</td><td class="a">scissors, decide, precise</td><td class="s">incisive</td></tr>
-      <tr><td class="p">cord</td><td class="m">heart</td><td class="a">record, accord, core</td><td class="s"><b>CORDIAL</b></td></tr>
-      <tr><td class="p">corp</td><td class="m">body</td><td class="a">corpse, corporation</td><td class="s">corporeal</td></tr>
-      <tr><td class="p">fer</td><td class="m">carry, bear</td><td class="a">transfer, ferry, offer</td><td class="s">defer</td></tr>
-      <tr><td class="p">lud, lus</td><td class="m">play</td><td class="a">ludicrous, illusion</td><td class="s"><b>INTERLUDE</b></td></tr>
-      <tr><td class="p">man, manu</td><td class="m">hand</td><td class="a">manual, manufacture, manuscript</td><td class="s">manipulate</td></tr>
-      <tr><td class="p">pel, puls</td><td class="m">push, drive</td><td class="a">propel, repel, impulse</td><td class="s">compel</td></tr>
-      <tr><td class="p">pend, pens</td><td class="m">hang, weigh</td><td class="a">pendant, suspend</td><td class="s">pensive</td></tr>
-      <tr><td class="p">rupt</td><td class="m">break</td><td class="a">erupt, interrupt, bankrupt</td><td class="s">rupture</td></tr>
-      <tr><td class="p">sequ, secu</td><td class="m">follow</td><td class="a">sequence, consequence, sequel</td><td class="s">obsequious</td></tr>
-      <tr><td class="p">son</td><td class="m">sound</td><td class="a">sonic, unison, resonate</td><td class="s">dissonance</td></tr>
-      <tr><td class="p">spir</td><td class="m">breathe</td><td class="a">inspire, respiration, spirit</td><td class="s">aspire</td></tr>
-      <tr><td class="p">struct</td><td class="m">build</td><td class="a">construct, structure, instruct</td><td class="s">obstruct</td></tr>
-      <tr><td class="p">tract</td><td class="m">pull, drag</td><td class="a">tractor, attract, extract</td><td class="s">intractable</td></tr>
-      <tr><td class="p">vert, vers</td><td class="m">turn</td><td class="a">convert, reverse, versatile</td><td class="s">averse</td></tr>
-      <tr><td class="p">viv, vit</td><td class="m">life</td><td class="a">survive, vivid, vital</td><td class="s">vivacious</td></tr>
-      <tr><td class="p">voc, vok</td><td class="m">call, voice</td><td class="a">vocal, provoke, advocate</td><td class="s">evoke</td></tr>
-      <tr><td class="p">vol</td><td class="m">wish, will</td><td class="a">volunteer, voluntary</td><td class="s">benevolent</td></tr>
-    </tbody>
-  </table></div>
+  <!-- ================= PLAN ================= -->
+  <div id="view-plan" class="hidden">
+    <div class="card" style="background:#fff8ec;border:3px solid #e8c489">
+      <h2 class="sect" style="margin-top:0">How many should you actually learn?</h2>
+      <p style="font-size:16px;line-height:1.58">Measured on all <b>66 SSAT-level words we have real
+      data on</b> &mdash; the 30 synonyms from Practice Test 5 plus both drill rounds.</p>
+      <table class="cov">
+        <tr><th>What cracks the word</th><th>Share</th><th></th></tr>
+        <tr><td>A <b>classical root</b> you would have to memorise</td><td class="pc">39%</td><td>worth learning</td></tr>
+        <tr><td>An <b>English word already hiding inside it</b></td><td class="pc">18%</td><td>free</td></tr>
+        <tr><td><b>Nothing</b> &mdash; parts give no help at all</td><td class="pc">42%</td><td>why twins comes first</td></tr>
+      </table>
+      <div class="note warn"><b>The finding that changes the plan.</b> In those 66 words,
+      <b>31 different roots unlocked only 26 words</b> &mdash; just two roots repeated at all. At SSAT
+      size, learning a root is close to a <b>one-root-for-one-word trade</b>. (Fair warning: 66 words
+      is a small sample, and roots repeat more across the whole language than inside one test, so the
+      payoff is real &mdash; just slower than advertised.)</div>
+      <div class="note good"><b>Prefixes are the good deal.</b> A <b>closed set of under 30</b> that
+      recur endlessly, and they hand you what elimination needs: <b>direction</b> &mdash; not, against,
+      before, away, under. Content roots are a long tail of hundreds, each appearing about once.
+      <b>Learn Tier 1 cold.</b></div>
+    </div>
 
-  <h2 class="sect">Endings &mdash; not for meaning, for word type</h2>
-  <p class="sectsub">These do not tell you what a word means. They tell you <b>what kind of word it is</b>
-  &mdash; which is how you match pairs on analogies.</p>
-  <div class="card wrapscroll"><table class="parts">
-    <thead><tr><th>Ending</th><th>Makes it a</th><th>Examples</th><th></th></tr></thead>
-    <tbody>
-      <tr><td class="p">-ous, -ful, -ive, -able, -ible, -ic</td><td class="m">describing word</td><td class="a">generous, tenacious, credible</td><td class="s"></td></tr>
-      <tr><td class="p">-tion, -sion, -ity, -ness, -ment, -or</td><td class="m">thing / idea</td><td class="a">brevity, animosity, fortitude</td><td class="s"></td></tr>
-      <tr><td class="p">-ise, -ize, -ate, -ify, -en</td><td class="m">action</td><td class="a">scrutinize, placate, fasten</td><td class="s"></td></tr>
-      <tr><td class="p">-less</td><td class="m">without</td><td class="a">flawless, reckless, hopeless</td><td class="s"></td></tr>
-    </tbody>
-  </table></div>
-  <div class="note"><b>Why this matters on analogies.</b> Remember Round 1, question 59:
-  <i>lumpy is to smooth</i>. You picked <i>heroic is to coward</i> &mdash; but <b>heroic</b> is a
-  describing word and <b>coward</b> is a thing. The shapes did not match, so the pair could not be
-  right. <i>Tumultuous is to still</i> was two describing words, like the question. <b>Check the
-  endings before you commit.</b></div>
+    <div class="card" style="background:#fdf6e8;border:3px solid #e8c489">
+      <h2 class="sect" style="margin-top:0">Tier 0 &mdash; free, nothing to memorise</h2>
+      <p class="sectsub">Before any Latin: <b>is an ordinary English word hiding inside?</b>
+      This covers 18% and costs nothing. You missed several of these on Test 5.</p>
+      <div class="freegrid">
+        <div class="freecard"><b>VIRTUOUS</b> → virtue <span>· you know what a virtue is</span></div>
+        <div class="freecard"><b>ORIGINATE</b> → origin <span>· where it began</span></div>
+        <div class="freecard"><b>RARITY</b> → rare <span>· hardly ever</span></div>
+        <div class="freecard"><b>MISERLY</b> → miser <span>· the gold-hoarder</span></div>
+        <div class="freecard"><b>TRIFLING</b> → trifle <span>· a tiny amount</span></div>
+        <div class="freecard"><b>STEADFAST</b> → steady + fast <span>· fixed firmly</span></div>
+        <div class="freecard"><b>DISJOINT</b> → dis + joint <span>· come apart</span></div>
+        <div class="freecard"><b>INCOMPARABLE</b> → in + compare <span>· cannot be matched</span></div>
+      </div>
+      <div class="note"><b>The habit:</b> cover the ending (<i>-ous, -ity, -ate, -ly, -ing</i>) and look
+      at what is left. Half the time a word you have known for years is standing there.</div>
+    </div>
 
-  <h2 class="sect">How to actually learn them</h2>
-  <div class="card">
-    <ol class="plan">
-      <li><b>Tier 1 first, five prefixes a day.</b> Twenty-nine prefixes is six days. This is the
-      highest-value week of vocabulary work available to you, because prefixes repeat forever.</li>
-      <li><b>Always learn through the anchor word, never the bare part.</b> "greg = flock" will not
-      stick. "A <i>congregation</i> is a flock of people, so <b>gregarious</b> means liking the flock"
-      will. The anchor is a word you already own.</li>
-      <li><b>Test yourself with the eye button</b> at the top of this page &mdash; it blurs the
-      meanings so you have to produce them, which is worth several times more than re-reading.</li>
-      <li><b>Then Tier 2, five roots a day.</b> That is another eight days. Stop there unless the test is
-      still far off &mdash; 66 parts is the sensible ceiling.</li>
-      <li><b>Keep doing the twins drill anyway.</b> Parts fail on 42% of words. Twins never needs you
-      to know anything, so it stays the first move &mdash; parts is the second.</li>
-    </ol>
-    <div class="note warn"><b>The honest expectation.</b> Learning all 66 parts will not turn every
-    unknown word into a known one. On the evidence from your own papers it moves you from
-    <b>guessing among 5</b> to <b>guessing among 2 or 3</b> far more often &mdash; and that is where
-    the points are. Do not expect certainty; expect better odds, which is what the whole method is
-    built on.</div>
+    <div class="card">
+      <h2 class="sect" style="margin-top:0">The four-week plan</h2>
+      <ol class="plan">
+        <li><b>Week 1 &mdash; Tier 1, five prefixes a day.</b> Flashcards in <i>part &rarr; meaning</i>
+        mode until the round finishes, then the quiz. Twenty-nine prefixes is six days.</li>
+        <li><b>Week 2 &mdash; Tier 1 backwards.</b> Switch flashcards to <i>meaning &rarr; part</i>.
+        Harder, and it is what actually sticks.</li>
+        <li><b>Weeks 3&ndash;4 &mdash; Tier 2, five roots a day.</b> Always learn through the
+        <b>anchor word</b>. "greg = flock" will not stick; "a <i>congregation</i> is a flock of people,
+        so <b>gregarious</b> means liking the flock" will.</li>
+        <li><b>Stop at 66.</b> Tier 3 only if the test is still far away. Past that you are memorising
+        a tail, and that time is better spent on the twins drill.</li>
+        <li><b>Keep doing the twins drill anyway.</b> Parts fail on 42% of words. Twins needs nothing
+        from you, so it stays the first move &mdash; parts is the second.</li>
+      </ol>
+      <div class="note warn"><b>The honest expectation.</b> All 66 parts will not turn every unknown
+      word into a known one. On the evidence from your own papers it moves you from <b>guessing among
+      5</b> to <b>guessing among 2 or 3</b> far more often &mdash; and that is where the points are.
+      Expect better odds, not certainty.</div>
+    </div>
   </div>
 
   <div style="text-align:center;">
@@ -318,14 +292,345 @@
 </div>
 
 <script>
-const btn = document.getElementById("toggle");
-let hidden = false;
-btn.addEventListener("click", () => {
-  hidden = !hidden;
-  document.querySelectorAll("table.parts tbody tr").forEach(tr => tr.classList.toggle("hide", hidden));
-  btn.classList.toggle("on", hidden);
-  btn.innerHTML = hidden ? "&#128065; Show the meanings again" : "&#128065; Hide the meanings &mdash; test myself";
+/* ============ ONE DATA SET drives the tables, the flashcards and the quiz ============ */
+/* p = the part · m = meaning · a = anchor words already known · s = where it shows up
+   tier 1 = prefixes, 2 = core roots, 3 = stretch roots
+   noquiz:true  => kept in the tables but never used as a quiz answer (ambiguous on purpose) */
+const PARTS = [
+  // ---------- TIER 1 : PREFIXES ----------
+  {p:"a-, an-", m:"without", a:"atypical, anonymous, anaemic", s:"apathy", tier:1},
+  {p:"ab-, abs-", m:"away from", a:"absent, abduct, absorb", s:"ABSTAIN", tier:1},
+  {p:"ad-", m:"toward", a:"adhere, adapt, advance", s:"adjacent", tier:1},
+  {p:"ante-", m:"before", a:"anticipate, antique", s:"antecedent", tier:1, noquiz:true},
+  {p:"anti-", m:"against", a:"antidote, antisocial, antifreeze", s:"antipathy", tier:1, noquiz:true},
+  {p:"bi-", m:"two", a:"bicycle, bilingual, binary", s:"bisect", tier:1},
+  {p:"circum-", m:"around", a:"circle, circumference", s:"circumvent", tier:1},
+  {p:"co-, con-, com-", m:"with, together", a:"cooperate, connect, company", s:"CONCUR", tier:1},
+  {p:"contra-, counter-", m:"against", a:"contradict, counteract", s:"contrary", tier:1, noquiz:true},
+  {p:"de-", m:"down, undo", a:"descend, deduct, defrost", s:"demote", tier:1},
+  {p:"dis-", m:"not, apart", a:"dislike, disappear, disarm", s:"DISSENT", tier:1, noquiz:true},
+  {p:"e-, ex-", m:"out of", a:"exit, exhale, export", s:"extract", tier:1},
+  {p:"extra-", m:"beyond", a:"extraordinary, extraterrestrial", s:"extraneous", tier:1},
+  {p:"in-, im-, il-, ir-", m:"not", a:"invisible, impossible, illegal", s:"IMPECCABLE", tier:1, noquiz:true},
+  {p:"in-, im- (the other one)", m:"into", a:"include, import, inject", s:"see the trap note", tier:1, noquiz:true},
+  {p:"inter-", m:"between", a:"international, internet, interval", s:"INTERLUDE", tier:1},
+  {p:"mis-", m:"wrong, badly", a:"mistake, misplace, misjudge", s:"misgiving", tier:1},
+  {p:"non-", m:"not", a:"nonsense, nonstop, nonfiction", s:"nonchalant", tier:1, noquiz:true},
+  {p:"ob-, op-", m:"in the way", a:"obstacle, obstruct, oppose", s:"obstinate", tier:1},
+  {p:"per-", m:"through", a:"persist, permanent, perforate", s:"PERPETUAL", tier:1},
+  {p:"post-", m:"after", a:"postpone, postscript", s:"posthumous", tier:1},
+  {p:"pre-", m:"before", a:"predict, prevent, preview", s:"PRESUME", tier:1, noquiz:true},
+  {p:"pro-", m:"forward", a:"progress, promote, propel", s:"proponent", tier:1},
+  {p:"re-", m:"again, back", a:"return, repeat, rewind", s:"REASSURE", tier:1},
+  {p:"sub-, sup-", m:"under", a:"submarine, subway, support", s:"subdue", tier:1},
+  {p:"super-, sur-", m:"above, over", a:"superior, surface, surpass", s:"superfluous", tier:1},
+  {p:"syn-, sym-", m:"together, same", a:"synchronise, sympathy, symmetry", s:"synthesis", tier:1, noquiz:true},
+  {p:"trans-", m:"across", a:"transport, translate, transfer", s:"transient", tier:1},
+  {p:"un-", m:"not", a:"unhappy, unfair, undo", s:"unwavering", tier:1, noquiz:true},
+
+  // ---------- TIER 2 : CORE ROOTS ----------
+  {p:"ambul, ambl", m:"walk", a:"ambulance, ambulatory", s:"AMBLE", tier:2},
+  {p:"anim", m:"life, spirit", a:"animal, animation, unanimous", s:"ANIMOSITY", tier:2},
+  {p:"aud", m:"hear", a:"audible, audience, auditorium", s:"inaudible", tier:2},
+  {p:"bene, bon", m:"good, well", a:"benefit, bonus, benign", s:"benevolent", tier:2},
+  {p:"brev", m:"short", a:"brief, abbreviate", s:"BREVITY", tier:2},
+  {p:"cred", m:"believe", a:"credit, incredible, credentials", s:"credible", tier:2},
+  {p:"cur, curr", m:"run, flow", a:"current, occur, cursive", s:"CONCUR", tier:2},
+  {p:"dic, dict", m:"say, speak", a:"dictate, predict, contradict", s:"indict", tier:2, noquiz:true},
+  {p:"doc", m:"teach", a:"doctor, document, doctrine", s:"DOCILE", tier:2},
+  {p:"dom", m:"house, master", a:"dominate, domain, kingdom", s:"DOMESTIC", tier:2},
+  {p:"duc, duct", m:"lead", a:"conduct, introduce, aqueduct", s:"induce", tier:2},
+  {p:"fac, fact, fic", m:"make, do", a:"factory, manufacture, fiction", s:"proficient", tier:2},
+  {p:"fid", m:"faith, trust", a:"confident, fidelity", s:"diffident", tier:2},
+  {p:"fort", m:"strong", a:"fort, fortify, comfort", s:"FORTITUDE", tier:2},
+  {p:"gen", m:"birth, create", a:"generate, genuine, genius", s:"INGENIOUS", tier:2},
+  {p:"grat", m:"thankful, pleasing", a:"grateful, gratitude, congratulate", s:"ingratiate", tier:2},
+  {p:"greg", m:"flock, herd", a:"congregation, segregate", s:"GREGARIOUS", tier:2},
+  {p:"ject", m:"throw", a:"reject, project, eject", s:"dejected", tier:2},
+  {p:"loqu, locut", m:"speak", a:"eloquent, ventriloquist", s:"loquacious", tier:2, noquiz:true},
+  {p:"luc, lum", m:"light", a:"illuminate, translucent, lucid", s:"LUMINOUS", tier:2},
+  {p:"magn", m:"great, large", a:"magnify, magnificent, magnitude", s:"MAGNANIMOUS", tier:2},
+  {p:"mal", m:"bad, evil", a:"malfunction, malnutrition", s:"MALICE", tier:2},
+  {p:"mit, miss", m:"send", a:"transmit, mission, dismiss", s:"remit", tier:2},
+  {p:"mort", m:"death", a:"mortal, immortal", s:"REMORSE", tier:2},
+  {p:"nov", m:"new", a:"novel, innovate, renovate", s:"NOVICE", tier:2},
+  {p:"omni", m:"all", a:"omnivore, omnipresent", s:"OMNIPOTENT", tier:2},
+  {p:"pac, plac", m:"peace, calm", a:"pacify, Pacific, placid", s:"PLACATE", tier:2},
+  {p:"path", m:"feeling", a:"sympathy, empathy, pathetic", s:"apathy", tier:2},
+  {p:"port", m:"carry", a:"transport, portable, export", s:"deportment", tier:2, noquiz:true},
+  {p:"pot", m:"power", a:"potential, potent", s:"OMNIPOTENT", tier:2},
+  {p:"scrib, script", m:"write", a:"describe, manuscript, subscribe", s:"inscription", tier:2},
+  {p:"sent, sens", m:"feel", a:"sense, sentiment, resent", s:"DISSENT", tier:2},
+  {p:"spec, spic", m:"look, see", a:"inspect, spectator, suspicious", s:"conspicuous", tier:2, noquiz:true},
+  {p:"tac, tic", m:"silent", a:"tacit, reticent", s:"TACITURN", tier:2},
+  {p:"ten, tain", m:"hold, keep", a:"retain, contain, tenant", s:"TENACIOUS", tier:2},
+  {p:"ver", m:"true", a:"verify, verdict", s:"VERACITY", tier:2},
+  {p:"vid, vis", m:"see", a:"video, visible, evidence", s:"envision", tier:2, noquiz:true},
+
+  // ---------- TIER 3 : STRETCH ----------
+  {p:"ann, enn", m:"year", a:"annual, anniversary", s:"perennial", tier:3},
+  {p:"cap, capt", m:"take, seize", a:"capture, captive", s:"captivate", tier:3},
+  {p:"ced, cess", m:"go, yield", a:"proceed, recede, concede", s:"accede", tier:3},
+  {p:"chron", m:"time", a:"chronological, synchronise", s:"anachronism", tier:3},
+  {p:"cid, cis", m:"cut, kill", a:"scissors, decide, precise", s:"incisive", tier:3},
+  {p:"cord", m:"heart", a:"record, accord, core", s:"CORDIAL", tier:3},
+  {p:"corp", m:"body", a:"corpse, corporation", s:"corporeal", tier:3},
+  {p:"fer", m:"carry, bear", a:"transfer, ferry, offer", s:"defer", tier:3, noquiz:true},
+  {p:"lud, lus", m:"play", a:"ludicrous, illusion", s:"INTERLUDE", tier:3},
+  {p:"man, manu", m:"hand", a:"manual, manufacture, manuscript", s:"manipulate", tier:3},
+  {p:"pel, puls", m:"push, drive", a:"propel, repel, impulse", s:"compel", tier:3},
+  {p:"pend, pens", m:"hang, weigh", a:"pendant, suspend", s:"pensive", tier:3},
+  {p:"rupt", m:"break", a:"erupt, interrupt, bankrupt", s:"rupture", tier:3},
+  {p:"sequ, secu", m:"follow", a:"sequence, consequence, sequel", s:"obsequious", tier:3},
+  {p:"son", m:"sound", a:"sonic, unison, resonate", s:"dissonance", tier:3},
+  {p:"spir", m:"breathe", a:"inspire, respiration, spirit", s:"aspire", tier:3},
+  {p:"struct", m:"build", a:"construct, structure, instruct", s:"obstruct", tier:3},
+  {p:"tract", m:"pull, drag", a:"tractor, attract, extract", s:"intractable", tier:3},
+  {p:"vert, vers", m:"turn", a:"convert, reverse, versatile", s:"averse", tier:3},
+  {p:"viv, vit", m:"life", a:"survive, vivid, vital", s:"vivacious", tier:3, noquiz:true},
+  {p:"voc, vok", m:"call, voice", a:"vocal, provoke, advocate", s:"evoke", tier:3},
+  {p:"vol", m:"wish, will", a:"volunteer, voluntary", s:"benevolent", tier:3}
+];
+
+const TIERNAME = {1:"Tier 1 · prefixes", 2:"Tier 2 · roots", 3:"Tier 3 · stretch"};
+const TIERCLASS = {1:"t1", 2:"t2", 3:"t3"};
+let tier = 1;              // 0 = everything
+let fcDir = "pm";          // pm = part->meaning, mp = meaning->part
+
+const shuffle = arr => { for (let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));
+  [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; };
+
+function setOf(){ return tier===0 ? PARTS.slice() : PARTS.filter(x=>x.tier===tier); }
+
+/* ================= LEARN ================= */
+function renderTables(){
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const host = document.getElementById("tables");
+  host.innerHTML = "";
+  const tiers = tier===0 ? [1,2,3] : [tier];
+  let shown = 0;
+  tiers.forEach(t => {
+    let rows = PARTS.filter(x => x.tier===t);
+    if (q) rows = rows.filter(x => (x.p+" "+x.m+" "+x.a+" "+x.s).toLowerCase().includes(q));
+    if (!rows.length) return;
+    shown += rows.length;
+    const head = document.createElement("div");
+    head.className = "tierhead";
+    head.innerHTML = `<span class="tierbadge ${TIERCLASS[t]}">${TIERNAME[t].split(" · ")[0]}</span>
+      <h3>${TIERNAME[t].split(" · ")[1]}</h3><span class="count">${rows.length} parts</span>`;
+    host.appendChild(head);
+    const box = document.createElement("div");
+    box.className = "card wrapscroll";
+    box.innerHTML = `<table class="parts"><thead><tr><th>Part</th><th>Means</th>
+      <th>Anchor words you already know</th><th>Shows up in</th></tr></thead><tbody>` +
+      rows.map(x=>`<tr><td class="p">${x.p}</td><td class="m">${x.m}</td>
+        <td class="a">${x.a}</td><td class="s">${/[A-Z]{3}/.test(x.s)?"<b>"+x.s+"</b>":x.s}</td></tr>`).join("") +
+      `</tbody></table>`;
+    host.appendChild(box);
+  });
+  if (!shown) host.innerHTML = `<div class="card" style="text-align:center;color:#6b7690">
+    No part matches &ldquo;${q}&rdquo;. Try <i>light</i>, <i>not</i>, <i>walk</i>&hellip;</div>`;
+  if (document.getElementById("blur").classList.contains("on"))
+    document.querySelectorAll("table.parts tbody tr").forEach(tr=>tr.classList.add("hide"));
+}
+
+/* ================= FLASHCARDS ================= */
+let fcQueue = [], fcDone = 0, fcTotal = 0, fcFlipped = false;
+
+function fcStart(){
+  fcQueue = shuffle(setOf().slice());
+  fcTotal = fcQueue.length; fcDone = 0; fcFlipped = false;
+  fcRender();
+}
+function fcRender(){
+  const area = document.getElementById("fc-area");
+  document.getElementById("fc-bar").style.width = fcTotal? (fcDone/fcTotal*100)+"%" : "0%";
+  document.getElementById("fc-txt").textContent = `${fcDone} / ${fcTotal} learned`;
+  if (!fcQueue.length){
+    area.innerHTML = `<div class="card doneblock"><div class="big">&#127881;</div>
+      <h2 class="sect" style="margin-top:6px">Every card answered &ldquo;Got it&rdquo;</h2>
+      <p style="font-size:16px;color:#4a5c50;line-height:1.6">That is all ${fcTotal} of
+      ${TIERNAME[tier]||"the parts"} in one round. Shuffle and go again tomorrow &mdash; the gap between
+      sessions is what makes it stick. Then try the <b>Quiz</b> tab.</p></div>`;
+    return;
+  }
+  const c = fcQueue[0];
+  const front = fcDir==="pm" ? `<div class="big">${c.p}</div>` : `<div class="mean">${c.m}</div>`;
+  const back  = fcDir==="pm"
+    ? `<div class="mean">${c.m}</div><div class="anchor">${c.a}<br><b>${c.s}</b></div>`
+    : `<div class="big">${c.p}</div><div class="anchor">${c.a}<br><b>${c.s}</b></div>`;
+  area.innerHTML = `
+    <div class="flash" id="flash">
+      <span class="side">${fcFlipped?"answer":"question"} &middot; ${fcQueue.length} left in this round</span>
+      <span class="tierpip ${TIERCLASS[c.tier]}">T${c.tier}</span>
+      ${fcFlipped?back:front}
+      ${fcFlipped?"":'<div class="tapme">say it out loud, then tap to flip</div>'}
+    </div>
+    ${fcFlipped?`<div class="fcbtns">
+        <button class="fcbtn no" id="fc-no">&#8630; Not yet</button>
+        <button class="fcbtn yes" id="fc-yes">&#10003; Got it</button></div>`:""}`;
+  document.getElementById("flash").onclick = () => { fcFlipped = !fcFlipped; fcRender(); };
+  if (fcFlipped){
+    document.getElementById("fc-yes").onclick = () => { fcQueue.shift(); fcDone++; fcFlipped=false; fcRender(); };
+    document.getElementById("fc-no").onclick  = () => {
+      const c = fcQueue.shift();
+      fcQueue.splice(Math.min(4, fcQueue.length), 0, c);   // comes back in ~4 cards
+      fcFlipped=false; fcRender();
+    };
+  }
+}
+
+/* ================= QUIZ ================= */
+const QN = 12;
+let quiz = [], qi = 0, qOk = 0, qNo = 0, qStreak = 0, qAnswered = false, qMissed = [];
+
+/* only parts with a meaning that no other part shares can be a "which part means X" answer */
+function uniqueMeaning(x){
+  return !x.noquiz && PARTS.filter(y => y.m === x.m).length === 1;
+}
+/* the spellings a part can take, long enough to test for inside a word ("e-" is useless, "puls" is not) */
+function variants(part){
+  return part.replace(/\(.*?\)/g,"").split(",").map(s=>s.trim().replace(/-/g,""))
+             .filter(s => s.length >= 3);
+}
+/* a word is "built on" a part if it contains one of that part's spellings */
+function builtOn(word, part){
+  const w = word.toLowerCase();
+  return variants(part).some(v => w.includes(v));
+}
+/* always returns n DISTINCT values, none of them equal to `correct` — so a question
+   can never show two right answers or the same option twice */
+function distinctFrom(candidates, correct, n){
+  const seen = new Set([String(correct).toLowerCase()]);
+  const out = [];
+  for (const v of shuffle(candidates.slice())){
+    const k = String(v).toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k); out.push(v);
+    if (out.length === n) break;
+  }
+  return out;
+}
+function buildQuiz(){
+  const pool = setOf().filter(x => !x.noquiz);
+  const chosen = shuffle(pool.slice()).slice(0, Math.min(QN, pool.length));
+  quiz = chosen.map(c => {
+    // question types: 0 = part->meaning, 1 = meaning->part, 2 = which anchor word shows the part
+    let types = [0, 2];
+    if (uniqueMeaning(c)) types.push(1);
+    const type = types[Math.floor(Math.random()*types.length)];
+    let stem, correct, distract;
+    if (type === 0){
+      stem = `What does <code>${c.p}</code> mean?`;
+      correct = c.m;
+      distract = distinctFrom(PARTS.filter(x => x.m !== c.m).map(x => x.m), correct, 3);
+    } else if (type === 1){
+      stem = `Which part means <b>${c.m}</b>?`;
+      correct = c.p;
+      distract = distinctFrom(PARTS.filter(x => x.m !== c.m).map(x => x.p), correct, 3);
+    } else {
+      const mine = c.a.split(",").map(s=>s.trim());
+      stem = `<code>${c.p}</code> means <b>${c.m}</b>. Which word is built on it?`;
+      correct = mine[Math.floor(Math.random()*mine.length)];
+      // a distractor must not itself be built on this part, or it would be right too
+      const pool = [];
+      PARTS.filter(x => x.m !== c.m && x.p !== c.p).forEach(x =>
+        x.a.split(",").map(s=>s.trim()).forEach(w => { if (!builtOn(w, c.p)) pool.push(w); }));
+      distract = distinctFrom(pool, correct, 3);
+    }
+    const options = shuffle([correct, ...distract]);
+    return { c, stem, correct, options, answer: options.indexOf(correct), type };
+  });
+  qi = 0; qOk = 0; qNo = 0; qStreak = 0; qAnswered = false; qMissed = [];
+  qRender();
+}
+function qRender(){
+  const area = document.getElementById("q-area");
+  document.getElementById("q-ok").textContent = qOk;
+  document.getElementById("q-no").textContent = qNo;
+  document.getElementById("q-st").textContent = qStreak;
+  document.getElementById("q-n").textContent = Math.min(qi+1, quiz.length) + " / " + quiz.length;
+
+  if (qi >= quiz.length){
+    const pct = quiz.length ? Math.round(qOk/quiz.length*100) : 0;
+    let msg;
+    if (pct >= 85) msg = "That is the level where word parts start winning you real points on the test.";
+    else if (pct >= 60) msg = "Solid. Run the flashcards on the ones below, then quiz again.";
+    else msg = "Go back to the flashcards for this tier first — the quiz is for after the cards, not instead of them.";
+    area.innerHTML = `<div class="card"><h2 class="sect" style="margin-top:0">${qOk} out of ${quiz.length} &middot; ${pct}%</h2>
+      <p style="font-size:16px;line-height:1.6;color:#4a5c50">${msg}</p>
+      ${qMissed.length ? `<h3 style="margin-top:16px;font-size:17px;color:#1e3829">Worth another look</h3>` +
+        qMissed.map(m=>`<div class="missrow"><b>${m.p}</b> = ${m.m} &nbsp;·&nbsp;
+          <span style="color:#5c6b62">${m.a}</span></div>`).join("")
+        : `<div class="note good">Nothing missed. Switch the study set to the next tier.</div>`}
+      </div>`;
+    return;
+  }
+  const q = quiz[qi];
+  area.innerHTML = `<div class="qcard">
+    <div class="qnum">Question ${qi+1} of ${quiz.length} &middot; ${TIERNAME[q.c.tier]}</div>
+    <div class="qtext">${q.stem}</div>
+    <div class="qopts">${q.options.map((o,i)=>
+      `<button class="qopt" data-i="${i}">${o}</button>`).join("")}</div>
+    <div id="qfb"></div></div>`;
+  area.querySelectorAll(".qopt").forEach(b => b.onclick = () => qAnswer(+b.dataset.i));
+}
+function qAnswer(i){
+  if (qAnswered) return;
+  qAnswered = true;
+  const q = quiz[qi];
+  const ok = i === q.answer;
+  if (ok){ qOk++; qStreak++; } else { qNo++; qStreak = 0; qMissed.push(q.c); }
+  document.querySelectorAll(".qopt").forEach((b,k) => {
+    b.disabled = true;
+    if (k === q.answer) b.classList.add("right");
+    else if (k === i) b.classList.add("wrong");
+  });
+  document.getElementById("qfb").innerHTML =
+    `<div class="qfb ${ok?"":"bad"}">${ok?"<b>&#10003; Right.</b>":"<b>&#10007; Not this time.</b>"}
+      <b>${q.c.p}</b> means <b>${q.c.m}</b> &mdash; think of <i>${q.c.a}</i>.
+      It turns up in <b>${q.c.s}</b>.
+      <div style="margin-top:9px"><button class="fcbtn plain" id="qnext" style="padding:8px 20px;font-size:14px">
+        ${qi+1 < quiz.length ? "Next question &rarr;" : "See my score"}</button></div></div>`;
+  document.getElementById("qnext").onclick = () => { qi++; qAnswered = false; qRender(); };
+}
+
+/* ================= WIRING ================= */
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+  t.classList.add("on");
+  const v = t.dataset.view;
+  ["learn","flash","quiz","plan"].forEach(name =>
+    document.getElementById("view-"+name).classList.toggle("hidden", name!==v));
+  document.getElementById("filters").classList.toggle("hidden", v==="plan");
+  if (v==="flash" && !fcQueue.length && fcDone===0) fcStart();
+  if (v==="quiz" && !quiz.length) buildQuiz();
 });
+
+document.querySelectorAll("#filters .fbtn").forEach(b => b.onclick = () => {
+  document.querySelectorAll("#filters .fbtn").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");
+  tier = +b.dataset.tier;
+  renderTables(); fcStart(); buildQuiz();
+});
+
+document.getElementById("search").addEventListener("input", renderTables);
+document.getElementById("blur").onclick = function(){
+  this.classList.toggle("on");
+  const on = this.classList.contains("on");
+  this.innerHTML = on ? "&#128065; Show meanings" : "&#128065; Hide meanings";
+  document.querySelectorAll("table.parts tbody tr").forEach(tr=>tr.classList.toggle("hide", on));
+};
+document.getElementById("dir-pm").onclick = () => { fcDir="pm";
+  document.getElementById("dir-pm").classList.add("on");
+  document.getElementById("dir-mp").classList.remove("on"); fcStart(); };
+document.getElementById("dir-mp").onclick = () => { fcDir="mp";
+  document.getElementById("dir-mp").classList.add("on");
+  document.getElementById("dir-pm").classList.remove("on"); fcStart(); };
+document.getElementById("fc-restart").onclick = fcStart;
+document.getElementById("q-restart").onclick = buildQuiz;
+
+renderTables();
 </script>
 </body>
 </html>
