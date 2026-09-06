@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《称赞》 Praise · Characters + Read-Aloud</title>
+<style>
+  :root{
+    --cream:#fff4e8; --card:#fffdf7; --ink:#3a2c1e; --muted:#8b7a66;
+    --bark:#8a5a34;      /* chestnut — the badger's woodwork */
+    --leaf:#3f7d4e;      /* forest green — correct / done */
+    --leaf-d:#2f5f3b;
+    --red:#c0392b; --softred:#fbeae7;
+    --line:#e6d8c4;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    background:var(--cream); color:var(--ink);
+    padding:16px 12px 70px; line-height:1.65;
+  }
+  .zh{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",Georgia,serif;}
+  .wrap{max-width:900px; margin:0 auto;}
+
+  header{text-align:center; margin-bottom:14px;}
+  h1{font-size:2rem; margin:.1em 0 .05em; color:var(--bark); letter-spacing:.04em;
+     font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",Georgia,serif;}
+  .en-title{font-size:1.05rem; color:var(--leaf-d); margin:0 0 .3em; letter-spacing:.04em;}
+  .sub{color:var(--muted); font-size:.92rem; margin:0;}
+  .teacher{
+    background:#fdf1de; border:2px solid #ecd6b4; border-left:8px solid var(--bark);
+    border-radius:14px; padding:12px 16px; margin:14px 0 6px; font-size:.93rem; color:#6b5744;
+  }
+  .teacher b{color:var(--bark);}
+  .teacher .cn{display:block; margin-top:6px; color:#8b7a66; font-size:.88rem;}
+
+  /* ---- sticky tabs ---- */
+  .tabs{position:sticky; top:0; z-index:20; display:flex; gap:6px; flex-wrap:wrap; justify-content:center;
+        background:rgba(255,244,232,.95); padding:8px 4px; margin:10px -12px 18px; border-bottom:2px solid var(--line);
+        backdrop-filter:blur(4px);}
+  .tabs button{border:2px solid var(--line); background:var(--card); color:var(--muted); cursor:pointer;
+        font-family:inherit; font-size:.86rem; padding:7px 13px; border-radius:999px;}
+  .tabs button.on{background:var(--bark); border-color:var(--bark); color:#fff;}
+
+  section{background:var(--card); border:2px solid var(--line); border-radius:20px;
+          padding:20px 18px; margin-bottom:22px; box-shadow:0 6px 20px rgba(138,90,52,.07);}
+  h2{font-size:1.2rem; color:var(--bark); margin:0 0 4px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  h2 .cnt{font-size:.78rem; color:var(--muted); font-weight:normal;}
+  .lead{color:var(--muted); font-size:.9rem; margin:0 0 16px;}
+  .lead b{color:#6b5744;}
+
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
+  .tb{border:2px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;
+      font-family:inherit; font-size:.85rem; padding:7px 13px; border-radius:12px;}
+  .tb.on{background:var(--leaf); border-color:var(--leaf); color:#fff;}
+  .tb.warn{border-color:#ecd6b4; background:#fdf1de;}
+  select.tb{padding:7px 8px; max-width:210px;}
+
+  .bar{height:11px; background:#efe4d3; border-radius:8px; overflow:hidden; margin:8px 0 16px;}
+  .bar > div{height:100%; width:0%; background:linear-gradient(90deg,#ffd27f,var(--leaf)); transition:width .35s;}
+  .tally{font-size:.86rem; color:var(--muted); margin:-8px 0 12px;}
+
+  /* ---- badger intro ---- */
+  .badger{display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap;}
+  .badger .big{font-size:5rem; line-height:1.1; color:var(--bark); border:3px dashed #ddc7a6;
+               border-radius:18px; padding:6px 22px; text-align:center;
+               font-family:"Kaiti SC","STKaiti","KaiTi",serif;}
+  .badger .big small{display:block; font-size:1.05rem; color:var(--leaf); letter-spacing:.1em; font-family:Georgia,serif;}
+  .badger .txt{flex:1 1 320px; font-size:.96rem;}
+  .badger .txt p{margin:.3em 0 .8em;}
+  .radical{background:#eef5ef; border-radius:12px; padding:11px 14px; font-size:.92rem; color:var(--leaf-d);}
+  .radical .zh{font-size:1.15em;}
+
+  /* ---- character cards ---- */
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(116px,1fr)); gap:10px;}
+  .zi{border:2px solid var(--line); border-radius:16px; background:#fffdf7; padding:10px 6px 8px;
+      text-align:center; cursor:pointer; position:relative; transition:transform .12s;}
+  .zi:active{transform:scale(.96);}
+  .zi .hz{font-size:2.3rem; line-height:1.25; color:var(--ink);
+          font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif;}
+  .zi .py{font-size:.95rem; color:var(--bark); font-weight:bold; min-height:1.3em; visibility:hidden;}
+  .zi .en{font-size:.76rem; color:var(--leaf-d); min-height:1.15em; line-height:1.35; visibility:hidden;}
+  .zi .ci{font-size:.72rem; color:var(--muted); min-height:1.1em; line-height:1.35; visibility:hidden;}
+  .zi.open .py, .zi.open .en, .zi.open .ci{visibility:visible;}
+  .zi.know{background:#eef5ef; border-color:var(--leaf);}
+  .zi.again{background:var(--softred); border-color:#e8b3a8;}
+  .zi .mk{position:absolute; top:4px; right:7px; font-size:.8rem;}
+  .zi .row{display:flex; gap:4px; justify-content:center; margin-top:6px;}
+  .zi .row button{border:1px solid var(--line); background:#fff; border-radius:9px; cursor:pointer;
+                  font-family:inherit; font-size:.7rem; padding:3px 7px; color:var(--muted);}
+  .zi .row button.y{color:var(--leaf);} .zi .row button.n{color:var(--red);}
+  .hide{display:none !important;}
+
+  /* ---- quiz ---- */
+  .q{border-top:1px solid var(--line); padding:16px 0 6px;}
+  .q:first-of-type{border-top:none;}
+  .qn{font-size:.76rem; color:var(--muted); letter-spacing:.06em; text-transform:uppercase;}
+  .qt{font-size:1rem; margin:3px 0 4px;}
+  .qt .zh{font-size:1.15rem;}
+  .qt b.zh{color:var(--bark); font-size:1.3rem;}
+  .qgloss{font-size:.85rem; color:var(--muted); margin:0 0 10px; font-style:italic;}
+  .qt .pyq{font-size:1.25rem; color:var(--leaf-d); letter-spacing:.06em; font-weight:bold;}
+  .opts{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px;}
+  .btn{border:2px solid var(--line); background:#fffdf7; border-radius:13px; padding:11px 10px;
+       font-family:inherit; font-size:1.05rem; cursor:pointer; text-align:center; color:var(--ink);}
+  .btn.cn{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif; font-size:1.5rem;}
+  .btn:hover:not(:disabled){border-color:var(--bark);}
+  .btn:disabled{cursor:default;}
+  .btn.right{background:#e7f2e9; border-color:var(--leaf); color:var(--leaf-d); font-weight:bold;}
+  .btn.wrong{background:var(--softred); border-color:#e8b3a8; color:var(--red);}
+  .why{margin-top:10px; font-size:.9rem; padding:10px 13px; border-radius:12px;
+       background:#fdf6ea; border-left:5px solid #ecd6b4; color:#6b5744;}
+  .why.ok{background:#eef5ef; border-left-color:var(--leaf);}
+  .scoreline{margin-top:18px; font-size:1rem; text-align:center; color:var(--bark);}
+  .stars{font-size:1.5rem; text-align:center; letter-spacing:.1em;}
+
+  /* ---- read aloud ---- */
+  .roundbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+  .round{flex:1 1 200px; border:2px solid var(--line); border-radius:14px; padding:10px 14px; background:#fffdf7;}
+  .round.done{background:#eef5ef; border-color:var(--leaf);}
+  .round .rt{font-size:.86rem; color:var(--muted);}
+  .round .rn{font-size:1.1rem; color:var(--bark);}
+  .round.done .rn{color:var(--leaf-d);}
+
+  .para{display:flex; gap:10px; align-items:flex-start; padding:13px 0; border-top:1px solid var(--line);}
+  .para:first-of-type{border-top:none;}
+  .para .pbody{flex:1 1 auto;}
+  .para .ptxt{font-size:1.22rem; line-height:2.5;
+              font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif;}
+  .para .ptr{font-size:.88rem; color:var(--muted); font-style:italic; margin-top:4px; line-height:1.55;}
+  body.notr .ptr{display:none;}
+  .para .pact{flex:0 0 auto; display:flex; flex-direction:column; gap:5px; align-items:center; padding-top:6px;}
+  .pact button{border:2px solid var(--line); background:#fff; border-radius:11px; cursor:pointer;
+               font-family:inherit; font-size:.74rem; padding:5px 8px; color:var(--muted); min-width:56px;}
+  .pact button.sp{color:var(--bark);}
+  .pact button.tick.on{background:var(--leaf); border-color:var(--leaf); color:#fff;}
+  ruby{ruby-position:over;}
+  rt{font-size:.46em; color:var(--bark); font-family:Georgia,"PingFang SC",serif;
+     letter-spacing:0; font-weight:normal;}
+  body.nopy rt{visibility:hidden;}
+
+  .done-note{margin-top:16px; text-align:center; font-size:1rem; color:var(--leaf-d);
+             background:#eef5ef; border-radius:14px; padding:14px; display:none;}
+  .done-note.show{display:block;}
+
+  a.home{display:block; text-align:center; margin-top:8px; color:var(--muted); text-decoration:none; font-size:.86rem;}
+  a.home:hover{text-decoration:underline;}
+
+  @media print{
+    .tabs,.toolbar,.pact,.zi .row,a.home{display:none !important;}
+    body{background:#fff;} section{break-inside:avoid; box-shadow:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>称赞</h1>
+  <p class="en-title">“Praise” · chēng zàn</p>
+  <p class="sub">Meet the badger · review the new characters · read the whole story aloud twice</p>
+</header>
+
+<div class="teacher">
+  <b>Your teacher's homework:</b> read the story 《称赞》, get to know the animal <span class="zh">獾</span> (badger),
+  and practise <b>reading a whole story on your own</b>. The teacher added pinyin above the characters you haven't
+  learned yet — <b>please read the story aloud twice this weekend.</b>
+  <span class="cn zh">老师的作业：阅读故事《称赞》，认识动物“獾”；完整地认读一个故事，复习遗漏的生字，周末朗读两遍。</span>
+</div>
+
+<div class="tabs" id="tabs">
+  <button data-go="s-huan" class="on">🦡 The badger</button>
+  <button data-go="s-zi">📇 Character cards</button>
+  <button data-go="s-quiz">✏️ Practice</button>
+  <button data-go="s-read">📖 Read aloud ×2</button>
+</div>
+
+<!-- ============ 1. the badger ============ -->
+<section id="s-huan">
+  <h2>🦡 Meet <span class="zh">獾</span> — the badger</h2>
+  <p class="lead">The little animal in the story who is learning carpentry.</p>
+  <div class="badger">
+    <div class="big">獾<small>huān</small></div>
+    <div class="txt">
+      <p>A <b>badger</b> is a chunky, short-legged forest animal with strong claws — it is a champion
+         <b>digger</b>. Badgers sleep in their burrows for most of the day and come out around dusk to
+         look for food. They are easy to recognise: black-and-white stripes down the face.</p>
+      <div class="radical">
+        <b>Read the radical, guess the meaning:</b><br>
+        <span class="zh">獾</span> = <span class="zh">犭</span> (the "dog" radical) + <span class="zh">雚</span> (gives the sound <i>huān</i>).<br>
+        Characters with <span class="zh">犭</span> are almost always animals:
+        <span class="zh">猫</span> cat · <span class="zh">狗</span> dog · <span class="zh">狮</span> lion ·
+        <span class="zh">猴</span> monkey · <span class="zh">猪</span> pig · <span class="zh">狼</span> wolf.
+        See <span class="zh">犭</span> → think animal.
+      </div>
+      <p style="margin-top:12px;">In the story the badger is learning woodwork. First he makes three
+         <b>rough</b> (<span class="zh">粗糙</span>) little stools. Hedgehog <b>praises</b>
+         (<span class="zh">称赞</span>) him, that gives him <b>confidence</b> (<span class="zh">自信</span>),
+         and soon he can make a whole chair.</p>
+      <div class="toolbar" style="margin-top:6px;">
+        <button class="tb" id="sayHuan">🔊 Hear it: <span class="zh">獾</span> huān</button>
+        <button class="tb" id="sayCi">🔊 <span class="zh">小獾 · 刺猬 · 板凳 · 称赞</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. character cards ============ -->
+<section id="s-zi">
+  <h2>📇 Character cards <span class="cnt" id="ziCnt"></span></h2>
+  <p class="lead">Every character your teacher marked with pinyin is here.
+     <b>Say the pinyin in your head first → tap the card to check → then tap ✓ got it or ✗ practise.</b>
+     Your marks are saved automatically, so you can come back to them later.</p>
+  <div class="toolbar">
+    <button class="tb" id="showAll">👀 Show all pinyin</button>
+    <button class="tb" id="hideAll">🙈 Cover all</button>
+    <button class="tb warn" id="onlyAgain">🔁 Only "practise" ones</button>
+    <button class="tb" id="resetZi">↺ Clear my marks</button>
+  </div>
+  <div class="bar"><div id="ziBar"></div></div>
+  <div class="tally" id="ziTally"></div>
+  <div class="grid" id="ziGrid"></div>
+</section>
+
+<!-- ============ 3. quiz ============ -->
+<section id="s-quiz">
+  <h2>✏️ Practice <span class="cnt">· 18 questions</span></h2>
+  <p class="lead">Questions 1–12: see the character, choose the right pinyin.
+     Questions 13–18: see the pinyin, choose the right characters.
+     Getting one wrong is fine — the explanation underneath tells you how to remember it.</p>
+  <div id="quiz"></div>
+  <div class="scoreline" id="scoreline">Not started yet — take them one at a time 🙂</div>
+  <div class="stars" id="stars"></div>
+</section>
+
+<!-- ============ 4. read aloud ============ -->
+<section id="s-read">
+  <h2>📖 Read the story aloud — twice <span class="cnt">· 10 paragraphs</span></h2>
+  <p class="lead">Pinyin sits above the characters. <b>Round 1:</b> read with the pinyin showing.
+     <b>Round 2:</b> try it with the pinyin covered. Tap the round's button after you finish each paragraph.
+     The English underneath is only there if you get stuck — try the Chinese first.</p>
+  <div class="toolbar">
+    <button class="tb on" id="pyToggle">🔤 Pinyin: showing</button>
+    <button class="tb on" id="trToggle">🇬🇧 English: showing</button>
+    <button class="tb" id="slowBtn">🐢 Slow: off</button>
+    <select class="tb" id="voiceSel" title="Reading voice"></select>
+    <button class="tb" id="readAll">▶️ Hear the whole story</button>
+    <button class="tb" id="resetRead">↺ Clear my check-marks</button>
+  </div>
+  <div class="roundbar">
+    <div class="round" id="r1"><div class="rt">Round 1 · read with pinyin</div><div class="rn" id="r1n">0 / 10 paragraphs</div></div>
+    <div class="round" id="r2"><div class="rt">Round 2 · cover the pinyin</div><div class="rn" id="r2n">0 / 10 paragraphs</div></div>
+  </div>
+  <div id="story"></div>
+  <div class="done-note" id="doneNote">🎉 Both rounds done! Just like the story — your praise washed away
+    a whole day's tiredness. Now go and read one paragraph out loud to Mum or Dad.</div>
+</section>
+
+<a class="home" href="index.html">← Back to the Quiz Hub</a>
+</div>
+
+<script>
+/* ==================================================================
+   《称赞》 "Praise"
+   The character list is exactly the set the teacher marked with pinyin
+   in the homework PDF, in the order they appear in the story.
+   ================================================================== */
+const ZI = [
+  {hz:"称", py:"chēng", en:"to praise; to call",      ci:"称赞 praise"},
+  {hz:"赞", py:"zàn",   en:"to praise, approve",      ci:"称赞 praise"},
+  {hz:"晨", py:"chén",  en:"morning",                 ci:"清晨 early morning"},
+  {hz:"猬", py:"wèi",   en:"hedgehog",                ci:"刺猬 hedgehog"},
+  {hz:"采", py:"cǎi",   en:"to pick, gather",         ci:"采果子 pick fruit"},
+  {hz:"路", py:"lù",    en:"road, path",              ci:"小路边 by the path"},
+  {hz:"獾", py:"huān",  en:"badger",                  ci:"小獾 little badger"},
+  {hz:"做", py:"zuò",   en:"to do, to make",          ci:"做木工 do woodwork"},
+  {hz:"已", py:"yǐ",    en:"already",                 ci:"已经 already"},
+  {hz:"经", py:"jīng",  en:"to pass through",         ci:"已经 already"},
+  {hz:"板", py:"bǎn",   en:"board, plank",            ci:"板凳 stool"},
+  {hz:"凳", py:"dèng",  en:"stool",                   ci:"板凳 stool"},
+  {hz:"粗", py:"cū",    en:"thick, coarse",           ci:"粗糙 rough"},
+  {hz:"糙", py:"cāo",   en:"rough, not smooth",       ci:"粗糙 rough"},
+  {hz:"刺", py:"cì",    en:"thorn, spine",            ci:"刺猬 hedgehog"},
+  {hz:"走", py:"zǒu",   en:"to walk, to go",          ci:"走到 walk over to"},
+  {hz:"身", py:"shēn",  en:"body",                    ci:"身边 at his side"},
+  {hz:"拿", py:"ná",    en:"to take, to hold",        ci:"拿起 pick up"},
+  {hz:"起", py:"qǐ",    en:"to rise, to lift",        ci:"拿起 pick up"},
+  {hz:"极", py:"jí",    en:"extremely",               ci:"高兴极了 overjoyed"},
+  {hz:"傍", py:"bàng",  en:"close to",                ci:"傍晚 dusk, evening"},
+  {hz:"几", py:"jǐ",    en:"a few; how many",         ci:"几个 a few"},
+  {hz:"往", py:"wǎng",  en:"toward",                  ci:"往家里走 walk home"},
+  {hz:"迎", py:"yíng",  en:"to greet, welcome",       ci:"迎上去 go to meet"},
+  {hz:"送", py:"sòng",  en:"to give, to send",        ci:"送给 give to"},
+  {hz:"给", py:"gěi",   en:"to give",                 ci:"送给 give to"},
+  {hz:"椅", py:"yǐ",    en:"chair",                   ci:"椅子 chair"},
+  {hz:"意", py:"yì",    en:"meaning; intention",      ci:"心意 kind thought"},
+  {hz:"思", py:"sī",    en:"to think",                ci:"意思 meaning (light tone: si)"},
+  {hz:"能", py:"néng",  en:"can, be able to",         ci:"能干 capable"},
+  {hz:"泄", py:"xiè",   en:"to leak out",             ci:"泄气 lose heart"},
+  {hz:"时", py:"shí",   en:"time",                    ci:"时候 moment"},
+  {hz:"候", py:"hòu",   en:"to wait; time",           ci:"时候 moment (light tone: hou)"},
+  {hz:"让", py:"ràng",  en:"to let, to make",         ci:"让我 made me"},
+  {hz:"自", py:"zì",    en:"self",                    ci:"自信 confidence"},
+  {hz:"信", py:"xìn",   en:"to believe, trust",       ci:"自信 confidence"},
+  {hz:"瞧", py:"qiáo",  en:"to look",                 ci:"瞧 look!"},
+  {hz:"这", py:"zhè",   en:"this",                    ci:"这是 this is"},
+  {hz:"收", py:"shōu",  en:"to accept, take in",      ci:"收下 accept it"},
+  {hz:"连", py:"lián",  en:"to link, one after another", ci:"连忙 at once"},
+  {hz:"忙", py:"máng",  en:"busy, in a hurry",        ci:"连忙 at once"},
+  {hz:"留", py:"liú",   en:"to keep, to stay",        ci:"留下 keep it"},
+  {hz:"闻", py:"wén",   en:"to smell",                ci:"闻了闻 gave it a sniff"},
+  {hz:"香", py:"xiāng", en:"fragrant, sweet-smelling",ci:"香极了 smells wonderful"},
+  {hz:"消", py:"xiāo",  en:"to vanish, melt away",    ci:"消除 take away"},
+  {hz:"除", py:"chú",   en:"to remove",               ci:"消除 take away"},
+  {hz:"疲", py:"pí",    en:"tired, worn out",         ci:"疲劳 tiredness"},
+  {hz:"劳", py:"láo",   en:"work, labour",            ci:"疲劳 tiredness"}
+];
+
+/* ---- the story: {字|pinyin} gets little pinyin above the character ---- */
+const STORY = [
+  {cn:"清{晨|chén}，小{刺|cì}{猬|wèi}去森林里{采|cǎi}果子。",
+   en:"Early one morning, Little Hedgehog went into the forest to pick fruit."},
+  {cn:"在小{路|lù}边，他看见一只小{獾|huān}在学{做|zuò}木工。小{獾|huān}{已|yǐ}{经|jīng}{做|zuò}成了三个小{板|bǎn}{凳|dèng}。{板|bǎn}{凳|dèng}{做|zuò}得很{粗|cū}{糙|cāo}，但是看得出，他{做|zuò}得很认真。",
+   en:"Beside the path he saw a little badger learning carpentry. The badger had already finished three small stools. They were rough, but you could tell he had worked really hard on them."},
+  {cn:"小{刺|cì}{猬|wèi}{走|zǒu}到小{獾|huān}{身|shēn}边，{拿|ná}{起|qǐ}{板|bǎn}{凳|dèng}仔细地看了看。他对小{獾|huān}说：“你真{能|néng}干，小{板|bǎn}{凳|dèng}{做|zuò}得一个比一个好！”",
+   en:"Little Hedgehog walked over to Little Badger, picked up a stool and looked at it carefully. He said, “You're really good at this — each little stool is better than the last!”"},
+  {cn:"“真的吗？”小{獾|huān}高兴{极|jí}了。",
+   en:"“Really?” Little Badger was overjoyed."},
+  {cn:"{傍|bàng}晚，小{刺|cì}{猬|wèi}抱着{几|jǐ}个红红的大苹果，{往|wǎng}家里{走|zǒu}。",
+   en:"At dusk, Little Hedgehog was walking home with a few big red apples in his arms."},
+  {cn:"小{獾|huān}见小{刺|cì}{猬|wèi}来了，高兴地{迎|yíng}上去。他{送|sòng}{给|gěi}小{刺|cì}{猬|wèi}一把{椅|yǐ}子。小{刺|cì}{猬|wèi}不好{意|yì}{思|si}地说：“我怎么{能|néng}要你的{椅|yǐ}子呢？我可没干什么呀！”",
+   en:"When Little Badger saw him coming, he happily hurried over to meet him, and gave him a chair. Little Hedgehog said shyly, “How could I take your chair? I didn't do anything!”"},
+  {cn:"小{獾|huān}拉着小{刺|cì}{猬|wèi}的手，说：“在我有点儿{泄|xiè}气的{时|shí}{候|hou}，是你{称|chēng}{赞|zàn}了我，{让|ràng}我有了{自|zì}{信|xìn}。{瞧|qiáo}，我{已|yǐ}{经|jīng}会{做|zuò}{椅|yǐ}子了。{这|zhè}是我的一点儿心{意|yì}，{收|shōu}下吧。”",
+   en:"Little Badger took his hand and said, “When I was feeling discouraged, you praised me — and that gave me confidence. Look, I can make chairs now. This is a small thank-you from me. Please take it.”"},
+  {cn:"小{刺|cì}{猬|wèi}{连|lián}{忙|máng}{拿|ná}出两个大苹果，对小{獾|huān}说：“{留|liú}下吧，{这|zhè}也是我的一点儿心{意|yì}！”",
+   en:"Little Hedgehog quickly took out two big apples and said, “Then you keep these — a small thank-you from me too!”"},
+  {cn:"小{獾|huān}接过苹果{闻|wén}了{闻|wén}，说：“你的苹果{香|xiāng}{极|jí}了，我从来没有见过{这|zhè}么好的苹果。”",
+   en:"Little Badger took the apples and gave them a sniff. “Your apples smell wonderful,” he said. “I've never seen apples this good.”"},
+  {cn:"小{刺|cì}{猬|wèi}也高兴{极|jí}了，说：“谢谢你，你的{称|chēng}{赞|zàn}{消|xiāo}{除|chú}了我一天的{疲|pí}{劳|láo}！”",
+   en:"Little Hedgehog was overjoyed too. “Thank you,” he said. “Your praise has washed away a whole day's tiredness!”"}
+];
+
+/* ---- quiz: the answer is written at index 0, then shuffled when the page loads ---- */
+const QUESTIONS = [
+  {kind:"hz", ch:"獾", q:'小<b class="zh">獾</b>在学做木工 — how do you read <b class="zh">獾</b>?',
+   gloss:"“The little badger is learning carpentry.”",
+   options:["huān","huàn","hān","hàn"], answer:0,
+   why:"<b>huān</b>, first tone. The right-hand part 雚 is the sound clue — it gives you the same sound as 欢 (huān, happy)."},
+  {kind:"hz", ch:"猬", q:'小刺<b class="zh">猬</b>去森林里采果子 — how do you read <b class="zh">猬</b>?',
+   gloss:"“Little Hedgehog went into the forest to pick fruit.”",
+   options:["wèi","wéi","wù","yù"], answer:0,
+   why:"<b>wèi</b>, fourth tone — the same sound as 胃 (stomach). In the word 刺猬 the second syllable is said lightly, but on its own it is wèi."},
+  {kind:"hz", ch:"糙", q:'板凳做得很粗<b class="zh">糙</b> — how do you read <b class="zh">糙</b>?',
+   gloss:"“The stools were made roughly.”",
+   options:["cāo","zào","cù","sù"], answer:0,
+   why:"<b>cāo</b>, first tone — same sound as 操 in 操场 (playground). The left side is 米 (rice): rice that hasn't been milled smooth is 粗糙, rough."},
+  {kind:"hz", ch:"泄", q:'在我有点儿<b class="zh">泄</b>气的时候 — how do you read <b class="zh">泄</b>?',
+   gloss:"“When I was feeling discouraged…”",
+   options:["xiè","xiē","xì","yè"], answer:0,
+   why:"<b>xiè</b>, fourth tone. Three drops of water 氵 + 世. 泄气 = to leak air — like a balloon going flat, your energy leaks away."},
+  {kind:"hz", ch:"采", q:'去森林里<b class="zh">采</b>果子 — how do you read <b class="zh">采</b>?',
+   gloss:"“…went into the forest to pick fruit.”",
+   options:["cǎi","cāi","cè","cā"], answer:0,
+   why:"<b>cǎi</b>, third tone. The top part is a hand (爫) and the bottom is 木 (tree) — a hand reaching into a tree to pick something."},
+  {kind:"hz", ch:"劳", q:'消除了我一天的疲<b class="zh">劳</b> — how do you read <b class="zh">劳</b>?',
+   gloss:"“…washed away a whole day's tiredness.”",
+   options:["láo","lǎo","lè","lù"], answer:0,
+   why:"<b>láo</b>, second tone — not lǎo like 老 (old). The bottom is 力 (strength): you only get tired after using your strength."},
+  {kind:"hz", ch:"傍", q:'<b class="zh">傍</b>晚，小刺猬抱着苹果 — how do you read <b class="zh">傍</b>?',
+   gloss:"“At dusk, Little Hedgehog was carrying apples.”",
+   options:["bàng","bāng","bǎn","bàn"], answer:0,
+   why:"<b>bàng</b>, fourth tone. 傍晚 is the time when the sky is going dark. Careful: 帮 in 帮忙 (to help) is bāng, first tone."},
+  {kind:"hz", ch:"迎", q:'高兴地<b class="zh">迎</b>上去 — how do you read <b class="zh">迎</b>?',
+   gloss:"“He happily went over to meet him.”",
+   options:["yíng","yǐng","yīn","yìn"], answer:0,
+   why:"<b>yíng</b>, second tone. The walking radical 辶 means it has to do with moving — walking over to meet someone is 迎接."},
+  {kind:"hz", ch:"称", q:'是你<b class="zh">称</b>赞了我 — how do you read <b class="zh">称</b> here?',
+   gloss:"“It was you who praised me.”",
+   options:["chēng","chèng","chēn","chén"], answer:0,
+   why:"In 称赞 it is <b>chēng</b>, first tone. This character can also be read chèng (the same as 秤, a weighing scale) — but not in this word."},
+  {kind:"hz", ch:"香", q:'你的苹果<b class="zh">香</b>极了 — how do you read <b class="zh">香</b>?',
+   gloss:"“Your apples smell wonderful.”",
+   options:["xiāng","xiǎng","xiān","xián"], answer:0,
+   why:"<b>xiāng</b>, first tone — not xiǎng like 想 (to think). It is 禾 (grain) above 日 (sun): the smell of grain drying in the sun."},
+  {kind:"hz", ch:"消", q:'你的称赞<b class="zh">消</b>除了我一天的疲劳 — how do you read <b class="zh">消</b>?',
+   gloss:"“Your praise washed away a whole day's tiredness.”",
+   options:["xiāo","xiào","xiā","xià"], answer:0,
+   why:"<b>xiāo</b>, first tone — not xiào like 笑 (to laugh). The water radical 氵 fits the meaning: water washing something away until it is gone."},
+  {kind:"hz", ch:"收", q:'这是我的一点儿心意，<b class="zh">收</b>下吧 — how do you read <b class="zh">收</b>?',
+   gloss:"“This is a small thank-you from me — please take it.”",
+   options:["shōu","shǒu","shū","shǔ"], answer:0,
+   why:"<b>shōu</b>, first tone — close to 手 shǒu (hand) but not the same. 收下吧 means “please accept it”."},
+
+  {kind:"py", cn:true, ch:"板凳", q:'小獾做成了三个小 <span class="pyq">bǎn dèng</span> — which two characters?',
+   gloss:"“The badger had finished three small stools.”",
+   options:["板凳","板登","版凳","板瞪"], answer:0,
+   why:"<b>板凳</b>. 板 has the wood radical 木 — stools are made of wood. 凳 has 几 underneath (a little table or seat). Not 登 (to climb) and not 瞪 (to stare)."},
+  {kind:"py", cn:true, ch:"疲劳", q:'你的称赞消除了我一天的 <span class="pyq">pí láo</span> — which two characters?',
+   gloss:"“Your praise washed away a whole day's tiredness.”",
+   options:["疲劳","皮劳","疲牢","波劳"], answer:0,
+   why:"<b>疲劳</b> = tiredness. 疲 hides 皮 (pí) inside the sickness radical 疒, so it is about the body feeling unwell. 劳 has 力 (strength) underneath."},
+  {kind:"py", cn:true, ch:"瞧", q:'<span class="pyq">qiáo</span>，我已经会做椅子了 — this qiáo means “to look”. Which character?',
+   gloss:"“Look — I can make chairs now!”",
+   options:["瞧","桥","侨","樵"], answer:0,
+   why:"<b>瞧</b>. The left side is 目, an eye — so 瞧 means to look. 桥 (bridge), 侨, and 樵 are all said qiáo too, but they mean something else."},
+  {kind:"py", cn:true, ch:"自信", q:'是你称赞了我，让我有了 <span class="pyq">zì xìn</span> — which two characters?',
+   gloss:"“You praised me, and that gave me confidence.”",
+   options:["自信","白信","自言","目信"], answer:0,
+   why:"<b>自信</b> = confidence. 自 (self) is 白 with one extra stroke on top. 信 is the person radical 亻 plus 言 (words). Believing in yourself = 自信."},
+  {kind:"py", cn:true, ch:"连忙", q:'小刺猬 <span class="pyq">lián máng</span> 拿出两个大苹果 — which two characters?',
+   gloss:"“Little Hedgehog quickly took out two big apples.”",
+   options:["连忙","联忙","连芒","莲忙"], answer:0,
+   why:"<b>连忙</b> = right away. 连 is 辶 (walking) plus 车 (cart) — one thing straight after another. 忙 has the heart radical 忄, because being in a hurry is a feeling."},
+  {kind:"py", cn:true, ch:"称赞", q:'The title of the story is <span class="pyq">chēng zàn</span> — which two characters?',
+   gloss:"“Praise”",
+   options:["称赞","秤赞","称攒","趁赞"], answer:0,
+   why:"<b>称赞</b> = to praise. 称 has the grain radical 禾; 赞 has 贝 (a cowrie shell — old Chinese money) underneath. Saying something kind is like handing someone a gift."}
+];
+
+/* ================= helpers ================= */
+const $ = id => document.getElementById(id);
+function memGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function memSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+const ZI_KEY='chengzan_zi_v1', READ_KEY='chengzan_read_v1', VOICE_KEY='chengzan_voice', SLOW_KEY='chengzan_slow';
+
+/* ================= reading voice ================= */
+let zhVoices=[], chosenVoice=null, slow = memGet(SLOW_KEY)==='1';
+const NOVELTY=/Bells|Bubbles|Jester|Organ|Trinoids|Whisper|Zarvox|Bahh|Boing|Wobble|Superstar|Cellos|Good News|Bad News/i;
+function rankVoice(v){
+  const n=v.name, l=v.lang||'';
+  if(/Google/i.test(n) && /普通话|zh-CN/i.test(n+l)) return 0;
+  if(/Ting-?ting/i.test(n)) return 1;
+  if(l==='zh-CN' && !NOVELTY.test(n)) return 2;
+  if(/^zh/i.test(l) && !NOVELTY.test(n)) return 3;
+  return 4;
+}
+function loadVoices(){
+  if(!('speechSynthesis' in window)) return;
+  const all=window.speechSynthesis.getVoices();
+  zhVoices=all.filter(v=>/^zh/i.test(v.lang)||/Chinese|普通话|中文/i.test(v.name));
+  zhVoices.sort((a,b)=>rankVoice(a)-rankVoice(b)||a.name.localeCompare(b.name));
+  const sel=$('voiceSel');
+  if(!zhVoices.length){ sel.innerHTML='<option>(no Chinese voice found)</option>'; return; }
+  const saved=memGet(VOICE_KEY);
+  chosenVoice=zhVoices.find(v=>v.name===saved)||zhVoices[0];
+  sel.innerHTML=zhVoices.map(v=>{
+    const r=rankVoice(v), tag=r===0?' ⭐best':(r===1?' ✅works offline':'');
+    return '<option value="'+v.name.replace(/"/g,'&quot;')+'">'+v.name+tag+'</option>';
+  }).join('');
+  sel.value=chosenVoice.name;
+}
+if('speechSynthesis' in window){ loadVoices(); window.speechSynthesis.onvoiceschanged=loadVoices; }
+$('voiceSel').addEventListener('change', e=>{
+  chosenVoice=zhVoices.find(v=>v.name===e.target.value)||chosenVoice;
+  memSet(VOICE_KEY, e.target.value); speak('小獾和小刺猬');
+});
+function paintSlow(){ $('slowBtn').classList.toggle('on',slow); $('slowBtn').textContent = slow?'🐢 Slow: on':'🐢 Slow: off'; }
+$('slowBtn').addEventListener('click',()=>{ slow=!slow; memSet(SLOW_KEY,slow?'1':'0'); paintSlow(); speak('小板凳做得一个比一个好'); });
+paintSlow();
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN'; u.rate = slow?0.6:0.85;
+    if(chosenVoice) u.voice=chosenVoice;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+$('sayHuan').addEventListener('click',()=>speak('獾，小獾'));
+$('sayCi').addEventListener('click',()=>speak('小獾。刺猬。板凳。称赞。'));
+
+/* ================= character cards ================= */
+let ziState = {};
+try{ ziState = JSON.parse(memGet(ZI_KEY)||'{}'); }catch(e){ ziState={}; }
+let onlyAgain=false;
+
+$('ziCnt').textContent = '· '+ZI.length+' characters';
+
+function drawZi(){
+  $('ziGrid').innerHTML = ZI.map((z,i)=>{
+    const st = ziState[z.hz]||'';
+    return '<div class="zi '+(st==='y'?'know':st==='n'?'again':'')+'" data-i="'+i+'">'
+      + '<span class="mk">'+(st==='y'?'✓':st==='n'?'✗':'')+'</span>'
+      + '<div class="hz">'+z.hz+'</div>'
+      + '<div class="py">'+z.py+'</div>'
+      + '<div class="en">'+z.en+'</div>'
+      + '<div class="ci zh">'+z.ci+'</div>'
+      + '<div class="row"><button class="y" data-mk="y" data-i="'+i+'">✓ got it</button>'
+      +   '<button class="n" data-mk="n" data-i="'+i+'">✗ practise</button></div>'
+      + '</div>';
+  }).join('');
+  applyFilter(); paintZiTally();
+}
+function applyFilter(){
+  document.querySelectorAll('#ziGrid .zi').forEach(el=>{
+    const hz = ZI[+el.dataset.i].hz;
+    el.classList.toggle('hide', onlyAgain && ziState[hz]!=='n');
+  });
+  $('onlyAgain').classList.toggle('on', onlyAgain);
+}
+function paintZiTally(){
+  const y=ZI.filter(z=>ziState[z.hz]==='y').length;
+  const n=ZI.filter(z=>ziState[z.hz]==='n').length;
+  $('ziBar').style.width=(y/ZI.length*100)+'%';
+  $('ziTally').innerHTML='✓ Got it: <b style="color:#3f7d4e">'+y+'</b> · ✗ Still practising: <b style="color:#c0392b">'+n+'</b> · Not tried yet: '+(ZI.length-y-n);
+}
+$('ziGrid').addEventListener('click', ev=>{
+  const mk = ev.target.closest('[data-mk]');
+  if(mk){
+    const z=ZI[+mk.dataset.i];
+    ziState[z.hz] = (ziState[z.hz]===mk.dataset.mk) ? '' : mk.dataset.mk;
+    memSet(ZI_KEY, JSON.stringify(ziState));
+    const card=mk.closest('.zi');
+    card.classList.toggle('know', ziState[z.hz]==='y');
+    card.classList.toggle('again', ziState[z.hz]==='n');
+    card.querySelector('.mk').textContent = ziState[z.hz]==='y'?'✓':ziState[z.hz]==='n'?'✗':'';
+    paintZiTally(); if(onlyAgain) applyFilter();
+    return;
+  }
+  const card = ev.target.closest('.zi');
+  if(card){
+    card.classList.toggle('open');
+    if(card.classList.contains('open')) speak(ZI[+card.dataset.i].hz);
+  }
+});
+$('showAll').addEventListener('click',()=>document.querySelectorAll('#ziGrid .zi').forEach(e=>e.classList.add('open')));
+$('hideAll').addEventListener('click',()=>document.querySelectorAll('#ziGrid .zi').forEach(e=>e.classList.remove('open')));
+$('onlyAgain').addEventListener('click',()=>{ onlyAgain=!onlyAgain; applyFilter(); });
+$('resetZi').addEventListener('click',()=>{
+  if(!confirm('Clear every ✓ and ✗ mark?')) return;
+  ziState={}; memSet(ZI_KEY,'{}'); onlyAgain=false; drawZi();
+});
+drawZi();
+
+/* ================= quiz ================= */
+QUESTIONS.forEach(item=>{
+  const correct=item.options[item.answer];
+  for(let i=item.options.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [item.options[i],item.options[j]]=[item.options[j],item.options[i]];
+  }
+  item.answer=item.options.indexOf(correct);
+});
+let answered=0, right=0;
+$('quiz').innerHTML = QUESTIONS.map((it,qi)=>
+  '<div class="q" id="q'+qi+'">'
+  + '<div class="qn">Q'+(qi+1)+' · '+(it.kind==='hz'?'character → pinyin':'pinyin → characters')+'</div>'
+  + '<div class="qt">'+it.q+'</div>'
+  + '<div class="qgloss">'+it.gloss+'</div>'
+  + '<div class="opts">'+it.options.map((o,oi)=>
+      '<button class="btn'+(it.cn?' cn zh':'')+'" data-q="'+qi+'" data-o="'+oi+'">'+o+'</button>').join('')+'</div>'
+  + '<div class="why hide" id="why'+qi+'"></div>'
+  + '</div>').join('');
+
+$('quiz').addEventListener('click', ev=>{
+  const b=ev.target.closest('.btn'); if(!b||b.disabled) return;
+  const qi=+b.dataset.q, oi=+b.dataset.o, it=QUESTIONS[qi];
+  const box=$('q'+qi); box.querySelectorAll('.btn').forEach(x=>x.disabled=true);
+  const ok = oi===it.answer;
+  b.classList.add(ok?'right':'wrong');
+  if(!ok) box.querySelectorAll('.btn')[it.answer].classList.add('right');
+  const w=$('why'+qi);
+  w.className='why'+(ok?' ok':'');
+  w.innerHTML=(ok?'✅ Correct! ':'💡 The answer is <b class="'+(it.cn?'zh':'')+'">'+it.options[it.answer]+'</b>. ')+it.why;
+  speak(it.ch);
+  answered++; if(ok) right++;
+  paintScore();
+});
+function paintScore(){
+  $('scoreline').innerHTML='Answered <b>'+answered+'</b> of '+QUESTIONS.length+' · correct: <b style="color:#3f7d4e">'+right+'</b>';
+  if(answered===QUESTIONS.length){
+    const pct=right/QUESTIONS.length;
+    const n = pct>=0.95?5 : pct>=0.85?4 : pct>=0.7?3 : pct>=0.5?2 : 1;
+    $('stars').textContent='⭐'.repeat(n)+'☆'.repeat(5-n);
+    $('scoreline').innerHTML += '<br>' + (pct>=0.85
+      ? 'These characters are sticking — go and read the story aloud!'
+      : 'Go back to the character cards, tap ✗ practise on the ones you missed, and read them a few times.');
+  }
+}
+
+/* ================= read aloud ================= */
+let readState;
+try{ readState = JSON.parse(memGet(READ_KEY)||'null'); }catch(e){ readState=null; }
+if(!readState || !readState.r1 || readState.r1.length!==STORY.length)
+  readState = {r1:STORY.map(()=>false), r2:STORY.map(()=>false)};
+
+function render(p){ return p.replace(/\{([^|]+)\|([^}]+)\}/g,(m,hz,py)=>'<ruby>'+hz+'<rt>'+py+'</rt></ruby>'); }
+function plain(p){ return p.replace(/\{([^|]+)\|([^}]+)\}/g,'$1'); }
+
+$('story').innerHTML = STORY.map((p,i)=>
+  '<div class="para">'
+  + '<div class="pact">'
+  +   '<button class="sp" data-say="'+i+'">🔊 hear</button>'
+  +   '<button class="tick" data-r="1" data-i="'+i+'">round 1</button>'
+  +   '<button class="tick" data-r="2" data-i="'+i+'">round 2</button>'
+  + '</div>'
+  + '<div class="pbody"><div class="ptxt">'+render(p.cn)+'</div>'
+  +   '<div class="ptr">'+p.en+'</div></div>'
+  + '</div>').join('');
+
+function paintRead(){
+  document.querySelectorAll('.tick').forEach(b=>{
+    b.classList.toggle('on', readState['r'+b.dataset.r][+b.dataset.i]);
+  });
+  const a=readState.r1.filter(Boolean).length, b=readState.r2.filter(Boolean).length;
+  $('r1n').textContent=a+' / '+STORY.length+' paragraphs';
+  $('r2n').textContent=b+' / '+STORY.length+' paragraphs';
+  $('r1').classList.toggle('done', a===STORY.length);
+  $('r2').classList.toggle('done', b===STORY.length);
+  $('doneNote').classList.toggle('show', a===STORY.length && b===STORY.length);
+  memSet(READ_KEY, JSON.stringify(readState));
+}
+$('story').addEventListener('click', ev=>{
+  const s=ev.target.closest('[data-say]');
+  if(s){ speak(plain(STORY[+s.dataset.say].cn)); return; }
+  const t=ev.target.closest('.tick');
+  if(t){ readState['r'+t.dataset.r][+t.dataset.i]=!readState['r'+t.dataset.r][+t.dataset.i]; paintRead(); }
+});
+$('resetRead').addEventListener('click',()=>{
+  if(!confirm('Clear all the read-aloud check-marks?')) return;
+  readState={r1:STORY.map(()=>false), r2:STORY.map(()=>false)}; paintRead();
+});
+$('readAll').addEventListener('click',()=>speak(STORY.map(p=>plain(p.cn)).join('')));
+
+let showPy=true, showTr=true;
+$('pyToggle').addEventListener('click',()=>{
+  showPy=!showPy;
+  document.body.classList.toggle('nopy', !showPy);
+  $('pyToggle').classList.toggle('on', showPy);
+  $('pyToggle').textContent = showPy?'🔤 Pinyin: showing':'🔤 Pinyin: covered';
+});
+$('trToggle').addEventListener('click',()=>{
+  showTr=!showTr;
+  document.body.classList.toggle('notr', !showTr);
+  $('trToggle').classList.toggle('on', showTr);
+  $('trToggle').textContent = showTr?'🇬🇧 English: showing':'🇬🇧 English: hidden';
+});
+paintRead();
+
+/* ================= sticky tabs ================= */
+$('tabs').addEventListener('click', ev=>{
+  const b=ev.target.closest('[data-go]'); if(!b) return;
+  document.getElementById(b.dataset.go).scrollIntoView({behavior:'smooth', block:'start'});
+});
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(!e.isIntersecting) return;
+    document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on', b.dataset.go===e.target.id));
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('section').forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
