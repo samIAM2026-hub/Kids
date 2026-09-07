@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 3 · Analogies</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #7a4a86; --accent-soft: #e8dced;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+  .passage .verse { font-size: 15.5px; margin-bottom: 3px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 3 &middot; Section 3, part 2</div>
+    <h1>Verbal — Analogies (Questions 31–60)</h1>
+    <div class="meta">30 questions &middot; 18 minutes &middot; build the bridge first, then test it on every choice</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">18:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Summer Mock Test 3 &middot; <a href="SSAT-MockTest3-Index.html">All sections</a> &middot; <a href="index.html">Quiz hub</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Analogies",
+ "count": 30,
+ "items": [
+  {
+   "n": 31,
+   "stem": "Safe is to dangerous as",
+   "opts": [
+    "taste is to smell",
+    "bland is to spicy",
+    "dry is to fire",
+    "multiplication is to divide",
+    "lazy is to exercise"
+   ],
+   "ans": 1,
+   "why": "The bridge is <b>opposites</b>: safe is the opposite of dangerous. <b>Bland is the opposite of spicy</b>. None of the others are opposite pairs &mdash; taste and smell are simply two different senses."
+  },
+  {
+   "n": 32,
+   "stem": "Star is to sky as",
+   "opts": [
+    "mountain is to valley",
+    "cloud is to sun",
+    "fish is to ocean",
+    "dream is to sleep",
+    "fit is to shoe"
+   ],
+   "ans": 2,
+   "why": "Bridge: a star is <b>found in</b> the sky. A <b>fish is found in the ocean</b>. Say the bridge out loud as a sentence before you look at the choices &mdash; it kills four options at once."
+  },
+  {
+   "n": 33,
+   "stem": "Cut is to wound as",
+   "opts": [
+    "storm is to snow",
+    "brick is to building",
+    "drink is to thirst",
+    "save is to money",
+    "cry is to tears"
+   ],
+   "ans": 4,
+   "why": "Bridge: cutting <b>produces</b> a wound. Crying <b>produces</b> tears. Choice (C) is backwards &mdash; thirst causes drinking, not the other way round &mdash; and direction always matters."
+  },
+  {
+   "n": 34,
+   "stem": "Camera is to picture as",
+   "opts": [
+    "breeze is to fan",
+    "paint is to frame",
+    "brush is to hair",
+    "phone is to call",
+    "horse is to gallop"
+   ],
+   "ans": 3,
+   "why": "Bridge: a camera is the <b>device used to make</b> a picture. A <b>phone is the device used to make a call</b>. (A) is the same idea reversed: a fan makes a breeze."
+  },
+  {
+   "n": 35,
+   "stem": "Lumens is to brightness as",
+   "opts": [
+    "velocity is to speed",
+    "decibel is to volume",
+    "pint is to liquid",
+    "mile is to kilometre",
+    "measure is to depth"
+   ],
+   "ans": 1,
+   "why": "Bridge: lumens are the <b>unit that measures</b> brightness. <b>Decibels are the unit that measures volume</b>. A pint measures liquid too, but liquid is a substance, not a quality &mdash; volume and brightness match better."
+  },
+  {
+   "n": 36,
+   "stem": "Book is to writer as",
+   "opts": [
+    "needle is to doctor",
+    "cavity is to dentist",
+    "truck is to driver",
+    "crop is to farmer",
+    "script is to actor"
+   ],
+   "ans": 3,
+   "why": "Bridge: a writer <b>produces</b> a book. A <b>farmer produces a crop</b>. A driver only uses a truck; a dentist removes cavities rather than making them."
+  },
+  {
+   "n": 37,
+   "stem": "Frigid is to tropical as",
+   "opts": [
+    "raw is to cooked",
+    "detergent is to clean",
+    "snow is to sunshine",
+    "sleek is to stylish",
+    "beach is to sandy"
+   ],
+   "ans": 0,
+   "why": "Bridge: <b>opposite states</b> &mdash; frigid is bitterly cold, tropical is hot. <b>Raw is the opposite of cooked</b>. (C) is tempting, but snow and sunshine are things, while frigid and tropical are descriptions."
+  },
+  {
+   "n": 38,
+   "stem": "Los Angeles is to California as",
+   "opts": [
+    "Phoenix is to New Mexico",
+    "Philadelphia is to Pittsburgh",
+    "Houston is to Texas",
+    "state is to country",
+    "Denver is to America"
+   ],
+   "ans": 2,
+   "why": "Bridge: a <b>city inside its own state</b>. <b>Houston is a city in Texas</b>. Phoenix is in Arizona, not New Mexico; Denver is in a country, not a state; and (B) is two cities."
+  },
+  {
+   "n": 39,
+   "stem": "Menu is to diner as catalog is to",
+   "opts": [
+    "cashier",
+    "order",
+    "seller",
+    "purchase",
+    "shopper"
+   ],
+   "ans": 4,
+   "why": "Bridge: a menu is the <b>list of choices read by</b> a diner. A catalog is the list of choices read by a <b>shopper</b>. Keep the roles matched: the diner is the customer, so the answer must be the customer too &mdash; not the seller."
+  },
+  {
+   "n": 40,
+   "stem": "Cuff is to collar as mouse is to",
+   "opts": [
+    "keyboard",
+    "cheese",
+    "cat",
+    "trap",
+    "rodent"
+   ],
+   "ans": 0,
+   "why": "Bridge: a cuff and a collar are <b>two parts of the same thing</b> (a shirt). A mouse and a <b>keyboard</b> are two parts of the same thing (a computer). The animal meanings of <i>mouse</i> are all decoys."
+  },
+  {
+   "n": 41,
+   "stem": "Snake is to belly as",
+   "opts": [
+    "monkey is to tail",
+    "bear is to hands",
+    "horse is to legs",
+    "pig is to snout",
+    "person is to feet"
+   ],
+   "ans": 4,
+   "why": "Bridge: a snake <b>moves on</b> its belly. A <b>person moves on their feet</b>. A horse moves on its legs too, so read carefully: the bridge is about what touches the ground, and feet are the exact match for the body part the animal travels on."
+  },
+  {
+   "n": 42,
+   "stem": "Carat is to diamond as",
+   "opts": [
+    "calorie is to heat",
+    "liquid is to volume",
+    "perimeter is to inches",
+    "unit is to measurement",
+    "gram is to pound"
+   ],
+   "ans": 0,
+   "why": "Bridge: a carat is the <b>unit used to measure</b> a diamond. A <b>calorie is the unit used to measure heat</b>. (C) and (E) reverse or mismatch the unit; (D) is the definition rather than an example."
+  },
+  {
+   "n": 43,
+   "stem": "Book is to read as data is to",
+   "opts": [
+    "analyze",
+    "prove",
+    "submit",
+    "foretell",
+    "conclude"
+   ],
+   "ans": 0,
+   "why": "Bridge: a book is <b>made to be read</b>. Data is made to be <b>analyzed</b>. You do not \"prove\" data &mdash; you use data to prove something, which is a different relationship."
+  },
+  {
+   "n": 44,
+   "stem": "Burnish is to polish as",
+   "opts": [
+    "search is to find",
+    "wash is to rinse",
+    "peel is to scrape",
+    "shine is to glisten",
+    "reinforce is to strengthen"
+   ],
+   "ans": 4,
+   "why": "Bridge: <b>near-synonyms</b> &mdash; to burnish is to polish. To <b>reinforce is to strengthen</b>. (A) is cause and result; (B) and (C) are two different steps, not the same action."
+  },
+  {
+   "n": 45,
+   "stem": "Fresh is to rancid as",
+   "opts": [
+    "heat is to boil",
+    "ripe is to rotten",
+    "molten is to lava",
+    "shed is to discard",
+    "cooked is to burnt"
+   ],
+   "ans": 1,
+   "why": "Bridge: fresh food <b>turns</b> rancid when it spoils. <b>Ripe fruit turns rotten</b> when it spoils. (E) is close, but burning is something that happens to food while cooking, not the spoiling of it."
+  },
+  {
+   "n": 46,
+   "stem": "Fire is to heat as",
+   "opts": [
+    "cold is to snow",
+    "lamp is to light",
+    "cool is to breeze",
+    "wax is to melt",
+    "music is to listen"
+   ],
+   "ans": 1,
+   "why": "Bridge: fire <b>gives off</b> heat. A <b>lamp gives off light</b>. (A) and (C) both put the quality first and the thing second &mdash; the wrong direction."
+  },
+  {
+   "n": 47,
+   "stem": "Browsing is to shopping as",
+   "opts": [
+    "skimming is to reading",
+    "nodding is to agreeing",
+    "walking is to running",
+    "hiking is to climbing",
+    "seeing is to recognizing"
+   ],
+   "ans": 0,
+   "why": "Bridge: browsing is a <b>quick, casual version of</b> shopping. <b>Skimming is a quick, casual version of reading</b>. (C) reverses the intensity &mdash; running is the more intense one."
+  },
+  {
+   "n": 48,
+   "stem": "Recital is to pianist as exhibit is to",
+   "opts": [
+    "museum",
+    "clay",
+    "auction",
+    "artist",
+    "gallery"
+   ],
+   "ans": 3,
+   "why": "Bridge: a recital is the <b>event where a pianist shows their work</b>. An exhibit is the event where an <b>artist</b> shows theirs. Museum and gallery are the <i>place</i>, not the person &mdash; and the first pair names a person."
+  },
+  {
+   "n": 49,
+   "stem": "Song is to medley as",
+   "opts": [
+    "series is to book",
+    "collection is to displays",
+    "gumball is to machines",
+    "picture is to collage",
+    "survey is to lists"
+   ],
+   "ans": 3,
+   "why": "Bridge: many songs together make a medley &mdash; <b>one piece inside a combined whole</b>. Many <b>pictures together make a collage</b>. (A) has it backwards; (B) and (E) mix up the singular and plural."
+  },
+  {
+   "n": 50,
+   "stem": "Exercise is to sweat as",
+   "opts": [
+    "wander is to meander",
+    "reduce is to budget",
+    "harvest is to produce",
+    "accept is to refuse",
+    "vote is to confirm"
+   ],
+   "ans": 2,
+   "why": "Bridge: exercise <b>results in</b> sweat. Harvesting <b>results in</b> produce. (A) is a synonym pair and (D) is an opposite pair &mdash; neither is cause and effect."
+  },
+  {
+   "n": 51,
+   "stem": "Stamen is to flower as",
+   "opts": [
+    "computer is to monitor",
+    "lens is to eye",
+    "socket is to cord",
+    "spiral is to notebook",
+    "pillow is to sleep"
+   ],
+   "ans": 1,
+   "why": "Bridge: a stamen is a <b>working part inside</b> a flower. A <b>lens is a working part inside an eye</b>. (A) is reversed &mdash; the monitor is part of the computer, not the other way round."
+  },
+  {
+   "n": 52,
+   "stem": "Map is to cartographer as",
+   "opts": [
+    "club is to golfer",
+    "book is to librarian",
+    "car is to mechanic",
+    "building is to architect",
+    "cake is to baker"
+   ],
+   "ans": 4,
+   "why": "Bridge: a cartographer is the person who <b>makes</b> a map &mdash; the word literally means map-maker. A <b>baker makes a cake</b>. A golfer only uses a club, a librarian only looks after books, a mechanic only repairs cars. An architect is the near-miss: he <i>designs</i> a building but does not build it, while the cartographer, like the baker, produces the finished thing himself."
+  },
+  {
+   "n": 53,
+   "stem": "Baby is to crawling as",
+   "opts": [
+    "rock is to skipping",
+    "trout is to fishing",
+    "frog is to jumping",
+    "parent is to driving",
+    "bird is to nesting"
+   ],
+   "ans": 2,
+   "why": "Bridge: crawling is <b>how a baby moves</b>. Jumping is <b>how a frog moves</b>. Nesting is something a bird does, but it is not how it travels."
+  },
+  {
+   "n": 54,
+   "stem": "Eraser is to chalkboard as",
+   "opts": [
+    "mop is to floor",
+    "keyboard is to computer",
+    "ballpoint is to pen",
+    "towel is to soap",
+    "machine is to washing"
+   ],
+   "ans": 0,
+   "why": "Bridge: an eraser is the <b>tool used to clean</b> a chalkboard. A <b>mop is the tool used to clean a floor</b>."
+  },
+  {
+   "n": 55,
+   "stem": "Eager is to fervent as",
+   "opts": [
+    "tedious is to bored",
+    "glum is to sad",
+    "pleased is to ecstatic",
+    "enraged is to mad",
+    "remorse is to sorrow"
+   ],
+   "ans": 2,
+   "why": "Bridge: <b>same feeling, stronger degree</b> &mdash; fervent is eager turned all the way up. <b>Ecstatic is pleased turned all the way up.</b> (D) runs the other way (enraged is the strong one, mad the mild one) and (B) is two words of roughly equal strength.",
+   "flag": "The official answer key prints (D) for this question. Enraged is stronger than mad, so (D) reverses the order; matching the direction of the first pair gives (C)."
+  },
+  {
+   "n": 56,
+   "stem": "Bread is to moldy as",
+   "opts": [
+    "whisker is to hairy",
+    "disease is to sickly",
+    "blood is to scab",
+    "steel is to rusty",
+    "running is to sweaty"
+   ],
+   "ans": 3,
+   "why": "Bridge: bread <b>goes moldy</b> when it is left too long. <b>Steel goes rusty</b> when it is left too long. Both are the same idea: a material spoiling over time."
+  },
+  {
+   "n": 57,
+   "stem": "Dog is to collie as lizard is to",
+   "opts": [
+    "cage",
+    "chameleon",
+    "reptile",
+    "pet",
+    "desert"
+   ],
+   "ans": 1,
+   "why": "Bridge: a collie is <b>a specific kind of</b> dog. A <b>chameleon is a specific kind of lizard</b>. <i>Reptile</i> is the trap &mdash; it goes the wrong way, from specific to general."
+  },
+  {
+   "n": 58,
+   "stem": "Chisel is to carving as",
+   "opts": [
+    "thread is to sewing",
+    "clay is to sculpting",
+    "wheel is to driving",
+    "blender is to mixing",
+    "recipe is to cooking"
+   ],
+   "ans": 3,
+   "why": "Bridge: a chisel is the <b>tool that does</b> the carving. A <b>blender is the tool that does the mixing</b>. Thread and clay are <i>materials</i>, not tools; a wheel is only one part of a car."
+  },
+  {
+   "n": 59,
+   "stem": "Drop is to break as",
+   "opts": [
+    "spill is to tip",
+    "stumble is to fall",
+    "adorn is to decorate",
+    "stitch is to sew",
+    "drive is to crash"
+   ],
+   "ans": 1,
+   "why": "Bridge: dropping something <b>can lead to</b> its breaking. <b>Stumbling can lead to falling.</b> (A) is reversed &mdash; tipping causes the spill. (C) and (D) are synonym pairs."
+  },
+  {
+   "n": 60,
+   "stem": "Ruby is to red as amber is to",
+   "opts": [
+    "brown",
+    "green",
+    "pink",
+    "blue",
+    "purple"
+   ],
+   "ans": 0,
+   "why": "Bridge: a ruby is <b>the colour</b> red; amber is a golden <b>brown</b>. You meet the word every time you see an amber traffic light."
+  }
+ ]
+};
+const MINUTES = 18;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+</body>
+</html>

@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 3 · Reading Part A</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+  .passage .verse { font-size: 15.5px; margin-bottom: 3px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 3 &middot; Section 2, part 1</div>
+    <h1>Reading Comprehension — Part A (Questions 1–23)</h1>
+    <div class="meta">4 passages &middot; 23 questions &middot; 23 minutes &middot; roughly one minute per question, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">23:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Summer Mock Test 3 &middot; <a href="SSAT-MockTest3-Index.html">All sections</a> &middot; <a href="index.html">Quiz hub</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading Part A",
+ "count": 23,
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 1 &middot; Questions 1&ndash;6",
+   "html": "<p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Volcanoes are mountains, but they are very</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>different from other mountains; they are not</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>formed by folding and crumpling or by uplift and</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>erosion. Instead, volcanoes are built by the accu-</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">5</span>mulation of their own eruptive products&mdash;lava,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>bombs (crusted over lava blobs), ashflows, and</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>tephra (airborne ash and dust). A volcano is most</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>commonly a conical hill or mountain built around</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>a vent that connects with reservoirs of molten</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">10</span>rock below the surface of the Earth. The term</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span><i>volcano</i> also refers to the opening or vent through</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>which the molten rock and associated gases are</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>expelled.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Deep within the Earth it is so hot that some</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">15</span>rocks slowly melt and become a thick flowing</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>substance called <i>magma</i>. Because it is lighter</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>than the solid rock around it, magma rises and</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>collects in magma chambers. Eventually some of</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>the magma pushes through vents and fissures in</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">20</span>the Earth&rsquo;s surface and a volcanic eruption occurs.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Magma that has erupted is called <i>lava</i>.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Some volcanic eruptions are explosive and</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>others are not. How explosive an eruption is</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>depends on how runny or sticky the magma is.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">25</span>If magma is thin and runny, gases can escape</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>easily from it. When this type of magma erupts, it</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>flows out of the volcano. Because they move</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>slowly enough for people to get out of their way,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>lava flows rarely kill people. They can, however,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">30</span>cause considerable destruction to buildings in</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>their path. If magma is thick and sticky, gases</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>cannot escape easily. Pressure builds up until the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>gases escape violently and explode. In this type of</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>eruption, the magma blasts into the air and breaks</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">35</span>apart into pieces called <i>tephra</i>. Tephra can range</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>in size from tiny particles of ash to house-size</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>boulders. Large-sized tephra typically falls back</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>to the ground on or close to the volcano and</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>progressively smaller fragments are carried away</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">40</span>from the vent by wind. Volcanic ash, the smallest</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>tephra fragments, can travel hundreds to thousands</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>of kilometres downwind from a volcano.</p>"
+  },
+  {
+   "n": 1,
+   "stem": "A primary difference between volcanoes and other mountains is in",
+   "opts": [
+    "their height",
+    "their ruggedness",
+    "their age",
+    "where they are located",
+    "how they are formed"
+   ],
+   "ans": 4,
+   "why": "The very first sentence sets it up: other mountains come from &ldquo;folding and crumpling or&hellip; uplift and erosion,&rdquo; while volcanoes are built from their own eruptive products. That is a difference in <b>how they are formed</b>. Height, age and location are never mentioned &mdash; if the passage does not say it, it cannot be the answer."
+  },
+  {
+   "n": 2,
+   "stem": "A volcanic eruption is likely to be most explosive if magma",
+   "opts": [
+    "is thin and runny",
+    "is thick and sticky",
+    "rises and collects in magma chambers",
+    "pushes out through fissures in the Earth&rsquo;s surface",
+    "becomes lava"
+   ],
+   "ans": 1,
+   "why": "Lines 31&ndash;33: &ldquo;If magma is thick and sticky, gases cannot escape easily. Pressure builds up until the gases escape violently and explode.&rdquo; Thin and runny magma does the opposite &mdash; it flows out quietly."
+  },
+  {
+   "n": 3,
+   "stem": "The author uses italic print primarily to",
+   "opts": [
+    "emphasize words that are used in an unusual way",
+    "indicate words that are difficult to pronounce",
+    "point out foreign words",
+    "highlight important terms that are defined in the text",
+    "indicate words that are not necessary to understanding the passage"
+   ],
+   "ans": 3,
+   "why": "Look at which words are italicised: <i>volcano</i>, <i>magma</i>, <i>lava</i>, <i>tephra</i>. Each one is defined in the sentence right around it. So the italics <b>highlight important terms that are defined in the text</b>."
+  },
+  {
+   "n": 4,
+   "stem": "All of the following can be explicitly answered by the passage EXCEPT:",
+   "opts": [
+    "What factors contribute to hot temperatures deep inside the Earth?",
+    "Why are some volcanic eruptions explosive while others are not?",
+    "As dangerous as eruptions can be, why do lava flows rarely kill people?",
+    "Why does magma rise and collect in chambers?",
+    "Why does pressure build up in magma that is thick and sticky?"
+   ],
+   "ans": 0,
+   "why": "This is an EXCEPT question, so four choices <i>are</i> answered and one is not. (B) explosiveness &rarr; line 24. (C) lava flows move slowly &rarr; lines 27&ndash;29. (D) magma is lighter than the rock around it &rarr; lines 16&ndash;18. (E) gases cannot escape &rarr; lines 31&ndash;33. The passage says only that it <i>is</i> hot deep inside the Earth &mdash; never <b>why</b>."
+  },
+  {
+   "n": 5,
+   "stem": "This passage would most likely appear in",
+   "opts": [
+    "a newspaper",
+    "a science textbook",
+    "an adventure novel",
+    "a travel brochure",
+    "a safety manual"
+   ],
+   "ans": 1,
+   "why": "Calm, factual explanation of a natural process, with technical terms defined as they appear &mdash; that is <b>a science textbook</b>. A newspaper would report a specific eruption that had just happened; a brochure would be trying to sell you a trip."
+  },
+  {
+   "n": 6,
+   "stem": "Which of the following statements is NOT true of tephra?",
+   "opts": [
+    "It can range in size from tiny particles of ash to huge boulders.",
+    "It can travel thousands of kilometres from a volcano.",
+    "It can be found trapped in magma.",
+    "Large tephra falls on or close to a volcano.",
+    "It is the term for rock fragments erupted into the air by volcanoes."
+   ],
+   "ans": 2,
+   "why": "Tephra is defined as what magma becomes <i>after</i> it blasts into the air and breaks apart (lines 34&ndash;35). So tephra cannot be sitting inside magma &mdash; <b>(C) reverses the order of events</b>. The other four are all stated in lines 35&ndash;42."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 2 &middot; Questions 7&ndash;10",
+   "html": "<p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>I am one of those who believe that it is the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>mission of this war to free every slave in the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>United States. I am one of those who believe that</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>we should consent to no peace which shall not be</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">5</span>an Abolition peace. I am, moreover, one of those</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>who believe that the work of the American Anti-</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Slavery Society will not have been completed</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>until the black men of the South, and the black</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>men of the North, shall have been admitted, fully</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">10</span>and completely, into the body politic of America.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>I look upon slavery as going the way of all the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>earth. It is the mission of the war to put it down.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>I know it will be said that I ask you to make</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>the black man a voter in the South. It is said that</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">15</span>the colored man is ignorant, and therefore he</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>shall not vote. In saying this, you lay down a rule</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>for the black man that you apply to no other class</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>of your citizens. If he knows enough to be hanged,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>he knows enough to vote. If he knows an honest</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">20</span>man from a thief, he knows much more than some</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>of our white voters. If he knows enough to take</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>up arms in defence of this Government and bare his</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>breast to the storm of rebel artillery, he knows</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>enough to vote.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">25</span>All I ask, however, in regard to the blacks,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>is that whatever rule you adopt, whether of</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>intelligence or wealth, as the condition of voting</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>for whites, you shall apply it equally to the black</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>man. Do that, and I am satisfied, and eternal justice</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">30</span>is satisfied; liberty, fraternity, equality, are satisfied,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>and the country will move on harmoniously.</p>",
+   "src": "&mdash; Frederick Douglass, speaking to the American Anti-Slavery Society, 1863"
+  },
+  {
+   "n": 7,
+   "stem": "According to Douglass, the mission of the Civil War is to",
+   "opts": [
+    "destroy the Confederacy",
+    "punish the rebel soldiers",
+    "end slavery",
+    "preserve the Union",
+    "create a new class of citizens"
+   ],
+   "ans": 2,
+   "why": "He says it twice, almost word for word: &ldquo;it is the mission of this war to free every slave in the United States&rdquo; (lines 1&ndash;3) and &ldquo;It is the mission of the war to put it down&rdquo; (line 12). That is <b>ending slavery</b>."
+  },
+  {
+   "n": 8,
+   "stem": "Douglass believes the work of the Anti-Slavery Society should not be considered complete until",
+   "opts": [
+    "slavery is abolished",
+    "black men in the South are able to vote",
+    "blacks can move freely between the South and the North",
+    "black men of the North and South have the right to vote",
+    "all conditions for voting are ended"
+   ],
+   "ans": 3,
+   "why": "Lines 6&ndash;10 name <i>both</i> groups &mdash; &ldquo;the black men of the South, and the black men of the North&rdquo; &mdash; and the rest of the speech makes clear that being admitted to the body politic means <b>the vote</b>. (B) is only half of it; (E) is wrong because he explicitly accepts voting rules, as long as they apply equally."
+  },
+  {
+   "n": 9,
+   "stem": "What does Douglass mean by calling for black men to be admitted &ldquo;fully and completely into the body politic of America&rdquo; (lines 9&ndash;10)?",
+   "opts": [
+    "They must have the same rights and privileges as all other citizens.",
+    "They must be able to vote.",
+    "They must be able to run for office.",
+    "They must take up arms to defend the Government.",
+    "They must be considered a separate class of citizens."
+   ],
+   "ans": 0,
+   "why": "&ldquo;Fully and completely&rdquo; is the key phrase, and his whole argument is that no rule should apply to the black man &ldquo;that you apply to no other class of your citizens.&rdquo; That is <b>equal rights, all of them</b>. (B) is too narrow &mdash; voting is his example, not the whole demand."
+  },
+  {
+   "n": 10,
+   "stem": "The purpose of Douglass&rsquo;s speech was to",
+   "opts": [
+    "inform members of the society of the horrors of slavery",
+    "convince listeners to adopt fair and equal voting requirements",
+    "inform listeners of the progress of the war",
+    "convince members of the society that slavery should be ended",
+    "explain how the right to vote would create harmony"
+   ],
+   "ans": 1,
+   "why": "Look at where the speech spends its words: almost the whole middle and end argue about voting rules, ending with &ldquo;whatever rule you adopt&hellip; you shall apply it equally.&rdquo; He is <b>persuading them about fair voting requirements</b>. He is speaking to an anti-slavery society, so (D) would be persuading people who already agree."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 3 &middot; Questions 11&ndash;17",
+   "html": "<p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>The great Pullman was whirling onward with</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>such dignity of motion that a glance from the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>window seemed simply to prove that the plains of</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Texas were pouring eastward. Vast flats of green</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">5</span>grass, dull-hued spaces of mesquite and cactus,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>little groups of frame houses, woods of light and</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>tender trees, all were sweeping into the east,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>sweeping over the horizon, a precipice.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>A newly married pair had boarded this coach</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">10</span>at San Antonio. The man&rsquo;s face was reddened</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>from many days in the wind and sun, and a direct</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>result of his new black clothes was that his brick-</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>colored hands were constantly performing in a</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>most conscious fashion. From time to time he</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">15</span>looked down respectfully at his attire. He sat with</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>a hand on each knee, like a man waiting in a</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>barber&rsquo;s shop. The glances he devoted to other</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>passengers were furtive and shy.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>The bride was not pretty, nor was she very</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">20</span>young. She wore a dress of blue cashmere, with</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>small reservations of velvet here and there and</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>with steel buttons abounding. She continually</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>twisted her head to regard her puff sleeves, very</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>stiff, straight, and high. They embarrassed her.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">25</span>It was quite apparent that she had cooked, and</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>that she expected to cook, dutifully. The blushes</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>caused by the careless scrutiny of some passengers</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>as she had entered the car were strange to</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>see upon this plain, under-class countenance,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">30</span>which was drawn in placid, almost emotionless</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>lines.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>They were evidently very happy. &ldquo;Ever been</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>in a parlor-car before?&rdquo; he asked, smiling with</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>delight.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">35</span>&ldquo;No,&rdquo; she answered, &ldquo;I never was. It&rsquo;s fine,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>ain&rsquo;t it?&rdquo;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>&ldquo;Great! And then after a while we&rsquo;ll go forward</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>to the diner and get a big layout. Finest meal in</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>the world. Charge a dollar.&rdquo;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">40</span>&ldquo;Oh, do they?&rdquo; cried the bride. &ldquo;Charge a</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>dollar? Why, that&rsquo;s too much&mdash;for us&mdash;ain&rsquo;t it,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Jack?&rdquo;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>&ldquo;Not this trip, anyhow,&rdquo; he answered bravely.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>&ldquo;We&rsquo;re going to go the whole thing.&rdquo;</p>",
+   "src": "&mdash; Stephen Crane, from &ldquo;The Bride Comes to Yellow Sky&rdquo;"
+  },
+  {
+   "n": 11,
+   "stem": "The tone of the passage suggests that the author regards the newly married couple with",
+   "opts": [
+    "embarrassment",
+    "disrespect",
+    "sympathy",
+    "sorrow",
+    "scorn"
+   ],
+   "ans": 2,
+   "why": "The narrator notices their awkwardness &mdash; the stiff new clothes, the shy glances &mdash; but never mocks them, and calls them &ldquo;evidently very happy.&rdquo; That gentle, warm noticing is <b>sympathy</b>. Scorn and disrespect would need cruel language, and there is none."
+  },
+  {
+   "n": 12,
+   "stem": "Which word best describes the newlywed couple?",
+   "opts": [
+    "well-to-do",
+    "sad",
+    "frightened",
+    "unsophisticated",
+    "unpleasant"
+   ],
+   "ans": 3,
+   "why": "Gather the evidence: he has never worn clothes like these, she has never been in a parlor-car, and a one-dollar meal strikes them as extravagant. They are plain, inexperienced people &mdash; <b>unsophisticated</b>. Certainly not well-to-do."
+  },
+  {
+   "n": 13,
+   "stem": "When this passage takes place, the bride and groom are most probably",
+   "opts": [
+    "in a hotel",
+    "at a train station",
+    "on a stagecoach",
+    "in a diner",
+    "on a train"
+   ],
+   "ans": 4,
+   "why": "&ldquo;The great Pullman was whirling onward&rdquo; &mdash; a Pullman is a railway carriage, they &ldquo;boarded this coach at San Antonio,&rdquo; and they plan to &ldquo;go forward to the diner.&rdquo; They are <b>on a moving train</b>. The diner is where they are <i>going</i>, not where they are."
+  },
+  {
+   "n": 14,
+   "stem": "As it is used in line 18, the word &ldquo;furtive&rdquo; most nearly means",
+   "opts": [
+    "stealthy",
+    "steady",
+    "focused",
+    "friendly",
+    "unabashed"
+   ],
+   "ans": 0,
+   "why": "Use the sentence around it: his glances were &ldquo;furtive <i>and shy</i>,&rdquo; and he is a nervous man in unfamiliar clothes. So furtive means sneaky, done quickly so as not to be noticed &mdash; <b>stealthy</b>. <i>Unabashed</i> (not embarrassed at all) is the exact opposite."
+  },
+  {
+   "n": 15,
+   "stem": "The narrator of this story is",
+   "opts": [
+    "the groom",
+    "the bride",
+    "a participant in the story",
+    "an outside observer",
+    "an adult looking back on his life"
+   ],
+   "ans": 3,
+   "why": "The passage never says &ldquo;I.&rdquo; It describes the couple from outside, and can tell us what other passengers do. That is a third-person narrator &mdash; <b>an outside observer</b>."
+  },
+  {
+   "n": 16,
+   "stem": "The main purpose of this passage is to",
+   "opts": [
+    "express an opinion",
+    "analyze information",
+    "introduce characters and setting",
+    "resolve a crisis",
+    "set up a conflict between two characters"
+   ],
+   "ans": 2,
+   "why": "This is the opening of a story. Nothing happens yet: we get the train and the Texas plains (setting), and the husband and wife described in detail (characters). Its job is to <b>introduce characters and setting</b>."
+  },
+  {
+   "n": 17,
+   "stem": "By saying, &ldquo;It was quite apparent that she had cooked, and that she expected to cook, dutifully,&rdquo; the author is suggesting that the bride",
+   "opts": [
+    "expects to eat out regularly",
+    "has led a life of hard work",
+    "has never eaten in a restaurant before",
+    "wants to learn more about cooking",
+    "will learn to cook her husband&rsquo;s favorite foods"
+   ],
+   "ans": 1,
+   "why": "You can tell by looking at her that she has always cooked and always will &mdash; that is what &ldquo;quite apparent&rdquo; means here. It paints a life of plain, dutiful labour: <b>she has led a life of hard work</b>. (C) is tempting, but the passage says she has never been in a <i>parlor-car</i>, not that she has never been in a restaurant."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 4 &middot; Questions 18&ndash;23",
+   "html": "<p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Over two decades ago, scientists in the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Agricultural Research Service Vegetable Crops</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Research Unit at Madison, Wisconsin, began a</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>quest to breed carrots packed with beta-carotene&mdash;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">5</span>an orange pigment used by the body to create</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>vitamin A. Thanks largely to their work, today&rsquo;s</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>carrots provide consumers with 75 percent more</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>beta-carotene than those available 25 years ago.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>The researchers, led by plant geneticist</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">10</span>Philipp Simon, haven&rsquo;t limited themselves to the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>color orange. They&rsquo;ve selectively bred a rainbow</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>of carrots&mdash;purple, red, yellow, even white.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Scientists are learning that these plant pigments</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>perform a range of protective duties in the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">15</span>human body.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Red carrots derive their color mainly from</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>lycopene, a type of carotene believed to guard</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>against heart disease and some cancers. Yellow</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>carrots accumulate xanthophylls, pigments similar</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">20</span>to beta-carotene that support good eye health.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Purple carrots possess an entirely different class of</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>pigments&mdash;anthocyanins&mdash;which act as powerful</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>antioxidants.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>While colored carrots are unusual, they&rsquo;re not</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">25</span>exactly new. &ldquo;Purple and yellow carrots were</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>eaten more than 1,000 years ago in Afghanistan</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>and 700 years ago in western Europe,&rdquo; says Simon.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>&ldquo;But the carrot-breeding process has gone on</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>intensively for just 50 years.&rdquo;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">30</span>In nature, different strains of carrots contain</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>varying types and amounts of carotenoids&mdash;the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>pigments responsible for orange, yellow, and red</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>colors. To assist seed companies and growers who</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>wish to produce nutrient-rich carrots, Simon and</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">35</span>his lab are working to map all the genes that play</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>a part in synthesizing carotenoids in major carrot</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>lines. Simon now knows of 20 genes that are</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>involved. But determining a particular gene&rsquo;s role in</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>generating carotenoids is not that straightforward.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">40</span>Aside from enhancing the nutritional value of</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>carrots&mdash;as well as onions, garlic, and cucumbers&mdash;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>researchers at Simon&rsquo;s laboratory also work</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>to improve the vegetable&rsquo;s culinary quality and</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>appeal.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">45</span>With their compelling health benefits and a</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>thumbs-up from taste testers, Simon&rsquo;s colorful carrots</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>will be a great addition to supermarket produce aisles</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>once consumers create a demand for them.</p>"
+  },
+  {
+   "n": 18,
+   "stem": "The main purpose of this passage is to",
+   "opts": [
+    "explain why carrots can be various colors",
+    "point out the health benefits of carotenoids",
+    "report on enhancements to the nutritional value of carrots",
+    "explore ways to increase carrot production",
+    "encourage people to buy carrots of various colors"
+   ],
+   "ans": 2,
+   "why": "Track what the whole passage is about, not just one paragraph: scientists set out to breed carrots with more beta-carotene, succeeded, and are now breeding other colours for other health benefits. That is <b>a report on improving the nutritional value of carrots</b>. (B) is one paragraph only; (E) would need persuasive language, and this is neutral."
+  },
+  {
+   "n": 19,
+   "stem": "The author&rsquo;s tone can best be described as",
+   "opts": [
+    "argumentative",
+    "emotional",
+    "sentimental",
+    "informative",
+    "optimistic"
+   ],
+   "ans": 3,
+   "why": "The passage reports facts, figures and quotations without taking a side or trying to move you. That is <b>informative</b>. The last sentence is mildly hopeful, but one hopeful sentence does not make the tone of a whole passage."
+  },
+  {
+   "n": 20,
+   "stem": "According to the passage, carrots have been bred in all of the following colors EXCEPT:",
+   "opts": [
+    "yellow",
+    "green",
+    "white",
+    "red",
+    "purple"
+   ],
+   "ans": 1,
+   "why": "Line 12 lists the rainbow: &ldquo;purple, red, yellow, even white.&rdquo; <b>Green</b> is missing. On an EXCEPT question, tick off each colour on the passage as you find it."
+  },
+  {
+   "n": 21,
+   "stem": "The type of carotene that gives carrots a red color is",
+   "opts": [
+    "lycopene",
+    "xanthophyll",
+    "anthocyanin",
+    "beta-carotene",
+    "antioxidant"
+   ],
+   "ans": 0,
+   "why": "Line 16&ndash;17: &ldquo;Red carrots derive their color mainly from <b>lycopene</b>.&rdquo; Xanthophylls make them yellow, anthocyanins purple, beta-carotene orange."
+  },
+  {
+   "n": 22,
+   "stem": "Which of the following is true of colored carrots?",
+   "opts": [
+    "They first appeared about 50 years ago.",
+    "They do not equal regular carrots in nutritive value.",
+    "They are not as tasty as traditional carrots.",
+    "They were first bred by scientists at the Agricultural Research Service Vegetable Crops Research Unit.",
+    "They derive their color from varying types and amounts of carotenoids."
+   ],
+   "ans": 4,
+   "why": "Lines 30&ndash;33 say exactly that. Each wrong choice is contradicted: purple and yellow carrots were eaten 1,000 years ago (not 50); the coloured pigments <i>add</i> health benefits; taste testers gave them &ldquo;a thumbs-up&rdquo;; and they existed long before the lab did."
+  },
+  {
+   "n": 23,
+   "stem": "This passage can best be described as",
+   "opts": [
+    "a short story",
+    "a biography",
+    "a research report",
+    "propaganda",
+    "an editorial"
+   ],
+   "ans": 2,
+   "why": "It describes a scientific study, names the lead researcher, and quotes him &mdash; <b>a research report</b>. A biography would be about Simon&rsquo;s life; an editorial would argue an opinion."
+  }
+ ]
+};
+const MINUTES = 23;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+</body>
+</html>

@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 3 · Synonyms</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #7a4a86; --accent-soft: #e8dced;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+  .passage .verse { font-size: 15.5px; margin-bottom: 3px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 3 &middot; Section 3, part 1</div>
+    <h1>Verbal — Synonyms (Questions 1–30)</h1>
+    <div class="meta">30 questions &middot; 12 minutes &middot; about 24 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">12:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Summer Mock Test 3 &middot; <a href="SSAT-MockTest3-Index.html">All sections</a> &middot; <a href="index.html">Quiz hub</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Synonyms",
+ "count": 30,
+ "items": [
+  {
+   "n": 1,
+   "stem": "<span class=\"cap\">novice</span>",
+   "opts": [
+    "burden",
+    "agreement",
+    "beggar",
+    "beginner",
+    "expression"
+   ],
+   "ans": 3,
+   "why": "A <b>novice</b> is someone brand new at something &mdash; a <b>beginner</b>. Same family as <i>novel</i> and <i>innovate</i>: the root <i>nov-</i> means new."
+  },
+  {
+   "n": 2,
+   "stem": "<span class=\"cap\">fabricate</span>",
+   "opts": [
+    "stitch",
+    "fasten",
+    "falsify",
+    "deter",
+    "decorate"
+   ],
+   "ans": 2,
+   "why": "<b>Fabricate</b> has two senses &mdash; to build something, and to make something up. On the SSAT it is nearly always the second: to <b>falsify</b>, to invent a lie. \"Stitch\" is the trap that comes from the word <i>fabric</i>."
+  },
+  {
+   "n": 3,
+   "stem": "<span class=\"cap\">friendly</span>",
+   "opts": [
+    "congenital",
+    "amiable",
+    "sanctimonious",
+    "ambivalent",
+    "responsive"
+   ],
+   "ans": 1,
+   "why": "<b>Amiable</b> means good-natured and easy to like. The root <i>ami-</i> means friend (as in <i>amicable</i>). Watch out for <i>congenital</i> (present from birth) &mdash; it only <i>looks</i> like <i>congenial</i>."
+  },
+  {
+   "n": 4,
+   "stem": "<span class=\"cap\">genre</span>",
+   "opts": [
+    "proposal",
+    "category",
+    "purpose",
+    "principle",
+    "generation"
+   ],
+   "ans": 1,
+   "why": "A <b>genre</b> is a kind or <b>category</b> &mdash; mystery, comedy, science fiction. The root <i>gen-</i> means type or kind, the same root as in <i>general</i>."
+  },
+  {
+   "n": 5,
+   "stem": "<span class=\"cap\">summit</span>",
+   "opts": [
+    "conference",
+    "valley",
+    "essence",
+    "nadir",
+    "outline"
+   ],
+   "ans": 0,
+   "why": "A <b>summit</b> is a peak &mdash; and also a top-level meeting, a <b>conference</b>. No choice here means \"peak,\" so the meeting sense is the one being tested. <i>Valley</i> and <i>nadir</i> (the lowest point) are both opposites &mdash; a classic SSAT trap."
+  },
+  {
+   "n": 6,
+   "stem": "<span class=\"cap\">deftly</span>",
+   "opts": [
+    "wilfully",
+    "closely",
+    "quickly",
+    "randomly",
+    "skillfully"
+   ],
+   "ans": 4,
+   "why": "<b>Deft</b> means neat and skilful with the hands, so <b>deftly</b> = <b>skillfully</b>. Deft hands are usually quick too, but quick is the side effect, not the meaning."
+  },
+  {
+   "n": 7,
+   "stem": "<span class=\"cap\">prosper</span>",
+   "opts": [
+    "accomplish",
+    "strive",
+    "affect",
+    "gather",
+    "thrive"
+   ],
+   "ans": 4,
+   "why": "To <b>prosper</b> is to do well and flourish &mdash; to <b>thrive</b>. <i>Strive</i> is the trap: striving is trying hard, which is not the same as succeeding."
+  },
+  {
+   "n": 8,
+   "stem": "<span class=\"cap\">spurn</span>",
+   "opts": [
+    "cross",
+    "return",
+    "betray",
+    "reject",
+    "hinder"
+   ],
+   "ans": 3,
+   "why": "To <b>spurn</b> is to turn something down scornfully &mdash; to <b>reject</b> it. Think of spurning an offer, or spurning someone's help."
+  },
+  {
+   "n": 9,
+   "stem": "<span class=\"cap\">complimentary</span>",
+   "opts": [
+    "secondary",
+    "free",
+    "charming",
+    "attractive",
+    "matched"
+   ],
+   "ans": 1,
+   "why": "Two meanings again: giving praise, and given away <b>free</b> (a complimentary drink). Since \"praising\" is not offered, <i>free</i> is the answer. Do not confuse it with <i>complementary</i> with an <b>e</b>, which means matching &mdash; that is choice (E)."
+  },
+  {
+   "n": 10,
+   "stem": "<span class=\"cap\">visage</span>",
+   "opts": [
+    "encounter",
+    "station",
+    "face",
+    "bandage",
+    "wound"
+   ],
+   "ans": 2,
+   "why": "A <b>visage</b> is a <b>face</b>. The root <i>vis-</i> is about seeing and looking (<i>vision</i>, <i>visible</i>) &mdash; a visage is what you see of a person."
+  },
+  {
+   "n": 11,
+   "stem": "<span class=\"cap\">respite</span>",
+   "opts": [
+    "pause",
+    "presumption",
+    "recluse",
+    "blockage",
+    "susceptibility"
+   ],
+   "ans": 0,
+   "why": "A <b>respite</b> is a short rest from something hard &mdash; a <b>pause</b>, a breather. \"A respite from the heat.\""
+  },
+  {
+   "n": 12,
+   "stem": "<span class=\"cap\">regretful</span>",
+   "opts": [
+    "bewildered",
+    "credulous",
+    "desultory",
+    "contrite",
+    "dubious"
+   ],
+   "ans": 3,
+   "why": "<b>Contrite</b> means genuinely sorry for what you did. The others: <i>credulous</i> = too easily fooled, <i>desultory</i> = aimless, <i>dubious</i> = doubtful."
+  },
+  {
+   "n": 13,
+   "stem": "<span class=\"cap\">frugal</span>",
+   "opts": [
+    "inadequate",
+    "shrewd",
+    "economical",
+    "balanced",
+    "equitable"
+   ],
+   "ans": 2,
+   "why": "<b>Frugal</b> means careful with money &mdash; <b>economical</b>. <i>Shrewd</i> (sharp, clever) is the near-miss: a frugal person may be shrewd, but the words do not mean the same thing."
+  },
+  {
+   "n": 14,
+   "stem": "<span class=\"cap\">imply</span>",
+   "opts": [
+    "suggest",
+    "implore",
+    "greet",
+    "reminisce",
+    "appeal"
+   ],
+   "ans": 0,
+   "why": "To <b>imply</b> is to hint at something without saying it &mdash; to <b>suggest</b>. <i>Implore</i> just looks similar; it means to beg."
+  },
+  {
+   "n": 15,
+   "stem": "<span class=\"cap\">incite</span>",
+   "opts": [
+    "insist",
+    "dispel",
+    "maintain",
+    "assert",
+    "provoke"
+   ],
+   "ans": 4,
+   "why": "To <b>incite</b> is to stir something up &mdash; to <b>provoke</b>. You incite a riot. The prefix <i>in-</i> here means \"into,\" as in urging people into action."
+  },
+  {
+   "n": 16,
+   "stem": "<span class=\"cap\">meager</span>",
+   "opts": [
+    "paltry",
+    "stunted",
+    "timid",
+    "sloppy",
+    "frigid"
+   ],
+   "ans": 0,
+   "why": "<b>Meager</b> means small and not enough &mdash; a meager portion. <b>Paltry</b> means exactly that: tiny and disappointing. <i>Stunted</i> is about failing to grow, which is close but not the same."
+  },
+  {
+   "n": 17,
+   "stem": "<span class=\"cap\">prediction</span>",
+   "opts": [
+    "predecessor",
+    "forecast",
+    "predicament",
+    "prejudice",
+    "display"
+   ],
+   "ans": 1,
+   "why": "A <b>prediction</b> is a <b>forecast</b> &mdash; a statement about what will happen. Three of the wrong choices start with <i>pre-</i> purely to slow you down: a <i>predecessor</i> came before you, a <i>predicament</i> is a mess, a <i>prejudice</i> is a judgement made in advance."
+  },
+  {
+   "n": 18,
+   "stem": "<span class=\"cap\">facet</span>",
+   "opts": [
+    "goal",
+    "endeavor",
+    "tactic",
+    "aspect",
+    "ambition"
+   ],
+   "ans": 3,
+   "why": "A <b>facet</b> is one flat face of a cut gem, and so one side or <b>aspect</b> of anything &mdash; \"every facet of the problem.\""
+  },
+  {
+   "n": 19,
+   "stem": "<span class=\"cap\">absolve</span>",
+   "opts": [
+    "admonish",
+    "accede",
+    "opine",
+    "clear",
+    "affirm"
+   ],
+   "ans": 3,
+   "why": "To <b>absolve</b> is to declare someone free of blame &mdash; to <b>clear</b> them. <i>Admonish</i> is the opposite direction: to scold."
+  },
+  {
+   "n": 20,
+   "stem": "<span class=\"cap\">destroy</span>",
+   "opts": [
+    "inveigh",
+    "subvert",
+    "rescind",
+    "sanction",
+    "abjure"
+   ],
+   "ans": 1,
+   "why": "To <b>subvert</b> is to undermine something until it collapses. Of these five it is the only one that destroys. <i>Inveigh</i> = to protest loudly, <i>rescind</i> = to cancel an order, <i>sanction</i> = to approve, <i>abjure</i> = to renounce."
+  },
+  {
+   "n": 21,
+   "stem": "<span class=\"cap\">mourn</span>",
+   "opts": [
+    "replete",
+    "whimper",
+    "argue",
+    "disapprove",
+    "grieve"
+   ],
+   "ans": 4,
+   "why": "To <b>mourn</b> is to <b>grieve</b> &mdash; to feel deep sorrow over a loss. <i>Whimper</i> is only a small sound of distress, not the feeling itself."
+  },
+  {
+   "n": 22,
+   "stem": "<span class=\"cap\">poisonous</span>",
+   "opts": [
+    "dangerous",
+    "hurtful",
+    "toxic",
+    "devious",
+    "ruthless"
+   ],
+   "ans": 2,
+   "why": "<b>Toxic</b> is the exact synonym. <i>Dangerous</i> and <i>hurtful</i> are true of poison but far too broad &mdash; on a synonym question, always take the closest match, not merely a related one."
+  },
+  {
+   "n": 23,
+   "stem": "<span class=\"cap\">aplomb</span>",
+   "opts": [
+    "omen",
+    "ascent",
+    "epitome",
+    "confidence",
+    "atonement"
+   ],
+   "ans": 3,
+   "why": "<b>Aplomb</b> is calm self-assurance &mdash; <b>confidence</b> under pressure. \"She handled the interruption with aplomb.\""
+  },
+  {
+   "n": 24,
+   "stem": "<span class=\"cap\">corroboration</span>",
+   "opts": [
+    "confirmation",
+    "announcement",
+    "bulletin",
+    "tribulation",
+    "ordeal"
+   ],
+   "ans": 0,
+   "why": "To corroborate a story is to back it up with more evidence, so <b>corroboration</b> is <b>confirmation</b>. <i>Tribulation</i> and <i>ordeal</i> both mean suffering &mdash; nothing to do with it."
+  },
+  {
+   "n": 25,
+   "stem": "<span class=\"cap\">erratic</span>",
+   "opts": [
+    "mistaken",
+    "immaculate",
+    "unpredictable",
+    "opportune",
+    "inadvertent"
+   ],
+   "ans": 2,
+   "why": "<b>Erratic</b> means wandering off course, all over the place &mdash; <b>unpredictable</b>. It shares a root with <i>err</i> and <i>error</i>, which makes <i>mistaken</i> a tempting trap, but erratic describes a pattern of behaviour, not a single mistake."
+  },
+  {
+   "n": 26,
+   "stem": "<span class=\"cap\">credible</span>",
+   "opts": [
+    "languid",
+    "believable",
+    "forthright",
+    "fallible",
+    "enviable"
+   ],
+   "ans": 1,
+   "why": "The root <i>cred-</i> means believe (<i>credit</i>, <i>incredible</i>), so <b>credible</b> = <b>believable</b>. <i>Fallible</i> (able to be wrong) rhymes with it but means something else entirely."
+  },
+  {
+   "n": 27,
+   "stem": "<span class=\"cap\">abscond</span>",
+   "opts": [
+    "abolish",
+    "choose",
+    "leave",
+    "remove",
+    "steal"
+   ],
+   "ans": 2,
+   "why": "To <b>abscond</b> is to run off suddenly, usually to avoid trouble &mdash; to <b>leave</b>. People often abscond <i>with</i> money, which is why <i>steal</i> is tempting, but the word itself means to depart."
+  },
+  {
+   "n": 28,
+   "stem": "<span class=\"cap\">calm</span>",
+   "opts": [
+    "rest",
+    "inspire",
+    "exalt",
+    "soothe",
+    "commend"
+   ],
+   "ans": 3,
+   "why": "Notice the word can be a verb: to calm someone is to <b>soothe</b> them. <i>Rest</i> is what the calmed person then does &mdash; it is not the same action."
+  },
+  {
+   "n": 29,
+   "stem": "<span class=\"cap\">irritable</span>",
+   "opts": [
+    "voluble",
+    "timorous",
+    "transitory",
+    "turgid",
+    "petulant"
+   ],
+   "ans": 4,
+   "why": "<b>Petulant</b> means sulky and quick to get annoyed &mdash; exactly <i>irritable</i>. <i>Voluble</i> = talkative, <i>timorous</i> = fearful, <i>transitory</i> = short-lived, <i>turgid</i> = swollen or overblown."
+  },
+  {
+   "n": 30,
+   "stem": "<span class=\"cap\">travesty</span>",
+   "opts": [
+    "disaster",
+    "mockery",
+    "misfortune",
+    "adage",
+    "opinion"
+   ],
+   "ans": 1,
+   "why": "A <b>travesty</b> is a ridiculous, distorted imitation of something &mdash; a <b>mockery</b>. \"A travesty of justice\" means a trial so bad it makes a joke of justice. <i>Disaster</i> is close in feeling but misses the imitation idea."
+  }
+ ]
+};
+const MINUTES = 12;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+</body>
+</html>

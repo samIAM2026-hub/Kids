@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 3 · Reading Part B</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+  .passage .verse { font-size: 15.5px; margin-bottom: 3px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 3 &middot; Section 2, part 2</div>
+    <h1>Reading Comprehension — Part B (Questions 24–40)</h1>
+    <div class="meta">3 passages &middot; 17 questions &middot; 17 minutes &middot; a poem, a history passage and a piece of Mark Twain</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">17:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Summer Mock Test 3 &middot; <a href="SSAT-MockTest3-Index.html">All sections</a> &middot; <a href="index.html">Quiz hub</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading Part B",
+ "count": 17,
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 5 &middot; Questions 24&ndash;27",
+   "html": "<p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">&nbsp;&nbsp;</span>From the outskirts of the town,</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">&nbsp;&nbsp;</span>Where of old the mile-stone stood,</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">&nbsp;&nbsp;</span>Now a stranger, looking down</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">&nbsp;&nbsp;</span>I behold the shadowy crown</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">5</span>Of the dark and haunted wood</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">&nbsp;&nbsp;</span>Is it changed, or am I changed?</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">&nbsp;&nbsp;</span>Ah! the oaks are fresh and green,</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">&nbsp;&nbsp;</span>But the friends with whom I ranged</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">&nbsp;&nbsp;</span>Through their thickets are estranged</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">10</span>By the years that intervene.</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">&nbsp;&nbsp;</span>Bright as ever flows the sea,</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">&nbsp;&nbsp;</span>Bright as ever shines the sun,</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">&nbsp;&nbsp;</span>But alas! they seem to me</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">&nbsp;&nbsp;</span>Not the sun that used to be,</p><p class=\"verse\" style=\"margin-bottom:3px\"><span class=\"ln\">15</span>Not the tides that used to run.</p>",
+   "src": "&mdash; Henry Wadsworth Longfellow, &ldquo;Changed&rdquo;"
+  },
+  {
+   "n": 24,
+   "stem": "The author&rsquo;s tone is best described as",
+   "opts": [
+    "lighthearted",
+    "optimistic",
+    "nostalgic",
+    "hostile",
+    "humorous"
+   ],
+   "ans": 2,
+   "why": "He returns to a place he knew long ago, finds the oaks unchanged but his friends gone, and says the sun and tides &ldquo;seem to me / Not the sun that used to be.&rdquo; That is longing for a lost past &mdash; <b>nostalgic</b>. Nothing here is funny, cheerful or angry."
+  },
+  {
+   "n": 25,
+   "stem": "This poem is written from the point of view of",
+   "opts": [
+    "a frightened child",
+    "a disinterested adult",
+    "a sympathetic outside observer",
+    "a sad observer of a transformation",
+    "an adult recalling a childhood dream"
+   ],
+   "ans": 3,
+   "why": "The speaker says &ldquo;I behold&rdquo; and &ldquo;the friends with whom I ranged&rdquo; &mdash; he is inside the scene, not outside it, and what he notices is how everything has changed. He is <b>a sad observer of a transformation</b>. &ldquo;Disinterested&rdquo; means having no stake in it, which is the opposite of this speaker."
+  },
+  {
+   "n": 26,
+   "stem": "In line 5, the author most probably refers to the woods as &ldquo;haunted&rdquo; in order to",
+   "opts": [
+    "make the narrator seem foolish and superstitious",
+    "hint at the narrator&rsquo;s acceptance of death",
+    "reveal the narrator&rsquo;s belief in spirits",
+    "set a dark and gloomy mood",
+    "indicate the woods were filled with memories"
+   ],
+   "ans": 4,
+   "why": "The poem is not about ghosts &mdash; it is about a man haunted by his own past. Everything around the word is memory: the old mile-stone, the friends he once ranged through those thickets with. So the woods are <b>filled with memories</b>. This is a question about a word&rsquo;s <i>figurative</i> use; the literal ghost meaning is the trap."
+  },
+  {
+   "n": 27,
+   "stem": "Which of the following best expresses the theme of this poem?",
+   "opts": [
+    "the power of the sun",
+    "the passage of time",
+    "the fluctuation of the tide",
+    "autumn",
+    "nature&rsquo;s renewal"
+   ],
+   "ans": 1,
+   "why": "&ldquo;By the years that intervene&rdquo; is the hinge of the whole poem: the place is the same, the speaker is not, because time has passed. That is <b>the passage of time</b>. The sun and tides are just the images he uses to show it."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 6 &middot; Questions 28&ndash;34",
+   "html": "<p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>The Statue of Liberty was a gift to the people</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>of the United States from the people of France in</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>recognition of the friendship established between</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>the two nations during the American Revolution.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">5</span>Over the years, the Statue of Liberty has come to</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>symbolize freedom and democracy, as well as this</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>international friendship.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Sculptor Frederic Auguste Bartholdi was</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>commissioned to design a sculpture with the year</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">10</span>1876 in mind for completion, to commemorate</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>the centennial of the American Declaration of</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Independence. Alexandre Gustave Eiffel (designer</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>of the Eiffel Tower) was called in to address the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>structural issues of Bartholdi&rsquo;s colossal sculpture.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">15</span>The Statue was a joint effort between America</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>and France and it was agreed upon that the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>American people would build the pedestal, and</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>the French people would be responsible for the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Statue and its assembly here in the United States.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">20</span>Lack of funds was a problem on both sides of the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Atlantic Ocean. In France, public fees, various</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>forms of entertainment, and a lottery were among</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>the methods used to raise funds. In the United</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>States, benefit theatrical events, art exhibitions,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">25</span>auctions and prize fights helped to provide the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>needed funds. When fundraising for the pedestal</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>lagged, Joseph Pulitzer (noted for the Pulitzer</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Prize) used the editorial pages of his newspaper</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span><i>The World</i> to aid in the fundraising effort.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">30</span>Pulitzer&rsquo;s campaign of harsh criticism against</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>both the rich, who had failed to finance the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>pedestal construction, and the middle class, who</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>were content to rely upon the wealthy to provide</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>the funds, was successful in motivating the people</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">35</span>of America to donate.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Financing for the pedestal was completed in</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>August 1885, and pedestal construction was finished</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>in April of 1886. The Statue was completed</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>in France in July 1884 and arrived in New York</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">40</span>Harbor in June, 1885, on board the French frigate</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span><i>Isere</i>. In transit, the Statue was reduced to 350</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>individual pieces and packed in 214 crates. The</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Statue was re-assembled on her new pedestal in</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>four months&rsquo; time. On October 28, 1886, in front</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">45</span>of thousands of spectators, President Grover</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Cleveland accepted the Statue on behalf of the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>United States. She was a centennial gift ten years</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>late.</p>"
+  },
+  {
+   "n": 28,
+   "stem": "According to the passage, the Statue of Liberty was intended to celebrate the",
+   "opts": [
+    "centennial of the Declaration of Independence",
+    "end of the Civil War",
+    "end of hostilities between France and the United States",
+    "start of the twentieth century",
+    "dawn of a new era of international cooperation"
+   ],
+   "ans": 0,
+   "why": "Lines 9&ndash;12: Bartholdi aimed at 1876 &ldquo;to commemorate the centennial of the American Declaration of Independence.&rdquo; The last line of the passage confirms it &mdash; &ldquo;a centennial gift ten years late.&rdquo;"
+  },
+  {
+   "n": 29,
+   "stem": "In line 13, which word can be substituted for &ldquo;address&rdquo; without changing the meaning of the sentence?",
+   "opts": [
+    "speak to",
+    "focus on",
+    "forward",
+    "lecture",
+    "label"
+   ],
+   "ans": 1,
+   "why": "Eiffel was called in to <i>address the structural issues</i> &mdash; that is, to deal with them, to <b>focus on</b> them. The other four choices are the mail sense and the speech sense of &ldquo;address,&rdquo; which do not fit an engineering problem. Always plug your choice back into the sentence and read it."
+  },
+  {
+   "n": 30,
+   "stem": "From his actions, it can be inferred that Joseph Pulitzer&rsquo;s attitude toward the Statue of Liberty was",
+   "opts": [
+    "openly hostile",
+    "extremely cautious",
+    "enthusiastically supportive",
+    "completely neutral",
+    "overly critical"
+   ],
+   "ans": 2,
+   "why": "He handed over the editorial pages of his own newspaper and ran a hard campaign until Americans donated. You do not do that unless you are <b>enthusiastically supportive</b>. (E) is the trap: his criticism was aimed at rich and middle-class donors, not at the Statue."
+  },
+  {
+   "n": 31,
+   "stem": "According to the passage, the Statue of Liberty symbolizes<br>&nbsp;&nbsp;&nbsp;I. democracy<br>&nbsp;&nbsp;&nbsp;II. freedom<br>&nbsp;&nbsp;&nbsp;III. international friendship<br>&nbsp;&nbsp;&nbsp;IV. a treaty between the United States and France",
+   "opts": [
+    "I only",
+    "II only",
+    "I and III only",
+    "I, II, and III only",
+    "I, II, III, and IV"
+   ],
+   "ans": 3,
+   "why": "Lines 5&ndash;7 name exactly three things: &ldquo;freedom and democracy, as well as this international friendship.&rdquo; So I, II and III are in and <b>IV is out</b> &mdash; the passage calls it a gift and a friendship, never a treaty."
+  },
+  {
+   "n": 32,
+   "stem": "According to the passage, all of the following are true EXCEPT:",
+   "opts": [
+    "The United States agreed to finance and build the pedestal.",
+    "Bartholdi needed help with structural issues of the statue.",
+    "Joseph Pulitzer was instrumental in raising money for the pedestal.",
+    "The designer of the Eiffel Tower was called in to help raise funds for the project.",
+    "The statue was completed in France before the pedestal was fully funded."
+   ],
+   "ans": 3,
+   "why": "Eiffel was called in <b>for the engineering</b>, not the fundraising (lines 12&ndash;14) &mdash; so (D) is the false one. Check (E) too: the Statue was finished in July 1884, and the pedestal was funded in August 1885. True."
+  },
+  {
+   "n": 33,
+   "stem": "The main purpose of the passage is to",
+   "opts": [
+    "inform the reader about the history of the Statue of Liberty",
+    "describe how Bartholdi designed the Statue of Liberty",
+    "compare fundraising efforts in the United States and France",
+    "defend the use of newspaper editorials to help raise funds for the project",
+    "explain how the Statue was assembled on her pedestal"
+   ],
+   "ans": 0,
+   "why": "The passage runs straight through the story from the original gift to the 1886 ceremony. That is <b>the history of the Statue</b>. (B), (C) and (E) are each just one piece of that story &mdash; a main-purpose answer has to cover the whole thing."
+  },
+  {
+   "n": 34,
+   "stem": "This passage would most likely appear in a",
+   "opts": [
+    "short story",
+    "novel",
+    "newspaper",
+    "engineering journal",
+    "textbook"
+   ],
+   "ans": 4,
+   "why": "Factual, organised, dated, no characters and no argument &mdash; that is <b>a textbook</b>. A newspaper covers something that just happened; an engineering journal would be far more technical about the structure."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 7 &middot; Questions 35&ndash;40",
+   "html": "<p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>At the end of what seemed a tedious while, I had</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>managed to pack my head full of islands, towns, bars,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>&ldquo;points,&rdquo; and bends; and a curiously inanimate mass of</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>lumber it was, too. However,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">5</span>inasmuch as I could shut my eyes and reel off a good</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>long string of these names without leaving out more</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>than ten miles of river in every fifty, I began to feel</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>that I could take a boat down to New Orleans if I</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>could make her skip those little</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">10</span>gaps. But of course my complacency could hardly get</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>start enough to lift my nose a trifle into the air, before</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Mr. Bixby would think of something to fetch it down</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>again. One day he turned on me suddenly with this</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>settler:&mdash;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">15</span>&ldquo;What is the shape of Walnut Bend?&rdquo;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>He might as well have asked me my grandmother&rsquo;s</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>opinion of protoplasm. I reflected respectfully, and then</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>said I didn&rsquo;t know it had any particular shape. My</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>gunpowdery chief went off</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">20</span>with a bang, of course, and then went on loading and</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>firing until he was out of adjectives.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>I had learned long ago that he only carried just so</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>many rounds of ammunition, and was sure to subside</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>into a very placable and even remorseful</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">25</span>old smooth-bore as soon as they were all gone.</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>That word &ldquo;old&rdquo; is merely affectionate; he was</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>not more than thirty-four. I waited. By and by</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>he said,&mdash;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>&ldquo;My boy, you&rsquo;ve got to know the shape of the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">30</span>river perfectly. It is all there is left to steer by on</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>a very dark night. Everything else is blotted out and</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>gone. But mind you, it hasn&rsquo;t the same shape in the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>night that it has in the day-time.&rdquo;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>&ldquo;How on earth am I ever going to learn it,</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">35</span>then?&rdquo;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>&ldquo;How do you follow a hall at home in the dark?</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>Because you know the shape of it. You can&rsquo;t</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>see it.&rdquo;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>&ldquo;Do you mean to say that I&rsquo;ve got to know all</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">40</span>the million trifling variations of shape in the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>banks of this interminable river as well as I know</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>the shape of the front hall at home?&rdquo;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>&ldquo;On my honor you&rsquo;ve got to know them better</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>than any man ever did know the shapes of the</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">45</span>halls in his own house.&rdquo;</p><p class=\"\" style=\"margin-bottom:2px\"><span class=\"ln\">&nbsp;&nbsp;</span>&ldquo;I wish I was dead!&rdquo;</p>",
+   "src": "&mdash; Mark Twain, from <i>Life on the Mississippi</i>"
+  },
+  {
+   "n": 35,
+   "stem": "When the narrator says, &ldquo;my complacency could hardly get start enough to lift my nose a trifle into the air, before Mr. Bixby would think of something to fetch it down again,&rdquo; he means:",
+   "opts": [
+    "Whenever the narrator picked his head up, Mr. Bixby was there to tell him to keep his eyes on the river.",
+    "Just as he thought he was learning the river, Bixby would demonstrate how little the narrator actually knew.",
+    "No one can name all the islands, towns, bars, points, and bends of the Mississippi River.",
+    "No other pilot knew the river as well as Mr. Bixby did.",
+    "The narrator could never hope to know the river as well as Bixby did."
+   ],
+   "ans": 1,
+   "why": "&ldquo;Nose in the air&rdquo; is a figure of speech for feeling pleased with yourself &mdash; that is what <i>complacency</i> means. Bixby keeps &ldquo;fetching it down&rdquo; by asking something the narrator cannot answer. So: <b>just as he thinks he is learning the river, Bixby shows him how little he knows</b>. (A) takes &ldquo;nose in the air&rdquo; literally, which is exactly the trap."
+  },
+  {
+   "n": 36,
+   "stem": "Why does the narrator compare Bixby&rsquo;s question about the shape of Walnut Bend to asking about his grandmother&rsquo;s opinion of protoplasm?",
+   "opts": [
+    "Only his grandmother could answer Bixby&rsquo;s question.",
+    "Both are questions that have no real answer.",
+    "Both are questions the narrator cannot answer.",
+    "Walnut Bend has the same shape as protoplasm.",
+    "Bixby does not know the narrator&rsquo;s grandmother."
+   ],
+   "ans": 2,
+   "why": "He says it and then proves it: &ldquo;I&hellip; said I didn&rsquo;t know it had any particular shape.&rdquo; The joke is that both questions are equally hopeless <b>for him</b>. (B) is close but wrong &mdash; Walnut Bend does have a shape; he just does not know it."
+  },
+  {
+   "n": 37,
+   "stem": "What is the meaning of &ldquo;gunpowdery&rdquo; in line 19?",
+   "opts": [
+    "loud",
+    "smoky",
+    "strong",
+    "explosive",
+    "gritty"
+   ],
+   "ans": 3,
+   "why": "Read on for the answer: the chief &ldquo;went off with a bang&hellip; loading and firing until he was out of adjectives,&rdquo; and later &ldquo;carried just so many rounds of ammunition.&rdquo; The whole passage runs the gun image, so gunpowdery means <b>explosive</b> &mdash; quick to blow up in temper. Loud is only the noise, not the sudden anger."
+  },
+  {
+   "n": 38,
+   "stem": "Which of the following best describes the narrator&rsquo;s reaction to the information that he will need to know the shape of the river perfectly even at night?",
+   "opts": [
+    "anger",
+    "regret",
+    "amazement",
+    "enthusiasm",
+    "despair"
+   ],
+   "ans": 4,
+   "why": "His last line is &ldquo;I wish I was dead!&rdquo; &mdash; the task feels impossible. That is <b>despair</b> (comic despair, but despair). He is not angry at Bixby, and he is certainly not enthusiastic."
+  },
+  {
+   "n": 39,
+   "stem": "The tone of this passage can best be described as",
+   "opts": [
+    "humorous",
+    "serious",
+    "angry",
+    "analytical",
+    "tense"
+   ],
+   "ans": 0,
+   "why": "The grandmother-and-protoplasm joke, the &ldquo;old smooth-bore&rdquo; who is only thirty-four, the cheerfully hopeless &ldquo;I wish I was dead!&rdquo; &mdash; the writer is looking back at his younger self and laughing. The tone is <b>humorous</b>."
+  },
+  {
+   "n": 40,
+   "stem": "This passage can best be described as",
+   "opts": [
+    "a news item",
+    "propaganda",
+    "an autobiography",
+    "a research report",
+    "a textbook excerpt"
+   ],
+   "ans": 2,
+   "why": "It is told as &ldquo;I,&rdquo; it recounts something that happened to the writer in his own past, and it is signed Mark Twain, from <i>Life on the Mississippi</i>. A true story about your own life is <b>an autobiography</b>."
+  }
+ ]
+};
+const MINUTES = 17;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+</body>
+</html>

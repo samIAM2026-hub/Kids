@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 3 · Quantitative Section 1</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #2f6f5e; --accent-soft: #d5e7e0;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+  .passage .verse { font-size: 15.5px; margin-bottom: 3px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 3 &middot; Section 1</div>
+    <h1>Quantitative Skills — Section 1</h1>
+    <div class="meta">25 questions &middot; 30 minutes &middot; same length and pace as the real SSAT math section</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">30:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Summer Mock Test 3 &middot; <a href="SSAT-MockTest3-Index.html">All sections</a> &middot; <a href="index.html">Quiz hub</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Quantitative Section 1",
+ "count": 25,
+ "items": [
+  {
+   "n": 1,
+   "stem": "If 6 + 12 + ___ = 5 + 11 + 6, then ___ =",
+   "opts": [
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+   ],
+   "ans": 2,
+   "why": "Add up the side you know first: 5 + 11 + 6 = 22. The other side is 6 + 12 = 18, so the blank must be 22 &minus; 18 = <b>4</b>. Never solve for the blank before you have simplified both sides."
+  },
+  {
+   "n": 2,
+   "stem": "4 &times; 3 &times; 6 &times; 2 is equal to the product of 24 and",
+   "opts": [
+    "6",
+    "7",
+    "8",
+    "9",
+    "11"
+   ],
+   "ans": 0,
+   "why": "4 &times; 3 &times; 6 &times; 2 = 144. And 144 &divide; 24 = <b>6</b>. Faster still: 4 &times; 3 &times; 2 = 24 already, so the leftover factor is the 6."
+  },
+  {
+   "n": 3,
+   "stem": "If &#8532; of a number is 24, then &frac14; of the same number is",
+   "opts": [
+    "20",
+    "16",
+    "13",
+    "12",
+    "9"
+   ],
+   "ans": 4,
+   "why": "Find the whole number first. &#8532; of <i>n</i> is 24 &#8594; <i>n</i> = 24 &times; &#8323;&#8260;&#8322; = 36. Then &frac14; of 36 = <b>9</b>. Two-step fraction questions almost always want the whole number in between."
+  },
+  {
+   "n": 4,
+   "stem": "A box of chocolates has 45 pieces. If 9 pieces have nuts in them, what percent of the chocolates are without nuts?",
+   "opts": [
+    "20%",
+    "45%",
+    "79%",
+    "80%",
+    "84%"
+   ],
+   "ans": 3,
+   "why": "Read the last word: it asks for the ones <i>without</i> nuts. 45 &minus; 9 = 36 pieces. 36 &divide; 45 = 0.8 = <b>80%</b>. (20% is the trap — that is the percentage <i>with</i> nuts.)"
+  },
+  {
+   "n": 5,
+   "stem": "In the Northshore Swimming Club, 6 of 48 members are females. What is the ratio of females to all club members?",
+   "opts": [
+    "<span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">3</span><span style=\"display:block;padding:0 3px\">16</span></span>",
+    "<span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">1</span><span style=\"display:block;padding:0 3px\">15</span></span>",
+    "<span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">1</span><span style=\"display:block;padding:0 3px\">4</span></span>",
+    "<span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">1</span><span style=\"display:block;padding:0 3px\">8</span></span>",
+    "<span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">1</span><span style=\"display:block;padding:0 3px\">12</span></span>"
+   ],
+   "ans": 3,
+   "why": "6 out of 48. Divide top and bottom by 6: 6&#8260;48 = <b>1&#8260;8</b>."
+  },
+  {
+   "n": 6,
+   "stem": "Two numbers together add to 375. One number is twice the size of the other. What are the two numbers?",
+   "opts": [
+    "25, 50",
+    "50, 100",
+    "75, 150",
+    "95, 190",
+    "125, 250"
+   ],
+   "ans": 4,
+   "why": "Call the smaller one <i>x</i>. Then <i>x</i> + 2<i>x</i> = 3<i>x</i> = 375, so <i>x</i> = 125 and the other is 250. Check: 125 + 250 = 375. &#10003; With five answer choices you can also just add each pair &mdash; only (E) totals 375."
+  },
+  {
+   "n": 7,
+   "stem": "6&frac34;% =",
+   "opts": [
+    "67.5",
+    "6.75",
+    "0.675",
+    "0.0675",
+    "0.00675"
+   ],
+   "ans": 3,
+   "why": "Two moves. First turn the mixed number into a decimal: 6&frac34;% = 6.75%. Then drop the percent sign by dividing by 100, which slides the decimal point two places left: <b>0.0675</b>."
+  },
+  {
+   "n": 8,
+   "stem": "A club collected $1,085.00. If 75% of that was membership dues, how much money came from sources other than membership?",
+   "opts": [
+    "$271.25",
+    "$338.75",
+    "$365.75",
+    "$425.05",
+    "$442.25"
+   ],
+   "ans": 0,
+   "why": "If dues are 75%, everything else is the other 25%. 25% of $1,085 = $1,085 &divide; 4 = <b>$271.25</b>. Taking a quarter is quicker than finding 75% and subtracting."
+  },
+  {
+   "n": 9,
+   "stem": "A right angle is an angle that measures",
+   "opts": [
+    "exactly 90&#176;",
+    "greater than 90&#176;",
+    "less than 90&#176;",
+    "45&#176;",
+    "30&#176;"
+   ],
+   "ans": 0,
+   "why": "A right angle is <b>exactly 90&#176;</b> &mdash; the square corner. More than 90&#176; is <i>obtuse</i>; less than 90&#176; is <i>acute</i>."
+  },
+  {
+   "n": 10,
+   "stem": "In the equilateral triangle shown, what is the measure of each angle?",
+   "opts": [
+    "60&#176;",
+    "90&#176;",
+    "120&#176;",
+    "140&#176;",
+    "180&#176;"
+   ],
+   "ans": 0,
+   "why": "Every triangle's angles add to 180&#176;. <i>Equilateral</i> means all three sides &mdash; and therefore all three angles &mdash; are equal, so each one is 180 &divide; 3 = <b>60&#176;</b>.",
+   "fig": "<svg viewBox=\"0 0 220 120\" role=\"img\" aria-label=\"An equilateral triangle.\"><polygon points=\"110,15 20,105 200,105\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"98\" y=\"100\" font-family=\"Georgia\" font-size=\"13\">60&#176;</text></svg>"
+  },
+  {
+   "n": 11,
+   "stem": "If 12<i>a</i> + 4<i>a</i> &minus; 7<i>a</i> = 27, <i>a</i> =",
+   "opts": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+   ],
+   "ans": 2,
+   "why": "Combine the like terms before anything else: 12 + 4 &minus; 7 = 9, so 9<i>a</i> = 27 and <i>a</i> = <b>3</b>."
+  },
+  {
+   "n": 12,
+   "stem": "It costs <i>n</i> dollars to buy 10 boxes of crackers. At the same rate, how many dollars will it cost to buy 25 boxes?",
+   "opts": [
+    "2.5<i>n</i>",
+    "25<i>n</i>",
+    "2<i>n</i>/5",
+    "5<i>n</i>/2",
+    "250<i>n</i>"
+   ],
+   "ans": 0,
+   "why": "One box costs <i>n</i>&#8260;10. Twenty-five boxes cost 25 &times; <i>n</i>&#8260;10 = 2.5<i>n</i>. Note that (A) and (D) are the same number written two ways &mdash; 5<i>n</i>&#8260;2 = 2.5<i>n</i> &mdash; which is a flaw in this printing of the test. Choose (A), the form the answer key uses.",
+   "flag": "(A) 2.5n and (D) 5n/2 are equal. On a real SSAT only one form would appear."
+  },
+  {
+   "n": 13,
+   "stem": "In the figure below, if &#8737;1 is 33&#176;, what is the measure of &#8737;2?",
+   "opts": [
+    "56&#176;",
+    "110&#176;",
+    "130&#176;",
+    "147&#176;",
+    "180&#176;"
+   ],
+   "ans": 3,
+   "why": "&#8737;1 and &#8737;2 sit side by side on a straight line, so they are <i>supplementary</i> &mdash; they add to 180&#176;. 180 &minus; 33 = <b>147&#176;</b>. You never need the triangle at all.",
+   "fig": "<svg viewBox=\"0 0 300 110\" role=\"img\" aria-label=\"A triangle sitting on a straight line; angle 1 is inside the triangle at the right vertex, angle 2 is outside it on the line.\"><line x1=\"15\" y1=\"90\" x2=\"285\" y2=\"90\" stroke=\"#1c1a17\" stroke-width=\"2\"/><polyline points=\"60,90 130,25 205,90\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"182\" y=\"83\" font-family=\"Georgia\" font-size=\"15\">1</text><text x=\"215\" y=\"83\" font-family=\"Georgia\" font-size=\"15\">2</text></svg>"
+  },
+  {
+   "n": 14,
+   "stem": "Paul has a garden that is 4 metres by 7 metres. If he uses 2 ounces of fertilizer per square metre, how many ounces must he use?",
+   "opts": [
+    "21 oz",
+    "42 oz",
+    "44 oz",
+    "50 oz",
+    "56 oz"
+   ],
+   "ans": 4,
+   "why": "Area first: 4 &times; 7 = 28 square metres. Then 28 &times; 2 = <b>56 oz</b>. The trap answers come from adding the sides (perimeter) instead of multiplying them."
+  },
+  {
+   "n": 15,
+   "stem": "Steve is measuring the growth of a tomato plant. The chart below shows his measurements for the past five weeks. Based on the chart, what should he predict the height of the plant will be at week 6?",
+   "opts": [
+    "15 inches",
+    "17 inches",
+    "18 inches",
+    "21 inches",
+    "24 inches"
+   ],
+   "ans": 1,
+   "why": "Read the five values: 2, 5, 8, 11, 14. Each week the plant grows exactly 3 inches, so week 6 should be 14 + 3 = <b>17 inches</b>. With a graph question, always turn the picture into a list of numbers first.",
+   "fig": "<svg viewBox=\"0 0 420 240\" role=\"img\" aria-label=\"Line graph: the tomato plant is 2 inches at week 1, 5 at week 2, 8 at week 3, 11 at week 4 and 14 at week 5. Week 6 is empty.\"><line x1=\"55\" y1=\"200\" x2=\"400\" y2=\"200\" stroke=\"#1c1a17\" stroke-width=\"1.5\"/><line x1=\"55\" y1=\"200\" x2=\"55\" y2=\"20\" stroke=\"#1c1a17\" stroke-width=\"1.5\"/><line x1=\"51\" y1=\"200\" x2=\"55\" y2=\"200\" stroke=\"#1c1a17\"/><text x=\"46\" y=\"204\" font-size=\"11\" text-anchor=\"end\" font-family=\"Georgia\">0</text><line x1=\"51\" y1=\"178\" x2=\"55\" y2=\"178\" stroke=\"#1c1a17\"/><text x=\"46\" y=\"182\" font-size=\"11\" text-anchor=\"end\" font-family=\"Georgia\">2</text><line x1=\"51\" y1=\"156\" x2=\"55\" y2=\"156\" stroke=\"#1c1a17\"/><text x=\"46\" y=\"160\" font-size=\"11\" text-anchor=\"end\" font-family=\"Georgia\">4</text><line x1=\"51\" y1=\"134\" x2=\"55\" y2=\"134\" stroke=\"#1c1a17\"/><text x=\"46\" y=\"138\" font-size=\"11\" text-anchor=\"end\" font-family=\"Georgia\">6</text><line x1=\"51\" y1=\"112\" x2=\"55\" y2=\"112\" stroke=\"#1c1a17\"/><text x=\"46\" y=\"116\" font-size=\"11\" text-anchor=\"end\" font-family=\"Georgia\">8</text><line x1=\"51\" y1=\"90\" x2=\"55\" y2=\"90\" stroke=\"#1c1a17\"/><text x=\"46\" y=\"94\" font-size=\"11\" text-anchor=\"end\" font-family=\"Georgia\">10</text><line x1=\"51\" y1=\"68\" x2=\"55\" y2=\"68\" stroke=\"#1c1a17\"/><text x=\"46\" y=\"72\" font-size=\"11\" text-anchor=\"end\" font-family=\"Georgia\">12</text><line x1=\"51\" y1=\"46\" x2=\"55\" y2=\"46\" stroke=\"#1c1a17\"/><text x=\"46\" y=\"50\" font-size=\"11\" text-anchor=\"end\" font-family=\"Georgia\">14</text><line x1=\"51\" y1=\"24\" x2=\"55\" y2=\"24\" stroke=\"#1c1a17\"/><text x=\"46\" y=\"28\" font-size=\"11\" text-anchor=\"end\" font-family=\"Georgia\">16</text><text x=\"85\" y=\"218\" font-size=\"11\" text-anchor=\"middle\" font-family=\"Georgia\">Week 1</text><text x=\"140\" y=\"218\" font-size=\"11\" text-anchor=\"middle\" font-family=\"Georgia\">Week 2</text><text x=\"195\" y=\"218\" font-size=\"11\" text-anchor=\"middle\" font-family=\"Georgia\">Week 3</text><text x=\"250\" y=\"218\" font-size=\"11\" text-anchor=\"middle\" font-family=\"Georgia\">Week 4</text><text x=\"305\" y=\"218\" font-size=\"11\" text-anchor=\"middle\" font-family=\"Georgia\">Week 5</text><text x=\"360\" y=\"218\" font-size=\"11\" text-anchor=\"middle\" font-family=\"Georgia\">Week 6</text><polyline points=\"85,178 140,145 195,112 250,79 305,46\" fill=\"none\" stroke=\"#2f6f5e\" stroke-width=\"2.5\"/><circle cx=\"85\" cy=\"178\" r=\"4\" fill=\"#2f6f5e\"/><text x=\"85\" y=\"170\" font-size=\"12\" text-anchor=\"middle\" font-family=\"Georgia\">2</text><circle cx=\"140\" cy=\"145\" r=\"4\" fill=\"#2f6f5e\"/><text x=\"140\" y=\"137\" font-size=\"12\" text-anchor=\"middle\" font-family=\"Georgia\">5</text><circle cx=\"195\" cy=\"112\" r=\"4\" fill=\"#2f6f5e\"/><text x=\"195\" y=\"104\" font-size=\"12\" text-anchor=\"middle\" font-family=\"Georgia\">8</text><circle cx=\"250\" cy=\"79\" r=\"4\" fill=\"#2f6f5e\"/><text x=\"250\" y=\"71\" font-size=\"12\" text-anchor=\"middle\" font-family=\"Georgia\">11</text><circle cx=\"305\" cy=\"46\" r=\"4\" fill=\"#2f6f5e\"/><text x=\"305\" y=\"38\" font-size=\"12\" text-anchor=\"middle\" font-family=\"Georgia\">14</text><text x=\"18\" y=\"120\" font-size=\"11\" font-family=\"Georgia\" transform=\"rotate(-90 18 120)\" text-anchor=\"middle\">Height (inches)</text></svg>"
+  },
+  {
+   "n": 16,
+   "stem": "A student buys a sandwich for 80 cents, milk for 20 cents, and pie for 30 cents. How much does the meal cost?",
+   "opts": [
+    "$1.00",
+    "$1.20",
+    "$1.30",
+    "$1.40",
+    "$1.50"
+   ],
+   "ans": 2,
+   "why": "80 + 20 + 30 = 130 cents = <b>$1.30</b>. Convert to dollars only at the very end."
+  },
+  {
+   "n": 17,
+   "stem": "On a test with 75 questions, Cassidy answered 45 correctly. What percent did she answer correctly?",
+   "opts": [
+    "60%",
+    "72%",
+    "84%",
+    "89%",
+    "92%"
+   ],
+   "ans": 0,
+   "why": "45 &divide; 75 = 0.6 = <b>60%</b>. If dividing feels slow, simplify the fraction first: 45&#8260;75 = 3&#8260;5, and 3&#8260;5 is 60%."
+  },
+  {
+   "n": 18,
+   "stem": "Which of the following is NOT equal to a whole number?",
+   "opts": [
+    "<span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">16</span><span style=\"display:block;padding:0 3px\">4</span></span>",
+    "6 &times; <span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">2</span><span style=\"display:block;padding:0 3px\">3</span></span>",
+    "4 &divide; <span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">1</span><span style=\"display:block;padding:0 3px\">4</span></span>",
+    "<span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">1</span><span style=\"display:block;padding:0 3px\">3</span></span> &times; 4",
+    "3 + 2"
+   ],
+   "ans": 3,
+   "why": "Test each one. (A) 16&#8260;4 = 4. (B) 6 &times; &#8532; = 4. (C) 4 &divide; &frac14; = 16. (D) &#8531; &times; 4 = 4&#8260;3 = 1&#8531; &mdash; <b>not whole</b>. (E) 3 + 2 = 5. Remember that dividing <i>by</i> a fraction makes a number bigger, which is why (C) is not the answer."
+  },
+  {
+   "n": 19,
+   "stem": "Jake spent one-fifth of his life in school. If he is now 55, how many years did he spend in school?",
+   "opts": [
+    "9",
+    "11",
+    "13",
+    "15",
+    "17"
+   ],
+   "ans": 1,
+   "why": "One-fifth of 55 = 55 &divide; 5 = <b>11</b> years."
+  },
+  {
+   "n": 20,
+   "stem": "What is the perimeter of the following rectangle?",
+   "opts": [
+    "12 m",
+    "18 m",
+    "24 m",
+    "28 m",
+    "30 m"
+   ],
+   "ans": 3,
+   "why": "Perimeter means all the way around, and a rectangle has two of each side: 2 &times; (11 + 3) = 2 &times; 14 = <b>28 m</b>. 33 m would be the <i>area</i> &mdash; a different question.",
+   "fig": "<svg viewBox=\"0 0 300 120\" role=\"img\" aria-label=\"A rectangle 11 metres long and 3 metres tall.\"><rect x=\"45\" y=\"45\" width=\"180\" height=\"50\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"135\" y=\"36\" font-size=\"14\" text-anchor=\"middle\" font-family=\"Georgia\">11 m</text><text x=\"238\" y=\"76\" font-size=\"14\" font-family=\"Georgia\">3 m</text></svg>"
+  },
+  {
+   "n": 21,
+   "stem": "Bobby's test scores for social studies are 93, 76, 91, 83, and 72. What is his average score?",
+   "opts": [
+    "83",
+    "87",
+    "91",
+    "93",
+    "94"
+   ],
+   "ans": 0,
+   "why": "Add them: 93 + 76 + 91 + 83 + 72 = 415. Divide by how many there are: 415 &divide; 5 = <b>83</b>."
+  },
+  {
+   "n": 22,
+   "stem": "Riverside School has 150 fewer students than twice the number of students at Hillside School. If Riverside School has 500 students, how many students attend Hillside School?",
+   "opts": [
+    "125",
+    "150",
+    "250",
+    "300",
+    "325"
+   ],
+   "ans": 4,
+   "why": "Translate the sentence into an equation: 2<i>h</i> &minus; 150 = 500. So 2<i>h</i> = 650 and <i>h</i> = <b>325</b>. Check it: twice 325 is 650, and 650 &minus; 150 = 500. &#10003;"
+  },
+  {
+   "n": 23,
+   "stem": "A ladder is placed against a building. If the ladder makes a 55&#176; angle with the ground, what is the measure of the angle that the ladder makes with the building?",
+   "opts": [
+    "25&#176;",
+    "30&#176;",
+    "35&#176;",
+    "40&#176;",
+    "45&#176;"
+   ],
+   "ans": 2,
+   "why": "The building stands straight up from the ground, so ground, building and ladder make a right triangle. The three angles add to 180&#176;, and one of them is the 90&#176; corner, so the other two must add to 90&#176;: 90 &minus; 55 = <b>35&#176;</b>."
+  },
+  {
+   "n": 24,
+   "stem": "Ashley buys 48 apples. There are 12 Red Delicious apples and 16 Granny Smith apples. What fraction of the apples are not Red Delicious or Granny Smith?",
+   "opts": [
+    "<span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">1</span><span style=\"display:block;padding:0 3px\">5</span></span>",
+    "<span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">1</span><span style=\"display:block;padding:0 3px\">4</span></span>",
+    "<span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">1</span><span style=\"display:block;padding:0 3px\">3</span></span>",
+    "<span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">5</span><span style=\"display:block;padding:0 3px\">12</span></span>",
+    "<span style=\"display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.15\"><span style=\"display:block;border-bottom:1.4px solid currentColor;padding:0 3px\">7</span><span style=\"display:block;padding:0 3px\">12</span></span>"
+   ],
+   "ans": 3,
+   "why": "12 + 16 = 28 apples are named, so 48 &minus; 28 = 20 are not. 20&#8260;48 simplifies (divide both by 4) to <b>5&#8260;12</b>."
+  },
+  {
+   "n": 25,
+   "stem": "What is the total cost of a $750 television, including an 8% sales tax?",
+   "opts": [
+    "$765",
+    "$784",
+    "$79,218",
+    "$810",
+    "$824"
+   ],
+   "ans": 3,
+   "why": "The tax is 8% of 750 = $60, so the total is 750 + 60 = <b>$810</b>. One-step version: 750 &times; 1.08 = 810. Multiplying by 1.08 adds the tax in a single move."
+  }
+ ]
+};
+const MINUTES = 30;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+</body>
+</html>
