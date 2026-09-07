@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exercise 13 — Fraction of a Set: How Many?</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #eef4f2 55%, #d9e8e5 100%);
+    min-height: 100vh; color: #1c2a28; padding: 22px 14px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header { background: #146b63; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f2faf8; box-shadow: 0 8px 0 #0d443f; margin-bottom: 14px; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+
+  .nav { position: sticky; top: 0; z-index: 30; background: rgba(255,253,247,.95); backdrop-filter: blur(4px); border-radius: 12px; padding: 8px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(13,68,63,.12); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav a { text-decoration: none; font-size: 13.5px; font-weight: bold; color: #0d443f; background: #d9e8e5; border-radius: 99px; padding: 6px 13px; }
+  .nav a:hover { background: #bcd8d3; }
+
+  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 6px 0 #cbdedb; margin-bottom: 16px; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16px; line-height: 1.55; }
+  .intro p + p { margin-top: 10px; }
+
+  h2.sect { font-size: 20px; color: #0d443f; margin: 30px 0 12px; text-align: center; scroll-margin-top: 70px; }
+  h2.sect span { background: #d9e8e5; border-radius: 99px; padding: 5px 16px; display: inline-block; }
+  h3.sub { font-size: 17px; color: #0d443f; margin: 4px 0 10px; }
+
+  .qtext { font-size: 18px; margin: 6px 0 10px; line-height: 1.45; font-weight: bold; }
+  p.body { font-size: 15.5px; line-height: 1.65; color: #3d5652; }
+  p.body + p.body { margin-top: 9px; }
+
+  .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 3px; font-family: 'Courier New', monospace; font-weight: bold; line-height: 1.05; font-size: 17px; }
+  .fr i { font-style: normal; padding: 0 4px; border-bottom: 2px solid currentColor; }
+  .fr b { padding: 0 4px; }
+  .mx { font-family: 'Courier New', monospace; font-weight: bold; font-size: 21px; vertical-align: middle; }
+
+  .math { display: block; background: #f3f8f7; border-left: 5px solid #4f9f96; border-radius: 8px; padding: 10px 13px; margin: 8px 0; font-size: 16.5px; font-family: 'Courier New', monospace; font-weight: bold; color: #0d443f; }
+  .math.answer { background: #d7f0d3; border-left-color: #3a7d44; color: #23572c; }
+
+  .step { display: flex; gap: 11px; margin-bottom: 12px; }
+  .step .num { flex: 0 0 28px; height: 28px; border-radius: 50%; background: #146b63; color: #fff; font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .step .body { flex: 1; font-size: 15.5px; line-height: 1.6; }
+  .step .body b { color: #0d443f; }
+
+  .takeaway { background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 13px 15px; font-size: 15.5px; line-height: 1.6; margin-top: 12px; }
+  .takeaway .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; color: #a06a1e; margin-bottom: 5px; }
+
+  .trap { background: #fbeaea; border: 3px solid #e2a49c; border-radius: 12px; padding: 13px 15px; font-size: 15.5px; line-height: 1.6; margin-top: 12px; color: #7d2b21; }
+  .trap .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; color: #a5352a; margin-bottom: 5px; }
+
+  .shapes { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0; justify-content: center; }
+  .shapes .lab { text-align: center; font-size: 13.5px; color: #56736e; }
+  .shapes .plus { font-size: 22px; font-weight: bold; color: #4f9f96; }
+
+  .item { border: 3px solid #dfe9e7; border-radius: 14px; padding: 16px; margin-top: 14px; background: #fdfefe; }
+  .item .tag { display: inline-block; background: #146b63; color: #fff; font-size: 12px; font-weight: bold; border-radius: 99px; padding: 3px 12px; margin-bottom: 8px; letter-spacing: .3px; }
+  .item .ask { font-size: 16.5px; font-weight: bold; color: #1c2a28; line-height: 1.45; }
+  .steps { margin-top: 12px; }
+  .steps.hidden { display: none; }
+  .peek { background: #fff; color: #56736e; border: 2px solid #dfe9e7; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-family: inherit; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+  table.tbl { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 15px; }
+  table.tbl th, table.tbl td { border: 2px solid #dfe9e7; padding: 7px 9px; text-align: left; }
+  table.tbl th { background: #eef4f2; color: #0d443f; font-size: 13.5px; }
+  table.tbl td.a { font-family: 'Courier New', monospace; font-weight: bold; color: #23572c; }
+
+  .btn { background: #146b63; color: #fff; border: none; border-radius: 12px; padding: 11px 20px; font-size: 15px; font-family: inherit; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #0d443f; transition: transform .1s; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #0d443f; }
+  .btn.amber { background: #c9761d; box-shadow: 0 5px 0 #8f5211; }
+  .btn.ghost { background: #fff; color: #56736e; box-shadow: 0 4px 0 #dfe9e7; border: 2px solid #dfe9e7; }
+  .btn.sm { padding: 8px 14px; font-size: 14px; }
+  .center { text-align: center; }
+
+  .qcard { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 5px 0 #cbdedb; margin-bottom: 14px; }
+  .qcard .n { display: inline-block; background: #146b63; color: #fff; font-size: 13px; font-weight: bold; border-radius: 99px; padding: 3px 12px; margin-bottom: 8px; }
+  .opts { display: grid; grid-template-columns: repeat(2,1fr); gap: 9px; margin-top: 10px; }
+  .opt { background: #f9fcfb; border: 3px solid #dfe9e7; border-radius: 11px; padding: 11px 13px; font-size: 17px; cursor: pointer; text-align: center; font-family: 'Courier New', monospace; font-weight: bold; color: #0d443f; transition: .12s; }
+  .opt:hover { border-color: #4f9f96; }
+  .opt.pick { border-color: #146b63; background: #e2efec; }
+  .opt.right { border-color: #3a7d44; background: #e8f5e6; color: #23572c; }
+  .opt.wrong { border-color: #c0392b; background: #fbeaea; color: #a5352a; }
+  .opt.locked { cursor: default; }
+  .why { display: none; margin-top: 10px; background: #f3f8f7; border-left: 5px solid #4f9f96; border-radius: 8px; padding: 10px 13px; font-size: 15px; line-height: 1.55; color: #3d5652; }
+  .why.show { display: block; }
+
+  .scorebox { display: none; background: #146b63; color: #f2faf8; border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 7px 0 #0d443f; margin-top: 8px; }
+  .scorebox.show { display: block; }
+  .scorebox.fail { background: #a5352a; box-shadow: 0 7px 0 #7d2b21; }
+  .scorebox .pct { font-size: 46px; font-weight: bold; line-height: 1; }
+  .scorebox .sub { font-size: 16px; margin-top: 8px; opacity: .95; line-height: 1.5; }
+  .scorebox .verdict { font-size: 22px; font-weight: bold; margin-top: 12px; }
+
+  a.home { display: inline-block; margin-top: 16px; color: #56736e; text-decoration: none; font-size: 14px; }
+  a.home:hover { text-decoration: underline; }
+  footer { text-align: center; font-size: 12px; color: #7f938f; margin-top: 18px; }
+
+  @media (max-width: 640px) { .opts { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<script>
+/* ================= shared drawing + layout helpers ================= */
+function F(n,d){ return '<span class="fr"><i>'+n+'</i><b>'+d+'</b></span>'; }
+function M(w,n,d){ return '<span class="mx">'+w+'</span>'+F(n,d); }
+var FILL = '#8fcbb4', FILL2 = '#f0c079', EMPTY = '#ffffff', LINE = '#146b63';
+
+function circle(parts, shaded, size, fill){
+  size = size || 74; fill = fill || FILL;
+  var r = size/2 - 3, cx = size/2, cy = size/2, out = '';
+  out += '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">';
+  if (parts === 1){
+    out += '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+(shaded?fill:EMPTY)+'" stroke="'+LINE+'" stroke-width="2.5"/>';
+  } else {
+    for (var i=0;i<parts;i++){
+      var a0 = (i/parts)*2*Math.PI - Math.PI/2, a1 = ((i+1)/parts)*2*Math.PI - Math.PI/2;
+      var x0 = cx + r*Math.cos(a0), y0 = cy + r*Math.sin(a0);
+      var x1 = cx + r*Math.cos(a1), y1 = cy + r*Math.sin(a1);
+      var large = (a1-a0) > Math.PI ? 1 : 0;
+      out += '<path d="M '+cx+' '+cy+' L '+x0+' '+y0+' A '+r+' '+r+' 0 '+large+' 1 '+x1+' '+y1+' Z" fill="'+(i<shaded?fill:EMPTY)+'" stroke="'+LINE+'" stroke-width="2"/>';
+    }
+  }
+  return out + '</svg>';
+}
+function bar(parts, shaded, w, h, fill){
+  w = w || 260; h = h || 42; fill = fill || FILL;
+  var out = '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">', pw = (w-4)/parts;
+  for (var i=0;i<parts;i++){
+    out += '<rect x="'+(2+i*pw)+'" y="2" width="'+pw+'" height="'+(h-4)+'" fill="'+(i<shaded?fill:EMPTY)+'" stroke="'+LINE+'" stroke-width="2"/>';
+  }
+  return out + '</svg>';
+}
+/* a set of `total` dots laid out in `groups` fenced groups, first `shadedGroups` groups filled */
+function dotSet(total, groups, shadedGroups, perRow, dotR){
+  perRow = perRow || total/groups; dotR = dotR || 11;
+  var per = total/groups, gapG = 16, gapD = 8, cols = per, colW = dotR*2 + gapD;
+  var w = groups*(cols*colW + gapG) + 10, h = dotR*2 + 22, out = '';
+  out += '<svg width="100%" viewBox="0 0 '+w+' '+h+'" style="max-width:'+w+'px;display:block;margin:6px auto">';
+  for (var g=0; g<groups; g++){
+    var gx = 5 + g*(cols*colW + gapG);
+    out += '<rect x="'+(gx-4)+'" y="4" width="'+(cols*colW+2)+'" height="'+(h-12)+'" rx="8" fill="none" stroke="#b9d2cd" stroke-width="2" stroke-dasharray="5 4"/>';
+    for (var i=0;i<per;i++){
+      var cx = gx + i*colW + dotR + 2;
+      out += '<circle cx="'+cx+'" cy="'+(h/2-2)+'" r="'+dotR+'" fill="'+(g<shadedGroups?FILL:EMPTY)+'" stroke="'+LINE+'" stroke-width="2"/>';
+    }
+  }
+  return out + '</svg>';
+}
+/* the English name for a slice size: 4 -> "quarters" */
+var SLICE = {2:'halves',3:'thirds',4:'quarters',5:'fifths',6:'sixths',7:'sevenths',8:'eighths',9:'ninths',10:'tenths',11:'elevenths',12:'twelfths'};
+function slices(d){ return SLICE[d] || (d + 'ths'); }
+function group(html, cap){ return '<div style="text-align:center">'+html+(cap?'<div class="lab">'+cap+'</div>':'')+'</div>'; }
+function rowOf(list){ return '<div class="shapes">'+list.join('')+'</div>'; }
+
+/* worked example block with a hide-the-steps button */
+var itemCount = 0;
+function item(tag, ask, steps, answer){
+  var id = 'it' + (itemCount++);
+  return '<div class="item">'
+    + '<span class="tag">'+tag+'</span>'
+    + '<div class="ask">'+ask+'</div>'
+    + '<div class="steps" id="'+id+'">'
+    +   steps.map(function(s,i){ return '<div class="step"><div class="num">'+(i+1)+'</div><div class="body">'+s+'</div></div>'; }).join('')
+    +   '<span class="math answer">'+answer+'</span>'
+    + '</div>'
+    + '<button class="peek" onclick="peek(\''+id+'\',this)">🙈 Hide the steps — let me try it myself</button>'
+    + '</div>';
+}
+function peek(id, btn){
+  var el = document.getElementById(id);
+  var hidden = el.classList.toggle('hidden');
+  btn.textContent = hidden ? '👀 Show me the steps again' : '🙈 Hide the steps — let me try it myself';
+}
+</script>
+  <header>
+    <div class="ic">🎨</div>
+    <h1>Exercise 13 — How Much <em>Is</em> a Fraction of a Set?</h1>
+    <p>Colouring a fraction of a group · <sup>1</sup>⁄<sub>2</sub> of 12 · and the two-step way to do <sup>3</sup>⁄<sub>4</sub> of 20</p>
+  </header>
+
+  <div class="nav">
+    <a href="#q1">1️⃣ Q1 colouring</a>
+    <a href="#q2">2️⃣ Q2 one part of the set</a>
+    <a href="#q3">3️⃣ Q3 more than one part</a>
+    <a href="#traps">⚠️ Traps</a>
+    <a href="#test">🎯 The test</a>
+  </div>
+
+  <div class="card intro">
+    <p><strong>Hi Grace!</strong> Exercise 12 asked "<em>what fraction is shaded?</em>" — you counted and wrote a fraction. Exercise 13 turns it round: it <strong>gives you the fraction</strong> and asks how many things that is.</p>
+    <p>The whole exercise runs on one two-word instruction: <strong>divide, then times</strong>. Read the three sections, then take the test — <strong>12 out of 15 (80%)</strong> to pass.</p>
+  </div>
+
+  <!-- ============ Q1 ============ -->
+  <h2 class="sect" id="q1"><span>1️⃣ Q1 — colour a fraction of the set</span></h2>
+
+  <div class="card">
+    <p class="body">"Colour <span class="fr"><i>1</i><b>3</b></span> of the set" does <em>not</em> mean colour 1 thing, and it does not mean colour 3 things. It means: <strong>split the set into 3 equal groups and colour one whole group.</strong></p>
+
+    <div class="step"><div class="num">1</div><div class="body"><b>The bottom number tells you how many groups to make.</b> Bottom is 3 → make 3 equal groups. (Your book has already drawn the lines for you in most of these.)</div></div>
+    <div class="step"><div class="num">2</div><div class="body"><b>Work out how many go in each group:</b> total ÷ bottom number.</div></div>
+    <div class="step"><div class="num">3</div><div class="body"><b>The top number tells you how many groups to colour.</b> Top is 1 → colour one group. Top is 2 → colour two whole groups.</div></div>
+
+    <div id="q1figA"></div>
+    <p class="body"><strong>12 leaves, colour <span class="fr"><i>1</i><b>3</b></span>:</strong> 12 ÷ 3 = 4 in each group, and you colour 1 group — so <strong>4 leaves</strong> get coloured.</p>
+
+    <div id="q1figB"></div>
+    <p class="body"><strong>15 socks, colour <span class="fr"><i>2</i><b>5</b></span>:</strong> 5 groups, 15 ÷ 5 = 3 socks in each group, and you colour <strong>2</strong> of those groups — so <strong>6 socks</strong> get coloured.</p>
+
+    <div class="takeaway">
+      <span class="lbl">Bottom = how many groups · Top = how many you colour</span>
+      Say it that way round every time. The bottom number always does its job first, because you cannot colour groups that do not exist yet.
+    </div>
+  </div>
+
+  <!-- ============ Q2 ============ -->
+  <h2 class="sect" id="q2"><span>2️⃣ Q2 — "<sup>1</sup>⁄<sub>2</sub> of 12 =" · one part of the set</span></h2>
+
+  <div class="card">
+    <p class="body">When the top number is <strong>1</strong>, there is only one step. <span class="fr"><i>1</i><b>2</b></span> of 12 means "split 12 into 2 equal groups and take one group", and that is simply:</p>
+    <span class="math answer">1/2 of 12 &nbsp;=&nbsp; 12 ÷ 2 &nbsp;=&nbsp; <b>6</b></span>
+
+    <div id="q2fig"></div>
+
+    <p class="body">The word <strong>"of"</strong> is doing the work here — with fractions, "of" is an instruction to <em>divide by the bottom number</em>.</p>
+
+    <table class="tbl">
+      <tr><th>Question</th><th>What you say</th><th>Working</th><th>Answer</th></tr>
+      <tr><td>1/2 of 12</td><td>12 into 2 groups</td><td>12 ÷ 2</td><td class="a">6</td></tr>
+      <tr><td>1/4 of 12</td><td>12 into 4 groups</td><td>12 ÷ 4</td><td class="a">3</td></tr>
+      <tr><td>1/3 of 24</td><td>24 into 3 groups</td><td>24 ÷ 3</td><td class="a">8</td></tr>
+      <tr><td>1/6 of 36</td><td>36 into 6 groups</td><td>36 ÷ 6</td><td class="a">6</td></tr>
+      <tr><td>1/8 of 16</td><td>16 into 8 groups</td><td>16 ÷ 8</td><td class="a">2</td></tr>
+      <tr><td>1/10 of 30</td><td>30 into 10 groups</td><td>30 ÷ 10</td><td class="a">3</td></tr>
+    </table>
+
+    <div class="takeaway">
+      <span class="lbl">Look at the pattern in the table</span>
+      The <strong>bigger the bottom number, the smaller the answer</strong> — because you are sharing the same pile between more groups. 1/2 of 12 is 6, but 1/6 of 12 is only 2. If you ever get a bigger answer from a bigger bottom number, something has gone wrong.
+    </div>
+  </div>
+
+  <!-- ============ Q3 ============ -->
+  <h2 class="sect" id="q3"><span>3️⃣ Q3 — "<sup>3</sup>⁄<sub>4</sub> of 20 =" · more than one part</span></h2>
+
+  <div class="card">
+    <p class="body">This is the whole point of Exercise 13, and it is why your book puts the two questions <em>right underneath each other</em>: first it asks <span class="fr"><i>1</i><b>4</b></span> of 20, and then <span class="fr"><i>3</i><b>4</b></span> of 20. The second one is built out of the first.</p>
+
+    <div class="step"><div class="num">1</div><div class="body"><b>Divide</b> by the bottom number to find <b>one</b> group: 20 ÷ 4 = <b>5</b>. So 1/4 of 20 is 5.</div></div>
+    <div class="step"><div class="num">2</div><div class="body"><b>Times</b> by the top number, because you want 3 of those groups: 5 × 3 = <b>15</b>.</div></div>
+
+    <span class="math answer">3/4 of 20 &nbsp;=&nbsp; (20 ÷ 4) × 3 &nbsp;=&nbsp; 5 × 3 &nbsp;=&nbsp; <b>15</b></span>
+
+    <div id="q3fig"></div>
+
+    <p class="body">Here are all six pairs from your book, done the same way. Once you have the first line, the second line is one small multiplication.</p>
+
+    <div id="q3items"></div>
+
+    <div class="takeaway">
+      <span class="lbl">Always divide first, then times</span>
+      Doing it in this order keeps the numbers small and friendly. For 7/10 of 30 you get 30 ÷ 10 = 3, then 3 × 7 = 21 — easy. The other order (30 × 7 = 210, then ÷ 10) gives the same answer but you had to handle 210 to get there.
+    </div>
+  </div>
+
+  <!-- ============ TRAPS ============ -->
+  <h2 class="sect" id="traps"><span>⚠️ The three traps in this exercise</span></h2>
+
+  <div class="card">
+    <div class="trap">
+      <span class="lbl">Trap 1 — dividing by the top number</span>
+      For <span class="fr"><i>3</i><b>4</b></span> of 20, some people do 20 ÷ 3. The <strong>bottom</strong> number is the one that says how many groups to make, so it is always the divider. The top number only ever multiplies.
+    </div>
+    <div class="trap">
+      <span class="lbl">Trap 2 — answering with a fraction</span>
+      "<span class="fr"><i>1</i><b>4</b></span> of 20" is asking <em>how many things</em>. The answer is <strong>5</strong> — a plain number of objects, not 5/20 and not 1/5. You started with a fraction, but you finish with a count.
+    </div>
+    <div class="trap">
+      <span class="lbl">Trap 3 — an answer bigger than the set</span>
+      A fraction of something is a <em>part</em> of it, so your answer must be <strong>smaller than the number you started with</strong> (or equal to it, if the fraction is 1 whole). If you work out 2/3 of 21 and get 63, you multiplied when you should have divided.
+    </div>
+  </div>
+
+  <!-- ============ TEST ============ -->
+  <h2 class="sect" id="test"><span>🎯 The test — 80% to pass</span></h2>
+
+  <div class="card intro">
+    <p><strong>15 questions</strong> in the same order as Exercise 13, with new numbers. You need <strong>12 correct</strong> to pass.</p>
+    <p>Write "÷ then ×" at the top of your paper and follow it every time.</p>
+  </div>
+
+  <div id="quiz"></div>
+
+  <div class="center" style="margin: 6px 0 16px;">
+    <button class="btn amber" id="submitBtn" onclick="finishQuiz()">Finish the test</button>
+    <button class="btn ghost sm" style="margin-left:8px;" onclick="resetQuiz()">Start over</button>
+  </div>
+
+  <div class="scorebox" id="scorebox"></div>
+
+  <div class="center"><a class="home" href="index.html">← back to all quizzes</a></div>
+  <footer>Made for Grace · Unit 3 Fractions · Exercise 13</footer>
+</div>
+
+<script>
+function fencedSet(total, groups, shadedGroups, perRowInGroup){
+  var per = total/groups, r = 12, gap = 9, cell = r*2+gap;
+  var rowsIn = Math.ceil(per/perRowInGroup), colsIn = Math.min(per, perRowInGroup);
+  var gw = colsIn*cell + 10, gh = rowsIn*cell + 10, gGap = 14;
+  var w = groups*(gw+gGap), h = gh + 8, out = '';
+  out += '<svg width="100%" viewBox="0 0 '+w+' '+h+'" style="max-width:'+Math.min(w,660)+'px;display:block;margin:10px auto">';
+  for (var g=0; g<groups; g++){
+    var gx = g*(gw+gGap) + 4;
+    out += '<rect x="'+gx+'" y="4" width="'+gw+'" height="'+gh+'" rx="9" fill="none" stroke="#b9d2cd" stroke-width="2.5" stroke-dasharray="6 5"/>';
+    for (var i=0;i<per;i++){
+      var cx = gx + (i%colsIn)*cell + r + 7, cy = 4 + Math.floor(i/colsIn)*cell + r + 7;
+      out += '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+(g<shadedGroups?FILL:EMPTY)+'" stroke="'+LINE+'" stroke-width="2"/>';
+    }
+  }
+  return out + '</svg>';
+}
+
+document.getElementById('q1figA').innerHTML = fencedSet(12, 3, 1, 2)
+  + '<p class="body" style="text-align:center">3 groups · 4 in each · 1 group coloured = '+F(1,3)+' of 12 = <strong>4</strong></p>';
+document.getElementById('q1figB').innerHTML = fencedSet(15, 5, 2, 3)
+  + '<p class="body" style="text-align:center">5 groups · 3 in each · 2 groups coloured = '+F(2,5)+' of 15 = <strong>6</strong></p>';
+document.getElementById('q2fig').innerHTML = fencedSet(12, 2, 1, 3)
+  + '<p class="body" style="text-align:center">12 split into 2 equal groups · one group is 6</p>';
+document.getElementById('q3fig').innerHTML = fencedSet(20, 4, 3, 5)
+  + '<p class="body" style="text-align:center">20 split into 4 groups of 5 · 3 groups coloured · 5 × 3 = <strong>15</strong></p>';
+
+/* ---------- Q3 worked pairs ---------- */
+var PAIRS = [['a',20,4,3],['b',25,5,3],['c',21,3,2],['d',30,10,7],['e',16,8,3],['f',24,6,5]];
+document.getElementById('q3items').innerHTML = PAIRS.map(function(r){
+  var L=r[0], N=r[1], d=r[2], n=r[3], one = N/d;
+  return item('Q3 (' + L + ')', F(1,d) + ' of ' + N + ' = ?&nbsp;&nbsp;then&nbsp;&nbsp;' + F(n,d) + ' of ' + N + ' = ?', [
+    '<b>Divide first.</b> The bottom number is ' + d + ', so split ' + N + ' into ' + d + ' equal groups: ' + N + ' ÷ ' + d + ' = <b>' + one + '</b>. That is ' + F(1,d) + ' of ' + N + '.',
+    '<b>Now times.</b> The top number is ' + n + ', so you want ' + n + ' of those groups: ' + one + ' × ' + n + ' = <b>' + (one*n) + '</b>.',
+    '<b>Check:</b> ' + (one*n) + ' is smaller than ' + N + ', so the answer really is a part of the set. ✔'
+  ], F(1,d) + ' of ' + N + ' = <b>' + one + '</b> &nbsp;·&nbsp; ' + F(n,d) + ' of ' + N + ' = <b>' + (one*n) + '</b>');
+}).join('');
+
+/* ================= THE TEST ================= */
+var QUIZ = [
+  { q: 'Find the value: '+F(1,2)+' of <strong>18</strong> =',
+    options: ["9", "16", "36", "2"], answer: 0,
+    why: 'Split 18 into 2 equal groups: 18 ÷ 2 = 9. Half of eighteen is nine.' },
+
+  { q: 'Find the value: '+F(1,3)+' of <strong>27</strong> =',
+    options: ["9", "3", "24", "81"], answer: 0,
+    why: '27 ÷ 3 = 9. Three equal groups of 9 make 27. (81 comes from multiplying by 3 instead of dividing.)' },
+
+  { q: 'Find the value: '+F(1,5)+' of <strong>35</strong> =',
+    options: ["7", "5", "30", "175"], answer: 0,
+    why: '35 ÷ 5 = 7. The bottom number is always the one you divide by.' },
+
+  { q: 'Find the value: '+F(1,6)+' of <strong>42</strong> =',
+    options: ["7", "6", "36", "8"], answer: 0,
+    why: '42 ÷ 6 = 7. Six groups of 7 make 42. ✔' },
+
+  { q: 'You want to colour '+F(2,5)+' of a set of <strong>15 socks</strong>. How many socks do you colour?',
+    options: ["6", "2", "3", "10"], answer: 0,
+    why: 'Bottom number first: 5 groups, and 15 ÷ 5 = 3 socks in each group. Then colour 2 whole groups: 3 × 2 = 6 socks. (3 is only one group.)' },
+
+  { q: 'You want to colour '+F(3,8)+' of a set of <strong>24 cupcakes</strong>. How many cupcakes do you colour?',
+    options: ["9", "3", "8", "16"], answer: 0,
+    why: '8 groups, and 24 ÷ 8 = 3 cupcakes in each. Colour 3 groups: 3 × 3 = 9 cupcakes.' },
+
+  { q: 'Find the value: '+F(3,4)+' of <strong>20</strong> =',
+    options: ["15", "5", "80", "12"], answer: 0,
+    why: 'Divide first: 20 ÷ 4 = 5. Then times by the top: 5 × 3 = 15. (5 is only 1/4 of 20 — the first step on its own.)' },
+
+  { q: 'Find the value: '+F(2,3)+' of <strong>21</strong> =',
+    options: ["14", "7", "42", "10"], answer: 0,
+    why: '21 ÷ 3 = 7, then 7 × 2 = 14. Check: 14 is less than 21, so it really is a part of the set. ✔' },
+
+  { q: 'Find the value: '+F(3,5)+' of <strong>25</strong> =',
+    options: ["15", "5", "20", "75"], answer: 0,
+    why: '25 ÷ 5 = 5, then 5 × 3 = 15. (75 is 25 × 3 with the dividing step missed out.)' },
+
+  { q: 'Find the value: '+F(5,6)+' of <strong>24</strong> =',
+    options: ["20", "4", "19", "30"], answer: 0,
+    why: '24 ÷ 6 = 4, then 4 × 5 = 20. Five sixths is nearly the whole set, so an answer close to 24 makes sense. ✔' },
+
+  { q: 'Find the value: '+F(7,10)+' of <strong>30</strong> =',
+    options: ["21", "3", "23", "70"], answer: 0,
+    why: '30 ÷ 10 = 3, then 3 × 7 = 21. Dividing first keeps the numbers small — much easier than 30 × 7 = 210 and then dividing.' },
+
+  { q: 'Find the value: '+F(3,8)+' of <strong>16</strong> =',
+    options: ["6", "2", "8", "48"], answer: 0,
+    why: '16 ÷ 8 = 2, then 2 × 3 = 6. (2 is 1/8 of 16 — that is only the first step.)' },
+
+  { q: 'To work out '+F(4,5)+' of <strong>30</strong>, what do you do <strong>first</strong>?',
+    options: ["divide 30 by 5", "multiply 30 by 4", "divide 30 by 4", "multiply 5 by 4"], answer: 0,
+    why: 'The bottom number says how many equal groups to make, so it always goes first: 30 ÷ 5 = 6. Then you times by the top number: 6 × 4 = 24.' },
+
+  { q: 'Find the value: '+F(2,7)+' of <strong>28</strong> =',
+    options: ["8", "4", "14", "56"], answer: 0,
+    why: '28 ÷ 7 = 4, then 4 × 2 = 8. (14 would be half of 28 — that is 1/2, not 2/7.)' },
+
+  { q: 'There are <strong>24 cookies</strong> on a plate and Grace eats '+F(1,4)+' of them. How many cookies are <strong>left</strong>?',
+    options: ["18", "6", "20", "12"], answer: 0,
+    why: 'First find what she ate: 24 ÷ 4 = 6 cookies. Then take them away: 24 − 6 = 18 left. (6 is the number she ate, not the number left — read the last line of the question carefully.)' }
+];
+</script>
+<script>
+/* ================= shared quiz engine ================= */
+/* options are plain text; "8/5" is drawn as a stacked fraction, "2 3/4" as a mixed number */
+function fmtOpt(o){
+  var m = /^(\d+)\s+(\d+)\/(\d+)$/.exec(o);
+  if (m) return M(m[1], m[2], m[3]);
+  m = /^(\d+)\/(\d+)$/.exec(o);
+  if (m) return F(m[1], m[2]);
+  return o;
+}
+
+/* shuffle each question's options so the position never gives the answer away */
+QUIZ.forEach(function(it){
+  var correct = it.options[it.answer];
+  for (var i = it.options.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = it.options[i]; it.options[i] = it.options[j]; it.options[j] = t;
+  }
+  it.answer = it.options.indexOf(correct);
+});
+
+var picks = QUIZ.map(function(){ return -1; });
+var locked = false;
+var PASS_PCT = 80, PASS_N = Math.ceil(QUIZ.length * PASS_PCT / 100);
+
+document.getElementById('quiz').innerHTML = QUIZ.map(function(it,i){
+  var opts = it.options.map(function(o,j){
+    return '<div class="opt" id="o'+i+'_'+j+'" onclick="pick('+i+','+j+')">'+fmtOpt(o)+'</div>';
+  }).join('');
+  return '<div class="qcard">'
+    + '<span class="n">Question '+(i+1)+'</span>'
+    + '<div style="font-size:17px;line-height:1.6;">'+it.q+'</div>'
+    + '<div class="opts">'+opts+'</div>'
+    + '<div class="why" id="w'+i+'"></div>'
+    + '</div>';
+}).join('');
+
+function pick(i,j){
+  if (locked) return;
+  picks[i] = j;
+  for (var k=0;k<QUIZ[i].options.length;k++){
+    document.getElementById('o'+i+'_'+k).classList.toggle('pick', k===j);
+  }
+}
+
+function finishQuiz(){
+  if (locked) return;
+  var blank = [];
+  picks.forEach(function(p,i){ if (p < 0) blank.push(i+1); });
+  if (blank.length){
+    alert('You still have ' + blank.length + ' question(s) with no answer: ' + blank.join(', ') + '.\n\nEvery blank counts as wrong, so go back and pick something first.');
+    return;
+  }
+  locked = true;
+  var score = 0;
+  QUIZ.forEach(function(it,i){
+    for (var k=0;k<it.options.length;k++){
+      var el = document.getElementById('o'+i+'_'+k);
+      el.classList.remove('pick'); el.classList.add('locked');
+      if (k === it.answer) el.classList.add('right');
+      else if (k === picks[i]) el.classList.add('wrong');
+    }
+    var w = document.getElementById('w'+i);
+    w.classList.add('show');
+    if (picks[i] === it.answer){ score++; w.innerHTML = '<strong>✅ Correct.</strong> ' + it.why; }
+    else { w.innerHTML = '<strong>❌ The right answer is highlighted in green.</strong> ' + it.why; }
+  });
+
+  var pct = Math.round(score / QUIZ.length * 100);
+  var pass = pct >= PASS_PCT;
+  var box = document.getElementById('scorebox');
+  box.className = 'scorebox show' + (pass ? '' : ' fail');
+  box.innerHTML = '<div class="pct">' + pct + '%</div>'
+    + '<div class="sub">' + score + ' right out of ' + QUIZ.length + ' · the pass mark is ' + PASS_PCT + '% (' + PASS_N + ' correct)</div>'
+    + '<div class="verdict">' + (pass ? '🎉 You passed!' : 'Not passed yet — ' + (PASS_N - score) + ' more needed') + '</div>'
+    + '<div class="sub">' + (pass
+        ? 'Well done Grace — you can do this exercise on your own now. Show this page to Dad.'
+        : 'That is completely fine — it just means one step has not clicked yet. Scroll back up, read the green explanation under each question you missed, then press "Start over".')
+    + '</div>';
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.getElementById('submitBtn').textContent = 'Test finished';
+}
+
+function resetQuiz(){
+  locked = false;
+  picks = QUIZ.map(function(){ return -1; });
+  QUIZ.forEach(function(it,i){
+    for (var k=0;k<it.options.length;k++){ document.getElementById('o'+i+'_'+k).className = 'opt'; }
+    var w = document.getElementById('w'+i); w.className = 'why'; w.innerHTML = '';
+  });
+  document.getElementById('scorebox').className = 'scorebox';
+  document.getElementById('submitBtn').textContent = 'Finish the test';
+  document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
