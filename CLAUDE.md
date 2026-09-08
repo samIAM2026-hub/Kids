@@ -103,8 +103,29 @@ Hand-authored educational pages using **CSS `:root` variables** (`var(--body)` e
 
 ### Hubs — `Quizzes/index.html`, `Interest Lessons/index.html`
 Card grids: `.wrap` → `.grid` → `.quiz`/`.lcard` cards (`.ic` icon · `.t` title · `.d` desc ·
-`.tag`/`.chip` tags · `.time` estimate), grouped by book/topic. Match the existing card markup when
-adding an entry.
+`.tag`/`.chip` tags · `.time` estimate). Match the existing card markup when adding an entry.
+
+**The Quizzes hub is sliced three ways — child · subject · date.** The card markup never changes;
+where you *put* the card is what decides the first two, and its `data-added` decides the third.
+
+```text
+<section class="kid" id="grace" data-kid="grace" data-tab="👧 Grace">   ← level 1: the child
+  <details class="subj" data-subject="Reading" open>                    ← level 2: the subject
+    <details class="grp" data-group="🍑 James and the Giant Peach">     ← level 3: one book (collapsed)
+      <div class="grid"> <a class="quiz" data-added="…"> … </a> </div>
+```
+
+- **Three children blocks:** `grace`, `warren`, and `both` (中文 + More). `both` is the escape
+  hatch — anything shared lives there once instead of being duplicated into each child.
+- **Subjects** (`details.subj`, `open` by default) hold either a flat `.grid` or several
+  `details.grp` book folders, which stay **collapsed** until clicked. A subject that grows past
+  ~8 cards should be split into `.grp` folders.
+- **Row 1 of the sticky bar** is the child filter (built from every `section.kid`; picking a child
+  hides the other one, `both` always shows). **Row 2** is the date view: *By subject* (the folders
+  above) · *Last 7 days* · *Last 30 days* · *All, newest first* — the last three hide the folders
+  and rebuild every card as one date-grouped list with a `👦 Warren · Reading · 🛶 Huck Finn`
+  breadcrumb under each. Both choices persist in `localStorage`.
+- Every `.count` pill is written by hand in the HTML — update it when you add a card.
 
 ## Firebase & privacy
 
@@ -123,12 +144,15 @@ Never commit account data, and keep child references to **first names only** (as
    subtitle. A card with no `data-added` simply never shows the badge — it is not an error, but
    don't leave it off new cards. To make the badge linger longer, change the single `NEW_DAYS`
    constant at the top of that script.
-   **New *section* in the Quizzes hub?** Give its wrapper div an `id` and a short
-   `data-tab="🍑 Label"`. A second script builds the sticky tab strip at the top of the page from
-   every `[data-tab][id]` element — one tab per section, click to smooth-scroll there, active tab
-   tracked on scroll via IntersectionObserver, a red dot on any tab whose section holds a NEW
-   quiz, and `#section-id` deep links. Nothing in the script needs editing; a section without
-   `data-tab` just never gets a tab.
+   A NEW card also **auto-opens every `<details>` above it** and puts a red dot on each of those
+   summaries, so a collapsed book folder never hides today's work.
+   **Where does the card go?** Pick the child (`#grace` / `#warren` / `#both` — see the hub
+   structure above), then the subject, then the book folder; bump that folder's and that subject's
+   `.count` pill. **A new book/test set** = one more `<details class="grp" data-group="🍑 Label">`
+   inside the right subject. **A new subject** = one more `<details class="subj" data-subject="…"
+   open>`. **A new child** = one more `<section class="kid" id="…" data-kid="…" data-tab="👧 Name">`
+   — the filter chips, the date view and the deep links all build themselves from those attributes,
+   so nothing in either script needs editing.
 2. Update the repo-root `../index.html` if the page is surfaced there (it currently links the two
    checklists, both hubs, the board game, and the Victoria explorer quest — under 👧🧒 孩子们 and
    🤖/🌲 sections).

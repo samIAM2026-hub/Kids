@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《小兔子乖乖》听句子 · 摆汉字 — Listen &amp; Build</title>
+<style>
+  :root{
+    --bg1:#fff4e8; --bg2:#eaf7ea; --ink:#2f3a33; --muted:#8a938c;
+    --carrot:#e8842a; --green:#3f7d4e; --leaf:#5ec26a; --red:#c0392b;
+    --pink:#e88aa0; --wolf:#7d8b93; --yellow:#ffd93d; --card:#fffdf7;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; min-height:100%;}
+  body{
+    font-family:"Comic Sans MS","Segoe UI Rounded","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:linear-gradient(160deg,var(--bg1),var(--bg2));
+    color:var(--ink); min-height:100vh; display:flex; justify-content:center;
+    padding:16px; overflow-x:hidden;
+  }
+  .wrap{width:100%; max-width:760px;}
+  .card{background:var(--card); border-radius:28px; padding:24px 22px 28px;
+        box-shadow:0 14px 40px rgba(90,110,80,.16);}
+  h1{text-align:center; margin:.1em 0 .15em; font-size:1.7rem; letter-spacing:1px;
+     background:linear-gradient(90deg,var(--carrot),var(--green),var(--pink));
+     -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .sub{text-align:center; margin:0 0 6px; color:var(--muted); font-size:.95rem; line-height:1.6;}
+  .how{max-width:520px; margin:12px auto 18px; background:#f4faf2; border:2px solid #d3e9d3;
+       border-radius:18px; padding:12px 16px; font-size:.9rem; color:#54615a; line-height:1.7;}
+  .how b{color:var(--green);}
+
+  /* ---- menu ---- */
+  .levels{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .level-btn{border:none; cursor:pointer; border-radius:20px; padding:16px 14px; color:#fff;
+    font-family:inherit; font-size:1.05rem; font-weight:bold; box-shadow:0 6px 0 rgba(0,0,0,.12);
+    display:flex; flex-direction:column; gap:4px; align-items:center; text-align:center;
+    transition:transform .08s, box-shadow .08s;}
+  .level-btn small{font-weight:normal; opacity:.95; font-size:.78rem;}
+  .level-btn:active{transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,.12);}
+  .lv0{background:linear-gradient(135deg,#ffd28a,#f0a742); grid-column:1 / -1;}
+  .lv1{background:linear-gradient(135deg,#9fd8a4,#3f7d4e);}
+  .lv2{background:linear-gradient(135deg,#a9b8c2,#6b7a86);}
+  .lv3{background:linear-gradient(135deg,#f7a8bb,#e0566d);}
+  .lvv{background:linear-gradient(135deg,#8fc6e8,#4a8fbd);}
+  .lvr{background:linear-gradient(135deg,#c9a8e8,#8e6bc4);}
+
+  /* ---- voice settings + studio ---- */
+  .panel{max-width:560px; margin:0 auto; background:#f4f9fc; border:2px solid #cfe1ec;
+    border-radius:20px; padding:16px 18px; line-height:1.7; font-size:.9rem; color:#54615a;}
+  .panel label{display:block; font-weight:bold; color:#3d6a86; margin:12px 0 6px; font-size:.9rem;}
+  .panel select, .panel input[type=range]{width:100%; font-family:inherit; font-size:.95rem;}
+  .panel select{padding:10px; border-radius:14px; border:2px solid #cfe1ec; background:#fff; color:var(--ink);}
+  .panel .tip{font-size:.82rem; color:var(--muted); margin-top:6px; line-height:1.6;}
+  .panel .tip b{color:#3d6a86;}
+  .testrow{display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap;}
+  .voicebadge{display:inline-block; background:#eafaec; color:var(--green); border-radius:999px;
+    padding:2px 10px; font-size:.75rem; margin-left:6px;}
+
+  table.studio{width:100%; border-collapse:collapse; margin-top:8px;}
+  table.studio td{border-bottom:1px solid #eee6da; padding:7px 4px; vertical-align:middle;}
+  table.studio td.hz{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",serif;
+    font-size:1.15rem; line-height:1.5;}
+  table.studio td.act{text-align:right; white-space:nowrap;}
+  table.studio h3{font-size:.9rem; color:#a4713a; margin:14px 0 2px;}
+  .b{border:none; border-radius:12px; padding:7px 11px; font-family:inherit; font-size:.85rem;
+     cursor:pointer; margin-left:5px; background:#eef3ee; color:#6b7a72;}
+  .b.rec{background:#ffe9e6; color:#c0392b;}
+  .b.rec.on{background:var(--red); color:#fff;}
+  .b:disabled{opacity:.35; cursor:default;}
+  .dot{display:inline-block; width:9px; height:9px; border-radius:50%; background:#dfe6de; margin-right:8px;}
+  .dot.done{background:var(--green);}
+  .status{text-align:center; margin:12px auto 0; font-size:.88rem; color:var(--muted); min-height:1.4em;}
+  .status.ok{color:var(--green);} .status.bad{color:var(--red);}
+  .done-badge{display:inline-block; background:rgba(255,255,255,.85); color:var(--green);
+    border-radius:999px; padding:1px 9px; font-size:.72rem; margin-top:4px;}
+
+  details.parent{margin-top:16px; background:#fdf3e6; border:2px solid #f0d9b8; border-radius:18px; padding:10px 14px;}
+  details.parent summary{cursor:pointer; font-size:.95rem; color:#a4713a;}
+  details.parent ol{margin:10px 0 4px; padding-left:22px; line-height:2;
+    font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",serif; font-size:1.1rem;}
+  details.parent .en{font-family:inherit; font-size:.78rem; color:var(--muted); display:block;}
+  .resetline{text-align:center; margin-top:14px;}
+  .resetline button{background:none; border:none; color:#b9c2ba; font-family:inherit;
+    font-size:.8rem; cursor:pointer; text-decoration:underline;}
+
+  /* ---- study ---- */
+  .cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(126px,1fr)); gap:10px; margin-top:6px;}
+  .sc{background:#f4faf2; border:2px solid #d3e9d3; border-radius:16px; padding:10px 8px; text-align:center; cursor:pointer;}
+  .sc:active{transform:scale(.96);}
+  .sc .h{font-size:2rem; font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",serif; line-height:1.2;}
+  .sc .p{font-size:1rem; color:var(--carrot); font-weight:bold; margin-top:2px;}
+  .sc .e{font-size:.72rem; color:var(--muted); margin-top:3px; line-height:1.35;}
+
+  /* ---- game ---- */
+  .topbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:.9rem; gap:8px;}
+  .topbar .back{cursor:pointer; background:#eef3ee; border:none; border-radius:14px; padding:8px 14px;
+    font-family:inherit; font-size:.85rem; color:#6b7a72;}
+  .stars{font-size:1.05rem; letter-spacing:1px;}
+  .progress-outer{height:14px; background:#e9efe8; border-radius:10px; overflow:hidden; margin-bottom:18px;}
+  .progress-inner{height:100%; width:0%; background:linear-gradient(90deg,var(--yellow),var(--leaf)); transition:width .3s;}
+
+  .speakrow{display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; margin-bottom:6px;}
+  .speak{background:var(--yellow); border:none; border-radius:50px; padding:14px 30px;
+    font-family:inherit; font-size:1.15rem; font-weight:bold; cursor:pointer; box-shadow:0 5px 0 #e6b800;}
+  .speak:active{transform:translateY(3px); box-shadow:0 2px 0 #e6b800;}
+  .mini{background:#eef3ee; border:none; border-radius:50px; padding:10px 16px;
+    font-family:inherit; font-size:.85rem; color:#6b7a72; cursor:pointer;}
+  .mini:active{transform:scale(.96);}
+  .listen-hint{text-align:center; color:var(--muted); font-size:.85rem; margin:6px 0 14px; line-height:1.6;}
+
+  .peekbox{max-width:560px; margin:0 auto 14px; background:#fdf3e6; border:2px dashed #f0d9b8;
+    border-radius:16px; padding:10px 14px; text-align:center; display:none;}
+  .peekbox .zh{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",serif;
+    font-size:1.5rem; letter-spacing:2px; line-height:1.6;}
+  .peekbox .py{font-size:.9rem; color:var(--carrot); margin-top:4px;}
+
+  .slots{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:4px 0 18px; min-height:60px;}
+  .slot{width:54px; height:58px; border-radius:14px; background:#f3f8f2; border:2px dashed #cddbcd;
+    display:flex; align-items:center; justify-content:center; font-size:1.9rem; cursor:pointer;
+    font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",serif; color:var(--ink);
+    transition:transform .08s;}
+  .slot.filled{border-style:solid; border-color:var(--carrot); background:#fff6ec;}
+  .slot.good{border-color:var(--green); background:#eafaec; color:var(--green);}
+  .slot.bad{border-color:var(--red); background:#fbeaea; color:var(--red);}
+  .slot:active{transform:scale(.94);}
+  .shake{animation:sh .4s;}
+  @keyframes sh{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+
+  .pool{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:0 0 18px;}
+  .tile{width:58px; height:62px; border-radius:16px; border:3px solid #d3e9d3; background:#f4faf2;
+    font-size:2rem; cursor:pointer; font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",serif;
+    color:var(--ink); display:flex; align-items:center; justify-content:center; transition:transform .08s, opacity .15s;}
+  .tile:active{transform:scale(.92);}
+  .tile.used{opacity:.22; pointer-events:none;}
+
+  .actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+  .btn-check{background:linear-gradient(135deg,var(--leaf),var(--green)); color:#fff; border:none;
+    border-radius:18px; padding:13px 30px; font-family:inherit; font-size:1.05rem; font-weight:bold;
+    cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,.12);}
+  .btn-check:active{transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,.12);}
+  .btn-clear{background:#eef3ee; color:#6b7a72; border:none; border-radius:18px; padding:13px 22px;
+    font-family:inherit; font-size:.95rem; cursor:pointer;}
+
+  .feedback{max-width:560px; margin:16px auto 0; border-radius:18px; padding:14px 16px;
+    font-size:.95rem; line-height:1.7; display:none; text-align:center;}
+  .feedback.ok{background:#eafaec; border:2px solid #b6e0bd; color:#2f6b3d;}
+  .feedback.no{background:#fbeaea; border:2px solid #f0c4c0; color:#9b3226;}
+  .feedback .zh{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",serif;
+    font-size:1.45rem; letter-spacing:2px; display:block; margin-bottom:2px;}
+  .feedback .py{color:var(--carrot); font-size:.9rem;}
+  .feedback .en{color:#5d6b63; font-size:.88rem; margin-top:4px;}
+  .nextb{display:block; margin:14px auto 0; background:linear-gradient(135deg,#ffd28a,#f0a742); color:#fff;
+    border:none; border-radius:18px; padding:12px 28px; font-family:inherit; font-size:1.05rem;
+    font-weight:bold; cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,.12);}
+  .nextb:active{transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,.12);}
+
+  .endwrap{text-align:center; padding:10px 0;}
+  .endwrap .big{font-size:3.2rem; margin-bottom:6px;}
+  .endwrap h2{margin:.2em 0; color:var(--green);}
+  .endwrap p{color:var(--muted); line-height:1.7;}
+  .hidden{display:none;}
+  @media (max-width:480px){
+    .card{padding:18px 14px 22px;} h1{font-size:1.35rem;}
+    .tile{width:50px; height:54px; font-size:1.7rem;} .slot{width:46px; height:50px; font-size:1.6rem;}
+    .levels{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+
+  <!-- ============ MENU ============ -->
+  <div id="menu">
+    <h1>🐰 《小兔子乖乖》听句子 · 摆汉字</h1>
+    <p class="sub">Listen to the sentence once — then find its characters in the jumble and put them in order.</p>
+    <div class="how">
+      <b>How to play:</b> Press <b>🔊 读一遍</b> and listen carefully. The sentence is <b>hidden</b>.<br>
+      Tap the character tiles <b>in order</b> to fill the boxes, then press <b>检查 Check</b>.<br>
+      Tap a box again to take that character back. Stuck? <b>👀 偷看</b> shows the sentence for 4 seconds.
+    </div>
+    <div class="levels">
+      <button class="level-btn lv0" data-go="study">🀄 学一学 · New characters<small>6 生字 with pinyin &amp; meaning · tap to hear</small><span class="done-badge hidden" data-badge="study">✓ opened</span></button>
+      <button class="level-btn lv1" data-go="0">🐰 第一段 · Mom goes out<small>6 sentences</small><span class="done-badge hidden" data-badge="0">✓ done</span></button>
+      <button class="level-btn lv2" data-go="1">🐺 第二段 · The grey wolf<small>8 sentences</small><span class="done-badge hidden" data-badge="1">✓ done</span></button>
+      <button class="level-btn lv3" data-go="2">💗 第三段 · Mom comes home<small>6 sentences</small><span class="done-badge hidden" data-badge="2">✓ done</span></button>
+      <button class="level-btn lvv" data-go="settings">🎚 发音设置<small>pick a better Chinese voice · speed</small></button>
+      <button class="level-btn lvr" data-go="studio">🎙 录音棚<small>record the sentences in your own voice</small><span class="done-badge hidden" data-badge="rec">✓ <span id="recCount"></span> recorded</span></button>
+    </div>
+    <details class="parent">
+      <summary>👨‍👩‍👧 给家长 · Read-aloud sheet (if you'd rather read the sentences yourself)</summary>
+      <ol id="parentList"></ol>
+      <div style="font-size:.8rem;color:#a4713a;line-height:1.6;">Read each sentence <b>once</b>, at normal speed. Let the child hunt for the characters — don't point. If the built sentence is wrong, read it once more before checking.</div>
+    </details>
+    <div class="resetline"><button id="resetBtn">reset my progress</button></div>
+  </div>
+
+  <!-- ============ STUDY ============ -->
+  <div id="study" class="hidden">
+    <div class="topbar"><button class="back" data-back>← 回目录</button><span style="color:var(--muted);font-size:.85rem;">tap a card to hear it</span></div>
+    <h1 style="font-size:1.3rem;">🀄 学一学 · New characters</h1>
+    <p class="sub">These are the red-pinyin characters from the story page.</p>
+    <div class="cards" id="studyCards"></div>
+    <button class="nextb" data-back>开始玩 · Start playing →</button>
+  </div>
+
+  <!-- ============ VOICE SETTINGS ============ -->
+  <div id="settings" class="hidden">
+    <div class="topbar"><button class="back" data-back>← 回目录</button></div>
+    <h1 style="font-size:1.3rem;">🎚 发音设置 · Voice</h1>
+    <p class="sub">Devices ship several Chinese voices — some are much better than others. Pick one and test it.</p>
+    <div class="panel">
+      <label for="voiceSel">中文语音 · Chinese voice</label>
+      <select id="voiceSel"></select>
+      <label for="rateSel">语速 · Speed — <span id="rateVal">0.8</span></label>
+      <input type="range" id="rateSel" min="0.5" max="1.1" step="0.05" value="0.8">
+      <div class="testrow">
+        <button class="speak" id="testBtn">🔊 试听</button>
+        <button class="mini" id="test2Btn">试一个长句</button>
+      </div>
+      <div class="tip">
+        <b>Best picks:</b> in Chrome choose <b>Google 普通话（中国大陆）</b> — it is a network voice and sounds the most natural.
+        On a Mac/iPad, look for <b>Tingting / 婷婷</b> and prefer the <b>Enhanced / Premium</b> version; download it once in
+        <b>System Settings → Accessibility → Spoken Content → System Voice → Manage Voices → Chinese (China)</b>, then reload this page.
+        Avoid anything labelled <b>Compact</b>, and avoid 粤语 / 台湾 voices — they read the story with the wrong accent.<br>
+        Still not good enough? Use the <b>🎙 录音棚</b> and record it yourself — a real voice beats every robot.
+      </div>
+      <div class="status" id="voiceStatus"></div>
+    </div>
+    <button class="nextb" data-back>好了 Done →</button>
+  </div>
+
+  <!-- ============ RECORDING STUDIO ============ -->
+  <div id="studio" class="hidden">
+    <div class="topbar"><button class="back" data-back>← 回目录</button><span id="recProg" style="color:var(--muted);font-size:.85rem;"></span></div>
+    <h1 style="font-size:1.3rem;">🎙 录音棚 · Your own voice</h1>
+    <p class="sub">Read a sentence <b>once</b>, at normal speed. The game will play your recording instead of the robot.</p>
+    <div class="panel" style="background:#faf5fd;border-color:#e0cef0;">
+      <div style="font-size:.85rem;line-height:1.7;">
+        Tap <b>🎙 录</b>, read the sentence, tap <b>⏹ 停</b> (it stops on its own after 8 seconds).
+        <b>▶️</b> plays it back, <b>✕</b> deletes it. Recordings stay in this browser on this device —
+        nothing is uploaded. Sentences with no recording just use the robot voice.
+      </div>
+      <div class="status" id="recStatus"></div>
+    </div>
+    <div id="studioList"></div>
+  </div>
+
+  <!-- ============ GAME ============ -->
+  <div id="game" class="hidden">
+    <div class="topbar">
+      <button class="back" data-back>← 回目录</button>
+      <span class="stars" id="stars"></span>
+      <span id="counter" style="color:var(--muted);"></span>
+    </div>
+    <div class="progress-outer"><div class="progress-inner" id="bar"></div></div>
+
+    <div class="speakrow">
+      <button class="speak" id="speakBtn">🔊 读一遍</button>
+      <button class="mini" id="peekBtn">👀 偷看</button>
+      <button class="mini" id="recBtn" title="record this sentence in your own voice">🎙</button>
+    </div>
+    <div class="listen-hint" id="listenHint">Listen, then build the sentence below.</div>
+
+    <div class="peekbox" id="peekBox"><div class="zh" id="peekZh"></div><div class="py" id="peekPy"></div></div>
+
+    <div class="slots" id="slots"></div>
+    <div class="pool" id="pool"></div>
+    <div class="actions">
+      <button class="btn-check" id="checkBtn">✅ 检查 Check</button>
+      <button class="btn-clear" id="clearBtn">↺ 清空</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <!-- ============ END ============ -->
+  <div id="end" class="hidden endwrap">
+    <div class="big" id="endEmoji">🥕</div>
+    <h2 id="endTitle"></h2>
+    <p id="endText"></p>
+    <button class="nextb" data-back>← 回目录</button>
+  </div>
+
+</div></div>
+
+<script>
+/* ------------------------------------------------------------------
+   《小兔子乖乖》 — listen to a sentence, then build it from jumbled
+   character tiles. 20 sentences in 3 rounds. Self-contained.
+-------------------------------------------------------------------*/
+const STORE = 'xiaotuzi_listen_build_v1';
+
+const NEW_CHARS = [
+  {h:'买', p:'mǎi', e:'to buy'},
+  {h:'对', p:'duì', e:'to / toward (someone)'},
+  {h:'过', p:'guò', e:'to pass (time)'},
+  {h:'灰', p:'huī', e:'grey'},
+  {h:'狼', p:'láng', e:'wolf'},
+  {h:'喊', p:'hǎn', e:'to shout'}
+];
+
+const ROUNDS = [
+  { name:'第一段 · Mom goes out', emoji:'🐰', items:[
+    {zh:'兔妈妈要出门',   py:'tù mā ma yào chū mén',       en:'Mother Rabbit was going out.'},
+    {zh:'对小兔子说',     py:'duì xiǎo tù zi shuō',        en:'She said to Little Rabbit…'},
+    {zh:'妈妈要去买东西', py:'mā ma yào qù mǎi dōng xi',   en:'Mom is going to buy some things.'},
+    {zh:'你把门关好',     py:'nǐ bǎ mén guān hǎo',         en:'Close the door tight.'},
+    {zh:'谁来也不开',     py:'shéi lái yě bù kāi',         en:"Whoever comes, don't open it."},
+    {zh:'小兔子点点头',   py:'xiǎo tù zi diǎn dian tóu',   en:'Little Rabbit nodded.'}
+  ]},
+  { name:'第二段 · The grey wolf', emoji:'🐺', items:[
+    {zh:'过了一会儿',       py:'guò le yí huìr',             en:'After a little while…'},
+    {zh:'大灰狼来了',       py:'dà huī láng lái le',         en:'The big grey wolf came.'},
+    {zh:'大喊大叫',         py:'dà hǎn dà jiào',             en:'He shouted and yelled.'},
+    {zh:'小兔子乖乖',       py:'xiǎo tù zi guāi guāi',       en:'"Little Rabbit, good little bunny…"'},
+    {zh:'把门儿开开',       py:'bǎ ménr kāi kāi',            en:'"…open the door!"'},
+    {zh:'小兔子从门里一看', py:'xiǎo tù zi cóng mén lǐ yí kàn', en:'Little Rabbit took a look through the door.'},
+    {zh:'你不是妈妈',       py:'nǐ bú shì mā ma',            en:'"You are not my mom."'},
+    {zh:'我就不开',         py:'wǒ jiù bù kāi',              en:'"So I will not open it."'}
+  ]},
+  { name:'第三段 · Mom comes home', emoji:'💗', items:[
+    {zh:'又过了一会儿',     py:'yòu guò le yí huìr',          en:'After another little while…'},
+    {zh:'兔妈妈真的回来了', py:'tù mā ma zhēn de huí lái le', en:'Mother Rabbit really did come back.'},
+    {zh:'小兔子高兴地开门', py:'xiǎo tù zi gāo xìng de kāi mén', en:'Little Rabbit happily opened the door.'},
+    {zh:'妈妈快进来',       py:'mā ma kuài jìn lái',          en:'"Mom, come in quick!"'},
+    {zh:'兔妈妈笑着说',     py:'tù mā ma xiào zhe shuō',      en:'Mother Rabbit said with a smile…'},
+    {zh:'你真是个乖孩子',   py:'nǐ zhēn shì ge guāi hái zi',  en:'"You really are a good child!"'}
+  ]}
+];
+
+/* every character used in the story — the distractor pool */
+const ALL_CHARS = [...new Set(ROUNDS.flatMap(r => r.items.flatMap(i => i.zh.split(''))))];
+const ALL_ITEMS = ROUNDS.flatMap(r => r.items);
+
+/* ---------- tiny helpers ---------- */
+const $ = id => document.getElementById(id);
+const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const SCREENS = ['menu','study','settings','studio','game','end'];
+const show = id => { SCREENS.forEach(s => $(s).classList.add('hidden')); $(id).classList.remove('hidden'); };
+
+/* ==================================================================
+   VOICE — devices carry several Chinese voices and they differ a lot.
+   Rank them, let the user choose, remember the choice.
+===================================================================*/
+const VOICE_KEY = 'xiaotuzi_voice_name', RATE_KEY = 'xiaotuzi_voice_rate';
+let zhVoices = [], zhVoice = null;
+let speakRate = parseFloat(localStorage.getItem(RATE_KEY) || '0.8') || 0.8;
+
+function scoreVoice(v){
+  const n = (v.name + ' ' + v.lang).toLowerCase();
+  if (!/^zh|chinese|mandarin|普通话|中文/i.test(v.lang + ' ' + v.name)) return -999;
+  let s = 0;
+  if (/zh[-_]cn|zh[-_]hans|mandarin|putonghua|普通话|中国大陆|china/.test(n)) s += 100; else s += 30;
+  if (n.includes('google')) s += 60;                              /* Chrome network voice — best */
+  if (/premium|enhanced|neural|natural|siri/.test(n)) s += 45;    /* downloaded HQ Apple voices */
+  if (/tingting|ting-ting|婷婷|meijia|mei-jia|lili|yaoyao|xiaoxiao|huihui|kangkang/.test(n)) s += 20;
+  if (/compact|eloquence/.test(n)) s -= 35;                       /* the tinny robot ones */
+  if (/hk|cantonese|yue|粤|tw|taiwan|台/.test(n)) s -= 70;         /* wrong accent for this story */
+  return s;
+}
+function collectVoices(){
+  if (!window.speechSynthesis) return;
+  zhVoices = speechSynthesis.getVoices().filter(v => scoreVoice(v) > -900)
+             .sort((a,b) => scoreVoice(b) - scoreVoice(a));
+  const saved = localStorage.getItem(VOICE_KEY);
+  zhVoice = (saved && zhVoices.find(v => v.name === saved)) || zhVoices[0] || null;
+  fillVoiceSelect();
+}
+function fillVoiceSelect(){
+  const sel = $('voiceSel'); if (!sel) return;
+  if (!zhVoices.length){
+    sel.innerHTML = '<option>— no Chinese voice found on this device —</option>';
+    $('voiceStatus').textContent = 'No Chinese voice installed. Use the 🎙 录音棚 instead, or install one (see the tips above).';
+    $('voiceStatus').className = 'status bad';
+    return;
+  }
+  sel.innerHTML = zhVoices.map((v,i) =>
+    '<option value="' + v.name.replace(/"/g,'') + '"' + (v === zhVoice ? ' selected' : '') + '>' +
+    (i === 0 ? '⭐ ' : '') + v.name + ' (' + v.lang + ')</option>').join('');
+}
+if (window.speechSynthesis){ collectVoices(); speechSynthesis.onvoiceschanged = collectVoices; }
+
+function speakTTS(text, rate){
+  if (!window.speechSynthesis) return false;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = (zhVoice && zhVoice.lang) || 'zh-CN';
+  u.rate = rate || speakRate; u.pitch = 1.03;
+  if (zhVoice) u.voice = zhVoice;
+  speechSynthesis.speak(u);
+  return true;
+}
+
+/* ==================================================================
+   RECORDINGS — a real voice beats every robot. Clips live in
+   IndexedDB on this device only; keyed by the sentence itself.
+===================================================================*/
+let MIME = '';
+if (window.MediaRecorder){
+  ['audio/webm;codecs=opus','audio/webm','audio/mp4'].some(m =>
+    MediaRecorder.isTypeSupported(m) ? (MIME = m, true) : false);
+}
+let _db = null;
+function idb(){
+  return new Promise((res,rej) => {
+    if (_db) return res(_db);
+    if (!window.indexedDB) return rej(new Error('no indexedDB'));
+    const r = indexedDB.open('xiaotuzi_clips', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('clips');
+    r.onsuccess = () => { _db = r.result; res(_db); };
+    r.onerror = () => rej(r.error);
+  });
+}
+async function clipOp(mode, fn){
+  const d = await idb();
+  return new Promise((res,rej) => {
+    const tx = d.transaction('clips', mode), st = tx.objectStore('clips');
+    const rq = fn(st);
+    tx.oncomplete = () => res(rq ? rq.result : true);
+    tx.onerror = () => rej(tx.error);
+  });
+}
+const putClip = (k,b) => clipOp('readwrite', st => st.put(b,k));
+const getClip = k     => clipOp('readonly',  st => st.get(k));
+const delClip = k     => clipOp('readwrite', st => st.delete(k));
+const allKeys = ()    => clipOp('readonly',  st => st.getAllKeys());
+
+let clipKeys = new Set();
+async function refreshClips(){
+  try{ clipKeys = new Set(await allKeys()); }catch(e){ clipKeys = new Set(); }
+  const badge = document.querySelector('[data-badge="rec"]');
+  if (badge){ badge.classList.toggle('hidden', clipKeys.size === 0); $('recCount').textContent = clipKeys.size; }
+  if ($('recProg')) $('recProg').textContent = clipKeys.size + ' / ' + ALL_ITEMS.length + ' recorded';
+}
+let curAudio = null;
+async function playClip(text){
+  const blob = await getClip(text); if (!blob) return false;
+  if (curAudio){ curAudio.pause(); }
+  const url = URL.createObjectURL(blob);
+  curAudio = new Audio(url);
+  curAudio.onended = () => URL.revokeObjectURL(url);
+  curAudio.play().catch(()=>{});
+  return true;
+}
+/* one entry point: real recording if there is one, robot otherwise */
+async function say(text, rate){
+  if (clipKeys.has(text)){ if (await playClip(text)) return true; }
+  return speakTTS(text, rate);
+}
+
+/* ---- recorder engine (shared by the studio and the in-game 🎙) ---- */
+let micStream = null, recorder = null, recKey = null, recTimer = null, onRecDone = null;
+async function getMic(){
+  if (micStream) return micStream;
+  micStream = await navigator.mediaDevices.getUserMedia({audio:true});
+  return micStream;
+}
+async function toggleRec(text, onState){
+  if (recKey === text){ stopRec(); return; }
+  if (recKey) stopRec();
+  if (!window.MediaRecorder || !navigator.mediaDevices){ onState && onState('no-support'); return; }
+  try{ await getMic(); }catch(e){ onState && onState('no-mic'); return; }
+  const chunks = [];
+  recorder = MIME ? new MediaRecorder(micStream,{mimeType:MIME}) : new MediaRecorder(micStream);
+  recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  recorder.onstop = async () => {
+    try{
+      await putClip(text, new Blob(chunks, {type: MIME || 'audio/webm'}));
+      clipKeys.add(text); await refreshClips();
+      onState && onState('saved');
+    }catch(e){ onState && onState('error'); }
+    onRecDone && onRecDone();
+  };
+  recorder.start(); recKey = text;
+  onState && onState('recording');
+  recTimer = setTimeout(stopRec, 8000);
+}
+function stopRec(){
+  if (!recorder || !recKey) return;
+  clearTimeout(recTimer);
+  try{ recorder.stop(); }catch(e){}
+  recorder = null; recKey = null;
+}
+
+/* ---------- progress ---------- */
+function loadProg(){ try{ return JSON.parse(localStorage.getItem(STORE)) || {}; }catch(e){ return {}; } }
+function saveProg(p){ try{ localStorage.setItem(STORE, JSON.stringify(p)); }catch(e){} }
+function paintBadges(){
+  const p = loadProg();
+  document.querySelectorAll('[data-badge]').forEach(b => {
+    b.classList.toggle('hidden', !p[b.dataset.badge]);
+  });
+}
+
+/* ---------- state ---------- */
+let round = 0, idx = 0, target = [], tiles = [], placed = [], tries = 0, peeked = false, solvedFirst = 0;
+
+function startRound(r){
+  round = r; idx = 0; solvedFirst = 0;
+  show('game'); loadItem();
+}
+
+function loadItem(){
+  const item = ROUNDS[round].items[idx];
+  target = item.zh.split('');
+  tries = 0; peeked = false; placed = [];
+
+  /* tiles = the real characters + 3 distractors from the story */
+  const pool = target.slice();
+  const others = shuffle(ALL_CHARS.filter(c => !target.includes(c)));
+  pool.push(...others.slice(0, 3));
+  tiles = shuffle(pool).map((ch,i) => ({ch, id:i, used:false}));
+
+  $('counter').textContent = (idx+1) + ' / ' + ROUNDS[round].items.length;
+  $('bar').style.width = (idx / ROUNDS[round].items.length * 100) + '%';
+  $('stars').textContent = '⭐'.repeat(solvedFirst) + '✩'.repeat(ROUNDS[round].items.length - solvedFirst);
+  $('feedback').style.display = 'none';
+  $('peekBox').style.display = 'none';
+  $('listenHint').textContent = 'Listen, then build the sentence below.';
+  $('checkBtn').disabled = false;
+  render();
+
+  $('recBtn').textContent = clipKeys.has(item.zh) ? '🎙 重录' : '🎙';
+  $('recBtn').title = clipKeys.has(item.zh) ? 'this sentence uses your own recording' : 'record this sentence in your own voice';
+
+  /* read it once, automatically */
+  setTimeout(() => {
+    say(item.zh).then(ok => {
+      if (!ok) $('listenHint').textContent = 'No Chinese voice on this device — record it in 🎙 录音棚, or read it yourself from the menu sheet.';
+      else if (clipKeys.has(item.zh)) $('listenHint').textContent = '🎧 That was a real recording. Now build the sentence below.';
+    });
+  }, 350);
+}
+
+function render(){
+  /* slots */
+  const s = $('slots'); s.innerHTML = '';
+  for (let i = 0; i < target.length; i++){
+    const d = document.createElement('div');
+    d.className = 'slot' + (placed[i] != null ? ' filled' : '');
+    d.textContent = placed[i] != null ? tiles[placed[i]].ch : '';
+    d.onclick = () => { if (placed[i] != null){ tiles[placed[i]].used = false; placed.splice(i,1); render(); } };
+    s.appendChild(d);
+  }
+  /* pool */
+  const p = $('pool'); p.innerHTML = '';
+  tiles.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'tile' + (t.used ? ' used' : '');
+    b.textContent = t.ch;
+    b.onclick = () => {
+      if (t.used || placed.length >= target.length) return;
+      t.used = true; placed.push(t.id); render();
+      if (placed.length === target.length) $('checkBtn').focus();
+    };
+    p.appendChild(b);
+  });
+}
+
+function check(){
+  const item = ROUNDS[round].items[idx];
+  if (placed.length < target.length){
+    $('slots').classList.add('shake');
+    setTimeout(() => $('slots').classList.remove('shake'), 400);
+    $('listenHint').textContent = 'Still ' + (target.length - placed.length) + ' more character(s) to go.';
+    return;
+  }
+  const boxes = [...$('slots').children];
+  let allGood = true;
+  placed.forEach((tid,i) => {
+    const ok = tiles[tid].ch === target[i];
+    boxes[i].classList.add(ok ? 'good' : 'bad');
+    if (!ok) allGood = false;
+  });
+
+  if (allGood){
+    if (tries === 0 && !peeked) solvedFirst++;
+    $('checkBtn').disabled = true;
+    $('stars').textContent = '⭐'.repeat(solvedFirst) + '✩'.repeat(ROUNDS[round].items.length - solvedFirst);
+    const f = $('feedback');
+    f.className = 'feedback ok';
+    f.innerHTML = '<span class="zh">' + item.zh + '</span><span class="py">' + item.py + '</span>' +
+                  '<div class="en">' + item.en + '</div>' +
+                  '<div style="margin-top:6px;">' + (tries === 0 && !peeked ? '🎉 第一次就对了！Perfect first try.' : '👍 对了！You got it.') + '</div>';
+    f.style.display = 'block';
+    const nb = document.createElement('button');
+    nb.className = 'nextb';
+    nb.textContent = idx + 1 < ROUNDS[round].items.length ? '下一句 Next →' : '完成 Finish 🎉';
+    nb.onclick = () => { idx++; idx < ROUNDS[round].items.length ? loadItem() : finish(); };
+    f.appendChild(nb);
+    say(item.zh, .72);
+  } else {
+    tries++;
+    const f = $('feedback');
+    f.className = 'feedback no';
+    f.innerHTML = tries >= 2
+      ? 'Not yet. Here is the sentence — read it and fix the red boxes:<span class="zh" style="margin-top:6px;">' + item.zh + '</span><span class="py">' + item.py + '</span>'
+      : 'The red boxes are in the wrong place. Listen once more 🔊 and try again.';
+    f.style.display = 'block';
+    setTimeout(() => {
+      /* keep the correct beginning, send everything after it back to the pool */
+      let k = 0;
+      while (k < placed.length && tiles[placed[k]].ch === target[k]) k++;
+      placed.slice(k).forEach(tid => { tiles[tid].used = false; });
+      placed = placed.slice(0, k);
+      render();
+      say(item.zh);
+    }, 1100);
+  }
+}
+
+function finish(){
+  const p = loadProg(); p[round] = true; saveProg(p); paintBadges();
+  const total = ROUNDS[round].items.length;
+  show('end');
+  $('endEmoji').textContent = solvedFirst === total ? '🏆' : (solvedFirst >= total - 2 ? '🥕' : '🐰');
+  $('endTitle').textContent = ROUNDS[round].emoji + ' ' + ROUNDS[round].name + ' — 完成!';
+  $('endText').innerHTML = 'First-try stars: <b>' + solvedFirst + ' / ' + total + '</b><br>' +
+    (solvedFirst === total ? 'Every single sentence on the first try. Amazing listening!' :
+     'Nice work. Try this round again later and see how many stars you can get.');
+}
+
+/* ---------- menu wiring ---------- */
+document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => {
+  const g = b.dataset.go;
+  if (g === 'study'){ const p = loadProg(); p.study = true; saveProg(p); paintBadges(); show('study'); }
+  else if (g === 'settings'){ collectVoices(); show('settings'); }
+  else if (g === 'studio'){ buildStudio(); show('studio'); }
+  else startRound(+g);
+});
+document.querySelectorAll('[data-back]').forEach(b => b.onclick = () => {
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  stopRec(); if (curAudio) curAudio.pause();
+  show('menu');
+});
+
+/* ---------- voice settings ---------- */
+$('voiceSel').onchange = e => {
+  zhVoice = zhVoices.find(v => v.name === e.target.value) || zhVoice;
+  localStorage.setItem(VOICE_KEY, zhVoice ? zhVoice.name : '');
+  $('voiceStatus').className = 'status ok';
+  $('voiceStatus').textContent = '已选：' + (zhVoice ? zhVoice.name : '');
+  speakTTS('小兔子乖乖');
+};
+$('rateSel').oninput = e => {
+  speakRate = parseFloat(e.target.value);
+  $('rateVal').textContent = speakRate.toFixed(2).replace(/0$/,'');
+  localStorage.setItem(RATE_KEY, String(speakRate));
+};
+$('rateSel').value = speakRate; $('rateVal').textContent = String(speakRate);
+$('testBtn').onclick  = () => speakTTS('小兔子乖乖，把门儿开开。');
+$('test2Btn').onclick = () => speakTTS('又过了一会儿，兔妈妈真的回来了，小兔子高兴地开门。');
+
+/* ---------- recording studio ---------- */
+function studioStatus(msg, cls){ $('recStatus').textContent = msg; $('recStatus').className = 'status' + (cls ? ' ' + cls : ''); }
+function buildStudio(){
+  const wrap = $('studioList'); wrap.innerHTML = '';
+  ROUNDS.forEach(r => {
+    const h = document.createElement('h3'); h.textContent = r.emoji + ' ' + r.name; wrap.appendChild(h);
+    const t = document.createElement('table'); t.className = 'studio';
+    r.items.forEach(it => {
+      const tr = document.createElement('tr');
+      const has = clipKeys.has(it.zh);
+      tr.innerHTML = '<td class="hz"><span class="dot' + (has ? ' done' : '') + '"></span>' + it.zh + '</td>' +
+        '<td class="act">' +
+        '<button class="b rec">🎙 ' + (has ? '重录' : '录') + '</button>' +
+        '<button class="b play"' + (has ? '' : ' disabled') + '>▶️</button>' +
+        '<button class="b del"' + (has ? '' : ' disabled') + '>✕</button></td>';
+      const [recB, playB, delB] = tr.querySelectorAll('button');
+      recB.onclick = () => toggleRec(it.zh, st => {
+        if (st === 'recording'){ recB.classList.add('on'); recB.textContent = '⏹ 停'; studioStatus('正在录…… 读完点「⏹ 停」(auto-stops at 8s)'); }
+        else if (st === 'saved'){ recB.classList.remove('on'); recB.textContent = '🎙 重录';
+          tr.querySelector('.dot').classList.add('done'); playB.disabled = false; delB.disabled = false;
+          studioStatus('存好了 ✅ ' + it.zh, 'ok'); }
+        else if (st === 'no-mic'){ recB.classList.remove('on'); recB.textContent = '🎙 录'; studioStatus('麦克风打不开 — allow microphone access for this page.', 'bad'); }
+        else if (st === 'no-support'){ studioStatus('这个浏览器不支持录音，请用 Chrome。', 'bad'); }
+        else { recB.classList.remove('on'); recB.textContent = '🎙 重录'; studioStatus('保存失败，请重录。', 'bad'); }
+      });
+      playB.onclick = () => playClip(it.zh);
+      delB.onclick = async () => {
+        await delClip(it.zh); clipKeys.delete(it.zh); await refreshClips();
+        tr.querySelector('.dot').classList.remove('done');
+        playB.disabled = true; delB.disabled = true; recB.textContent = '🎙 录';
+        studioStatus('删掉了，这句改用机器音。');
+      };
+      t.appendChild(tr);
+    });
+    wrap.appendChild(t);
+  });
+  studioStatus('');
+}
+
+/* in-game quick record */
+$('recBtn').onclick = () => {
+  const item = ROUNDS[round].items[idx];
+  toggleRec(item.zh, st => {
+    if (st === 'recording'){ $('recBtn').textContent = '⏹ 停'; $('listenHint').textContent = '🎙 Recording… read the sentence, then press ⏹.'; }
+    else if (st === 'saved'){ $('recBtn').textContent = '🎙 重录'; $('listenHint').textContent = '🎧 Saved — this sentence now plays in your own voice.'; setTimeout(() => say(item.zh), 300); }
+    else if (st === 'no-mic'){ $('recBtn').textContent = '🎙'; $('listenHint').textContent = 'Microphone blocked — allow it for this page to record.'; }
+    else { $('recBtn').textContent = '🎙'; }
+  });
+};
+
+$('speakBtn').onclick = () => say(ROUNDS[round].items[idx].zh);
+$('peekBtn').onclick = () => {
+  peeked = true;
+  const item = ROUNDS[round].items[idx];
+  $('peekZh').textContent = item.zh; $('peekPy').textContent = item.py;
+  $('peekBox').style.display = 'block';
+  setTimeout(() => { $('peekBox').style.display = 'none'; }, 4000);
+};
+$('checkBtn').onclick = check;
+$('clearBtn').onclick = () => { tiles.forEach(t => t.used = false); placed = []; $('feedback').style.display='none'; render(); };
+$('resetBtn').onclick = () => { try{ localStorage.removeItem(STORE); }catch(e){} paintBadges(); };
+
+/* study cards */
+NEW_CHARS.forEach(c => {
+  const d = document.createElement('div');
+  d.className = 'sc';
+  d.innerHTML = '<div class="h">' + c.h + '</div><div class="p">' + c.p + '</div><div class="e">' + c.e + '</div>';
+  d.onclick = () => say(c.h, .7);
+  $('studyCards').appendChild(d);
+});
+
+/* parent read-aloud sheet */
+ROUNDS.forEach(r => {
+  const li = document.createElement('li');
+  li.style.listStyle = 'none'; li.style.marginLeft = '-14px';
+  li.innerHTML = '<b style="font-family:inherit;font-size:.85rem;color:#a4713a;">' + r.emoji + ' ' + r.name + '</b>';
+  $('parentList').appendChild(li);
+  r.items.forEach(it => {
+    const x = document.createElement('li');
+    x.innerHTML = it.zh + '<span class="en">' + it.py + ' — ' + it.en + '</span>';
+    $('parentList').appendChild(x);
+  });
+});
+
+paintBadges();
+refreshClips();
+</script>
+</body>
+</html>
