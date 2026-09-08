@@ -42,9 +42,8 @@
   .lv2{background:linear-gradient(135deg,#a9b8c2,#6b7a86);}
   .lv3{background:linear-gradient(135deg,#f7a8bb,#e0566d);}
   .lvv{background:linear-gradient(135deg,#8fc6e8,#4a8fbd);}
-  .lvr{background:linear-gradient(135deg,#c9a8e8,#8e6bc4);}
 
-  /* ---- voice settings + studio ---- */
+  /* ---- voice settings ---- */
   .panel{max-width:560px; margin:0 auto; background:#f4f9fc; border:2px solid #cfe1ec;
     border-radius:20px; padding:16px 18px; line-height:1.7; font-size:.9rem; color:#54615a;}
   .panel label{display:block; font-weight:bold; color:#3d6a86; margin:12px 0 6px; font-size:.9rem;}
@@ -56,19 +55,6 @@
   .voicebadge{display:inline-block; background:#eafaec; color:var(--green); border-radius:999px;
     padding:2px 10px; font-size:.75rem; margin-left:6px;}
 
-  table.studio{width:100%; border-collapse:collapse; margin-top:8px;}
-  table.studio td{border-bottom:1px solid #eee6da; padding:7px 4px; vertical-align:middle;}
-  table.studio td.hz{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",serif;
-    font-size:1.15rem; line-height:1.5;}
-  table.studio td.act{text-align:right; white-space:nowrap;}
-  table.studio h3{font-size:.9rem; color:#a4713a; margin:14px 0 2px;}
-  .b{border:none; border-radius:12px; padding:7px 11px; font-family:inherit; font-size:.85rem;
-     cursor:pointer; margin-left:5px; background:#eef3ee; color:#6b7a72;}
-  .b.rec{background:#ffe9e6; color:#c0392b;}
-  .b.rec.on{background:var(--red); color:#fff;}
-  .b:disabled{opacity:.35; cursor:default;}
-  .dot{display:inline-block; width:9px; height:9px; border-radius:50%; background:#dfe6de; margin-right:8px;}
-  .dot.done{background:var(--green);}
   .status{text-align:center; margin:12px auto 0; font-size:.88rem; color:var(--muted); min-height:1.4em;}
   .status.ok{color:var(--green);} .status.bad{color:var(--red);}
   .done-badge{display:inline-block; background:rgba(255,255,255,.85); color:var(--green);
@@ -184,7 +170,6 @@
       <button class="level-btn lv2" data-go="1">🐺 第二段 · The grey wolf<small>8 sentences</small><span class="done-badge hidden" data-badge="1">✓ done</span></button>
       <button class="level-btn lv3" data-go="2">💗 第三段 · Mom comes home<small>6 sentences</small><span class="done-badge hidden" data-badge="2">✓ done</span></button>
       <button class="level-btn lvv" data-go="settings">🎚 发音设置<small>pick a better Chinese voice · speed</small></button>
-      <button class="level-btn lvr" data-go="studio">🎙 录音棚<small>record the sentences in your own voice</small><span class="done-badge hidden" data-badge="rec">✓ <span id="recCount"></span> recorded</span></button>
     </div>
     <details class="parent">
       <summary>👨‍👩‍👧 给家长 · Read-aloud sheet (if you'd rather read the sentences yourself)</summary>
@@ -222,27 +207,11 @@
         On a Mac/iPad, look for <b>Tingting / 婷婷</b> and prefer the <b>Enhanced / Premium</b> version; download it once in
         <b>System Settings → Accessibility → Spoken Content → System Voice → Manage Voices → Chinese (China)</b>, then reload this page.
         Avoid anything labelled <b>Compact</b>, and avoid 粤语 / 台湾 voices — they read the story with the wrong accent.<br>
-        Still not good enough? Use the <b>🎙 录音棚</b> and record it yourself — a real voice beats every robot.
+        If none of them sounds right, use the <b>read-aloud sheet</b> on the menu and read the sentences yourself.
       </div>
       <div class="status" id="voiceStatus"></div>
     </div>
     <button class="nextb" data-back>好了 Done →</button>
-  </div>
-
-  <!-- ============ RECORDING STUDIO ============ -->
-  <div id="studio" class="hidden">
-    <div class="topbar"><button class="back" data-back>← 回目录</button><span id="recProg" style="color:var(--muted);font-size:.85rem;"></span></div>
-    <h1 style="font-size:1.3rem;">🎙 录音棚 · Your own voice</h1>
-    <p class="sub">Read a sentence <b>once</b>, at normal speed. The game will play your recording instead of the robot.</p>
-    <div class="panel" style="background:#faf5fd;border-color:#e0cef0;">
-      <div style="font-size:.85rem;line-height:1.7;">
-        Tap <b>🎙 录</b>, read the sentence, tap <b>⏹ 停</b> (it stops on its own after 8 seconds).
-        <b>▶️</b> plays it back, <b>✕</b> deletes it. Recordings stay in this browser on this device —
-        nothing is uploaded. Sentences with no recording just use the robot voice.
-      </div>
-      <div class="status" id="recStatus"></div>
-    </div>
-    <div id="studioList"></div>
   </div>
 
   <!-- ============ GAME ============ -->
@@ -257,7 +226,6 @@
     <div class="speakrow">
       <button class="speak" id="speakBtn">🔊 读一遍</button>
       <button class="mini" id="peekBtn">👀 偷看</button>
-      <button class="mini" id="recBtn" title="record this sentence in your own voice">🎙</button>
     </div>
     <div class="listen-hint" id="listenHint">Listen, then build the sentence below.</div>
 
@@ -329,12 +297,11 @@ const ROUNDS = [
 
 /* every character used in the story — the distractor pool */
 const ALL_CHARS = [...new Set(ROUNDS.flatMap(r => r.items.flatMap(i => i.zh.split(''))))];
-const ALL_ITEMS = ROUNDS.flatMap(r => r.items);
 
 /* ---------- tiny helpers ---------- */
 const $ = id => document.getElementById(id);
 const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
-const SCREENS = ['menu','study','settings','studio','game','end'];
+const SCREENS = ['menu','study','settings','game','end'];
 const show = id => { SCREENS.forEach(s => $(s).classList.add('hidden')); $(id).classList.remove('hidden'); };
 
 /* ==================================================================
@@ -369,7 +336,7 @@ function fillVoiceSelect(){
   const sel = $('voiceSel'); if (!sel) return;
   if (!zhVoices.length){
     sel.innerHTML = '<option>— no Chinese voice found on this device —</option>';
-    $('voiceStatus').textContent = 'No Chinese voice installed. Use the 🎙 录音棚 instead, or install one (see the tips above).';
+    $('voiceStatus').textContent = 'No Chinese voice installed on this device — see the tips above, or read the sentences yourself from the menu sheet.';
     $('voiceStatus').className = 'status bad';
     return;
   }
@@ -379,7 +346,7 @@ function fillVoiceSelect(){
 }
 if (window.speechSynthesis){ collectVoices(); speechSynthesis.onvoiceschanged = collectVoices; }
 
-function speakTTS(text, rate){
+function say(text, rate){
   if (!window.speechSynthesis) return false;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
@@ -388,97 +355,6 @@ function speakTTS(text, rate){
   if (zhVoice) u.voice = zhVoice;
   speechSynthesis.speak(u);
   return true;
-}
-
-/* ==================================================================
-   RECORDINGS — a real voice beats every robot. Clips live in
-   IndexedDB on this device only; keyed by the sentence itself.
-===================================================================*/
-let MIME = '';
-if (window.MediaRecorder){
-  ['audio/webm;codecs=opus','audio/webm','audio/mp4'].some(m =>
-    MediaRecorder.isTypeSupported(m) ? (MIME = m, true) : false);
-}
-let _db = null;
-function idb(){
-  return new Promise((res,rej) => {
-    if (_db) return res(_db);
-    if (!window.indexedDB) return rej(new Error('no indexedDB'));
-    const r = indexedDB.open('xiaotuzi_clips', 1);
-    r.onupgradeneeded = () => r.result.createObjectStore('clips');
-    r.onsuccess = () => { _db = r.result; res(_db); };
-    r.onerror = () => rej(r.error);
-  });
-}
-async function clipOp(mode, fn){
-  const d = await idb();
-  return new Promise((res,rej) => {
-    const tx = d.transaction('clips', mode), st = tx.objectStore('clips');
-    const rq = fn(st);
-    tx.oncomplete = () => res(rq ? rq.result : true);
-    tx.onerror = () => rej(tx.error);
-  });
-}
-const putClip = (k,b) => clipOp('readwrite', st => st.put(b,k));
-const getClip = k     => clipOp('readonly',  st => st.get(k));
-const delClip = k     => clipOp('readwrite', st => st.delete(k));
-const allKeys = ()    => clipOp('readonly',  st => st.getAllKeys());
-
-let clipKeys = new Set();
-async function refreshClips(){
-  try{ clipKeys = new Set(await allKeys()); }catch(e){ clipKeys = new Set(); }
-  const badge = document.querySelector('[data-badge="rec"]');
-  if (badge){ badge.classList.toggle('hidden', clipKeys.size === 0); $('recCount').textContent = clipKeys.size; }
-  if ($('recProg')) $('recProg').textContent = clipKeys.size + ' / ' + ALL_ITEMS.length + ' recorded';
-}
-let curAudio = null;
-async function playClip(text){
-  const blob = await getClip(text); if (!blob) return false;
-  if (curAudio){ curAudio.pause(); }
-  const url = URL.createObjectURL(blob);
-  curAudio = new Audio(url);
-  curAudio.onended = () => URL.revokeObjectURL(url);
-  curAudio.play().catch(()=>{});
-  return true;
-}
-/* one entry point: real recording if there is one, robot otherwise */
-async function say(text, rate){
-  if (clipKeys.has(text)){ if (await playClip(text)) return true; }
-  return speakTTS(text, rate);
-}
-
-/* ---- recorder engine (shared by the studio and the in-game 🎙) ---- */
-let micStream = null, recorder = null, recKey = null, recTimer = null, onRecDone = null;
-async function getMic(){
-  if (micStream) return micStream;
-  micStream = await navigator.mediaDevices.getUserMedia({audio:true});
-  return micStream;
-}
-async function toggleRec(text, onState){
-  if (recKey === text){ stopRec(); return; }
-  if (recKey) stopRec();
-  if (!window.MediaRecorder || !navigator.mediaDevices){ onState && onState('no-support'); return; }
-  try{ await getMic(); }catch(e){ onState && onState('no-mic'); return; }
-  const chunks = [];
-  recorder = MIME ? new MediaRecorder(micStream,{mimeType:MIME}) : new MediaRecorder(micStream);
-  recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
-  recorder.onstop = async () => {
-    try{
-      await putClip(text, new Blob(chunks, {type: MIME || 'audio/webm'}));
-      clipKeys.add(text); await refreshClips();
-      onState && onState('saved');
-    }catch(e){ onState && onState('error'); }
-    onRecDone && onRecDone();
-  };
-  recorder.start(); recKey = text;
-  onState && onState('recording');
-  recTimer = setTimeout(stopRec, 8000);
-}
-function stopRec(){
-  if (!recorder || !recKey) return;
-  clearTimeout(recTimer);
-  try{ recorder.stop(); }catch(e){}
-  recorder = null; recKey = null;
 }
 
 /* ---------- progress ---------- */
@@ -519,15 +395,9 @@ function loadItem(){
   $('checkBtn').disabled = false;
   render();
 
-  $('recBtn').textContent = clipKeys.has(item.zh) ? '🎙 重录' : '🎙';
-  $('recBtn').title = clipKeys.has(item.zh) ? 'this sentence uses your own recording' : 'record this sentence in your own voice';
-
   /* read it once, automatically */
   setTimeout(() => {
-    say(item.zh).then(ok => {
-      if (!ok) $('listenHint').textContent = 'No Chinese voice on this device — record it in 🎙 录音棚, or read it yourself from the menu sheet.';
-      else if (clipKeys.has(item.zh)) $('listenHint').textContent = '🎧 That was a real recording. Now build the sentence below.';
-    });
+    if (!say(item.zh)) $('listenHint').textContent = 'No Chinese voice on this device — read it yourself from the menu sheet (👨‍👩‍👧 read-aloud).';
   }, 350);
 }
 
@@ -624,12 +494,10 @@ document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => {
   const g = b.dataset.go;
   if (g === 'study'){ const p = loadProg(); p.study = true; saveProg(p); paintBadges(); show('study'); }
   else if (g === 'settings'){ collectVoices(); show('settings'); }
-  else if (g === 'studio'){ buildStudio(); show('studio'); }
   else startRound(+g);
 });
 document.querySelectorAll('[data-back]').forEach(b => b.onclick = () => {
   if (window.speechSynthesis) speechSynthesis.cancel();
-  stopRec(); if (curAudio) curAudio.pause();
   show('menu');
 });
 
@@ -639,7 +507,7 @@ $('voiceSel').onchange = e => {
   localStorage.setItem(VOICE_KEY, zhVoice ? zhVoice.name : '');
   $('voiceStatus').className = 'status ok';
   $('voiceStatus').textContent = '已选：' + (zhVoice ? zhVoice.name : '');
-  speakTTS('小兔子乖乖');
+  say('小兔子乖乖');
 };
 $('rateSel').oninput = e => {
   speakRate = parseFloat(e.target.value);
@@ -647,58 +515,9 @@ $('rateSel').oninput = e => {
   localStorage.setItem(RATE_KEY, String(speakRate));
 };
 $('rateSel').value = speakRate; $('rateVal').textContent = String(speakRate);
-$('testBtn').onclick  = () => speakTTS('小兔子乖乖，把门儿开开。');
-$('test2Btn').onclick = () => speakTTS('又过了一会儿，兔妈妈真的回来了，小兔子高兴地开门。');
+$('testBtn').onclick  = () => say('小兔子乖乖，把门儿开开。');
+$('test2Btn').onclick = () => say('又过了一会儿，兔妈妈真的回来了，小兔子高兴地开门。');
 
-/* ---------- recording studio ---------- */
-function studioStatus(msg, cls){ $('recStatus').textContent = msg; $('recStatus').className = 'status' + (cls ? ' ' + cls : ''); }
-function buildStudio(){
-  const wrap = $('studioList'); wrap.innerHTML = '';
-  ROUNDS.forEach(r => {
-    const h = document.createElement('h3'); h.textContent = r.emoji + ' ' + r.name; wrap.appendChild(h);
-    const t = document.createElement('table'); t.className = 'studio';
-    r.items.forEach(it => {
-      const tr = document.createElement('tr');
-      const has = clipKeys.has(it.zh);
-      tr.innerHTML = '<td class="hz"><span class="dot' + (has ? ' done' : '') + '"></span>' + it.zh + '</td>' +
-        '<td class="act">' +
-        '<button class="b rec">🎙 ' + (has ? '重录' : '录') + '</button>' +
-        '<button class="b play"' + (has ? '' : ' disabled') + '>▶️</button>' +
-        '<button class="b del"' + (has ? '' : ' disabled') + '>✕</button></td>';
-      const [recB, playB, delB] = tr.querySelectorAll('button');
-      recB.onclick = () => toggleRec(it.zh, st => {
-        if (st === 'recording'){ recB.classList.add('on'); recB.textContent = '⏹ 停'; studioStatus('正在录…… 读完点「⏹ 停」(auto-stops at 8s)'); }
-        else if (st === 'saved'){ recB.classList.remove('on'); recB.textContent = '🎙 重录';
-          tr.querySelector('.dot').classList.add('done'); playB.disabled = false; delB.disabled = false;
-          studioStatus('存好了 ✅ ' + it.zh, 'ok'); }
-        else if (st === 'no-mic'){ recB.classList.remove('on'); recB.textContent = '🎙 录'; studioStatus('麦克风打不开 — allow microphone access for this page.', 'bad'); }
-        else if (st === 'no-support'){ studioStatus('这个浏览器不支持录音，请用 Chrome。', 'bad'); }
-        else { recB.classList.remove('on'); recB.textContent = '🎙 重录'; studioStatus('保存失败，请重录。', 'bad'); }
-      });
-      playB.onclick = () => playClip(it.zh);
-      delB.onclick = async () => {
-        await delClip(it.zh); clipKeys.delete(it.zh); await refreshClips();
-        tr.querySelector('.dot').classList.remove('done');
-        playB.disabled = true; delB.disabled = true; recB.textContent = '🎙 录';
-        studioStatus('删掉了，这句改用机器音。');
-      };
-      t.appendChild(tr);
-    });
-    wrap.appendChild(t);
-  });
-  studioStatus('');
-}
-
-/* in-game quick record */
-$('recBtn').onclick = () => {
-  const item = ROUNDS[round].items[idx];
-  toggleRec(item.zh, st => {
-    if (st === 'recording'){ $('recBtn').textContent = '⏹ 停'; $('listenHint').textContent = '🎙 Recording… read the sentence, then press ⏹.'; }
-    else if (st === 'saved'){ $('recBtn').textContent = '🎙 重录'; $('listenHint').textContent = '🎧 Saved — this sentence now plays in your own voice.'; setTimeout(() => say(item.zh), 300); }
-    else if (st === 'no-mic'){ $('recBtn').textContent = '🎙'; $('listenHint').textContent = 'Microphone blocked — allow it for this page to record.'; }
-    else { $('recBtn').textContent = '🎙'; }
-  });
-};
 
 $('speakBtn').onclick = () => say(ROUNDS[round].items[idx].zh);
 $('peekBtn').onclick = () => {
@@ -735,7 +554,6 @@ ROUNDS.forEach(r => {
 });
 
 paintBadges();
-refreshClips();
 </script>
 </body>
 </html>
