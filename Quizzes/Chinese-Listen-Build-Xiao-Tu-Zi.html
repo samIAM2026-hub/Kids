@@ -201,7 +201,11 @@
       <div class="testrow">
         <button class="speak" id="testBtn">🔊 试听</button>
         <button class="mini" id="test2Btn">试一个长句</button>
+        <button class="mini" id="diagBtn">🔎 检查声音</button>
       </div>
+      <div id="diagOut" style="display:none;font-size:.78rem;color:#5d6b63;background:#fff;
+           border:2px solid #cfe1ec;border-radius:14px;padding:10px 12px;margin-top:12px;
+           white-space:pre-wrap;line-height:1.6;"></div>
       <div class="tip">
         <b>Best picks:</b> in Chrome choose <b>Google 普通话（中国大陆）</b> — it is a network voice and sounds the most natural.
         On a Mac/iPad, look for <b>Tingting / 婷婷</b> and prefer the <b>Enhanced / Premium</b> version; download it once in
@@ -300,66 +304,87 @@ const ALL_CHARS = [...new Set(ROUNDS.flatMap(r => r.items.flatMap(i => i.zh.spli
 
 /* ---------- tiny helpers ---------- */
 const $ = id => document.getElementById(id);
+/* localStorage throws outright in some browsers (blocked site data, private
+   windows, pages opened straight from a file) — never touch it unguarded. */
+const LS = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
 const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 const SCREENS = ['menu','study','settings','game','end'];
 const show = id => { SCREENS.forEach(s => $(s).classList.add('hidden')); $(id).classList.remove('hidden'); };
 
 /* ==================================================================
-   VOICE — devices carry several Chinese voices and they differ a lot.
-   Rank them, let the user choose, remember the choice.
+   VOICE — plain speechSynthesis, the same shape as the other Chinese
+   pages on this site (that version is known to speak on this machine).
+   Nothing clever: no warm-up utterance, no watchdog, no resume() —
+   each of those can wedge the speech queue in Safari.
+   The only extra is which voice we hand it, since devices carry
+   several Chinese voices and they differ a lot in quality.
 ===================================================================*/
 const VOICE_KEY = 'xiaotuzi_voice_name', RATE_KEY = 'xiaotuzi_voice_rate';
 let zhVoices = [], zhVoice = null;
-let speakRate = parseFloat(localStorage.getItem(RATE_KEY) || '0.8') || 0.8;
+let speakRate = parseFloat(LS.get(RATE_KEY) || '0.8') || 0.8;
 
 function scoreVoice(v){
   const n = (v.name + ' ' + v.lang).toLowerCase();
-  if (!/^zh|chinese|mandarin|普通话|中文/i.test(v.lang + ' ' + v.name)) return -999;
+  if (!/^zh|chinese|mandarin|\u666e\u901a\u8bdd|\u4e2d\u6587/i.test(v.lang + ' ' + v.name)) return -999;
   let s = 0;
-  if (/zh[-_]cn|zh[-_]hans|mandarin|putonghua|普通话|中国大陆|china/.test(n)) s += 100; else s += 30;
-  if (n.includes('google')) s += 60;                              /* Chrome network voice — best */
-  if (/premium|enhanced|neural|natural|siri/.test(n)) s += 45;    /* downloaded HQ Apple voices */
-  if (/tingting|ting-ting|婷婷|meijia|mei-jia|lili|yaoyao|xiaoxiao|huihui|kangkang/.test(n)) s += 20;
-  if (/compact|eloquence/.test(n)) s -= 35;                       /* the tinny robot ones */
-  if (/hk|cantonese|yue|粤|tw|taiwan|台/.test(n)) s -= 70;         /* wrong accent for this story */
+  if (/zh[-_]cn|zh[-_]hans|mandarin|putonghua|\u666e\u901a\u8bdd|\u4e2d\u56fd\u5927\u9646|china/.test(n)) s += 100; else s += 30;
+  if (/premium|enhanced|neural|natural|siri/.test(n)) s += 50;   /* downloaded HQ system voices */
+  if (n.includes('google')) s += 30;                             /* good, but needs the network */
+  if (/tingting|ting-ting|\u5a77\u5a77|meijia|mei-jia|lili|yaoyao|xiaoxiao|huihui|kangkang/.test(n)) s += 20;
+  if (/compact|eloquence/.test(n)) s -= 35;                      /* the tinny robot ones */
+  if (/hk|cantonese|yue|\u7ca4|tw|taiwan|\u53f0/.test(n)) s -= 70;  /* wrong accent for this story */
   return s;
 }
 function collectVoices(){
-  if (!window.speechSynthesis) return;
-  zhVoices = speechSynthesis.getVoices().filter(v => scoreVoice(v) > -900)
-             .sort((a,b) => scoreVoice(b) - scoreVoice(a));
-  const saved = localStorage.getItem(VOICE_KEY);
-  zhVoice = (saved && zhVoices.find(v => v.name === saved)) || zhVoices[0] || null;
-  fillVoiceSelect();
+  try{
+    if (!('speechSynthesis' in window)) return;
+    zhVoices = window.speechSynthesis.getVoices().filter(v => scoreVoice(v) > -900)
+               .sort((a,b) => scoreVoice(b) - scoreVoice(a));
+    const saved = LS.get(VOICE_KEY);
+    zhVoice = (saved && zhVoices.find(v => v.name === saved)) || zhVoices[0] || null;
+    fillVoiceSelect();
+  }catch(e){}
 }
 function fillVoiceSelect(){
   const sel = $('voiceSel'); if (!sel) return;
   if (!zhVoices.length){
-    sel.innerHTML = '<option>— no Chinese voice found on this device —</option>';
-    $('voiceStatus').textContent = 'No Chinese voice installed on this device — see the tips above, or read the sentences yourself from the menu sheet.';
-    $('voiceStatus').className = 'status bad';
+    sel.innerHTML = '<option>\u2014 no Chinese voice found yet \u2014</option>';
     return;
   }
   sel.innerHTML = zhVoices.map((v,i) =>
     '<option value="' + v.name.replace(/"/g,'') + '"' + (v === zhVoice ? ' selected' : '') + '>' +
-    (i === 0 ? '⭐ ' : '') + v.name + ' (' + v.lang + ')</option>').join('');
+    (i === 0 ? '\u2b50 ' : '') + v.name + ' (' + v.lang + ')' +
+    (v.localService === false ? ' \u00b7 \u9700\u8054\u7f51 online' : '') + '</option>').join('');
 }
-if (window.speechSynthesis){ collectVoices(); speechSynthesis.onvoiceschanged = collectVoices; }
 
+/* the boring version that works */
 function say(text, rate){
-  if (!window.speechSynthesis) return false;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = (zhVoice && zhVoice.lang) || 'zh-CN';
-  u.rate = rate || speakRate; u.pitch = 1.03;
-  if (zhVoice) u.voice = zhVoice;
-  speechSynthesis.speak(u);
-  return true;
+  try{
+    if (!('speechSynthesis' in window)) return false;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN';
+    u.rate = rate || speakRate;
+    if (!zhVoice) collectVoices();          /* the voice list often loads late */
+    if (zhVoice) u.voice = zhVoice;
+    window.speechSynthesis.speak(u);
+    return true;
+  }catch(e){ return false; }
+}
+
+if ('speechSynthesis' in window){
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = collectVoices;
+  collectVoices();
 }
 
 /* ---------- progress ---------- */
-function loadProg(){ try{ return JSON.parse(localStorage.getItem(STORE)) || {}; }catch(e){ return {}; } }
-function saveProg(p){ try{ localStorage.setItem(STORE, JSON.stringify(p)); }catch(e){} }
+function loadProg(){ try{ return JSON.parse(LS.get(STORE)) || {}; }catch(e){ return {}; } }
+function saveProg(p){ LS.set(STORE, JSON.stringify(p)); }
 function paintBadges(){
   const p = loadProg();
   document.querySelectorAll('[data-badge]').forEach(b => {
@@ -395,10 +420,9 @@ function loadItem(){
   $('checkBtn').disabled = false;
   render();
 
-  /* read it once, automatically */
-  setTimeout(() => {
-    if (!say(item.zh)) $('listenHint').textContent = 'No Chinese voice on this device — read it yourself from the menu sheet (👨‍👩‍👧 read-aloud).';
-  }, 350);
+  /* read it once, straight away — speaking inside the click that got us here
+     keeps the browser's "user gesture" alive, which iOS Safari insists on */
+  if (!say(item.zh)) $('listenHint').textContent = 'This browser has no speech — read the sentence yourself from the menu sheet (👨‍👩‍👧 read-aloud).';
 }
 
 function render(){
@@ -504,7 +528,7 @@ document.querySelectorAll('[data-back]').forEach(b => b.onclick = () => {
 /* ---------- voice settings ---------- */
 $('voiceSel').onchange = e => {
   zhVoice = zhVoices.find(v => v.name === e.target.value) || zhVoice;
-  localStorage.setItem(VOICE_KEY, zhVoice ? zhVoice.name : '');
+  LS.set(VOICE_KEY, zhVoice ? zhVoice.name : '');
   $('voiceStatus').className = 'status ok';
   $('voiceStatus').textContent = '已选：' + (zhVoice ? zhVoice.name : '');
   say('小兔子乖乖');
@@ -512,10 +536,37 @@ $('voiceSel').onchange = e => {
 $('rateSel').oninput = e => {
   speakRate = parseFloat(e.target.value);
   $('rateVal').textContent = speakRate.toFixed(2).replace(/0$/,'');
-  localStorage.setItem(RATE_KEY, String(speakRate));
+  LS.set(RATE_KEY, String(speakRate));
 };
 $('rateSel').value = speakRate; $('rateVal').textContent = String(speakRate);
 $('testBtn').onclick  = () => say('小兔子乖乖，把门儿开开。');
+
+/* if it is still silent, this says exactly where it stops */
+$('diagBtn').onclick = () => {
+  const out = $('diagOut'); out.style.display = 'block';
+  const has = 'speechSynthesis' in window;
+  const all = has ? window.speechSynthesis.getVoices() : [];
+  const lines = [
+    'speechSynthesis: ' + (has ? 'yes' : 'NO — this browser cannot speak'),
+    'voices total: ' + all.length + '   ·   Chinese: ' + zhVoices.length,
+    'using: ' + (zhVoice ? zhVoice.name + ' (' + zhVoice.lang + (zhVoice.localService === false ? ', online' : ', local') + ')' : 'none'),
+    'page: ' + location.protocol,
+    'zh voices: ' + (zhVoices.map(v => v.name).join(', ') || '—')
+  ];
+  out.textContent = lines.join('\n') + '\nspeaking… ';
+  if (!has) return;
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance('小兔子');
+    u.lang = 'zh-CN'; u.rate = speakRate;
+    if (zhVoice) u.voice = zhVoice;
+    u.onstart = () => { out.textContent += 'started ✅'; };
+    u.onend   = () => { out.textContent += ' · finished ✅ (if you heard nothing, raise the volume or pick another voice above)'; };
+    u.onerror = e => { out.textContent += 'ERROR: ' + (e.error || 'unknown') + ' ❌'; };
+    window.speechSynthesis.speak(u);
+    setTimeout(() => { if (out.textContent.endsWith('speaking… ')) out.textContent += 'nothing happened ❌ — this voice is silent, pick another one above'; }, 2500);
+  }catch(e){ out.textContent += 'threw: ' + e.message; }
+};
 $('test2Btn').onclick = () => say('又过了一会儿，兔妈妈真的回来了，小兔子高兴地开门。');
 
 
@@ -529,7 +580,7 @@ $('peekBtn').onclick = () => {
 };
 $('checkBtn').onclick = check;
 $('clearBtn').onclick = () => { tiles.forEach(t => t.used = false); placed = []; $('feedback').style.display='none'; render(); };
-$('resetBtn').onclick = () => { try{ localStorage.removeItem(STORE); }catch(e){} paintBadges(); };
+$('resetBtn').onclick = () => { LS.del(STORE); paintBadges(); };
 
 /* study cards */
 NEW_CHARS.forEach(c => {
