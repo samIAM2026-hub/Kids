@@ -56,8 +56,8 @@ stay in the log dimmed as "past week". Legacy `{yellow:N}` payloads auto-migrate
 Synced payload is `{entries, start, penalty}` under the same `grace_manners`/`warren_manners` keys. Score number/meter are color-banded (green ≥5 · rust 2.5–4.5 ·
 red <2.5). The 10-card pip strip is literal: each card absorbs **two** yellows — full green (kept) →
 half green/half yellow (1 yellow) → whole red (2 yellows = one red card). Green + half·0.5 always equals
-the score. Hand-editable vanilla JS — edit only the top `CONFIG` block. Synced payload is
-`{ yellow, start }`. Uses the same Firebase script but under **separate keys** (`grace_manners` /
+the score. Hand-editable vanilla JS — edit only the top `CONFIG` block. Uses the same Firebase
+script but under **separate keys** (`grace_manners` /
 `warren_manners`, storage `<child>_manners_v1`) so it never touches the old `grace` / `warren` data.
 
 **For a new checklist, start from `Checklists/checklist-template.html`** — a hand-editable, vanilla-JS
@@ -102,30 +102,49 @@ Hand-authored educational pages using **CSS `:root` variables** (`var(--body)` e
 - Lesson pages **back-link to their hub** (`href="index.html"`).
 
 ### Hubs — `Quizzes/index.html`, `Interest Lessons/index.html`
-Card grids: `.wrap` → `.grid` → `.quiz`/`.lcard` cards (`.ic` icon · `.t` title · `.d` desc ·
-`.tag`/`.chip` tags · `.time` estimate). Match the existing card markup when adding an entry.
 
-**The Quizzes hub is sliced three ways — child · subject · date.** The card markup never changes;
-where you *put* the card is what decides the first two, and its `data-added` decides the third.
+`Interest Lessons/index.html` is still a hand-written card grid: `.wrap` → `.grid` → `.lcard`
+cards (`.ic` icon · `.t` title · `.d` desc · `.chip` tags). Match the existing markup when you
+add an entry.
 
-```text
-<section class="kid" id="grace" data-kid="grace" data-tab="👧 Grace">   ← level 1: the child
-  <details class="subj" data-subject="Reading" open>                    ← level 2: the subject
-    <details class="grp" data-group="🍑 James and the Giant Peach">     ← level 3: one book (collapsed)
-      <div class="grid"> <a class="quiz" data-added="…"> … </a> </div>
+**`Quizzes/index.html` is data-driven — never hand-write a card into it.** Every quiz on that
+page comes from the `Q` array in the script at the bottom. The child blocks, subject sections,
+book shelves, counts, search index, date views and NEW badge are all built from that array at
+load time, so **there are no `.count` pills to keep in sync** and nothing to place by hand.
+
+```js
+{ k:'warren', s:'📖 Reading', g:'🛶 The Adventures of Huckleberry Finn',
+  gn:'by Mark Twain', h:'Huck-Finn-Quiz-Ch12.html', i:'🛶', t:'Chapter 12',
+  d:'15 questions', tg:[['reading','Reading']], a:'2026-07-14' }
 ```
 
-- **Three children blocks:** `grace`, `warren`, and `both` (中文 + More). `both` is the escape
-  hatch — anything shared lives there once instead of being duplicated into each child.
-- **Subjects** (`details.subj`, `open` by default) hold either a flat `.grid` or several
-  `details.grp` book folders, which stay **collapsed** until clicked. A subject that grows past
-  ~8 cards should be split into `.grp` folders.
-- **Row 1 of the sticky bar** is the child filter (built from every `section.kid`; picking a child
-  hides the other one, `both` always shows). **Row 2** is the date view: *By subject* (the folders
-  above) · *Last 7 days* · *Last 30 days* · *All, newest first* — the last three hide the folders
-  and rebuild every card as one date-grouped list with a `👦 Warren · Reading · 🛶 Huck Finn`
-  breadcrumb under each. Both choices persist in `localStorage`.
-- Every `.count` pill is written by hand in the HTML — update it when you add a card.
+| field | what it does |
+|---|---|
+| `k` | child — `grace` · `warren` · `both` (shared; stays visible whichever name is picked) |
+| `s` | subject heading, **including its emoji** — reuse an existing string exactly, or add a new one to `SUBJ_ORDER` |
+| `g` | book / test set. Leave it out and the card sits loose in the subject; give it and the card goes inside that shelf tile |
+| `gn` | small grey note beside the book name (author, "timed like the real SSAT") |
+| `h` `i` `t` `d` | href · emoji · short title · one line of detail |
+| `tg` | tags, `[['reading','Reading']]` — classes are `reading`, `vocab`, `think` |
+| `a` | `YYYY-MM-DD` added date — drives the NEW badge and all three date views |
+| `w` | `1` = full-width card, for "start here" pages and ones with a long description |
+| `ac` | custom border colour, wide cards only |
+| `o` | manual sort key — **only when the title has no useful number in it** |
+
+**Sorting takes care of itself.** Inside a shelf, cards sort by the first number in the title
+whenever most of that set's titles open with Chapter / Chapters / Exercise / Part / Lesson /
+Unit / Book / Pages — so Ch 3 lands before Ch 18. Every other set sorts newest-first. Wide
+(`w:1`) cards lead their group. Reach for `o` only when neither rule gives the order you want.
+
+**Everything starts folded.** Subjects render closed, so the landing view is just the three
+children and their subject headings with counts — one screen, however far the page grows. The
+one exception is a subject holding something added today: it opens itself, and so does the
+shelf inside it, so a NEW badge is never buried behind a fold.
+
+**Three ways in, all self-building:** the search box (matches title, detail, subject, book,
+child and filename — English, Chinese and bare chapter numbers all work), the name chips, and
+the date views. When the name filter hides a match, the page offers "Search everyone" instead
+of pretending nothing matched.
 
 ## Firebase & privacy
 
@@ -135,26 +154,20 @@ Never commit account data, and keep child references to **first names only** (as
 
 ## Index sync — do this every time a page is added/renamed/moved
 
-1. Add/adjust its card in the matching **hub** (`Quizzes/index.html` or `Interest Lessons/index.html`).
-   **Quizzes hub only — always stamp the card with the date you added it:**
-   `<a class="quiz" href="…" data-added="YYYY-MM-DD">`. A script at the bottom of
-   `Quizzes/index.html` reads that attribute, and while the card is newer than `NEW_DAYS`
-   (currently **1** — i.e. added *today*) it gets a red **NEW** badge, a red outline, gets moved
-   to the front of its section, and is counted in a "🆕 N new quizzes added today" line under the
-   subtitle. A card with no `data-added` simply never shows the badge — it is not an error, but
-   don't leave it off new cards. To make the badge linger longer, change the single `NEW_DAYS`
-   constant at the top of that script.
-   A NEW card also **auto-opens every `<details>` above it** and puts a red dot on each of those
-   summaries, so a collapsed book folder never hides today's work.
-   **Where does the card go?** Pick the child (`#grace` / `#warren` / `#both` — see the hub
-   structure above), then the subject, then the book folder; bump that folder's and that subject's
-   `.count` pill. **A new book/test set** = one more `<details class="grp" data-group="🍑 Label">`
-   inside the right subject. **A new subject** = one more `<details class="subj" data-subject="…"
-   open>`. **A new child** = one more `<section class="kid" id="…" data-kid="…" data-tab="👧 Name">`
-   — the filter chips, the date view and the deep links all build themselves from those attributes,
-   so nothing in either script needs editing.
+1. **Quizzes** — add one object to the `Q` array in `Quizzes/index.html` (fields above). That
+   is the whole job: no `<a class="quiz">` markup to write, no `.count` pill to bump, no folder
+   to pick. Always stamp `a:'YYYY-MM-DD'` with the day you added it — while the card is newer
+   than `NEW_DAYS` (currently **1**, i.e. added today) it gets a red **NEW** badge and outline,
+   is pulled to the front of its set, auto-opens the shelf it lives in, and is counted in the
+   "🆕 N new pages added today" banner at the top of the page.
+   A new book/test set = just use a new `g` string. A new subject = a new `s` string, added to
+   `SUBJ_ORDER` where it belongs in the running order. A new child = a new `k` plus an entry in
+   `KID_META` (tab label, colour class, blurb) — the chips, shelves and deep links build
+   themselves from there.
+   **Interest Lessons** — still hand-written: add its `.lcard` to the grid.
 2. Update the repo-root `../index.html` if the page is surfaced there (it currently links the two
    checklists, both hubs, the board game, and the Victoria explorer quest — under 👧🧒 孩子们 and
    🤖/🌲 sections).
-3. After any move, verify every `href` still resolves (checklists reference `../JS/…`; lessons
-   back-link `index.html`).
+3. After any move, verify every `href` still resolves (checklists reference `../JS/…`; lesson
+   pages back-link `index.html`; both hubs offer **← Kids home** (`../index.html`) as well as
+   **← Back to Home** (`../../index.html`)).

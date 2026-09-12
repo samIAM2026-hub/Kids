@@ -3,36 +3,104 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quizzes · Grace &amp; Warren</title>
+<title>Quizzes &middot; Grace &amp; Warren</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
   body {
     font-family: 'Trebuchet MS', system-ui, sans-serif;
     background: linear-gradient(160deg, #fff3dd 0%, #eaf5ef 55%, #dcefe6 100%);
-    min-height: 100vh; color: #33291c; padding: 26px 18px 50px;
+    background-attachment: fixed;
+    min-height: 100vh; color: #33291c; padding: 22px 16px 60px;
   }
-  .wrap { max-width: 820px; margin: 0 auto; }
-  h1.title { text-align: center; font-size: 30px; color: #b3541e; margin-bottom: 4px; }
-  .sub { text-align: center; color: #6b7d72; margin-bottom: 22px; font-size: 15px; }
+  .wrap { max-width: 940px; margin: 0 auto; }
+  h1.title { text-align: center; font-size: 32px; color: #b3541e; margin-bottom: 3px; }
+  .sub { text-align: center; color: #6b7d72; margin-bottom: 18px; font-size: 14.5px; }
 
-  /* ---------- level 1: one block per child ---------- */
-  .kid { border-radius: 22px; padding: 20px 20px 12px; margin-bottom: 24px;
-         box-shadow: 0 6px 0 rgba(0,0,0,.08); scroll-margin-top: 96px; }
+  /* ============ sticky top bar: search + who + view ============ */
+  .topbar {
+    position: sticky; top: 8px; z-index: 60; margin-bottom: 20px; padding: 11px 12px 10px;
+    background: rgba(255,250,240,.95); backdrop-filter: blur(10px);
+    border: 2px solid rgba(0,0,0,.08); border-radius: 18px;
+    box-shadow: 0 5px 18px rgba(0,0,0,.10);
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  .searchrow { display: flex; gap: 8px; align-items: center; }
+  .searchbox { flex: 1; position: relative; display: flex; align-items: center; }
+  .searchbox .mag { position: absolute; left: 13px; font-size: 17px; pointer-events: none; opacity: .55; }
+  #q {
+    width: 100%; font-family: inherit; font-size: 16px; font-weight: bold; color: #33291c;
+    background: #fff; border: 2.5px solid #e4d3b4; border-radius: 999px;
+    padding: 11px 40px 11px 40px; outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  #q::placeholder { color: #b3a892; font-weight: normal; }
+  #q:focus { border-color: #b3541e; box-shadow: 0 0 0 4px rgba(179,84,30,.13); }
+  #qclear {
+    position: absolute; right: 8px; border: none; background: #e8ddc6; color: #7a6a55;
+    width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 15px;
+    font-family: inherit; line-height: 1; display: none;
+  }
+  #qclear:hover { background: #d9c9a8; }
+  #q.has + #qclear, #qclear.show { display: block; }
+  .dice {
+    flex: 0 0 auto; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: bold;
+    background: #fff; border: 2.5px solid #cbb789; color: #8a6d3b;
+    border-radius: 999px; padding: 10px 15px; white-space: nowrap;
+    transition: transform .12s, background .12s, color .12s;
+  }
+  .dice:hover { transform: translateY(-2px) rotate(-4deg); background: #b3541e; border-color: #b3541e; color: #fff; }
+
+  .chiprow { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
+  .chiprow::-webkit-scrollbar { height: 5px; }
+  .chiprow::-webkit-scrollbar-thumb { background: #cbb789; border-radius: 999px; }
+  .chiprow.views { border-top: 1px dashed rgba(0,0,0,.12); padding-top: 8px; }
+  .chip {
+    flex: 0 0 auto; cursor: pointer; white-space: nowrap; font-family: inherit;
+    background: #fff; border: 2px solid rgba(0,0,0,.09); border-radius: 999px;
+    padding: 8px 15px; font-size: 14px; font-weight: bold; color: #5c6b62;
+    transition: background .12s, color .12s, border-color .12s, transform .12s;
+  }
+  .chip:hover { transform: translateY(-2px); border-color: #b3541e; color: #b3541e; }
+  .chip.active { background: #b3541e; border-color: #b3541e; color: #fff; }
+  .chip .n { font-size: 11px; opacity: .65; margin-left: 5px; font-weight: bold; }
+  .chip.active .n { opacity: .85; }
+  .chiprow.views .chip { font-size: 13px; padding: 6px 13px; }
+  .chiprow.views .chip.active { background: #2f6f5e; border-color: #2f6f5e; }
+  .chip .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+               background: #e2574c; vertical-align: middle; margin-left: 6px; }
+  .chip.active .dot { background: #fff; }
+
+  /* ============ the new-today banner ============ */
+  .newbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: #fff1ef; border: 2.5px solid #f0b4ad; border-radius: 16px;
+    padding: 12px 16px; margin-bottom: 18px; box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .newbar b { color: #c0392b; font-size: 16px; }
+  .newbar .go {
+    margin-left: auto; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: bold;
+    background: #e2574c; color: #fff; border: none; border-radius: 999px; padding: 7px 14px;
+  }
+  .newbar .go:hover { background: #c0392b; }
+
+  /* ============ level 1: one block per child ============ */
+  .kid { border-radius: 22px; padding: 18px 18px 14px; margin-bottom: 22px;
+         box-shadow: 0 6px 0 rgba(0,0,0,.08); scroll-margin-top: 130px; }
   .kid.peach     { background: #fff4e8; border: 3px solid #ffb37b; }
   .kid.river     { background: #eef6f0; border: 3px solid #8bb98f; }
   .kid.chocolate { background: #f7ece1; border: 3px solid #c9a06b; }
-  .kid > h2 { font-size: 24px; margin-bottom: 2px; }
+  .kid > h2 { font-size: 25px; margin-bottom: 1px; }
   .kid.peach > h2     { color: #d84315; }
   .kid.river > h2     { color: #3a7d44; }
   .kid.chocolate > h2 { color: #6d4326; }
-  .who { font-size: 13px; font-weight: bold; opacity: .7; text-transform: uppercase;
-         letter-spacing: .5px; margin-bottom: 16px; }
+  .who { font-size: 12.5px; font-weight: bold; opacity: .68; text-transform: uppercase;
+         letter-spacing: .5px; margin-bottom: 15px; }
 
-  /* ---------- level 2: subject ---------- */
-  .subj { background: rgba(255,255,255,.55); border: 2px solid rgba(0,0,0,.06);
-          border-radius: 16px; padding: 2px 14px; margin-bottom: 12px; }
+  /* ============ level 2: subject ============ */
+  .subj { background: rgba(255,255,255,.6); border: 2px solid rgba(0,0,0,.06);
+          border-radius: 16px; padding: 2px 13px; margin-bottom: 11px; }
   .subj > summary { cursor: pointer; list-style: none; padding: 11px 2px;
-                    font-size: 17px; font-weight: bold; color: #4b5b52;
+                    font-size: 17.5px; font-weight: bold; color: #4b5b52;
                     display: flex; align-items: center; gap: 9px; }
   .subj > summary::-webkit-details-marker { display: none; }
   .subj > summary::after { content: '\25BE'; margin-left: auto; opacity: .45; font-size: 14px;
@@ -41,42 +109,71 @@
   .kid.peach     .subj > summary { color: #b3541e; }
   .kid.river     .subj > summary { color: #35704a; }
   .kid.chocolate .subj > summary { color: #8a5a34; }
-
-  /* ---------- level 3: a book / test set (collapsed by default) ---------- */
-  .grp { border-top: 1px dashed rgba(0,0,0,.13); }
-  .grp > summary { cursor: pointer; list-style: none; padding: 11px 2px 11px 6px;
-                   display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
-                   font-size: 15px; font-weight: bold; color: #5b4636; }
-  .grp > summary::-webkit-details-marker { display: none; }
-  .grp > summary::before { content: '\25B8'; opacity: .5; font-size: 12px; }
-  .grp[open] > summary::before { content: '\25BE'; }
-  .grp .note { font-size: 12px; font-weight: normal; opacity: .6; }
   .count { font-size: 11px; font-weight: bold; background: rgba(0,0,0,.07);
            color: #6b6152; border-radius: 999px; padding: 2px 8px; }
 
-  /* ---------- cards ---------- */
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
-          gap: 12px; margin: 4px 0 14px; }
+  /* ============ level 3: the SHELF - one tile per book / test set ============ */
+  .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(236px, 1fr));
+           gap: 10px; margin: 3px 0 13px; align-items: stretch; }
+  .book {
+    display: flex; align-items: center; gap: 11px; cursor: pointer; text-align: left;
+    font-family: inherit; color: inherit; width: 100%;
+    background: #fff; border: 2.5px solid rgba(0,0,0,.07); border-radius: 15px;
+    padding: 13px 14px; transition: transform .12s, box-shadow .12s, border-color .12s;
+  }
+  .book:hover { transform: translateY(-3px); box-shadow: 0 7px 15px rgba(0,0,0,.13); }
+  .kid.peach     .book:hover, .kid.peach     .book.open { border-color: #ff8a5c; }
+  .kid.river     .book:hover, .kid.river     .book.open { border-color: #3a7d44; }
+  .kid.chocolate .book:hover, .kid.chocolate .book.open { border-color: #a9703f; }
+  .book.open { box-shadow: 0 5px 0 rgba(0,0,0,.07); }
+  .book .bic { font-size: 30px; line-height: 1; flex: 0 0 auto; }
+  .book > span:nth-child(2) { min-width: 0; }
+  .book .bt { display: block; font-weight: bold; font-size: 14px; line-height: 1.28;
+              overflow-wrap: break-word; }
+  .book .bn { display: block; font-size: 11.5px; color: #7a6a55; margin-top: 3px; line-height: 1.35;
+              display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+              overflow: hidden; }
+  .book .arrow { margin-left: auto; opacity: .4; font-size: 13px; transition: transform .15s; }
+  .book.open .arrow { transform: rotate(90deg); opacity: .7; }
+  .book .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+               background: #e2574c; vertical-align: middle; margin-left: 5px; }
+
+  /* the drawer that opens under a book tile */
+  .drawer { grid-column: 1 / -1; margin: -4px 0 8px; padding: 13px 14px 4px;
+            background: rgba(255,255,255,.75); border: 2px dashed rgba(0,0,0,.12);
+            border-radius: 15px; }
+  .drawer .dhead { font-size: 13px; font-weight: bold; color: #7a6a55; margin-bottom: 9px;
+                   display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .drawer .dhead .shut { margin-left: auto; cursor: pointer; font-family: inherit; font-size: 12px;
+                         font-weight: bold; background: none; border: none; color: #9a8b78; }
+  .drawer .dhead .shut:hover { color: #b3541e; text-decoration: underline; }
+
+  /* ============ cards ============ */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
+          gap: 10px; margin: 3px 0 13px; }
   .quiz {
-    display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit;
-    background: #fff; border-radius: 14px; padding: 14px 16px; border: 2px solid rgba(0,0,0,.06);
+    display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit;
+    background: #fff; border-radius: 14px; padding: 12px 14px; border: 2px solid rgba(0,0,0,.06);
     transition: transform .12s, box-shadow .12s, border-color .12s;
   }
   .quiz:hover { transform: translateY(-3px); box-shadow: 0 6px 14px rgba(0,0,0,.12); }
   .kid.peach     .quiz:hover { border-color: #ff8a5c; }
   .kid.river     .quiz:hover { border-color: #3a7d44; }
   .kid.chocolate .quiz:hover { border-color: #a9703f; }
-  .quiz .ic { font-size: 26px; line-height: 1; }
-  .quiz .t { font-weight: bold; font-size: 15px; }
-  .quiz .d { font-size: 12px; color: #7a6a55; margin-top: 2px; }
-  .tag { display: inline-block; font-size: 11px; font-weight: bold; padding: 2px 8px;
-         border-radius: 999px; margin-top: 4px; }
+  .quiz.wide { grid-column: 1 / -1; align-items: flex-start; }
+  .quiz.wide .ic { margin-top: 2px; }
+  .quiz.wide .d { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+                  overflow: hidden; }
+  .quiz .ic { font-size: 25px; line-height: 1; flex: 0 0 auto; }
+  .quiz .t { font-weight: bold; font-size: 14.5px; line-height: 1.3; }
+  .quiz .d { font-size: 11.5px; color: #7a6a55; margin-top: 3px; line-height: 1.4; }
+  .tag { display: inline-block; font-size: 10.5px; font-weight: bold; padding: 2px 8px;
+         border-radius: 999px; margin-top: 5px; margin-right: 4px; }
   .tag.vocab { background: #ede0c4; color: #8a6d3b; }
   .tag.reading { background: #d7ecd7; color: #2e6b34; }
   .tag.think { background: #d9e8f5; color: #2f5d86; }
   .kid.peach .tag.reading { background: #ffe0cc; color: #c1440e; }
 
-  /* "NEW" badge - stamped by the script at the bottom from each card's data-added date */
   .quiz.is-new { border-color: #e2574c; box-shadow: 0 0 0 3px rgba(226,87,76,.14); }
   .badge-new {
     display: inline-block; vertical-align: middle; margin-left: 6px;
@@ -85,730 +182,532 @@
     animation: newpulse 1.8s ease-in-out infinite;
   }
   @keyframes newpulse { 0%,100% { opacity:1; } 50% { opacity:.55; } }
-  @media (prefers-reduced-motion: reduce) { .badge-new { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .badge-new, .dice { animation: none; transition: none; } }
   summary .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
                  background: #e2574c; vertical-align: middle; }
 
-  /* ---------- the two sticky filter rows ---------- */
-  .tabbar {
-    position: sticky; top: 10px; z-index: 50; margin-bottom: 22px; padding: 9px 10px;
-    background: rgba(255,250,240,.93); backdrop-filter: blur(8px);
-    border: 2px solid rgba(0,0,0,.07); border-radius: 16px;
-    box-shadow: 0 4px 14px rgba(0,0,0,.09);
-    display: flex; flex-direction: column; gap: 7px;
-  }
-  .tabbar .tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
-  .tabbar .tabs::-webkit-scrollbar { height: 5px; }
-  .tabbar .tabs::-webkit-scrollbar-thumb { background: #cbb789; border-radius: 999px; }
-  .tabbar .tabs.when { border-top: 1px dashed rgba(0,0,0,.12); padding-top: 8px; }
-  .tab {
-    flex: 0 0 auto; cursor: pointer; white-space: nowrap;
-    background: #fff; border: 2px solid rgba(0,0,0,.08); border-radius: 999px;
-    padding: 7px 14px; font-family: inherit; font-size: 13.5px; font-weight: bold; color: #5c6b62;
-    transition: background .12s, color .12s, border-color .12s, transform .12s;
-  }
-  .tab:hover { transform: translateY(-2px); border-color: #b3541e; color: #b3541e; }
-  .tab.active { background: #b3541e; border-color: #b3541e; color: #fff; }
-  .tabs.when .tab { font-size: 12.5px; padding: 6px 12px; }
-  .tabs.when .tab.active { background: #2f6f5e; border-color: #2f6f5e; }
-  .tab .dot { margin-left: 6px; }
-  .tab.active .dot { background: #fff; }
-
-  /* ---------- the date view ---------- */
-  #recent { border-radius: 22px; padding: 20px 20px 12px; margin-bottom: 24px;
-            background: #f2f7fb; border: 3px solid #a8c4d8; box-shadow: 0 6px 0 rgba(0,0,0,.08); }
-  #recent h2 { font-size: 24px; color: #2f5d86; margin-bottom: 2px; }
-  #recent .quiz:hover { border-color: #4d84ad; }
-  .daygroup { margin-bottom: 6px; }
+  /* ============ search results + date view ============ */
+  #panel { border-radius: 22px; padding: 18px 18px 12px; margin-bottom: 22px;
+           background: #f2f7fb; border: 3px solid #a8c4d8; box-shadow: 0 6px 0 rgba(0,0,0,.08); }
+  #panel h2 { font-size: 24px; color: #2f5d86; margin-bottom: 2px; }
+  #panel .quiz:hover { border-color: #4d84ad; }
   .daygroup > h3 { font-size: 14px; color: #4b6b83; margin: 14px 0 2px;
                    border-bottom: 1px dashed rgba(0,0,0,.13); padding-bottom: 5px; }
-  .crumb { display: block; font-size: 11px; font-weight: bold; letter-spacing: .3px;
+  .crumb { display: block; font-size: 10.5px; font-weight: bold; letter-spacing: .3px;
            color: #97887a; margin-top: 5px; text-transform: uppercase; }
-  .empty { font-size: 14px; color: #7d8c84; padding: 14px 2px 18px; }
+  mark { background: #ffe9a8; color: inherit; border-radius: 3px; padding: 0 2px; }
+  .empty { font-size: 14.5px; color: #7d8c84; padding: 14px 2px 18px; line-height: 1.6; }
+  .empty b { color: #b3541e; }
+  .empty .go { cursor: pointer; font-family: inherit; font-size: 13px; font-weight: bold;
+               background: #2f6f5e; color: #fff; border: none; border-radius: 999px;
+               padding: 7px 14px; margin-left: 6px; }
+  .empty .go:hover { background: #24564a; }
 
-  footer { text-align: center; font-size: 12px; color: #8a9a90; margin-top: 24px; }
+  footer { text-align: center; font-size: 12px; color: #8a9a90; margin-top: 26px; }
   a.home { display:inline-block; margin-top:14px; color:#6b7d72; text-decoration:none; font-size:13px; }
   a.home:hover { text-decoration: underline; }
+  .homerow { text-align: center; display: flex; gap: 18px; justify-content: center; }
+
+  @media (max-width: 560px) {
+    body { padding: 16px 11px 50px; }
+    h1.title { font-size: 26px; }
+    .sub { font-size: 13px; }
+    .shelf, .grid { grid-template-columns: 1fr; }
+    .searchrow { flex-wrap: wrap; }        /* search gets its own full-width row */
+    .searchbox { flex: 1 1 100%; }
+    .dice { flex: 1 1 100%; padding: 9px 12px; font-size: 13.5px; }
+    #q { font-size: 16px; }                /* 16px keeps iOS from zooming on focus */
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1 class="title">&#128218; Quizzes</h1>
-  <p class="sub">Pick a name, then a subject &middot; or switch to the date view &middot; passing score: 80%</p>
+  <p class="sub">Type to search &middot; or pick a name, a subject, then a book &middot; passing score: 80%</p>
 
-  <nav class="tabbar" aria-label="Filters">
-    <div class="tabs who-tabs" id="tabs" aria-label="Whose quizzes"></div>
-    <div class="tabs when" id="when-tabs" aria-label="When it was added"></div>
+  <nav class="topbar" aria-label="Find a quiz">
+    <div class="searchrow">
+      <div class="searchbox">
+        <span class="mag">&#128269;</span>
+        <input id="q" type="search" autocomplete="off" placeholder="Search &mdash; a book, a chapter number, &ldquo;fractions&rdquo;, &ldquo;拼音&rdquo;&hellip;">
+        <button id="qclear" type="button" title="Clear">&times;</button>
+      </div>
+      <button class="dice" id="dice" type="button">&#127922; Surprise me</button>
+    </div>
+    <div class="chiprow who-chips" id="who-chips" aria-label="Whose quizzes"></div>
+    <div class="chiprow views" id="view-chips" aria-label="How to sort"></div>
   </nav>
 
-  <section id="recent" hidden>
-    <h2>&#128197; By date</h2>
-    <div class="who" id="recent-sub">newest first</div>
-    <div id="recent-body"></div>
-  </section>
+  <div id="newbar" class="newbar" hidden></div>
+  <section id="panel" hidden><h2 id="panel-title"></h2><div class="who" id="panel-sub"></div><div id="panel-body"></div></section>
+  <main id="shelves"></main>
 
-  <section class="kid peach" id="grace" data-kid="grace" data-tab="👧 Grace">
-    <h2>👧 Grace</h2>
-    <div class="who">Reading &middot; vocabulary &middot; math &middot; 36 pages</div>
+  <noscript><p class="empty">This page needs JavaScript to show the quiz list. Ask a grown-up for help!</p></noscript>
 
-    <details class="subj" id="grace-reading" data-subject="Reading" open>
-      <summary>📖 Reading <span class="count">21</span></summary>
-      <details class="grp" data-group="🍑 James and the Giant Peach">
-        <summary>🍑 James and the Giant Peach <span class="count">13</span><span class="note">by Roald Dahl</span></summary>
-        <div class="grid">
-          <a class="quiz" href="James-Giant-Peach-Quiz-Ch9-11.html" data-added="2026-07-14">
-          <div class="ic">🍑</div><div><div class="t">Chapters 9–11</div><div class="d">15 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="James-Giant-Peach-Quiz-Ch13-14.html" data-added="2026-07-14">
-          <div class="ic">🐛</div><div><div class="t">Chapters 13–14</div><div class="d">15 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="James-Giant-Peach-Quiz-Ch15-22.html" data-added="2026-07-14">
-          <div class="ic">🕊️</div><div><div class="t">Chapters 15–22</div><div class="d">40 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="James-Giant-Peach-Quiz-Ch23-24.html" data-added="2026-07-14">
-          <div class="ic">🎻</div><div><div class="t">Chapters 23–24</div><div class="d">16 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="James-Giant-Peach-Quiz-Ch25-26.html" data-added="2026-07-14">
-          <div class="ic">🐞</div><div><div class="t">Chapters 25–26</div><div class="d">20 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="James-Giant-Peach-Quiz-Ch27-28.html" data-added="2026-07-14">
-          <div class="ic">☁️</div><div><div class="t">Chapters 27–28</div><div class="d">20 questions · harder</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="James-Giant-Peach-Quiz-Ch29-30.html" data-added="2026-07-14">
-          <div class="ic">🌧️</div><div><div class="t">Chapters 29–30</div><div class="d">20 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="James-Giant-Peach-Quiz-Ch31-32.html" data-added="2026-07-14">
-          <div class="ic">🌆</div><div><div class="t">Chapters 31–32</div><div class="d">20 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="James-Giant-Peach-Quiz-Ch33-34.html" data-added="2026-07-14">
-          <div class="ic">✈️</div><div><div class="t">Chapters 33–34</div><div class="d">20 questions · harder</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="James-Giant-Peach-Quiz-Ch35-36.html" data-added="2026-07-14">
-          <div class="ic">🏙️</div><div><div class="t">Chapters 35–36</div><div class="d">20 questions · harder</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="James-Giant-Peach-Quiz-Ch37-38.html" data-added="2026-07-14">
-          <div class="ic">🎉</div><div><div class="t">Chapters 37–38</div><div class="d">20 questions · harder</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="James-Giant-Peach-Quiz-Ch39.html" data-added="2026-07-14">
-          <div class="ic">🏙️</div><div><div class="t">Chapter 39 · The End</div><div class="d">10 questions · harder</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="James-Giant-Peach-Vocab-Quiz-Ch9-11.html" data-added="2026-07-14">
-          <div class="ic">🔤</div><div><div class="t">Vocabulary · Ch 9–11</div><div class="d">15 questions</div><span class="tag vocab">Vocab</span></div>
-          </a>
-        </div>
-      </details>
-      <details class="grp" data-group="🍫 Charlie and the Chocolate Factory">
-        <summary>🍫 Charlie and the Chocolate Factory <span class="count">8</span><span class="note">by Roald Dahl</span></summary>
-        <div class="grid">
-          <a class="quiz" href="Charlie-Chocolate-Factory-Quiz-Ch1-4.html" data-added="2026-07-16">
-          <div class="ic">🍫</div><div><div class="t">Chapters 1–4</div><div class="d">40 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="Charlie-Chocolate-Factory-Quiz-Ch6-7.html" data-added="2026-07-18">
-          <div class="ic">🎫</div><div><div class="t">Chapters 6–7</div><div class="d">20 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="Charlie-Chocolate-Factory-Quiz-Ch8-9.html" data-added="2026-07-19">
-          <div class="ic">🎰</div><div><div class="t">Chapters 8–9</div><div class="d">20 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="Charlie-Chocolate-Factory-Quiz-Ch10-11.html" data-added="2026-07-20">
-          <div class="ic">✨</div><div><div class="t">Chapters 10–11</div><div class="d">20 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="Charlie-Chocolate-Factory-Quiz-Ch13-14.html" data-added="2026-07-24">
-          <div class="ic">🎩</div><div><div class="t">Chapters 13–14</div><div class="d">20 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="Charlie-Chocolate-Factory-Quiz-Ch15-16.html" data-added="2026-07-25">
-          <div class="ic">🌊</div><div><div class="t">Chapters 15–16</div><div class="d">20 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="Charlie-Chocolate-Factory-Quiz-Ch17-18.html" data-added="2026-08-02">
-          <div class="ic">🚣</div><div><div class="t">Chapters 17–18</div><div class="d">20 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="Charlie-Chocolate-Factory-Quiz-Ch19-20.html" data-added="2026-08-02">
-          <div class="ic">🧪</div><div><div class="t">Chapters 19–20</div><div class="d">20 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-        </div>
-      </details>
-    </details>
-
-    <details class="subj" id="grace-vocab" data-subject="Vocabulary" open>
-      <summary>🔤 Vocabulary <span class="count">5</span></summary>
-      <div class="grid">
-        <a class="quiz" href="Wordly-Wise-L16-17-Vocab-MCQ.html" data-added="2026-07-14">
-        <div class="ic">📚</div><div><div class="t">Wordly Wise L16–17 · Meanings</div><div class="d">30 words · multiple choice · Grace</div><span class="tag think">Vocab</span></div>
-        </a>
-        <a class="quiz" href="Wordly-Wise-L16-17-Vocab-FillBlank.html" data-added="2026-07-14">
-        <div class="ic">✍️</div><div><div class="t">Wordly Wise L16–17 · Fill-in</div><div class="d">30 sentences · type the word · Grace</div><span class="tag think">Vocab</span></div>
-        </a>
-        <a class="quiz" href="Wordly-Wise-L13-14-Vocab-MCQ.html" data-added="2026-07-17">
-        <div class="ic">📚</div><div><div class="t">Wordly Wise L13–14 · Word Choice</div><div class="d">30 words in context · multiple choice · Grace</div><span class="tag think">Vocab</span></div>
-        </a>
-        <a class="quiz" href="Wordly-Wise-L13-14-Vocab-FillBlank.html" data-added="2026-07-16">
-        <div class="ic">✍️</div><div><div class="t">Wordly Wise L13–14 · Fill-in</div><div class="d">30 sentences · type the word · Grace</div><span class="tag think">Vocab</span></div>
-        </a>
-        <a class="quiz" href="Vocab-Quiz-Lesson-29.html" data-added="2026-07-14">
-        <div class="ic">✏️</div><div><div class="t">Lesson 29</div><div class="d">12 words</div><span class="tag think">Vocab</span></div>
-        </a>
-      </div>
-    </details>
-
-    <details class="subj" id="grace-math" data-subject="Math" open>
-      <summary>🧮 Math <span class="count">10</span></summary>
-      <div class="grid">
-        <a class="quiz" href="Math-Fractions-Ex10-Sep7.html" data-added="2026-09-07">
-        <div class="ic">🔟</div><div><div class="t">Exercise 10 · Fractions Five Ways</div><div class="d">All five questions taught one at a time · improper → mixed in simplest form, the "equal numbers" matching puzzle, adding with same and different bottoms, taking a fraction away from a whole number, and &gt; &lt; = · every book question worked with a hide-the-steps button · then a 20-question test with all-new numbers, 80% to pass</div><span class="tag think">Lesson + Test</span></div>
-        </a>
-        <a class="quiz" href="Math-Fractions-Ex11-Sep7.html" data-added="2026-09-07">
-        <div class="ic">➗</div><div><div class="t">Exercise 11 · A Fraction <em>is</em> a Division</div><div class="d">Why the fraction line means "divide" · 3 cookies shared between 2, the sharing pictures, and changing an improper fraction to a mixed number by short division · the three traps (dividing backwards, remainder underneath, remainder too big) · then a 15-question test, 80% to pass</div><span class="tag think">Lesson + Test</span></div>
-        </a>
-        <a class="quiz" href="Math-Fractions-Ex12-Sep7.html" data-added="2026-09-07">
-        <div class="ic">🧺</div><div><div class="t">Exercise 12 · Fractions of a Set</div><div class="d">When the whole is a group of things · dividing a set into equal parts (and how many lines to draw), what fraction of a set is shaded, counting by groups instead of one by one, and writing part-of-the-whole fractions · then a 15-question test, 80% to pass</div><span class="tag think">Lesson + Test</span></div>
-        </a>
-        <a class="quiz" href="Math-Fractions-Ex13-Sep7.html" data-added="2026-09-07">
-        <div class="ic">🎨</div><div><div class="t">Exercise 13 · How Much Is a Fraction of a Set?</div><div class="d">Colouring 2/5 of a set, ½ of 12, and the two-step recipe for ¾ of 20 — divide by the bottom, times by the top · all six book pairs worked out · the three traps, including answering with a fraction instead of a count · then a 15-question test, 80% to pass</div><span class="tag think">Lesson + Test</span></div>
-        </a>
-        <a class="quiz" href="Math-Fractions-Ex14-Sep7.html" data-added="2026-09-07">
-        <div class="ic">✍️</div><div><div class="t">Exercise 14 · Writing It Down &amp; Bigger Numbers</div><div class="d">Why ¼ of 8 gets written as 8/4, and what the "2 ×" line means · dividing 80, 96, 120 and 150 with break-it-up and halve-again tricks · all eight Q3 pairs worked out with a sense-check on every answer · then a 15-question test, 80% to pass</div><span class="tag think">Lesson + Test</span></div>
-        </a>
-        <a class="quiz" href="Math-Mixed-Numbers-Improper-Fractions-Sep6.html" data-added="2026-09-06">
-        <div class="ic">🍕</div><div><div class="t">Mixed Numbers → Improper Fractions · p.82 &amp; p.85</div><div class="d">Study guide for Q3, Q4 and Q5 · what the words mean, the "times, then plus, then keep" recipe, the two mistakes to watch for · all ten book questions worked through with a hide-the-steps button · then a 15-question test with all-new numbers, 80% to pass</div><span class="tag think">Lesson + Test</span></div>
-        </a>
-        <a class="quiz" href="Math-Mixed-Numbers-Improper-Fractions-Aug29.html" data-added="2026-08-29">
-        <div class="ic">🥧</div><div><div class="t">Mixed Numbers &amp; Improper Fractions · Aug 29 homework</div><div class="d">Grace's own worksheet taught in English · every question from Exercises 6, 7, 8 and p.76 explained step by step with drawings · hide-the-steps button to try each one yourself · 15-question test, 85% to pass</div><span class="tag think">Lesson + Test</span></div>
-        </a>
-        <a class="quiz" href="Math-Fractions-Lab-Unit3.html" data-added="2026-08-15">
-        <div class="ic">🧮</div><div><div class="t">Fractions Lab · Unit 3</div><div class="d">The whole unit taught step by step · add &amp; subtract, mixed numbers, improper fractions, converting · 10 worked examples · 20 practice questions that show the solution · 20-question test, 85% to pass</div><span class="tag think">Lesson + Test</span></div>
-        </a>
-        <a class="quiz" href="Math-Fractions-Add-Subtract-Unit3.html" data-added="2026-08-14">
-        <div class="ic">🍕</div><div><div class="t">Fractions Workshop · Unit 3</div><div class="d">Adding &amp; subtracting fractions · 27 questions you solve yourself · pie diagrams, secret word, dot-to-dot star</div><span class="tag think">Practice</span></div>
-        </a>
-        <a class="quiz" href="Math-Solutions.html" data-added="2026-08-04">
-        <div class="ic">🧮</div><div><div class="t">Math Solutions · Portions &amp; Percents</div><div class="d">2 test problems worked step by step · 5 practice questions</div><span class="tag think">Solutions</span></div>
-        </a>
-      </div>
-    </details>
-  </section>
-
-  <section class="kid river" id="warren" data-kid="warren" data-tab="👦 Warren">
-    <h2>👦 Warren</h2>
-    <div class="who">Reading &middot; SSAT &middot; vocabulary &middot; algebra &middot; writing &middot; big ideas &middot; 65 pages</div>
-
-    <details class="subj" id="warren-reading" data-subject="Reading" open>
-      <summary>📖 Reading <span class="count">17</span></summary>
-      <details class="grp" data-group="🛶 The Adventures of Huckleberry Finn">
-        <summary>🛶 The Adventures of Huckleberry Finn <span class="count">16</span><span class="note">by Mark Twain</span></summary>
-        <div class="grid">
-          <a class="quiz" href="Huck-Finn-Quiz-Ch3.html" data-added="2026-07-14">
-          <div class="ic">🙏</div><div><div class="t">Chapter 3</div><div class="d">15 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch4.html" data-added="2026-07-14">
-          <div class="ic">🐾</div><div><div class="t">Chapter 4</div><div class="d">15 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch5.html" data-added="2026-07-14">
-          <div class="ic">👤</div><div><div class="t">Chapter 5</div><div class="d">15 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch6-7.html" data-added="2026-07-14">
-          <div class="ic">🪵</div><div><div class="t">Chapters 6 &amp; 7</div><div class="d">20 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch8.html" data-added="2026-07-14">
-          <div class="ic">🏝️</div><div><div class="t">Chapter 8</div><div class="d">10 questions</div><span class="tag think">Comprehension</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch9.html" data-added="2026-07-14">
-          <div class="ic">🏚️</div><div><div class="t">Chapter 9</div><div class="d">10 questions</div><span class="tag think">Comprehension</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch10-11.html" data-added="2026-07-14">
-          <div class="ic">🐍</div><div><div class="t">Chapters 10 &amp; 11</div><div class="d">20 questions</div><span class="tag think">Comprehension</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch12.html" data-added="2026-07-14">
-          <div class="ic">🚢</div><div><div class="t">Chapter 12</div><div class="d">15 questions</div><span class="tag think">Comprehension</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch13.html" data-added="2026-07-14">
-          <div class="ic">🚨</div><div><div class="t">Chapter 13</div><div class="d">10 questions · fill + comp</div><span class="tag think">Comprehension</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch14.html" data-added="2026-07-14">
-          <div class="ic">👑</div><div><div class="t">Chapter 14</div><div class="d">13 questions · fill + comp</div><span class="tag think">Comprehension</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch15.html" data-added="2026-07-14">
-          <div class="ic">🌫️</div><div><div class="t">Chapter 15</div><div class="d">13 questions · fill + comp</div><span class="tag think">Comprehension</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch16.html" data-added="2026-07-14">
-          <div class="ic">⚖️</div><div><div class="t">Chapter 16</div><div class="d">13 questions · fill + comp</div><span class="tag think">Comprehension</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch17.html" data-added="2026-07-14">
-          <div class="ic">🏛️</div><div><div class="t">Chapter 17</div><div class="d">13 questions · fill + comp</div><span class="tag think">Comprehension</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch18.html" data-added="2026-08-30">
-          <div class="ic">🔫</div><div><div class="t">Chapter 18</div><div class="d">20 questions · what happened + why</div><span class="tag think">Comprehension</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Quiz-Ch18-19.html" data-added="2026-07-18">
-          <div class="ic">⚔️</div><div><div class="t">Chapters 18–19</div><div class="d">20 questions · reading + think</div><span class="tag reading">Reading</span></div>
-          </a>
-          <a class="quiz" href="Huck-Finn-Vocab-Quiz-Ch3.html" data-added="2026-07-14">
-          <div class="ic">🔤</div><div><div class="t">Vocabulary · Ch 3</div><div class="d">15 questions</div><span class="tag vocab">Vocab</span></div>
-          </a>
-        </div>
-      </details>
-      <details class="grp" data-group="📓 Diary of a Wimpy Kid">
-        <summary>📓 Diary of a Wimpy Kid <span class="count">1</span><span class="note">by Jeff Kinney</span></summary>
-        <div class="grid">
-          <a class="quiz" href="Wimpy-Kid-Quiz-Pages1-40.html" data-added="2026-08-30">
-          <div class="ic">📓</div><div><div class="t">Book 1 · Pages 1–40</div><div class="d">20 questions</div><span class="tag reading">Reading</span></div>
-          </a>
-        </div>
-      </details>
-    </details>
-
-    <details class="subj" id="warren-ssat" data-subject="SSAT" open>
-      <summary>📝 SSAT <span class="count">34</span></summary>
-      <details class="grp" data-group="⏱️ Summer Mock Test 3">
-        <summary>⏱️ Summer Mock Test 3 <span class="count">7</span><span class="note">timed like the real SSAT &middot; no answers until you finish</span></summary>
-        <div class="grid">
-          <a class="quiz" href="SSAT-MockTest3-Index.html" style="grid-column:1/-1;border-color:#2f6f5e" data-added="2026-09-07">
-          <div class="ic">🗂️</div><div><div class="t">Mock Test 3 · Start here</div><div class="d">The whole paper split into six timed sittings, plus the essay prompt, the timing plan, and the list of questions where the printed answer key is wrong</div><span class="tag think">Index</span></div>
-          </a>
-          <a class="quiz" href="SSAT-MockTest3-Quant-1.html" data-added="2026-09-07">
-          <div class="ic">🧮</div><div><div class="t">Quantitative 1</div><div class="d">25 questions · 30 minutes</div><span class="tag think">Test</span></div>
-          </a>
-          <a class="quiz" href="SSAT-MockTest3-Quant-2.html" data-added="2026-09-07">
-          <div class="ic">📐</div><div><div class="t">Quantitative 2</div><div class="d">25 questions · 30 minutes</div><span class="tag think">Test</span></div>
-          </a>
-          <a class="quiz" href="SSAT-MockTest3-Reading-A.html" data-added="2026-09-07">
-          <div class="ic">📖</div><div><div class="t">Reading A</div><div class="d">4 passages · 23 questions · 23 minutes</div><span class="tag reading">Test</span></div>
-          </a>
-          <a class="quiz" href="SSAT-MockTest3-Reading-B.html" data-added="2026-09-07">
-          <div class="ic">📜</div><div><div class="t">Reading B</div><div class="d">3 passages · 17 questions · 17 minutes</div><span class="tag reading">Test</span></div>
-          </a>
-          <a class="quiz" href="SSAT-MockTest3-Synonyms.html" data-added="2026-09-07">
-          <div class="ic">🔤</div><div><div class="t">Synonyms</div><div class="d">30 questions · 12 minutes</div><span class="tag vocab">Test</span></div>
-          </a>
-          <a class="quiz" href="SSAT-MockTest3-Analogies.html" data-added="2026-09-07">
-          <div class="ic">🌉</div><div><div class="t">Analogies</div><div class="d">30 questions · 18 minutes</div><span class="tag vocab">Test</span></div>
-          </a>
-        </div>
-      </details>
-      <details class="grp" data-group="📄 SSAT Practice Tests">
-        <summary>📄 SSAT Practice Tests <span class="count">27</span><span class="note">the real papers, answer keys &amp; graded reviews</span></summary>
-        <div class="grid">
-          <a class="quiz" href="SSAT-MiddleLevel-Section3-Verbal-Graded-Review.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-09-10">
-          <div class="ic">📝</div><div><div class="t">Middle Level · Section 3 Verbal · Graded Review · Warren</div><div class="d">The 60-question verbal section marked from the paper — 27 right · 10 wrong · 19 blank, raw 24.5. Every miss explained (six of them the same trap: picking a word <i>connected</i> to the question word instead of one that <i>means</i> it), all 19 blanks answered, 10 word families that pay, and three fixes worth ~8 points</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="../Interest Lessons/ssat-analogies-advanced-playbook.html" style="grid-column:1/-1;border-color:#4A3F7A" data-added="2026-09-02">
-          <div class="ic">🧰</div><div><div class="t">Analogies · The Advanced Playbook · Warren</div><div class="d">Part two of the Verbal Method Lab — the six moves that break ties (draw the arrow, the word-form mirror, the “always true?” test, reversibility, the double bridge, the specificity dial), a rescue kit for unknown words, 12 more bridge types, 5 more traps, a 15-second routine · 3 drills + a 10-question quiz</div><span class="tag think">Lesson</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Word-Parts-Reference.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-09-01">
-          <div class="ic">🧩</div><div><div class="t">Word Parts · The 66 That Pay · Warren</div><div class="d">Which word parts are actually worth memorising, measured against his own 66 test words — 29 prefixes to learn cold (they repeat forever), 37 roots worth the time, 22 for later, plus the free ones that need no memorising at all. Eye button hides the meanings to test yourself</div><span class="tag vocab">Reference</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Unknown-Word-Drill-Round-2.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-09-01">
-          <div class="ic">🔮</div><div><div class="t">Unknown Word Drill · Round 2 · Warren</div><div class="d">18 more words he has never seen, none repeated from Round 1 — now with <b>triples</b>, where three choices cancel at once and leave just two. Twins → parts → phrase → charge (skip if no feeling) → commit</div><span class="tag think">Practice</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Unknown-Word-Drill.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-09-01">
-          <div class="ic">🕵️</div><div><div class="t">The Unknown Word Drill · Warren</div><div class="d">For when every verbal section is full of words you've never seen — because we checked, and only 7 of Test 5's 30 words had ever appeared before. Charge → word parts → where have I heard it → cross off → commit. 18 brand-new words, no definitions until you answer, live scoring in real SSAT points</div><span class="tag think">Practice</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Practice-Test-5-Graded-Review.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-09-01">
-          <div class="ic">📝</div><div><div class="t">Practice Test 5 · Graded Review · Warren</div><div class="d">All 150 questions worked out from the paper — Math 13/25 · Reading 22/40 · Verbal 21/60 · Math 9/25 · every one of the 36 misses explained step by step, plus the answer and method for all 49 left blank, and why filling every bubble is worth points</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Practice-Test-4-Graded-Review.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-08-31">
-          <div class="ic">📝</div><div><div class="t">Practice Test 4 · Graded Review · Warren</div><div class="d">Whole test marked against the official key — Math 18/25 · Reading 16/40 · Verbal 28/60 · Section 5 unattempted · every miss explained with the line or step that decides it, plus the answer key for the 40 questions left blank</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-U1-Clue-Sentences-Grace.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-08-31">
-          <div class="ic">🔍</div><div><div class="t">Unit 1 · Your Four Clue Sentences · Grace</div><div class="d">Just the “cover the target word” sheet · press a button to black out the word and feel the thumb test · all four sentences checked and repaired · plus the 3 clue cards homework with one done for you</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Reading-Unit3-4-Feedback-Grace.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-09-02">
-          <div class="ic">🪞</div><div><div class="t">Reading Units 3 &amp; 4 · Marked · Grace</div><div class="d">Character + Simile &amp; Metaphor · 2/6 multiple choice · <b>the whole worksheet reprinted, with the mark and the comment sitting under each question</b> — nothing to look back at and nothing said twice · the one misread word (<i>garage</i>, not garbage) that cost four answers, both writing tasks graded against their own rubric and rewritten from her words, then three drills with the answers hidden: simile-or-metaphor, the three misses again, and 18 spelling words sorted by rule</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Reading-Unit1-2-Feedback-Grace.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-08-31">
-          <div class="ic">✅</div><div><div class="t">Reading Units 1 &amp; 2 · Marked · Grace</div><div class="d">Context Clues + Inference · 4/6 multiple choice · both misses taught with the trap, every short answer rewritten, the Priya paragraph fixed with the 4-step frame, 11 spelling words, and a 20-word vocabulary list you can quiz yourself on</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Analogies-Full-Practice.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-08-23">
-          <div class="ic">🔗</div><div><div class="t">Analogies · Full Practice · all 75 questions</div><div class="d">Every analogy from the paper — Test 4 (1–15 and 31–60) plus Test 3 (31–60) · answer it, then the relationship sentence and why each trap fails · tabs, score tracker, start over</div><span class="tag think">Practice</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Test-8-Circled-Questions.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-08-22">
-          <div class="ic">✏️</div><div><div class="t">Test 8 · The 30 Circled Questions · Try &amp; Learn</div><div class="d">Math 5 · Reading 8 · Verbal 16 · Math 1 · answer each one again first, then the steps, the trap and the rule unlock · score tracker</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Test-7-Circled-Questions.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-08-19">
-          <div class="ic">✏️</div><div><div class="t">Test 7 · The 37 Circled Questions · Try &amp; Learn</div><div class="d">Math 7 · Reading 12 · Verbal 14 · Math 4 · answer each one again first, then the steps, the trap and the rule unlock · score tracker</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Analogies-MockTest1-31-54-Answer-Key.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-09-02">
-          <div class="ic">🌉</div><div><div class="t">Mock Test 1 · Analogies 31–54 · Answer Key · Warren</div><div class="d">Graded 20/24 · every miss is method, not vocabulary · the topic trap (34), the word-form mirror (41), the swap test (52) + the tighten-your-bridge question (45) and all 14 bridges on the paper</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Analogies-31-60-Answer-Key.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-08-15">
-          <div class="ic">🔗</div><div><div class="t">Analogies 31–60 · Answer Key · Warren</div><div class="d">Graded 20/26 · all 6 misses taught step by step + the 4 blanks answered · the -morph root, the in-/dis- trap, and the "say the sentence first" method</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Test-6-Retest.html" style="grid-column:1/-1;border-color:#1f4d3d" data-added="2026-08-15">
-          <div class="ic">🎯</div><div><div class="t">Test 6 · The Retest · 42 new questions</div><div class="d">One rebuilt twin for every circled question · original passages · no answers until you submit · pass line 85% (36/42)</div><span class="tag think">Practice Test</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Test-6-Circled-Questions.html" style="grid-column:1/-1;border-color:#7d90b8" data-added="2026-08-15">
-          <div class="ic">✏️</div><div><div class="t">Test 6 · The 42 Circled Questions · Try &amp; Learn</div><div class="d">Math 5 · Reading 16 · Verbal 21 · answer it yourself first, then the steps, the trap and the rule unlock · score tracker</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Practice-Verbal-Reading.html" data-added="2026-08-05">
-          <div class="ic">📝</div><div><div class="t">Sections 2 &amp; 3 · Reading + Verbal</div><div class="d">100 questions · 8 passages, 30 synonyms, 30 analogies · answer sheet, no solutions</div><span class="tag think">Practice Test</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Practice-Verbal-Reading.docx" data-added="2026-08-05">
-          <div class="ic">🖨️</div><div><div class="t">Same test · Word / print version</div><div class="d">16 pages · do it on paper · blank answer sheet at the back</div><span class="tag vocab">Word</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Practice-Test-3-Verbal-Answer-Key.html" data-added="2026-08-10">
-          <div class="ic">✅</div><div><div class="t">Practice Test 3 · Verbal Answer Key</div><div class="d">Synonyms 1–30 + Analogies 31–54 · graded from the marked paper, every miss and blank explained</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Verbal-Test-6-Answer-Key.html" style="grid-column:1/-1;border-color:#2c3e63" data-added="2026-08-30">
-          <div class="ic">✅</div><div><div class="t">Verbal Test 6 · Answer Key · Warren</div><div class="d">Graded 33/43 = 77% · raw 30.5 · all 9 misses and all 16 blanks explained, plus the four sentences to fix and the 7 traps behind them</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Verbal-Test-4-Answer-Key.html" data-added="2026-08-10">
-          <div class="ic">✅</div><div><div class="t">Verbal Test 4 · Answer Key</div><div class="d">Synonyms 1–30 + Analogies 31–60 · every circled miss explained, plus the traps behind them</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Supp-Verbal-Test-2-Answer-Key.html" data-added="2026-08-10">
-          <div class="ic">✅</div><div><div class="t">Supplementary Verbal Test 2 · Answer Key</div><div class="d">30 synonyms + 30 analogies · every miss explained, 11 blanks answered, 14 words to learn</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Test-5-Section-2-Reading-Answer-Key.html" data-added="2026-08-10">
-          <div class="ic">✅</div><div><div class="t">Test 5 · Section 2 Reading · Answer Key</div><div class="d">Q1–40 · 8 passages from turtles to Roethke's bat · every answer with its proof line</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Reading-Test-2-Q41-80-Answer-Key.html" data-added="2026-08-10">
-          <div class="ic">✅</div><div><div class="t">Reading Test 2 · Q41–80 Answer Key</div><div class="d">8 passages · all 40 answers with the proof line from the text · printable</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Practice-Test-2-Answer-Key.html" data-added="2026-08-09">
-          <div class="ic">✅</div><div><div class="t">Practice Test 2 · Answer Key &amp; Score</div><div class="d">Full answer key for Reading 1–40 and Verbal 1–56 · graded paper, every miss explained</div><span class="tag think">Solutions</span></div>
-          </a>
-          <a class="quiz" href="SSAT-Practice-Test-Review.html" data-added="2026-08-07">
-          <div class="ic">🔍</div><div><div class="t">Mistake Review · Warren</div><div class="d">37 missed questions explained · try each one again, then see why · 13 words to learn</div><span class="tag think">Solutions</span></div>
-          </a>
-        </div>
-      </details>
-    </details>
-
-    <details class="subj" id="warren-vocab" data-subject="Vocabulary" open>
-      <summary>🔤 Vocabulary <span class="count">6</span></summary>
-      <div class="grid">
-        <a class="quiz" href="SSAT-Master-Vocab-Trainer.html" style="grid-column:1/-1;border-color:#a9b2dd" data-added="2026-08-08">
-        <div class="ic">🧠</div><div><div class="t">SSAT Master Vocabulary Trainer · Warren</div><div class="d">326 words · 15 new a day, spaced review, checkpoint &amp; final exams · meanings &amp; synonyms, no spelling · saves progress</div><span class="tag think">Study plan</span></div>
-        </a>
-        <a class="quiz" href="SSAT-Vocab-13-24-MCQ.html" data-added="2026-07-14">
-        <div class="ic">📚</div><div><div class="t">SSAT Words 13–24 · Meanings</div><div class="d">12 questions · multiple choice</div><span class="tag think">Vocab</span></div>
-        </a>
-        <a class="quiz" href="SSAT-Vocab-13-24-FillBlank.html" data-added="2026-07-14">
-        <div class="ic">✍️</div><div><div class="t">SSAT Words 13–24 · Fill-in</div><div class="d">12 sentences · type the word</div><span class="tag think">Vocab</span></div>
-        </a>
-        <a class="quiz" href="SSAT-Vocab-Unit5-MCQ.html" data-added="2026-08-06">
-        <div class="ic">📘</div><div><div class="t">SSAT Unit 5 · Meanings &amp; Context</div><div class="d">20 questions · multiple choice</div><span class="tag think">Vocab</span></div>
-        </a>
-        <a class="quiz" href="SSAT-Vocab-Unit5-FillBlank.html" data-added="2026-08-06">
-        <div class="ic">✍️</div><div><div class="t">SSAT Unit 5 · Fill-in</div><div class="d">16 sentences · type the word</div><span class="tag think">Vocab</span></div>
-        </a>
-        <a class="quiz" href="SSAT-Vocab-Unit5-Exercise2-Explained.html" data-added="2026-08-09">
-        <div class="ic">🔎</div><div><div class="t">SSAT Unit 5 · Exercise 2 Explained</div><div class="d">Answer key · why each word fits + part-of-speech traps</div><span class="tag think">Vocab</span></div>
-        </a>
-      </div>
-    </details>
-
-    <details class="subj" id="warren-math" data-subject="Algebra" open>
-      <summary>🧮 Algebra <span class="count">2</span></summary>
-      <div class="grid">
-        <a class="quiz" href="Math-Simplify-Rational-Expressions-Sep7.html" data-added="2026-09-07">
-        <div class="ic">➗</div><div><div class="t">Simplifying Algebra Fractions · Warren's Problems 7–9</div><div class="d">Factor first, then cancel · the golden rule (you may cancel factors, never terms), the three questions Warren got stuck on worked line by line — the (2x−1) cancel, the subtraction sign trap, and powers of a bracket — plus what "Assuming that x ≠ …" is really warning you about · then a 12-question test with all-new numbers, 80% to pass</div><span class="tag think">Lesson + Test</span></div>
-        </a>
-        <a class="quiz" href="Math-Expand-Factor-Sep6.html" data-added="2026-09-06">
-        <div class="ic">📦</div><div><div class="t">Expanding &amp; Factoring · brackets off, brackets on</div><div class="d">The two jobs are the same move in opposite directions · area-model picture, how to multiply the pieces (add the powers), the 2-step expanding recipe and the 3-step GCF factoring recipe · 12 worked examples with a hide-the-steps button · then a 15-question test with all-new numbers, 80% to pass</div><span class="tag think">Lesson + Test</span></div>
-        </a>
-      </div>
-    </details>
-
-    <details class="subj" id="warren-writing" data-subject="Writing &middot; Reflection" open>
-      <summary>✍️ Writing &middot; Reflection <span class="count">1</span></summary>
-      <div class="grid">
-        <a class="quiz" href="School-Visit-Reflection-Guide.html" data-added="2026-09-09">
-        <div class="ic">🏫</div><div><div class="t">School Visit Reflection · thinking guide</div><div class="d">For the 7-question school-visit questionnaire · a warm-up that replays the visit in your head, then one step per question with "ask yourself" prompts, tap-open examples of the <i>kinds</i> of things people notice, weak-vs-specific comparisons and sentence starters · a day-map for "can you picture yourself here", three program slots with the why, a squeeze-it-to-25-words takeaway box · autosaves, then builds all your notes into one page you can copy or print. The prompts are not the answers — they're there to help you find your own</div><span class="tag think">Guide</span></div>
-        </a>
-      </div>
-    </details>
-
-    <details class="subj" id="warren-bigideas" data-subject="Big Ideas &middot; concept exams" open>
-      <summary>🧠 Big Ideas &middot; concept exams <span class="count">5</span></summary>
-      <details class="grp" data-group="🧠 Thinking, Fast and Slow">
-        <summary>🧠 Thinking, Fast and Slow <span class="count">2</span><span class="note">by Daniel Kahneman</span></summary>
-        <div class="grid">
-          <a class="quiz" href="Thinking-Fast-Slow-Exam-Parts1-2.html" data-added="2026-07-16">
-          <div class="ic">🧠</div><div><div class="t">Parts 1–2 · Concept Exam</div><div class="d">30 questions · 2 auto-graded essays · harder · tests ideas, not names</div><span class="tag think">Exam</span></div>
-          </a>
-          <a class="quiz" href="Thinking-Fast-Slow-Exam-Parts3-5.html" data-added="2026-07-17">
-          <div class="ic">🧠</div><div><div class="t">Parts 3–5 · Concept Exam</div><div class="d">45 scenario questions · 3 essays graded by a real reader</div><span class="tag think">Exam</span></div>
-          </a>
-        </div>
-      </details>
-      <details class="grp" data-group="💰 The Psychology of Money">
-        <summary>💰 The Psychology of Money <span class="count">2</span><span class="note">by Morgan Housel</span></summary>
-        <div class="grid">
-          <a class="quiz" href="Psychology-of-Money-Exam-Parts1-3.html" data-added="2026-07-14">
-          <div class="ic">💰</div><div><div class="t">Parts 1–3 · Concept Exam</div><div class="d">30 questions · 3 auto-graded essays · tests ideas, not names</div><span class="tag think">Exam</span></div>
-          </a>
-          <a class="quiz" href="Psychology-of-Money-Exam-Parts4-6.html" data-added="2026-07-14">
-          <div class="ic">💰</div><div><div class="t">Parts 4–6 · Concept Exam</div><div class="d">30 questions · 3 auto-graded essays · tests ideas, not names</div><span class="tag think">Exam</span></div>
-          </a>
-        </div>
-      </details>
-      <details class="grp" data-group="📉 Investing Psychology">
-        <summary>📉 Investing Psychology <span class="count">1</span><span class="note">by Tim Richards</span></summary>
-        <div class="grid">
-          <a class="quiz" href="Investing-Psychology-Exam-Parts1-3.html" data-added="2026-07-18">
-          <div class="ic">📉</div><div><div class="t">Parts 1–3 · Concept Exam</div><div class="d">30 MCQ auto-scored · 3 essays for you to grade · ideas &amp; key terms</div><span class="tag think">Exam</span></div>
-          </a>
-        </div>
-      </details>
-    </details>
-  </section>
-
-  <section class="kid chocolate" id="both" data-kid="both" data-tab="🧒 两人共用 · Both">
-    <h2>🧒 两人共用 · Both</h2>
-    <div class="who">中文 &amp; everything else &middot; 11 pages</div>
-
-    <details class="subj" id="both-chinese" data-subject="中文 Chinese" open>
-      <summary>📚 中文 Chinese <span class="count">9</span></summary>
-      <details class="grp" data-group="📚 中文阅读 · 课文生字与朗读">
-        <summary>📚 中文阅读 · 课文生字与朗读 <span class="count">3</span><span class="note">read it, learn the characters, read it aloud</span></summary>
-        <div class="grid">
-          <a class="quiz" href="Chinese-Listen-Build-Xiao-Bai-Tu-He-Xiao-Hui-Tu.html" data-added="2026-09-09">
-          <div class="ic">🥬</div><div><div class="t">《小白兔和小灰兔》听句子 · 摆汉字</div><div class="d">The whole story in 39 chunks over 5 rounds &middot; listen once, then drag the characters into the right boxes &middot; wrong answers name the exact box and what belongs there &middot; 12 生字 cards &middot; voice picker &amp; slow-down &middot; read-aloud sheet for parents</div><span class="tag reading">Listening</span></div>
-          </a>
-          <a class="quiz" href="Chinese-Listen-Build-Xiao-Tu-Zi.html" data-added="2026-09-07">
-          <div class="ic">🐰</div><div><div class="t">《小兔子乖乖》听句子 · 摆汉字</div><div class="d">Listen to each sentence once, then find its characters in the jumble and put them in order · 20 sentences in 3 rounds · 6 生字 cards · voice picker (choose the best Chinese system voice + speed) · read-aloud sheet for parents</div><span class="tag reading">Listening</span></div>
-          </a>
-          <a class="quiz" href="Chinese-Reading-Cheng-Zan.html" data-added="2026-09-06">
-          <div class="ic">🦡</div><div><div class="t">《称赞》 “Praise” · characters + read-aloud</div><div class="d">Meet the badger 獾 · 48 character cards with pinyin &amp; English · 18 practice questions with explanations · full story with pinyin, English translation, and a two-round read-aloud tracker</div><span class="tag reading">Reading</span></div>
-          </a>
-        </div>
-      </details>
-      <details class="grp" data-group="🐯 中文打字 · Chinese Typing">
-        <summary>🐯 中文打字 · Chinese Typing <span class="count">6</span><span class="note">看汉字，打拼音</span></summary>
-        <div class="grid">
-          <a class="quiz" href="Chinese-Idiom-Practice-Animal-9.html" data-added="2026-09-02">
-          <div class="ic">🐯</div><div><div class="t">九个动物成语 · 打字两遍 + 朗读 + 造句</div><div class="d">狼吞虎咽 · 龙飞凤舞 · 惊弓之鸟…9 个成语 · 打字 18 题（拼音或汉字）· 朗读各两遍 · 口头造句 · 进度自动保存</div><span class="tag reading">Typing</span></div>
-          </a>
-          <a class="quiz" href="Chinese-Pinyin-Game-Feng-Wa-Wa-Yuan-Di-8.html" data-added="2026-08-31">
-          <div class="ic">🌬️</div><div><div class="t">《风娃娃》+《语文园地八》· 拼音打字乐园</div><div class="d">风娃娃 13 词语 + 12 生字（各两遍）· 园地八 11 动物词 + 动物分类 + 拟声词填空 · 7 关 · 可选朗读声音</div><span class="tag reading">Typing</span></div>
-          </a>
-          <a class="quiz" href="Chinese-Pinyin-Game-Zhi-Chuan-He-Feng-Zheng.html" data-added="2026-08-15">
-          <div class="ic">⛵</div><div><div class="t">《纸船和风筝》· 拼音乐园</div><div class="d">45 题 · 学一学卡片 + 生字 · 词语 · 填空 · 漂/飘选字 · 5 关</div><span class="tag reading">Typing</span></div>
-          </a>
-          <a class="quiz" href="Chinese-Pinyin-Recorder-Zhi-Chuan-He-Feng-Zheng.html" data-added="2026-08-15">
-          <div class="ic">🎙️</div><div><div class="t">《纸船和风筝》· 真人录音棚</div><div class="d">给拼音乐园录上爸爸妈妈的读音 · 46 个词句 · 约 5 分钟</div><span class="tag reading">Tool</span></div>
-          </a>
-          <a class="quiz" href="Chinese-Typing-Quiz-Hu-Jia-Hu-Wei.html" data-added="2026-08-05">
-          <div class="ic">🦊</div><div><div class="t">《狐假虎威》· 生字词语</div><div class="d">21 题 · 6 成语 + 9 生字 + 6 填空句 · 4 关</div><span class="tag reading">Typing</span></div>
-          </a>
-          <a class="quiz" href="../Typing Game/pinyin-typing-game.html" data-added="2026-07-18">
-          <div class="ic">🌈</div><div><div class="t">拼音打字乐园</div><div class="d">43 词 · 风光 · 天气 · 生字词 · 4 关</div><span class="tag reading">Typing</span></div>
-          </a>
-        </div>
-      </details>
-    </details>
-
-    <details class="subj" id="both-more" data-subject="More" open>
-      <summary>🍁 More <span class="count">2</span></summary>
-      <div class="grid">
-        <a class="quiz" href="inside-canadas-parliament.html" data-added="2026-07-14">
-        <div class="ic">🏛️</div><div><div class="t">Inside Canada's Parliament</div><div class="d">Interactive guide</div></div>
-        </a>
-        <a class="quiz" href="victoria-explorer-quest.html" data-added="2026-07-14">
-        <div class="ic">🗺️</div><div><div class="t">Victoria Explorer Quest</div><div class="d">10 stops · 30 questions · adventure map game</div><span class="tag think">Game</span></div>
-        </a>
-      </div>
-    </details>
-  </section>
-  <div style="text-align:center"><a class="home" href="../../index.html">&larr; Back to Home</a></div>
+  <div class="homerow">
+    <a class="home" href="../index.html">&larr; Kids home</a>
+    <a class="home" href="../../index.html">&larr; Back to Home</a>
+  </div>
   <footer>Updated 2026 &middot; Kids Quizzes</footer>
 </div>
 
 <script>
 /* =====================================================================
-   THREE WAYS TO SLICE THIS PAGE
-     1. WHO   - one <section class="kid"> per child; the chips in row 1 hide
-                the other child. The shared block (data-kid="both") always shows.
-     2. WHAT  - inside a child: <details class="subj"> per subject, and inside
-                Reading / SSAT / Big Ideas a <details class="grp"> per book,
-                collapsed until you click it.
-     3. WHEN  - row 2 rebuilds everything as one date-sorted list from each
-                card's data-added="YYYY-MM-DD".
-   Adding a quiz = drop its <a class="quiz" data-added="..."> into the right
-   folder. Nothing below needs editing.
+   Kids Quizzes hub  ·  data-driven
+
+   EVERY quiz on this page comes from the Q array below. To add one, add
+   one object to Q — the shelves, the counts, the search index, the date
+   view and the NEW badge all build themselves from it. Nothing else on
+   this page needs editing, and there are no counts to keep in sync.
+
+     k  child      'grace' | 'warren' | 'both'
+     s  subject    the heading it sits under, with its emoji
+     g  book/set   '' = a loose card shown straight in the subject
+     gn note       small grey text next to the book name (optional)
+     h  href       the page it opens
+     i  icon       emoji on the card
+     t  title      short name (chapter, unit, test number...)
+     d  desc       one line of detail
+     tg tags       [['reading','Reading']] - class + label
+     a  added      YYYY-MM-DD, drives the NEW badge and the date views
+     w  wide       1 = full-width card (for "start here" / big items)
+     ac accent     custom border colour for a wide card (optional)
+     o  order      optional manual sort key; otherwise the first number
+                   in the title is used, so Ch 3 sorts before Ch 18
 ===================================================================== */
+const Q = [
+  {k:"both", s:"🍁 More", h:"inside-canadas-parliament.html", i:"🏛️", t:"Inside Canada's Parliament", d:"Interactive guide", a:"2026-07-14", o:-20260714},
+  {k:"both", s:"🍁 More", h:"victoria-explorer-quest.html", i:"🗺️", t:"Victoria Explorer Quest", d:"10 stops · 30 questions · adventure map game", tg:[["think", "Game"]], a:"2026-07-14", o:-20260714},
+  {k:"both", s:"📚 中文 Chinese", g:"🐯 中文打字 · Chinese Typing", gn:"看汉字，打拼音", h:"Chinese-Idiom-Practice-Animal-9.html", i:"🐯", t:"九个动物成语 · 打字两遍 + 朗读 + 造句", d:"狼吞虎咽 · 龙飞凤舞 · 惊弓之鸟…9 个成语 · 打字 18 题（拼音或汉字）· 朗读各两遍 · 口头造句 · 进度自动保存", tg:[["reading", "Typing"]], a:"2026-09-02", o:-20260902},
+  {k:"both", s:"📚 中文 Chinese", g:"🐯 中文打字 · Chinese Typing", gn:"看汉字，打拼音", h:"Chinese-Pinyin-Game-Feng-Wa-Wa-Yuan-Di-8.html", i:"🌬️", t:"《风娃娃》+《语文园地八》· 拼音打字乐园", d:"风娃娃 13 词语 + 12 生字（各两遍）· 园地八 11 动物词 + 动物分类 + 拟声词填空 · 7 关 · 可选朗读声音", tg:[["reading", "Typing"]], a:"2026-08-31", o:-20260831},
+  {k:"both", s:"📚 中文 Chinese", g:"🐯 中文打字 · Chinese Typing", gn:"看汉字，打拼音", h:"Chinese-Pinyin-Game-Zhi-Chuan-He-Feng-Zheng.html", i:"⛵", t:"《纸船和风筝》· 拼音乐园", d:"45 题 · 学一学卡片 + 生字 · 词语 · 填空 · 漂/飘选字 · 5 关", tg:[["reading", "Typing"]], a:"2026-08-15", o:-20260815},
+  {k:"both", s:"📚 中文 Chinese", g:"🐯 中文打字 · Chinese Typing", gn:"看汉字，打拼音", h:"Chinese-Pinyin-Recorder-Zhi-Chuan-He-Feng-Zheng.html", i:"🎙️", t:"《纸船和风筝》· 真人录音棚", d:"给拼音乐园录上爸爸妈妈的读音 · 46 个词句 · 约 5 分钟", tg:[["reading", "Tool"]], a:"2026-08-15", o:-20260815},
+  {k:"both", s:"📚 中文 Chinese", g:"🐯 中文打字 · Chinese Typing", gn:"看汉字，打拼音", h:"Chinese-Typing-Quiz-Hu-Jia-Hu-Wei.html", i:"🦊", t:"《狐假虎威》· 生字词语", d:"21 题 · 6 成语 + 9 生字 + 6 填空句 · 4 关", tg:[["reading", "Typing"]], a:"2026-08-05", o:-20260805},
+  {k:"both", s:"📚 中文 Chinese", g:"🐯 中文打字 · Chinese Typing", gn:"看汉字，打拼音", h:"../Typing Game/pinyin-typing-game.html", i:"🌈", t:"拼音打字乐园", d:"43 词 · 风光 · 天气 · 生字词 · 4 关", tg:[["reading", "Typing"]], a:"2026-07-18", o:-20260718},
+  {k:"both", s:"📚 中文 Chinese", g:"📚 中文阅读 · 课文生字与朗读", gn:"read it, learn the characters, read it aloud", h:"Chinese-Listen-Build-Xiao-Bai-Tu-He-Xiao-Hui-Tu.html", i:"🥬", t:"《小白兔和小灰兔》听句子 · 摆汉字", d:"The whole story in 39 chunks over 5 rounds &middot; listen once, then drag the characters into the right boxes &middot; wrong answers name the exact box and what belongs there &middot; 12 生字 cards &middot; voice picker &amp; slow-down &middot; read-aloud sheet for parents", tg:[["reading", "Listening"]], a:"2026-09-09", o:-20260909},
+  {k:"both", s:"📚 中文 Chinese", g:"📚 中文阅读 · 课文生字与朗读", gn:"read it, learn the characters, read it aloud", h:"Chinese-Listen-Build-Xiao-Tu-Zi.html", i:"🐰", t:"《小兔子乖乖》听句子 · 摆汉字", d:"Listen to each sentence once, then find its characters in the jumble and put them in order · 20 sentences in 3 rounds · 6 生字 cards · voice picker (choose the best Chinese system voice + speed) · read-aloud sheet for parents", tg:[["reading", "Listening"]], a:"2026-09-07", o:-20260907},
+  {k:"both", s:"📚 中文 Chinese", g:"📚 中文阅读 · 课文生字与朗读", gn:"read it, learn the characters, read it aloud", h:"Chinese-Reading-Cheng-Zan.html", i:"🦡", t:"《称赞》 “Praise” · characters + read-aloud", d:"Meet the badger 獾 · 48 character cards with pinyin &amp; English · 18 practice questions with explanations · full story with pinyin, English translation, and a two-round read-aloud tracker", tg:[["reading", "Reading"]], a:"2026-09-06", o:-20260906},
+  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch9-11.html", i:"🍑", t:"Chapters 9–11", d:"15 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:9},
+  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Vocab-Quiz-Ch9-11.html", i:"🔤", t:"Vocabulary · Ch 9–11", d:"15 questions", tg:[["vocab", "Vocab"]], a:"2026-07-14", o:9},
+  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch13-14.html", i:"🐛", t:"Chapters 13–14", d:"15 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:13},
+  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch15-22.html", i:"🕊️", t:"Chapters 15–22", d:"40 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:15},
+  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch23-24.html", i:"🎻", t:"Chapters 23–24", d:"16 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:23},
+  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch25-26.html", i:"🐞", t:"Chapters 25–26", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:25},
+  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch27-28.html", i:"☁️", t:"Chapters 27–28", d:"20 questions · harder", tg:[["reading", "Reading"]], a:"2026-07-14", o:27},
+  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch29-30.html", i:"🌧️", t:"Chapters 29–30", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:29},
+  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch31-32.html", i:"🌆", t:"Chapters 31–32", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:31},
+  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch33-34.html", i:"✈️", t:"Chapters 33–34", d:"20 questions · harder", tg:[["reading", "Reading"]], a:"2026-07-14", o:33},
+  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch35-36.html", i:"🏙️", t:"Chapters 35–36", d:"20 questions · harder", tg:[["reading", "Reading"]], a:"2026-07-14", o:35},
+  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch37-38.html", i:"🎉", t:"Chapters 37–38", d:"20 questions · harder", tg:[["reading", "Reading"]], a:"2026-07-14", o:37},
+  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch39.html", i:"🏙️", t:"Chapter 39 · The End", d:"10 questions · harder", tg:[["reading", "Reading"]], a:"2026-07-14", o:39},
+  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch1-4.html", i:"🍫", t:"Chapters 1–4", d:"40 questions", tg:[["reading", "Reading"]], a:"2026-07-16", o:1},
+  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch6-7.html", i:"🎫", t:"Chapters 6–7", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-18", o:6},
+  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch8-9.html", i:"🎰", t:"Chapters 8–9", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-19", o:8},
+  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch10-11.html", i:"✨", t:"Chapters 10–11", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-20", o:10},
+  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch13-14.html", i:"🎩", t:"Chapters 13–14", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-24", o:13},
+  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch15-16.html", i:"🌊", t:"Chapters 15–16", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-25", o:15},
+  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch17-18.html", i:"🚣", t:"Chapters 17–18", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-08-02", o:17},
+  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch19-20.html", i:"🧪", t:"Chapters 19–20", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-08-02", o:19},
+  {k:"grace", s:"📝 SSAT", h:"SSAT-Reading-Unit3-4-Feedback-Grace.html", i:"🪞", t:"Reading Units 3 &amp; 4 · Marked", d:"Character + Simile &amp; Metaphor · 2/6 multiple choice · <b>the whole worksheet reprinted, with the mark and the comment sitting under each question</b> — nothing to look back at and nothing said twice · the one misread word (<i>garage</i>, not garbage) that cost four answers, both writing tasks graded against their own rubric and rewritten from her words, then three drills with the answers hidden: simile-or-metaphor, the three misses again, and 18 spelling words sorted by rule", tg:[["think", "Solutions"]], a:"2026-09-02", w:1, ac:"#2c3e63", o:-20260902},
+  {k:"grace", s:"📝 SSAT", h:"SSAT-U1-Clue-Sentences-Grace.html", i:"🔍", t:"Unit 1 · Your Four Clue Sentences", d:"Just the “cover the target word” sheet · press a button to black out the word and feel the thumb test · all four sentences checked and repaired · plus the 3 clue cards homework with one done for you", tg:[["think", "Solutions"]], a:"2026-08-31", w:1, ac:"#2c3e63", o:-20260831},
+  {k:"grace", s:"📝 SSAT", h:"SSAT-Reading-Unit1-2-Feedback-Grace.html", i:"✅", t:"Reading Units 1 &amp; 2 · Marked", d:"Context Clues + Inference · 4/6 multiple choice · both misses taught with the trap, every short answer rewritten, the Priya paragraph fixed with the 4-step frame, 11 spelling words, and a 20-word vocabulary list you can quiz yourself on", tg:[["think", "Solutions"]], a:"2026-08-31", w:1, ac:"#2c3e63", o:-20260831},
+  {k:"grace", s:"🔤 Vocabulary", h:"Wordly-Wise-L13-14-Vocab-MCQ.html", i:"📚", t:"Wordly Wise L13–14 · Word Choice", d:"30 words in context · multiple choice · Grace", tg:[["think", "Vocab"]], a:"2026-07-17", o:-20260717},
+  {k:"grace", s:"🔤 Vocabulary", h:"Wordly-Wise-L13-14-Vocab-FillBlank.html", i:"✍️", t:"Wordly Wise L13–14 · Fill-in", d:"30 sentences · type the word · Grace", tg:[["think", "Vocab"]], a:"2026-07-16", o:-20260716},
+  {k:"grace", s:"🔤 Vocabulary", h:"Wordly-Wise-L16-17-Vocab-MCQ.html", i:"📚", t:"Wordly Wise L16–17 · Meanings", d:"30 words · multiple choice · Grace", tg:[["think", "Vocab"]], a:"2026-07-14", o:-20260714},
+  {k:"grace", s:"🔤 Vocabulary", h:"Wordly-Wise-L16-17-Vocab-FillBlank.html", i:"✍️", t:"Wordly Wise L16–17 · Fill-in", d:"30 sentences · type the word · Grace", tg:[["think", "Vocab"]], a:"2026-07-14", o:-20260714},
+  {k:"grace", s:"🔤 Vocabulary", h:"Vocab-Quiz-Lesson-29.html", i:"✏️", t:"Lesson 29", d:"12 words", tg:[["think", "Vocab"]], a:"2026-07-14", o:-20260714},
+  {k:"grace", s:"🧮 Math", h:"Math-Fractions-Lab-Unit3.html", i:"🧮", t:"Fractions Lab · Unit 3", d:"The whole unit taught step by step · add &amp; subtract, mixed numbers, improper fractions, converting · 10 worked examples · 20 practice questions that show the solution · 20-question test, 85% to pass", tg:[["think", "Lesson + Test"]], a:"2026-08-15", o:3},
+  {k:"grace", s:"🧮 Math", h:"Math-Fractions-Add-Subtract-Unit3.html", i:"🍕", t:"Fractions Workshop · Unit 3", d:"Adding &amp; subtracting fractions · 27 questions you solve yourself · pie diagrams, secret word, dot-to-dot star", tg:[["think", "Practice"]], a:"2026-08-14", o:3},
+  {k:"grace", s:"🧮 Math", h:"Math-Fractions-Ex10-Sep7.html", i:"🔟", t:"Exercise 10 · Fractions Five Ways", d:"All five questions taught one at a time · improper → mixed in simplest form, the \"equal numbers\" matching puzzle, adding with same and different bottoms, taking a fraction away from a whole number, and &gt; &lt; = · every book question worked with a hide-the-steps button · then a 20-question test with all-new numbers, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-07", o:10},
+  {k:"grace", s:"🧮 Math", h:"Math-Fractions-Ex11-Sep7.html", i:"➗", t:"Exercise 11 · A Fraction <em>is</em> a Division", d:"Why the fraction line means \"divide\" · 3 cookies shared between 2, the sharing pictures, and changing an improper fraction to a mixed number by short division · the three traps (dividing backwards, remainder underneath, remainder too big) · then a 15-question test, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-07", o:11},
+  {k:"grace", s:"🧮 Math", h:"Math-Fractions-Ex12-Sep7.html", i:"🧺", t:"Exercise 12 · Fractions of a Set", d:"When the whole is a group of things · dividing a set into equal parts (and how many lines to draw), what fraction of a set is shaded, counting by groups instead of one by one, and writing part-of-the-whole fractions · then a 15-question test, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-07", o:12},
+  {k:"grace", s:"🧮 Math", h:"Math-Fractions-Ex13-Sep7.html", i:"🎨", t:"Exercise 13 · How Much Is a Fraction of a Set?", d:"Colouring 2/5 of a set, ½ of 12, and the two-step recipe for ¾ of 20 — divide by the bottom, times by the top · all six book pairs worked out · the three traps, including answering with a fraction instead of a count · then a 15-question test, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-07", o:13},
+  {k:"grace", s:"🧮 Math", h:"Math-Fractions-Ex14-Sep7.html", i:"✍️", t:"Exercise 14 · Writing It Down &amp; Bigger Numbers", d:"Why ¼ of 8 gets written as 8/4, and what the \"2 ×\" line means · dividing 80, 96, 120 and 150 with break-it-up and halve-again tricks · all eight Q3 pairs worked out with a sense-check on every answer · then a 15-question test, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-07", o:14},
+  {k:"grace", s:"🧮 Math", h:"Math-Mixed-Numbers-Improper-Fractions-Aug29.html", i:"🥧", t:"Mixed Numbers &amp; Improper Fractions · Aug 29 homework", d:"Grace's own worksheet taught in English · every question from Exercises 6, 7, 8 and p.76 explained step by step with drawings · hide-the-steps button to try each one yourself · 15-question test, 85% to pass", tg:[["think", "Lesson + Test"]], a:"2026-08-29", o:29},
+  {k:"grace", s:"🧮 Math", h:"Math-Mixed-Numbers-Improper-Fractions-Sep6.html", i:"🍕", t:"Mixed Numbers → Improper Fractions · p.82 &amp; p.85", d:"Study guide for Q3, Q4 and Q5 · what the words mean, the \"times, then plus, then keep\" recipe, the two mistakes to watch for · all ten book questions worked through with a hide-the-steps button · then a 15-question test with all-new numbers, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-06", o:82},
+  {k:"grace", s:"🧮 Math", h:"Math-Solutions.html", i:"🧮", t:"Math Solutions · Portions &amp; Percents", d:"2 test problems worked step by step · 5 practice questions", tg:[["think", "Solutions"]], a:"2026-08-04", o:9999},
+  {k:"warren", s:"✍️ Writing &middot; Reflection", h:"School-Visit-Reflection-Guide.html", i:"🏫", t:"School Visit Reflection · thinking guide", d:"For the 7-question school-visit questionnaire · a warm-up that replays the visit in your head, then one step per question with \"ask yourself\" prompts, tap-open examples of the <i>kinds</i> of things people notice, weak-vs-specific comparisons and sentence starters · a day-map for \"can you picture yourself here\", three program slots with the why, a squeeze-it-to-25-words takeaway box · autosaves, then builds all your notes into one page you can copy or print. The prompts are not the answers — they're there to help you find your own", tg:[["think", "Guide"]], a:"2026-09-09", o:-20260909},
+  {k:"warren", s:"📖 Reading", g:"📓 Diary of a Wimpy Kid", gn:"by Jeff Kinney", h:"Wimpy-Kid-Quiz-Pages1-40.html", i:"📓", t:"Book 1 · Pages 1–40", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-08-30", o:1},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch3.html", i:"🙏", t:"Chapter 3", d:"15 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:3},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Vocab-Quiz-Ch3.html", i:"🔤", t:"Vocabulary · Ch 3", d:"15 questions", tg:[["vocab", "Vocab"]], a:"2026-07-14", o:3},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch4.html", i:"🐾", t:"Chapter 4", d:"15 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:4},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch5.html", i:"👤", t:"Chapter 5", d:"15 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:5},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch6-7.html", i:"🪵", t:"Chapters 6 &amp; 7", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:6},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch8.html", i:"🏝️", t:"Chapter 8", d:"10 questions", tg:[["think", "Comprehension"]], a:"2026-07-14", o:8},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch9.html", i:"🏚️", t:"Chapter 9", d:"10 questions", tg:[["think", "Comprehension"]], a:"2026-07-14", o:9},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch10-11.html", i:"🐍", t:"Chapters 10 &amp; 11", d:"20 questions", tg:[["think", "Comprehension"]], a:"2026-07-14", o:10},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch12.html", i:"🚢", t:"Chapter 12", d:"15 questions", tg:[["think", "Comprehension"]], a:"2026-07-14", o:12},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch13.html", i:"🚨", t:"Chapter 13", d:"10 questions · fill + comp", tg:[["think", "Comprehension"]], a:"2026-07-14", o:13},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch14.html", i:"👑", t:"Chapter 14", d:"13 questions · fill + comp", tg:[["think", "Comprehension"]], a:"2026-07-14", o:14},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch15.html", i:"🌫️", t:"Chapter 15", d:"13 questions · fill + comp", tg:[["think", "Comprehension"]], a:"2026-07-14", o:15},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch16.html", i:"⚖️", t:"Chapter 16", d:"13 questions · fill + comp", tg:[["think", "Comprehension"]], a:"2026-07-14", o:16},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch17.html", i:"🏛️", t:"Chapter 17", d:"13 questions · fill + comp", tg:[["think", "Comprehension"]], a:"2026-07-14", o:17},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch18.html", i:"🔫", t:"Chapter 18", d:"20 questions · what happened + why", tg:[["think", "Comprehension"]], a:"2026-08-30", o:18},
+  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch18-19.html", i:"⚔️", t:"Chapters 18–19", d:"20 questions · reading + think", tg:[["reading", "Reading"]], a:"2026-07-18", o:18},
+  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Index.html", i:"🗂️", t:"Mock Test 3 · Start here", d:"The whole paper split into six timed sittings, plus the essay prompt, the timing plan, and the list of questions where the printed answer key is wrong", tg:[["think", "Index"]], a:"2026-09-07", w:1, ac:"#2f6f5e", o:0},
+  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Quant-1.html", i:"🧮", t:"Quantitative 1", d:"25 questions · 30 minutes", tg:[["think", "Test"]], a:"2026-09-07", o:1},
+  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Quant-2.html", i:"📐", t:"Quantitative 2", d:"25 questions · 30 minutes", tg:[["think", "Test"]], a:"2026-09-07", o:2},
+  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Reading-A.html", i:"📖", t:"Reading A", d:"4 passages · 23 questions · 23 minutes", tg:[["reading", "Test"]], a:"2026-09-07", o:3},
+  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Reading-B.html", i:"📜", t:"Reading B", d:"3 passages · 17 questions · 17 minutes", tg:[["reading", "Test"]], a:"2026-09-07", o:4},
+  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Synonyms.html", i:"🔤", t:"Synonyms", d:"30 questions · 12 minutes", tg:[["vocab", "Test"]], a:"2026-09-07", o:5},
+  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Analogies.html", i:"🌉", t:"Analogies", d:"30 questions · 18 minutes", tg:[["vocab", "Test"]], a:"2026-09-07", o:6},
+  {k:"warren", s:"📝 SSAT", g:"📄 Graded Papers", h:"SSAT-MiddleLevel-Section3-Verbal-Graded-Review.html", i:"📝", t:"Middle Level · Section 3 Verbal · Graded Review", d:"The 60-question verbal section marked from the paper — 27 right · 10 wrong · 19 blank, raw 24.5. Every miss explained (six of them the same trap: picking a word <i>connected</i> to the question word instead of one that <i>means</i> it), all 19 blanks answered, 10 word families that pay, and three fixes worth ~8 points", tg:[["think", "Solutions"]], a:"2026-09-10", w:1, ac:"#2c3e63", o:-20260910},
+  {k:"warren", s:"📝 SSAT", g:"📄 Graded Papers", h:"SSAT-Practice-Test-5-Graded-Review.html", i:"📝", t:"Practice Test 5 · Graded Review", d:"All 150 questions worked out from the paper — Math 13/25 · Reading 22/40 · Verbal 21/60 · Math 9/25 · every one of the 36 misses explained step by step, plus the answer and method for all 49 left blank, and why filling every bubble is worth points", tg:[["think", "Solutions"]], a:"2026-09-01", w:1, ac:"#2c3e63", o:-20260901},
+  {k:"warren", s:"📝 SSAT", g:"📄 Graded Papers", h:"SSAT-Practice-Test-4-Graded-Review.html", i:"📝", t:"Practice Test 4 · Graded Review", d:"Whole test marked against the official key — Math 18/25 · Reading 16/40 · Verbal 28/60 · Section 5 unattempted · every miss explained with the line or step that decides it, plus the answer key for the 40 questions left blank", tg:[["think", "Solutions"]], a:"2026-08-31", w:1, ac:"#2c3e63", o:-20260831},
+  {k:"warren", s:"📝 SSAT", g:"📄 Graded Papers", h:"SSAT-Practice-Verbal-Reading.html", i:"📝", t:"Sections 2 &amp; 3 · Reading + Verbal", d:"100 questions · 8 passages, 30 synonyms, 30 analogies · answer sheet, no solutions", tg:[["think", "Practice Test"]], a:"2026-08-05", o:-20260805},
+  {k:"warren", s:"📝 SSAT", g:"📄 Graded Papers", h:"SSAT-Practice-Verbal-Reading.docx", i:"🖨️", t:"Same test · Word / print version", d:"16 pages · do it on paper · blank answer sheet at the back", tg:[["vocab", "Word"]], a:"2026-08-05", o:-20260805},
+  {k:"warren", s:"📝 SSAT", g:"🔁 Retry &amp; Learn", h:"SSAT-Test-8-Circled-Questions.html", i:"✏️", t:"Test 8 · The 30 Circled Questions · Try &amp; Learn", d:"Math 5 · Reading 8 · Verbal 16 · Math 1 · answer each one again first, then the steps, the trap and the rule unlock · score tracker", tg:[["think", "Solutions"]], a:"2026-08-22", w:1, ac:"#2c3e63", o:-20260822},
+  {k:"warren", s:"📝 SSAT", g:"🔁 Retry &amp; Learn", h:"SSAT-Test-7-Circled-Questions.html", i:"✏️", t:"Test 7 · The 37 Circled Questions · Try &amp; Learn", d:"Math 7 · Reading 12 · Verbal 14 · Math 4 · answer each one again first, then the steps, the trap and the rule unlock · score tracker", tg:[["think", "Solutions"]], a:"2026-08-19", w:1, ac:"#2c3e63", o:-20260819},
+  {k:"warren", s:"📝 SSAT", g:"🔁 Retry &amp; Learn", h:"SSAT-Test-6-Retest.html", i:"🎯", t:"Test 6 · The Retest · 42 new questions", d:"One rebuilt twin for every circled question · original passages · no answers until you submit · pass line 85% (36/42)", tg:[["think", "Practice Test"]], a:"2026-08-15", w:1, ac:"#1f4d3d", o:-20260815},
+  {k:"warren", s:"📝 SSAT", g:"🔁 Retry &amp; Learn", h:"SSAT-Test-6-Circled-Questions.html", i:"✏️", t:"Test 6 · The 42 Circled Questions · Try &amp; Learn", d:"Math 5 · Reading 16 · Verbal 21 · answer it yourself first, then the steps, the trap and the rule unlock · score tracker", tg:[["think", "Solutions"]], a:"2026-08-15", w:1, ac:"#7d90b8", o:-20260815},
+  {k:"warren", s:"📝 SSAT", g:"🔁 Retry &amp; Learn", h:"SSAT-Practice-Test-Review.html", i:"🔍", t:"Mistake Review", d:"37 missed questions explained · try each one again, then see why · 13 words to learn", tg:[["think", "Solutions"]], a:"2026-08-07", o:-20260807},
+  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Analogies-MockTest1-31-54-Answer-Key.html", i:"🌉", t:"Mock Test 1 · Analogies 31–54 · Answer Key", d:"Graded 20/24 · every miss is method, not vocabulary · the topic trap (34), the word-form mirror (41), the swap test (52) + the tighten-your-bridge question (45) and all 14 bridges on the paper", tg:[["think", "Solutions"]], a:"2026-09-02", w:1, ac:"#2c3e63", o:-20260902},
+  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Verbal-Test-6-Answer-Key.html", i:"✅", t:"Verbal Test 6 · Answer Key", d:"Graded 33/43 = 77% · raw 30.5 · all 9 misses and all 16 blanks explained, plus the four sentences to fix and the 7 traps behind them", tg:[["think", "Solutions"]], a:"2026-08-30", w:1, ac:"#2c3e63", o:-20260830},
+  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Analogies-31-60-Answer-Key.html", i:"🔗", t:"Analogies 31–60 · Answer Key", d:"Graded 20/26 · all 6 misses taught step by step + the 4 blanks answered · the -morph root, the in-/dis- trap, and the \"say the sentence first\" method", tg:[["think", "Solutions"]], a:"2026-08-15", w:1, ac:"#2c3e63", o:-20260815},
+  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Practice-Test-3-Verbal-Answer-Key.html", i:"✅", t:"Practice Test 3 · Verbal Answer Key", d:"Synonyms 1–30 + Analogies 31–54 · graded from the marked paper, every miss and blank explained", tg:[["think", "Solutions"]], a:"2026-08-10", o:-20260810},
+  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Verbal-Test-4-Answer-Key.html", i:"✅", t:"Verbal Test 4 · Answer Key", d:"Synonyms 1–30 + Analogies 31–60 · every circled miss explained, plus the traps behind them", tg:[["think", "Solutions"]], a:"2026-08-10", o:-20260810},
+  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Supp-Verbal-Test-2-Answer-Key.html", i:"✅", t:"Supplementary Verbal Test 2 · Answer Key", d:"30 synonyms + 30 analogies · every miss explained, 11 blanks answered, 14 words to learn", tg:[["think", "Solutions"]], a:"2026-08-10", o:-20260810},
+  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Test-5-Section-2-Reading-Answer-Key.html", i:"✅", t:"Test 5 · Section 2 Reading · Answer Key", d:"Q1–40 · 8 passages from turtles to Roethke's bat · every answer with its proof line", tg:[["think", "Solutions"]], a:"2026-08-10", o:-20260810},
+  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Reading-Test-2-Q41-80-Answer-Key.html", i:"✅", t:"Reading Test 2 · Q41–80 Answer Key", d:"8 passages · all 40 answers with the proof line from the text · printable", tg:[["think", "Solutions"]], a:"2026-08-10", o:-20260810},
+  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Practice-Test-2-Answer-Key.html", i:"✅", t:"Practice Test 2 · Answer Key &amp; Score", d:"Full answer key for Reading 1–40 and Verbal 1–56 · graded paper, every miss explained", tg:[["think", "Solutions"]], a:"2026-08-09", o:-20260809},
+  {k:"warren", s:"📝 SSAT", g:"🧰 Method &amp; Word Tools", h:"SSAT-Unknown-Word-Drill.html", i:"🕵️", t:"The Unknown Word Drill", d:"For when every verbal section is full of words you've never seen — because we checked, and only 7 of Test 5's 30 words had ever appeared before. Charge → word parts → where have I heard it → cross off → commit. 18 brand-new words, no definitions until you answer, live scoring in real SSAT points", tg:[["think", "Practice"]], a:"2026-09-01", w:1, ac:"#2c3e63", o:1},
+  {k:"warren", s:"📝 SSAT", g:"🧰 Method &amp; Word Tools", h:"SSAT-Unknown-Word-Drill-Round-2.html", i:"🔮", t:"Unknown Word Drill · Round 2", d:"18 more words he has never seen, none repeated from Round 1 — now with <b>triples</b>, where three choices cancel at once and leave just two. Twins → parts → phrase → charge (skip if no feeling) → commit", tg:[["think", "Practice"]], a:"2026-09-01", w:1, ac:"#2c3e63", o:2},
+  {k:"warren", s:"📝 SSAT", g:"🧰 Method &amp; Word Tools", h:"SSAT-Word-Parts-Reference.html", i:"🧩", t:"Word Parts · The 66 That Pay", d:"Which word parts are actually worth memorising, measured against his own 66 test words — 29 prefixes to learn cold (they repeat forever), 37 roots worth the time, 22 for later, plus the free ones that need no memorising at all. Eye button hides the meanings to test yourself", tg:[["vocab", "Reference"]], a:"2026-09-01", w:1, ac:"#2c3e63", o:3},
+  {k:"warren", s:"📝 SSAT", g:"🧰 Method &amp; Word Tools", h:"../Interest Lessons/ssat-analogies-advanced-playbook.html", i:"🧰", t:"Analogies · The Advanced Playbook", d:"Part two of the Verbal Method Lab — the six moves that break ties (draw the arrow, the word-form mirror, the “always true?” test, reversibility, the double bridge, the specificity dial), a rescue kit for unknown words, 12 more bridge types, 5 more traps, a 15-second routine · 3 drills + a 10-question quiz", tg:[["think", "Lesson"]], a:"2026-09-02", w:1, ac:"#4A3F7A", o:4},
+  {k:"warren", s:"📝 SSAT", g:"🧰 Method &amp; Word Tools", h:"SSAT-Analogies-Full-Practice.html", i:"🔗", t:"Analogies · Full Practice · all 75 questions", d:"Every analogy from the paper — Test 4 (1–15 and 31–60) plus Test 3 (31–60) · answer it, then the relationship sentence and why each trap fails · tabs, score tracker, start over", tg:[["think", "Practice"]], a:"2026-08-23", w:1, ac:"#2c3e63", o:5},
+  {k:"warren", s:"🔤 Vocabulary", h:"SSAT-Vocab-Unit5-Exercise2-Explained.html", i:"🔎", t:"SSAT Unit 5 · Exercise 2 Explained", d:"Answer key · why each word fits + part-of-speech traps", tg:[["think", "Vocab"]], a:"2026-08-09", o:-20260809},
+  {k:"warren", s:"🔤 Vocabulary", h:"SSAT-Master-Vocab-Trainer.html", i:"🧠", t:"SSAT Master Vocabulary Trainer", d:"326 words · 15 new a day, spaced review, checkpoint &amp; final exams · meanings &amp; synonyms, no spelling · saves progress", tg:[["think", "Study plan"]], a:"2026-08-08", w:1, ac:"#a9b2dd", o:-20260808},
+  {k:"warren", s:"🔤 Vocabulary", h:"SSAT-Vocab-Unit5-MCQ.html", i:"📘", t:"SSAT Unit 5 · Meanings &amp; Context", d:"20 questions · multiple choice", tg:[["think", "Vocab"]], a:"2026-08-06", o:-20260806},
+  {k:"warren", s:"🔤 Vocabulary", h:"SSAT-Vocab-Unit5-FillBlank.html", i:"✍️", t:"SSAT Unit 5 · Fill-in", d:"16 sentences · type the word", tg:[["think", "Vocab"]], a:"2026-08-06", o:-20260806},
+  {k:"warren", s:"🔤 Vocabulary", h:"SSAT-Vocab-13-24-MCQ.html", i:"📚", t:"SSAT Words 13–24 · Meanings", d:"12 questions · multiple choice", tg:[["think", "Vocab"]], a:"2026-07-14", o:-20260714},
+  {k:"warren", s:"🔤 Vocabulary", h:"SSAT-Vocab-13-24-FillBlank.html", i:"✍️", t:"SSAT Words 13–24 · Fill-in", d:"12 sentences · type the word", tg:[["think", "Vocab"]], a:"2026-07-14", o:-20260714},
+  {k:"warren", s:"🧠 Big Ideas &middot; concept exams", g:"💰 The Psychology of Money", gn:"by Morgan Housel", h:"Psychology-of-Money-Exam-Parts1-3.html", i:"💰", t:"Parts 1–3 · Concept Exam", d:"30 questions · 3 auto-graded essays · tests ideas, not names", tg:[["think", "Exam"]], a:"2026-07-14", o:1},
+  {k:"warren", s:"🧠 Big Ideas &middot; concept exams", g:"💰 The Psychology of Money", gn:"by Morgan Housel", h:"Psychology-of-Money-Exam-Parts4-6.html", i:"💰", t:"Parts 4–6 · Concept Exam", d:"30 questions · 3 auto-graded essays · tests ideas, not names", tg:[["think", "Exam"]], a:"2026-07-14", o:4},
+  {k:"warren", s:"🧠 Big Ideas &middot; concept exams", g:"📉 Investing Psychology", gn:"by Tim Richards", h:"Investing-Psychology-Exam-Parts1-3.html", i:"📉", t:"Parts 1–3 · Concept Exam", d:"30 MCQ auto-scored · 3 essays for you to grade · ideas &amp; key terms", tg:[["think", "Exam"]], a:"2026-07-18", o:1},
+  {k:"warren", s:"🧠 Big Ideas &middot; concept exams", g:"🧠 Thinking, Fast and Slow", gn:"by Daniel Kahneman", h:"Thinking-Fast-Slow-Exam-Parts1-2.html", i:"🧠", t:"Parts 1–2 · Concept Exam", d:"30 questions · 2 auto-graded essays · harder · tests ideas, not names", tg:[["think", "Exam"]], a:"2026-07-16", o:1},
+  {k:"warren", s:"🧠 Big Ideas &middot; concept exams", g:"🧠 Thinking, Fast and Slow", gn:"by Daniel Kahneman", h:"Thinking-Fast-Slow-Exam-Parts3-5.html", i:"🧠", t:"Parts 3–5 · Concept Exam", d:"45 scenario questions · 3 essays graded by a real reader", tg:[["think", "Exam"]], a:"2026-07-17", o:3},
+  {k:"warren", s:"🧮 Algebra", h:"Math-Simplify-Rational-Expressions-Sep7.html", i:"➗", t:"Simplifying Algebra Fractions · Warren's Problems 7–9", d:"Factor first, then cancel · the golden rule (you may cancel factors, never terms), the three questions Warren got stuck on worked line by line — the (2x−1) cancel, the subtraction sign trap, and powers of a bracket — plus what \"Assuming that x ≠ …\" is really warning you about · then a 12-question test with all-new numbers, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-07", o:-20260907},
+  {k:"warren", s:"🧮 Algebra", h:"Math-Expand-Factor-Sep6.html", i:"📦", t:"Expanding &amp; Factoring · brackets off, brackets on", d:"The two jobs are the same move in opposite directions · area-model picture, how to multiply the pieces (add the powers), the 2-step expanding recipe and the 3-step GCF factoring recipe · 12 worked examples with a hide-the-steps button · then a 15-question test with all-new numbers, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-06", o:-20260906}
+];
 
-/* ---------- 1. "NEW" badge ---------- */
-const NEW_DAYS = 1;   // a card is "new" while it is fewer than this many days old
+const NEW_DAYS = 1;        // a card shows the red NEW badge while it is this new
+const KID_META = {
+ "grace": {
+  "tab": "👧 Grace",
+  "cls": "peach",
+  "blurb": "Reading &middot; SSAT &middot; vocabulary &middot; math"
+ },
+ "warren": {
+  "tab": "👦 Warren",
+  "cls": "river",
+  "blurb": "Reading &middot; SSAT &middot; vocabulary &middot; algebra &middot; writing &middot; big ideas"
+ },
+ "both": {
+  "tab": "🧒 Both",
+  "cls": "chocolate",
+  "blurb": "中文 &amp; everything else"
+ }
+};
+const SUBJ_ORDER = ["📖 Reading", "📝 SSAT", "🔤 Vocabulary", "🧮 Math", "🧮 Algebra", "✍️ Writing &middot; Reflection", "🧠 Big Ideas &middot; concept exams", "📚 中文 Chinese", "🍁 More"];
 
-(function markNew() {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  let count = 0;
+/* ---------- helpers ---------- */
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const ENT = {'&amp;':'&','&middot;':'\u00b7','&mdash;':'\u2014','&ndash;':'\u2013',
+  '&ldquo;':'\u201c','&rdquo;':'\u201d','&hellip;':'\u2026','&nbsp;':' ','&rarr;':'\u2192',
+  '&times;':'\u00d7','&lt;':'<','&gt;':'>','&quot;':'"'};
+const deent = s => String(s).replace(/&[a-z]+;/gi, m => {
+  const v = ENT[m.toLowerCase()]; return v === undefined ? ' ' : v; });
+const strip = s => deent(String(s).replace(/<[^>]+>/g,''));
+const ageOf = a => { const p=String(a).split('-').map(Number);
+  return (p.length===3 && !p.some(isNaN)) ? Math.round((TODAY-new Date(p[0],p[1]-1,p[2]))/864e5) : 99999; };
+const dateOf = a => { const p=String(a).split('-').map(Number);
+  return (p.length===3 && !p.some(isNaN)) ? new Date(p[0],p[1]-1,p[2]) : null; };
+const numIn = s => { const m = strip(s).match(/\d+/); return m ? +m[0] : 9999; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-  document.querySelectorAll('.quiz[data-added]').forEach(card => {
-    const p = card.dataset.added.split('-').map(Number);
-    if (p.length !== 3 || p.some(isNaN)) return;
-    const age = Math.round((today - new Date(p[0], p[1] - 1, p[2])) / 86400000);
-    if (age < 0 || age >= NEW_DAYS) return;
+Q.forEach((c,ix) => {
+  c.ix = ix; c.age = ageOf(c.a); c.date = dateOf(c.a);
+  c.isNew = c.age >= 0 && c.age < NEW_DAYS;
+  c.ord = (c.o !== undefined) ? c.o : numIn(c.t);
+  c.hay = strip([c.t, c.d, c.s, c.g, c.gn, KID_META[c.k].tab, c.h].join(' ')).toLowerCase();
+});
 
-    const title = card.querySelector('.t');
-    if (!title || title.querySelector('.badge-new')) return;
-    const badge = document.createElement('span');
-    badge.className = 'badge-new'; badge.textContent = 'NEW';
-    title.appendChild(badge);
-    card.classList.add('is-new');
-    count++;
+/* ---------- build one card ---------- */
+function cardEl(c, opts) {
+  opts = opts || {};
+  const a = document.createElement('a');
+  a.className = 'quiz' + (c.w ? ' wide' : '') + (c.isNew ? ' is-new' : '');
+  a.href = c.h;
+  if (c.ac) a.style.borderColor = c.ac;
+  const hl = t => opts.hi ? String(t).replace(opts.hi, m => '<mark>' + m + '</mark>') : t;
+  let tags = (c.tg || []).map(t => '<span class="tag ' + t[0] + '">' + t[1] + '</span>').join('');
+  a.innerHTML =
+    '<div class="ic">' + c.i + '</div><div>' +
+    '<div class="t">' + hl(c.t) + (c.isNew ? '<span class="badge-new">NEW</span>' : '') + '</div>' +
+    (c.d ? '<div class="d">' + hl(c.d) + '</div>' : '') + tags +
+    (opts.crumb ? '<span class="crumb">' + KID_META[c.k].tab + ' &middot; ' + c.s +
+                  (c.g ? ' &middot; ' + c.g : '') + '</span>' : '') +
+    '</div>';
+  return a;
+}
+function gridOf(list, opts) {
+  const g = document.createElement('div'); g.className = 'grid';
+  list.forEach(c => g.appendChild(cardEl(c, opts)));
+  return g;
+}
 
-    // open every folder above it and put a red dot on each summary
-    for (let d = card.closest('details'); d; d = d.parentElement.closest('details')) {
-      d.open = true;
-      const sum = d.querySelector(':scope > summary');
-      if (sum && !sum.querySelector('.dot')) {
-        const dot = document.createElement('span');
-        dot.className = 'dot'; dot.title = 'has a new quiz';
-        sum.appendChild(dot);
+/* ---------- render the shelves (the "by subject" view) ---------- */
+const shelvesEl = document.getElementById('shelves');
+
+function renderShelves(who) {
+  shelvesEl.innerHTML = '';
+  ['grace','warren','both'].forEach(kid => {
+    if (!(who === 'all' || kid === who || kid === 'both')) return;
+    const mine = Q.filter(c => c.k === kid);
+    if (!mine.length) return;
+    const meta = KID_META[kid];
+
+    const sec = document.createElement('section');
+    sec.className = 'kid ' + meta.cls; sec.id = kid;
+    sec.innerHTML = '<h2>' + meta.tab + '</h2><div class="who">' +
+      meta.blurb + ' &middot; ' + mine.length + ' pages</div>';
+
+    const subjects = [...new Set(mine.map(c => c.s))]
+      .sort((a,b) => (SUBJ_ORDER.indexOf(a) + 99) - (SUBJ_ORDER.indexOf(b) + 99));
+
+    subjects.forEach(subj => {
+      const inSubj = mine.filter(c => c.s === subj);
+      const det = document.createElement('details');
+      det.className = 'subj';
+      const hasNew = inSubj.some(c => c.isNew);
+      det.open = hasNew;        // everything starts folded away except today's additions
+      det.innerHTML = '<summary>' + subj + ' <span class="count">' + inSubj.length + '</span>' +
+                      (hasNew ? '<span class="dot" title="has something new"></span>' : '') + '</summary>';
+
+      const bySort = (a,b) => (b.w||0) - (a.w||0) || a.ord - b.ord || a.ix - b.ix;
+      const loose = inSubj.filter(c => !c.g).sort(bySort);
+      const books = [...new Set(inSubj.filter(c => c.g).map(c => c.g))];
+
+      if (loose.length) det.appendChild(gridOf(loose));
+
+      if (books.length) {
+        const shelf = document.createElement('div'); shelf.className = 'shelf';
+        books.forEach(bk => {
+          const items = inSubj.filter(c => c.g === bk).sort(bySort);
+          const note = items.find(c => c.gn) ? items.find(c => c.gn).gn : '';
+          const bnew = items.some(c => c.isNew);
+          const icon = (bk.match(/^\s*(\p{Extended_Pictographic}️?)/u) || [,'📘'])[1];
+          const label = bk.replace(/^\s*\p{Extended_Pictographic}️?\s*/u, '');
+
+          const tile = document.createElement('button');
+          tile.type = 'button'; tile.className = 'book';
+          tile.innerHTML = '<span class="bic">' + icon + '</span><span><span class="bt">' +
+            label + '</span><span class="bn">' + items.length + ' set' +
+            (items.length > 1 ? 's' : '') + (note ? ' &middot; ' + note : '') +
+            '</span></span><span class="arrow">&#9656;</span>' +
+            (bnew ? '<span class="dot"></span>' : '');
+
+          tile.addEventListener('click', () => toggleBook(tile, shelf, bk, items, label, icon));
+          shelf.appendChild(tile);
+          if (bnew) requestAnimationFrame(() => toggleBook(tile, shelf, bk, items, label, icon, true));
+        });
+        det.appendChild(shelf);
       }
-    }
-  });
-
-  document.querySelectorAll('.grid').forEach(g => {
-    g.querySelectorAll('.quiz.is-new').forEach(c => g.prepend(c));
-  });
-
-  if (count) {
-    const note = document.createElement('p');
-    note.className = 'sub';
-    note.style.cssText = 'margin:-14px 0 20px;color:#c0392b;font-weight:bold;';
-    note.textContent = count === 1 ? '🆕 1 new quiz added today'
-                                   : '🆕 ' + count + ' new quizzes added today';
-    document.querySelector('.sub').after(note);
-  }
-})();
-
-/* ---------- 2 + 3. who filter and date view ---------- */
-(function filters() {
-  const SHARED   = 'both';
-  const KEY_WHO  = 'kids_quiz_who_v1';
-  const KEY_WHEN = 'kids_quiz_when_v1';
-
-  const kids       = [...document.querySelectorAll('section.kid')];
-  const whoBar     = document.getElementById('tabs');
-  const whenBar    = document.getElementById('when-tabs');
-  const recent     = document.getElementById('recent');
-  const recentBody = document.getElementById('recent-body');
-  const recentSub  = document.getElementById('recent-sub');
-  if (!kids.length || !whoBar || !whenBar) return;
-
-  const WHEN_OPTS = [
-    { v: 'folders', label: '📂 By subject' },
-    { v: '7',       label: '🆕 Last 7 days' },
-    { v: '30',      label: '🗓️ Last 30 days' },
-    { v: 'all',     label: '📅 All, newest first' }
-  ];
-
-  let who = 'all', when = 'folders';
-
-  // every card, with where it lives and when it landed
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const items = [...document.querySelectorAll('section.kid .quiz')].map(card => {
-    const kid  = card.closest('section.kid');
-    const subj = card.closest('details.subj');
-    const grp  = card.closest('details.grp');
-    const p    = (card.dataset.added || '').split('-').map(Number);
-    const date = (p.length === 3 && !p.some(isNaN)) ? new Date(p[0], p[1] - 1, p[2]) : null;
-    return {
-      card, date,
-      kid: kid.dataset.kid,
-      kidName: kid.dataset.tab,
-      subject: subj ? subj.dataset.subject : '',
-      group: grp ? grp.dataset.group : '',
-      age: date ? Math.round((today - date) / 86400000) : 99999
-    };
-  });
-
-  const fmt = d => d.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' });
-  const dayName = d => d.toLocaleDateString('en-CA', { weekday: 'long' });
-
-  function chip(bar, label, value, handler, dot) {
-    const b = document.createElement('button');
-    b.className = 'tab'; b.type = 'button'; b.textContent = label; b.dataset.value = value;
-    if (dot) { const s = document.createElement('span'); s.className = 'dot'; b.appendChild(s); }
-    b.addEventListener('click', () => handler(value));
-    bar.appendChild(b);
-    return b;
-  }
-
-  function buildRecent() {
-    const days = when === 'all' ? Infinity : Number(when);
-    const list = items
-      .filter(i => who === 'all' || i.kid === who || i.kid === SHARED)
-      .filter(i => i.date && i.age <= days)
-      .sort((a, b) => b.date - a.date);
-
-    recentBody.innerHTML = '';
-    recentSub.textContent = list.length + (list.length === 1 ? ' page' : ' pages')
-      + (when === 'all' ? ' · newest first' : ' · added in the last ' + when + ' days');
-
-    if (!list.length) {
-      const p = document.createElement('p');
-      p.className = 'empty';
-      p.textContent = 'Nothing added in that window — try a longer one.';
-      recentBody.appendChild(p);
-      return;
-    }
-
-    let stamp = '', grid = null;
-    list.forEach(i => {
-      const key = i.date.toDateString();
-      if (key !== stamp) {
-        stamp = key;
-        const box = document.createElement('div');
-        box.className = 'daygroup';
-        const h = document.createElement('h3');
-        h.textContent = fmt(i.date) + ' · ' + dayName(i.date)
-          + (i.age === 0 ? ' · today' : i.age === 1 ? ' · yesterday' : '');
-        box.appendChild(h);
-        grid = document.createElement('div');
-        grid.className = 'grid';
-        box.appendChild(grid);
-        recentBody.appendChild(box);
-      }
-      const clone = i.card.cloneNode(true);
-      const crumb = document.createElement('span');
-      crumb.className = 'crumb';
-      crumb.textContent = [i.kidName, i.subject, i.group].filter(Boolean).join(' · ');
-      clone.querySelector('div:last-child').appendChild(crumb);
-      grid.appendChild(clone);
+      sec.appendChild(det);
     });
+    shelvesEl.appendChild(sec);
+  });
+}
+
+/* one drawer open at a time, inside its own shelf */
+function toggleBook(tile, shelf, bk, items, label, icon, force) {
+  const already = shelf.dataset.open === bk;
+  shelf.querySelectorAll('.drawer').forEach(d => d.remove());
+  shelf.querySelectorAll('.book.open').forEach(b => b.classList.remove('open'));
+  if (already && !force) { shelf.dataset.open = ''; return; }
+  shelf.dataset.open = bk;
+
+  const dr = document.createElement('div');
+  dr.className = 'drawer';
+  const head = document.createElement('div');
+  head.className = 'dhead';
+  head.innerHTML = icon + ' <span>' + label + ' &middot; ' + items.length + ' to choose from</span>' +
+                   '<button class="shut" type="button">close &times;</button>';
+  head.querySelector('.shut').addEventListener('click', e => {
+    e.stopPropagation(); dr.remove(); tile.classList.remove('open'); shelf.dataset.open = '';
+  });
+  dr.appendChild(head);
+  dr.appendChild(gridOf(items));
+  tile.classList.add('open');
+  tile.after(dr);
+}
+
+/* ---------- the panel: search results + date views ---------- */
+const panel = document.getElementById('panel');
+const panelTitle = document.getElementById('panel-title');
+const panelSub = document.getElementById('panel-sub');
+const panelBody = document.getElementById('panel-body');
+const fmt = d => d.toLocaleDateString('en-CA', { year:'numeric', month:'short', day:'numeric' });
+const dayName = d => d.toLocaleDateString('en-CA', { weekday:'long' });
+
+function renderSearch(term, who) {
+  const t = term.trim().toLowerCase();
+  const every = Q.filter(c => c.hay.includes(t));
+  const hits = every.filter(c => (who === 'all' || c.k === who || c.k === 'both'))
+                    .sort((a,b) => (b.date||0) - (a.date||0));
+  const elsewhere = every.length - hits.length;
+  panelTitle.innerHTML = '&#128269; ' + esc(term.trim());
+  panelSub.textContent = hits.length + (hits.length === 1 ? ' page found' : ' pages found');
+  panelBody.innerHTML = '';
+
+  // a hit hidden by the current name filter is the easiest way to think
+  // something isn't here at all - so always say where the rest of them are
+  const seeAll = () => {
+    const p = document.createElement('p');
+    p.className = 'empty';
+    p.innerHTML = (hits.length ? '' : 'Nothing here for this name. ') +
+      '<b>' + elsewhere + '</b> more ' + (elsewhere === 1 ? 'page matches' : 'pages match') +
+      ' under the other names. <button class="go" type="button">Search everyone</button>';
+    p.querySelector('.go').addEventListener('click', () =>
+      document.querySelector('#who-chips .chip[data-value="all"]').click());
+    return p;
+  };
+
+  if (!hits.length) {
+    if (elsewhere) { panelBody.appendChild(seeAll()); return; }
+    panelBody.innerHTML = '<p class="empty">Nothing matched <b>' + esc(term.trim()) +
+      '</b>.<br>Try a book name (<b>huck</b>, <b>peach</b>), a chapter number (<b>18</b>), ' +
+      'a subject (<b>math</b>, <b>vocab</b>), or Chinese (<b>拼音</b>).</p>';
+    return;
   }
+  const rx = new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'ig');
+  panelBody.appendChild(gridOf(hits, { hi: rx, crumb: true }));
+  if (elsewhere) panelBody.appendChild(seeAll());
+}
+
+function renderByDate(days, who) {
+  const list = Q.filter(c => (who === 'all' || c.k === who || c.k === 'both'))
+                .filter(c => c.date && c.age <= days)
+                .sort((a,b) => b.date - a.date);
+  panelTitle.innerHTML = '&#128197; By date';
+  panelSub.textContent = list.length + (list.length === 1 ? ' page' : ' pages') +
+    (days === Infinity ? ' · newest first' : ' · added in the last ' + days + ' days');
+  panelBody.innerHTML = '';
+  if (!list.length) {
+    panelBody.innerHTML = '<p class="empty">Nothing added in that window — try a longer one.</p>';
+    return;
+  }
+  let stamp = '', grid = null;
+  list.forEach(c => {
+    const key = c.date.toDateString();
+    if (key !== stamp) {
+      stamp = key;
+      const box = document.createElement('div'); box.className = 'daygroup';
+      const h = document.createElement('h3');
+      h.textContent = fmt(c.date) + ' · ' + dayName(c.date) +
+        (c.age === 0 ? ' · today' : c.age === 1 ? ' · yesterday' : '');
+      box.appendChild(h);
+      grid = document.createElement('div'); grid.className = 'grid';
+      box.appendChild(grid); panelBody.appendChild(box);
+    }
+    grid.appendChild(cardEl(c, { crumb: true }));
+  });
+}
+
+/* ---------- chips, state, wiring ---------- */
+(function app() {
+  const KEY_WHO = 'kids_quiz_who_v2', KEY_VIEW = 'kids_quiz_view_v2';
+  const whoBar = document.getElementById('who-chips');
+  const viewBar = document.getElementById('view-chips');
+  const qBox = document.getElementById('q');
+  const qClear = document.getElementById('qclear');
+  const VIEWS = [
+    { v:'folders', label:'📂 By subject' },
+    { v:'7',       label:'🆕 Last 7 days' },
+    { v:'30',      label:'🗓️ Last 30 days' },
+    { v:'all',     label:'📅 All, newest first' }
+  ];
+  let who = 'all', view = 'folders', term = '';
+
+  function chip(bar, label, value, handler, extra) {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.type = 'button'; b.dataset.value = value;
+    b.innerHTML = label + (extra || '');
+    b.addEventListener('click', () => handler(value));
+    bar.appendChild(b); return b;
+  }
+
+  chip(whoBar, '🏠 Everyone', 'all', v => setWho(v),
+       '<span class="n">' + Q.length + '</span>');
+  ['grace','warren'].forEach(k => {
+    const mine = Q.filter(c => c.k === k);
+    chip(whoBar, KID_META[k].tab, k, v => setWho(v),
+      '<span class="n">' + (mine.length + Q.filter(c => c.k === 'both').length) + '</span>' +
+      (mine.some(c => c.isNew) ? '<span class="dot"></span>' : ''));
+  });
+  VIEWS.forEach(o => chip(viewBar, o.label, o.v, v => setView(v)));
 
   function apply(scroll) {
-    kids.forEach(k => {
-      const mine = who === 'all' || k.dataset.kid === who || k.dataset.kid === SHARED;
-      k.hidden = !mine || when !== 'folders';
-    });
-    recent.hidden = when === 'folders';
-    if (when !== 'folders') buildRecent();
+    const searching = term.trim().length > 0;
+    shelvesEl.hidden = searching || view !== 'folders';
+    panel.hidden = !searching && view === 'folders';
 
-    whoBar.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.value === who));
-    whenBar.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.value === when));
-    try { localStorage.setItem(KEY_WHO, who); localStorage.setItem(KEY_WHEN, when); } catch (e) {}
+    if (searching) renderSearch(term, who);
+    else if (view !== 'folders') renderByDate(view === 'all' ? Infinity : +view, who);
+    else renderShelves(who);
+
+    whoBar.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.value === who));
+    viewBar.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.value === view));
+    qClear.classList.toggle('show', searching);
+    try { localStorage.setItem(KEY_WHO, who); localStorage.setItem(KEY_VIEW, view); } catch(e) {}
     if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+  const setWho  = v => { who = v; apply(true); };
+  const setView = v => { view = v; apply(true); };
 
-  const setWho  = v => { who = v;  apply(true); };
-  const setWhen = v => { when = v; apply(true); };
+  let timer;
+  qBox.addEventListener('input', () => {
+    term = qBox.value;
+    clearTimeout(timer); timer = setTimeout(() => apply(false), 110);
+  });
+  qBox.addEventListener('keydown', e => { if (e.key === 'Escape') { qBox.value=''; term=''; apply(false); } });
+  qClear.addEventListener('click', () => { qBox.value=''; term=''; qBox.focus(); apply(false); });
 
-  chip(whoBar, '🏠 Everyone', 'all', setWho);
-  kids.filter(k => k.dataset.kid !== SHARED)
-      .forEach(k => chip(whoBar, k.dataset.tab, k.dataset.kid, setWho, !!k.querySelector('.quiz.is-new')));
-  WHEN_OPTS.forEach(o => chip(whenBar, o.label, o.v, setWhen));
+  document.getElementById('dice').addEventListener('click', () => {
+    const pool = Q.filter(c => who === 'all' || c.k === who || c.k === 'both');
+    if (pool.length) location.href = pool[Math.floor(Math.random() * pool.length)].h;
+  });
 
+  /* the "new today" banner */
+  const fresh = Q.filter(c => c.isNew);
+  if (fresh.length) {
+    const bar = document.getElementById('newbar');
+    bar.hidden = false;
+    bar.innerHTML = '<b>🆕 ' + fresh.length + (fresh.length === 1 ? ' new page' : ' new pages') +
+      ' added today</b><span style="font-size:13px;color:#96594f">' +
+      fresh.map(c => c.t).slice(0,2).join(' &middot; ') +
+      (fresh.length > 2 ? ' …' : '') + '</span>' +
+      '<button class="go" type="button">Show me</button>';
+    bar.querySelector('.go').addEventListener('click', () => setView('7'));
+  }
+
+  /* restore last choice, then honour a #grace / #warren deep link */
   try {
     const w = localStorage.getItem(KEY_WHO);
     if (w && whoBar.querySelector('[data-value="' + w + '"]')) who = w;
-    const t = localStorage.getItem(KEY_WHEN);
-    if (t && whenBar.querySelector('[data-value="' + t + '"]')) when = t;
-  } catch (e) {}
-
-  if (location.hash) {                      // #grace / #warren / #both deep links
-    const target = kids.find(k => '#' + k.id === location.hash);
-    if (target) { when = 'folders'; who = target.dataset.kid === SHARED ? 'all' : target.dataset.kid; }
+    const v = localStorage.getItem(KEY_VIEW);
+    if (v && viewBar.querySelector('[data-value="' + v + '"]')) view = v;
+  } catch(e) {}
+  if (location.hash) {
+    const h = location.hash.slice(1);
+    if (KID_META[h]) { view = 'folders'; who = (h === 'both') ? 'all' : h; }
   }
 
   apply(false);
 
   if (location.hash) {
     const el = document.querySelector(location.hash);
-    if (el && !el.hidden) requestAnimationFrame(() => el.scrollIntoView({ block: 'start' }));
+    if (el) requestAnimationFrame(() => el.scrollIntoView({ block:'start' }));
   }
 })();
 </script>
