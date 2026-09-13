@@ -255,6 +255,20 @@ const questions = [
   }
 ];
 
+/* Shuffle each question's options at load time. The data keeps the correct
+   answer at index 0 for easy editing; without this, picking the first option
+   every time scores 100%. */
+questions.forEach(function (item) {
+  if (!item.options || typeof item.answer !== 'number') return;
+  var correct = item.options[item.answer];
+  for (var i = item.options.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = item.options[i]; item.options[i] = item.options[j]; item.options[j] = t;
+  }
+  item.answer = item.options.indexOf(correct);
+});
+
+
 let current = 0;
 let score = 0;
 let answered = false;

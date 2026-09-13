@@ -1,5 +1,10 @@
 # CLAUDE.md — Kids
 
+> **Building the homework system?** Read `HOMEWORK-SYSTEM.md` in this folder first —
+> it holds the design decisions, the permission matrix, the Firestore model, and the
+> things not to re-litigate (why Firebase over Supabase, why the quiz pages stay as
+> single files). This file below is the house style for the pages themselves.
+
 Learning material for **Grace and Warren**. All content is **English**, kid-friendly, and warm/
 encouraging in tone (never stressful). Every page is a self-contained single-file HTML you can
 open in a browser. This file documents the **existing** design so new pages match — don't invent
