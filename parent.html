@@ -147,6 +147,12 @@
   .b-ref{background:rgba(147,162,189,.15);color:var(--mute)}
   .b-practice{background:rgba(201,162,39,.16);color:var(--gold)}
   .lock{font-size:11px;color:var(--mute)}
+  .b-assigned{background:rgba(75,182,122,.18);color:var(--green);border:1px solid rgba(75,182,122,.45);
+              margin-left:4px;vertical-align:1px;cursor:help}
+  tbody tr.assigned{background:rgba(75,182,122,.07);box-shadow:inset 3px 0 var(--green)}
+  tbody tr.assigned.sel{background:rgba(201,162,39,.09)}
+  .sasg{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;font-weight:600;
+        background:rgba(75,182,122,.18);color:var(--green);border-radius:999px;padding:1px 8px}
   tbody tr.arch{opacity:.5}
   tbody tr.arch:hover{opacity:.85}
   .b-arch{background:rgba(147,162,189,.13);color:var(--mute);border:1px solid var(--line)}
@@ -438,6 +444,8 @@ let BANK = [], BANK_BY_ID = {}, ATT = [];
 // The day 今日作业 is showing (today unless the parent picked another) and both kids' items on it;
 // PULLED = items withdrawn from that day.
 let TD = iso(today), ASSIGN = { grace:[], warren:[] }, PULLED = { grace:[], warren:[] };
+// Today's items whatever day 今日作业 is showing: the bank marks these "Assigned".
+let TODAY_ITEMS = { grace:[], warren:[] };
 
 const dayRef = (k, d) => db.doc(`assignments/${KID[k].uid}/days/${d}`);
 // Mom signs in with a 4-digit PIN instead of Google (password = 'family-' + PIN; Firebase wants 6+).
@@ -461,10 +469,11 @@ function toAtt(doc){
 
 async function loadDay(d){
   const [g, w] = await Promise.all([dayRef('grace', d).get(), dayRef('warren', d).get()]);
-  if(d !== TD) return;   // the parent already moved on to another day
   [['grace', g], ['warren', w]].forEach(([k, snap])=>{
     const x = snap.data() || {};
-    ASSIGN[k] = x.items || []; PULLED[k] = x.withdrawn || [];
+    // TD may have moved on while this was loading; then only today's copy (if it's today) is still wanted.
+    if(d === TD){ ASSIGN[k] = x.items || []; PULLED[k] = x.withdrawn || []; }
+    if(d === iso(today)) TODAY_ITEMS[k] = x.items || [];
   });
 }
 
@@ -473,7 +482,8 @@ async function loadAll(){
     db.collection('bank').get(),
     // A family writes a handful a day, so fetch them all: "最近一次" needs more than three weeks.
     db.collection('attempts').orderBy('submittedAt','desc').get(),
-    loadDay(TD)
+    loadDay(TD),
+    TD === iso(today) ? null : loadDay(iso(today))
   ]);
   const col = new Intl.Collator('zh', { numeric:true });
   BANK = bankSnap.docs.map(d => Object.assign({ docId:d.id }, d.data()))
@@ -581,15 +591,23 @@ function bankRows(){
     return true;
   });
 }
+// Which kids have this item on today's homework.
+const assignedTo = id => ['grace','warren'].filter(k => TODAY_ITEMS[k].some(it => it.id===id));
+function assignedBadge(id){
+  const ks = assignedTo(id);
+  if(!ks.length) return '';
+  const tip = ks.map(k => KID[k].n + (ATT.some(a=>a.kid===k && a.id===id && a.date===iso(today)) ? '（今天已做）' : '（还没做）')).join('、');
+  return `<span class="badge b-assigned" title="今天已派给 ${esc(tip)}">✓ Assigned ${ks.map(k=>KID[k].av).join('')}</span>`;
+}
 // One bank row. withPlace: also say which subject / book it sits in (the by-time list has no groups).
 function bankRow(b, withPlace){
   const h = attFor(b.docId)[0];
   const last = h ? `<span style="color:${pctColor(h.pct)};font-weight:600">${pctText(h.pct)}</span>
                     <div class="crumb">${h.date.slice(5)}</div>` : `<span class="lock">没做过</span>`;
   const kid = KID[b.kid] || KID.both;
-  return `<tr class="${SEL.has(b.docId)?'sel':''}${b.archived?' arch':''}">
+  return `<tr class="${SEL.has(b.docId)?'sel':''}${b.archived?' arch':''}${assignedTo(b.docId).length?' assigned':''}">
     <td class="c" style="width:34px"><input type="checkbox" class="pick" ${SEL.has(b.docId)?'checked':''} data-id="${esc(b.docId)}"></td>
-    <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)}</div><div class="d">${esc(b.d)}</div>
+    <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)} ${assignedBadge(b.docId)}</div><div class="d">${esc(b.d)}</div>
       ${withPlace?`<div class="crumb">${esc(b.subj)}${b.book?' · '+esc(b.book):''}</div>`:''}${bankDates(b)}</td>
     <td class="crumb" style="width:92px">${kid.av} ${kid.n}</td>
     <td class="c crumb" style="width:64px">${b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '—'}</td>
@@ -603,7 +621,8 @@ function viewBank(){
   const nAct = BANK.filter(b=>!b.archived).length;
   const latest = BANK.map(touched).sort().pop();
   let html = `<h2 class="sec">题库 · 在用 ${nAct} · 已归档 ${BANK.length-nAct}</h2>
-    <p class="seclead">全部 ${BANK.length} 份都在这里，只有这个页面看得到${latest?`，最近一次上传 / 更新是 <b>${ymd(latest)}</b>`:''}。<b>点标题</b>在新标签页打开看题（家长预览，不记成绩）；勾选后在底部派给孩子。<br>
+    <p class="seclead">全部 ${BANK.length} 份都在这里，只有这个页面看得到${latest?`，最近一次上传 / 更新是 <b>${ymd(latest)}</b>`:''}。<b>点标题</b>在新标签页打开看题（家长预览，不记成绩）；勾选后在底部派给孩子。
+      今天已经派出去的标着 <span class="badge b-assigned" style="cursor:default">✓ Assigned</span>（后面是派给了谁）。<br>
       <b style="color:var(--blue)">可判分</b> 做完自动出分 ·
       <b style="color:var(--gold)">练习</b> 闯关式，回传完成度 ·
       <b style="color:var(--mute)">参考</b> 只记看过没看过</p>
@@ -649,8 +668,10 @@ function viewBank(){
     const shelves = bySubj.get(subj);
     const items = [...shelves.values()].flat();
     const nSel = items.filter(b=>SEL.has(b.docId)).length;
+    const nAsg = items.filter(b=>assignedTo(b.docId).length).length;
     html += `<details class="subj" data-subj="${esc(subj)}"${searching||OPEN.has(subj)?' open':''}>
       <summary><span class="sname">${esc(subj)}</span><span class="scount">${items.length} 份</span>
+        ${nAsg?`<span class="sasg">今天已派 ${nAsg}</span>`:''}
         ${nSel?`<span class="ssel">已选 ${nSel}</span>`:''}</summary>`;
     shelves.forEach((list, book)=>{
       html += `<div class="shelf">`;
@@ -658,10 +679,11 @@ function viewBank(){
       const key = subj + '|' + book, shut = !!book && !searching && !OPEN_SHELF.has(key);
       if(book){
         const all = list.every(b=>SEL.has(b.docId)), nSel = list.filter(b=>SEL.has(b.docId)).length;
+        const nAsg = list.filter(b=>assignedTo(b.docId).length).length;
         html += `<div class="shelfhead"><input type="checkbox" class="selall"${all?' checked':''} title="整组选"
             data-ids="${esc(list.map(b=>b.docId).join(' '))}">
           <button class="shelftog${shut?'':' open'}" data-shelf="${esc(key)}">${esc(book)}</button>
-          <span class="scount">${list.length} 份${nSel?` · <span class="ssel">已选 ${nSel}</span>`:''} · 最近 ${(v=>`<span class="${v>=RECENT?'recent':''}">${ymd(v)}</span>`)(list.map(touched).sort().pop())} · 勾方框整组选</span></div>`;
+          <span class="scount">${list.length} 份${nAsg?` · <span class="sasg">今天已派 ${nAsg}</span>`:''}${nSel?` · <span class="ssel">已选 ${nSel}</span>`:''} · 最近 ${(v=>`<span class="${v>=RECENT?'recent':''}">${ymd(v)}</span>`)(list.map(touched).sort().pop())} · 勾方框整组选</span></div>`;
       }
       if(!shut) html += `<table><tbody>${list.map(b=>bankRow(b, false)).join('')}</tbody></table>`;
       html += `</div>`;
@@ -1083,7 +1105,7 @@ document.getElementById('assgo').addEventListener('click', async ()=>{
         tx.set(refs[i], { items, withdrawn, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
       });
     });
-    if(d===TD) await loadDay(TD);
+    if(d===TD || d===iso(today)) await loadDay(d);
     SEL.clear(); render();
     toast(`已派给 ${kids.map(kk=>KID[kk].n).join(' 和 ')} · ${d} · ${ids.length} 份`);
   } catch(e){
@@ -1140,7 +1162,7 @@ async function moveItem(k, id, to, btn){
       if(!tItems.some(i=>i.id===id))
         tx.set(dst, { items: [...tItems, { ...cur, movedFrom: from }], updatedAt: now }, { merge:true });
     });
-    MOVING = ''; await loadDay(from); render();
+    MOVING = ''; await Promise.all([loadDay(from), to===iso(today) ? loadDay(to) : null]); render();
     toast(`已把「${it.t}」从 ${from} 挪到 ${to}`);
   } catch(e){
     console.error(e); btn.disabled = false;
@@ -1180,6 +1202,7 @@ let gateMsg = '';
 
 function showGate(msg){
   BANK = []; BANK_BY_ID = {}; ATT = []; ASSIGN = { grace:[], warren:[] }; PULLED = { grace:[], warren:[] }; SEL.clear();
+  TODAY_ITEMS = { grace:[], warren:[] };
   RD.data = null; RD.err = ''; RD.loading = false; RD.want = 0;
   viewEl.innerHTML = ''; bar.hidden = true; document.getElementById('demobar').hidden = true;
   document.getElementById('whoami').textContent = '';
