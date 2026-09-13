@@ -78,6 +78,19 @@
   .st-low{background:rgba(217,83,79,.16);color:var(--red)}
   .st-open{background:rgba(224,163,62,.16);color:var(--amber)}
   .empty{color:var(--mute);font-size:12.5px;padding:14px 0;text-align:center}
+  .daynav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 0}
+  .daynav input[type=date],.moverow input[type=date]{font-family:inherit;font-size:13px;background:var(--card);
+         border:1.5px solid var(--line);border-radius:7px;color:var(--cream);padding:6px 9px;outline:none}
+  .task .nm span.tm{display:block}
+  .task .acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  .mini{font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;border-radius:6px;padding:3px 8px;
+        border:1px solid var(--line);background:transparent;color:var(--mute)}
+  .mini:hover{color:var(--cream);border-color:var(--gold2)}
+  .mini.bad:hover{color:var(--red);border-color:var(--red)}
+  .mini:disabled{opacity:.35;cursor:not-allowed}
+  .moverow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:0 0 10px 27px;font-size:12px;color:var(--mute)}
+  .pulled{font-size:11.5px;color:var(--mute);margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)}
+  .recent{color:var(--gold)}
 
   /* ---------- bank ---------- */
   .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 12px}
@@ -272,6 +285,8 @@
     .metrics{gap:12px;flex-wrap:wrap}
     td .d{display:none}
     input[type=checkbox]{width:20px;height:20px}
+    .task{flex-wrap:wrap}
+    .task .acts{flex-basis:100%;padding-left:27px;justify-content:flex-start}   /* status + buttons under the title */
 
     /* header: title and the two buttons on one line; tabs scroll sideways instead of wrapping */
     .hrow{flex-wrap:nowrap;align-items:center;gap:8px;padding:12px 0 6px}
@@ -402,8 +417,18 @@ const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pctColor = p => p==null || p>=80 ? 'var(--green)' : 'var(--red)';
 const pctText = p => p==null ? '✓' : p+'%';
+const shiftDay = (d, n) => { const x = new Date(d+'T12:00:00'); x.setDate(x.getDate()+n); return iso(x); };
+const hm = d => String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+// When something happened, to the minute: 「今天 18:02」 / 「09-12 18:02」
+const stamp = d => (iso(d)===iso(today) ? '今天' : iso(d).slice(5)) + ' ' + hm(d);
+const tsDate = t => t && t.toDate ? t.toDate() : null;
+// Bank dates are YYYY-MM-DD strings; the year only shows when it isn't this year.
+const ymd = s => s && s.slice(0,4)===String(today.getFullYear()) ? s.slice(5) : (s||'');
 
-let BANK = [], BANK_BY_ID = {}, ATT = [], ASSIGN = { grace:[], warren:[] };
+let BANK = [], BANK_BY_ID = {}, ATT = [];
+// The day 今日作业 is showing (today unless the parent picked another) and both kids' items on it;
+// PULLED = items withdrawn from that day.
+let TD = iso(today), ASSIGN = { grace:[], warren:[] }, PULLED = { grace:[], warren:[] };
 
 const dayRef = (k, d) => db.doc(`assignments/${KID[k].uid}/days/${d}`);
 const kidOf = uid => Object.keys(KID).find(k => KID[k].uid === uid);
@@ -416,44 +441,62 @@ function toAtt(doc){
   // practice / ref pages report completion, not a score — pct stays null for those
   const pct = typeof a.pct==='number' ? a.pct : a.total ? Math.round(100*a.score/a.total) : null;
   return { kid, id:a.itemId, t:a.t||b.t||a.itemId, subj:b.subj||'', book:b.book||'',
-           pct, secs:a.secs||0, date: when ? iso(when) : '',
+           pct, secs:a.secs||0, date: when ? iso(when) : '', at: when,
            activeSecs: typeof a.activeSecs==='number' ? a.activeSecs : null,
            focus: a.focus || null, qTimes: a.qTimes || [],
            demo: a._demo===true, ref: doc.ref };   // _demo: preview data from demo-data.mjs
 }
 
+async function loadDay(d){
+  const [g, w] = await Promise.all([dayRef('grace', d).get(), dayRef('warren', d).get()]);
+  if(d !== TD) return;   // the parent already moved on to another day
+  [['grace', g], ['warren', w]].forEach(([k, snap])=>{
+    const x = snap.data() || {};
+    ASSIGN[k] = x.items || []; PULLED[k] = x.withdrawn || [];
+  });
+}
+
 async function loadAll(){
-  const [bankSnap, attSnap, gDay, wDay] = await Promise.all([
+  const [bankSnap, attSnap] = await Promise.all([
     db.collection('bank').get(),
     // A family writes a handful a day, so fetch them all: "最近一次" needs more than three weeks.
     db.collection('attempts').orderBy('submittedAt','desc').get(),
-    dayRef('grace', iso(today)).get(),
-    dayRef('warren', iso(today)).get()
+    loadDay(TD)
   ]);
   const col = new Intl.Collator('zh', { numeric:true });
   BANK = bankSnap.docs.map(d => Object.assign({ docId:d.id }, d.data()))
     .sort((a,b) => col.compare(a.subj,b.subj) || col.compare(a.book||'',b.book||'') || col.compare(a.t,b.t));
   BANK_BY_ID = Object.fromEntries(BANK.map(b => [b.docId, b]));
   ATT = attSnap.docs.map(toAtt).filter(Boolean);
-  ASSIGN.grace = (gDay.data()||{}).items || [];
-  ASSIGN.warren = (wDay.data()||{}).items || [];
 }
 
 const attFor = id => ATT.filter(a => a.id===id);   // ATT is already newest-first
 
-/* ===================== TODAY ===================== */
+/* ===================== TODAY (any day) ===================== */
+// Opens on today; ‹ › and the date box reach any other day. Each item can be withdrawn (撤回) or
+// moved to another day (改日期) — e.g. not finished yesterday → today. Attempts are never touched.
+let MOVING = '';   // "kid|itemId" whose move-to box is open
+
 function viewToday(){
-  const day = iso(today);
-  let html = `<h2 class="sec">今天 · ${day}</h2>
-    <p class="seclead">孩子登录后只看得到这里派的内容，看不到题库本身。</p><div class="grid2">`;
+  const day = TD, isToday = day===iso(today);
+  let html = `<h2 class="sec">${isToday?'今天':'作业'} · ${day} 周${wdOf(day)}</h2>
+    <p class="seclead">孩子登录后只看得到这里派的内容，看不到题库本身。
+      派错了、要换：<b>撤回</b>从孩子这天的作业里拿掉；没做完：<b>改日期</b>挪到另一天。做过的成绩都会保留。</p>
+    <div class="daynav">
+      <button class="fchip" data-day="${shiftDay(day,-1)}">‹ 前一天</button>
+      <input type="date" id="tdpick" value="${day}">
+      <button class="fchip" data-day="${shiftDay(day,1)}">后一天 ›</button>
+      ${isToday?'':`<button class="fchip" data-day="${iso(today)}">回到今天</button>`}
+    </div><div class="grid2">`;
   ['grace','warren'].forEach(k=>{
     const list = ASSIGN[k];
-    const done = list.map(it=>ATT.find(a=>a.kid===k&&a.id===it.id&&a.date===day)).filter(Boolean);
+    const doneOf = it => ATT.find(a=>a.kid===k&&a.id===it.id&&a.date===day);
+    const done = list.map(doneOf).filter(Boolean);
     const quizzes = list.filter(it=>it.type==='quiz');
     const scored = done.filter(a=>a.pct!=null);
     const avg = scored.length ? Math.round(scored.reduce((s,a)=>s+a.pct,0)/scored.length) : null;
     html += `<div class="card"><div class="kidhead"><span class="av">${KID[k].av}</span>
-      <h3>${KID[k].n}</h3><span class="when">${list.length?'已派 '+list.length+' 份':'今天还没派'}</span></div>
+      <h3>${KID[k].n}</h3><span class="when">${list.length?'已派 '+list.length+' 份':isToday?'今天还没派':'这天没派'}</span></div>
       <div class="metrics">
         <div class="metric"><div class="v">${done.length}/${list.length}</div><div class="k">完成</div></div>
         <div class="metric"><div class="v">${quizzes.reduce((s,it)=>s+(it.n||0),0)}</div><div class="k">题目数</div></div>
@@ -464,21 +507,42 @@ function viewToday(){
       html += `<p class="empty">到「题库」勾选几份，再派给 ${KID[k].n}。</p>`;
     } else {
       list.forEach(it=>{
-        const a = done.find(x=>x.id===it.id);
+        const a = doneOf(it), key = k+'|'+it.id, at = tsDate(it.at);
         const st = !a ? `<span class="chipst st-open">未开始</span>`
-          : `<span class="chipst ${a.pct==null||a.pct>=80?'st-done':'st-low'}">${a.pct==null?'✓ 完成':a.pct+'%'}</span>`;
+          : `<span class="chipst ${a.pct==null||a.pct>=80?'st-done':'st-low'}" title="交卷 ${a.at?stamp(a.at):''}">${a.pct==null?'✓ 完成':a.pct+'%'}${a.at?' · '+hm(a.at):''}</span>`;
+        // Items assigned before 2026-09-14 carry no `at`, so they show no assign time.
+        const tm = [at?'派于 '+stamp(at):'', it.movedFrom?'从 '+ymd(it.movedFrom)+' 挪来':''].filter(Boolean).join(' · ');
         html += `<div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
           <b>${openLink(it.href, esc(it.t))}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
-          </span>${st}</div>`;
+          ${tm?`<span class="tm">${tm}</span>`:''}
+          </span><span class="acts">${st}
+            <button class="mini" data-move="${esc(key)}">改日期</button>
+            <button class="mini bad" data-pull="${esc(key)}">撤回</button></span></div>`;
+        if(MOVING===key){
+          const next = shiftDay(day,1) < iso(today) ? iso(today) : shiftDay(day,1);   // yesterday's → today
+          html += `<div class="moverow">挪到 <input type="date" class="movedate" value="${next}">
+            <button class="mini" data-movego="${esc(key)}">确定</button><button class="mini" data-movecancel>取消</button></div>`;
+        }
       });
     }
+    if(PULLED[k].length) html += `<div class="pulled">这天撤回了 ${PULLED[k].length} 份：${PULLED[k].map(p=>{
+      const w = tsDate(p.withdrawnAt); return esc(p.t) + (w ? `（${stamp(w)}）` : ''); }).join('、')}</div>`;
     html += `</div>`;
   });
   return html + `</div>`;
 }
 
 /* ===================== BANK ===================== */
-let F = { q:'', kid:'all', type:'all', arch:'active' }, SEL = new Set();
+let F = { q:'', kid:'all', type:'all', arch:'active', sort:'group' }, SEL = new Set();
+// 上传 = `added` (when the item joined the bank); 更新 = `updated` (last real change to the page,
+// written by homework-system/bank-dates.mjs). Dates within the last 7 days show in gold.
+const RECENT = shiftDay(iso(today), -6);
+const touched = b => b.updated && b.updated > (b.added||'') ? b.updated : (b.added||'');
+function bankDates(b){
+  const part = (lbl, s) => s ? `<span class="${s>=RECENT?'recent':''}">${lbl} ${ymd(s)}</span>` : '';
+  const html = [part('上传', b.added), part('更新', b.updated)].filter(Boolean).join(' · ');
+  return html ? `<div class="crumb">${html}</div>` : '';
+}
 // Same running order as the Quizzes hub (Quizzes/index.html SUBJ_ORDER); unknown subjects go last.
 const SUBJ_ORDER = ['📖 Reading','📝 SSAT','🔤 Vocabulary','🧮 Math','🧮 Algebra','✍️ Writing · Reflection',
                     '🧠 Big Ideas · concept exams','📚 中文 Chinese','🍁 More'];
@@ -503,11 +567,29 @@ function bankRows(){
     return true;
   });
 }
+// One bank row. withPlace: also say which subject / book it sits in (the by-time list has no groups).
+function bankRow(b, withPlace){
+  const h = attFor(b.docId)[0];
+  const last = h ? `<span style="color:${pctColor(h.pct)};font-weight:600">${pctText(h.pct)}</span>
+                    <div class="crumb">${h.date.slice(5)}</div>` : `<span class="lock">没做过</span>`;
+  const kid = KID[b.kid] || KID.both;
+  return `<tr class="${SEL.has(b.docId)?'sel':''}${b.archived?' arch':''}">
+    <td class="c" style="width:34px"><input type="checkbox" class="pick" ${SEL.has(b.docId)?'checked':''} data-id="${esc(b.docId)}"></td>
+    <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)}</div><div class="d">${esc(b.d)}</div>
+      ${withPlace?`<div class="crumb">${esc(b.subj)}${b.book?' · '+esc(b.book):''}</div>`:''}${bankDates(b)}</td>
+    <td class="crumb" style="width:92px">${kid.av} ${kid.n}</td>
+    <td class="c crumb" style="width:64px">${b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '—'}</td>
+    <td class="c" style="width:82px"><span class="badge b-${esc(b.type)}">${LABEL[b.type]||esc(b.type)}</span>
+        ${b.archived?'<div style="margin-top:4px"><span class="badge b-arch">已归档</span></div>':''}</td>
+    <td class="c" style="width:90px">${last}</td></tr>`;
+}
+
 function viewBank(){
   const rows = bankRows();
   const nAct = BANK.filter(b=>!b.archived).length;
+  const latest = BANK.map(touched).sort().pop();
   let html = `<h2 class="sec">题库 · 在用 ${nAct} · 已归档 ${BANK.length-nAct}</h2>
-    <p class="seclead">全部 ${BANK.length} 份都在这里，只有这个页面看得到。<b>点标题</b>在新标签页打开看题（家长预览，不记成绩）；勾选后在底部派给孩子。<br>
+    <p class="seclead">全部 ${BANK.length} 份都在这里，只有这个页面看得到${latest?`，最近一次上传 / 更新是 <b>${ymd(latest)}</b>`:''}。<b>点标题</b>在新标签页打开看题（家长预览，不记成绩）；勾选后在底部派给孩子。<br>
       <b style="color:var(--blue)">可判分</b> 做完自动出分 ·
       <b style="color:var(--gold)">练习</b> 闯关式，回传完成度 ·
       <b style="color:var(--mute)">参考</b> 只记看过没看过</p>
@@ -519,13 +601,23 @@ function viewBank(){
         `<button class="fchip${F.type===v?' on':''}" data-f="type" data-v="${v}">${l}</button>`).join('')}
       ${[['active','在用'],['all','含已归档'],['archived','只看归档']].map(([v,l])=>
         `<button class="fchip${F.arch===v?' on':''}" data-f="arch" data-v="${v}">${l}</button>`).join('')}
+      ${[['group','按科目分组'],['time','按时间 · 最新在前']].map(([v,l])=>
+        `<button class="fchip${F.sort===v?' on':''}" data-f="sort" data-v="${v}">${l}</button>`).join('')}
     </div>
     <div class="seclead groupbar">${rows.length} 条${F.q?` 匹配「${esc(F.q)}」`:''}
       <span class="spacer"></span>
-      <button class="fchip" data-act="expand">全部展开</button>
-      <button class="fchip" data-act="collapse">全部收起</button></div>
+      ${F.sort==='time'?'':`<button class="fchip" data-act="expand">全部展开</button>
+      <button class="fchip" data-act="collapse">全部收起</button>`}</div>
     <p class="archnote">归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。</p>`;
   if(!rows.length) return html + `<p class="empty">没有匹配的内容。</p>`;
+
+  if(F.sort==='time'){
+    const col = new Intl.Collator('zh', { numeric:true });
+    const list = [...rows].sort((a,b)=>touched(b).localeCompare(touched(a)) || col.compare(a.t,b.t));
+    return html + `<details class="subj" data-subj="__time" open>
+      <summary><span class="sname">按时间 · 最新在前</span><span class="scount">${list.length} 份 · 按上传或更新里较晚的那天排</span></summary>
+      <div class="shelf"><table><tbody>${list.map(b=>bankRow(b, true)).join('')}</tbody></table></div></details>`;
+  }
 
   // subject → book shelf → items. rows are already sorted by subject, book, title, so Map
   // insertion order puts loose items (no book) first, then the shelves A→Z.
@@ -555,26 +647,9 @@ function viewBank(){
         html += `<div class="shelfhead"><input type="checkbox" class="selall"${all?' checked':''} title="整组选"
             data-ids="${esc(list.map(b=>b.docId).join(' '))}">
           <button class="shelftog${shut?'':' open'}" data-shelf="${esc(key)}">${esc(book)}</button>
-          <span class="scount">${list.length} 份${nSel?` · <span class="ssel">已选 ${nSel}</span>`:''} · 勾方框整组选</span></div>`;
+          <span class="scount">${list.length} 份${nSel?` · <span class="ssel">已选 ${nSel}</span>`:''} · 最近 ${(v=>`<span class="${v>=RECENT?'recent':''}">${ymd(v)}</span>`)(list.map(touched).sort().pop())} · 勾方框整组选</span></div>`;
       }
-      if(!shut){
-      html += `<table><tbody>`;
-      list.forEach(b=>{
-        const h = attFor(b.docId)[0];
-        const last = h ? `<span style="color:${pctColor(h.pct)};font-weight:600">${pctText(h.pct)}</span>
-                          <div class="crumb">${h.date.slice(5)}</div>` : `<span class="lock">没做过</span>`;
-        const kid = KID[b.kid] || KID.both;
-        html += `<tr class="${SEL.has(b.docId)?'sel':''}${b.archived?' arch':''}">
-          <td class="c" style="width:34px"><input type="checkbox" class="pick" ${SEL.has(b.docId)?'checked':''} data-id="${esc(b.docId)}"></td>
-          <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)}</div><div class="d">${esc(b.d)}</div></td>
-          <td class="crumb" style="width:92px">${kid.av} ${kid.n}</td>
-          <td class="c crumb" style="width:64px">${b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '—'}</td>
-          <td class="c" style="width:82px"><span class="badge b-${esc(b.type)}">${LABEL[b.type]||esc(b.type)}</span>
-              ${b.archived?'<div style="margin-top:4px"><span class="badge b-arch">已归档</span></div>':''}</td>
-          <td class="c" style="width:90px">${last}</td></tr>`;
-      });
-      html += `</tbody></table>`;
-      }
+      if(!shut) html += `<table><tbody>${list.map(b=>bankRow(b, false)).join('')}</tbody></table>`;
       html += `</div>`;
     });
     html += `</details>`;
@@ -586,7 +661,7 @@ function viewBank(){
 function viewHist(){
   const since = new Date(today); since.setDate(since.getDate()-21);
   const sinceIso = iso(since);
-  let html = `<h2 class="sec">完成记录</h2><p class="seclead">最近三周，按孩子分。低于 80% 的标红。</p><div class="grid2">`;
+  let html = `<h2 class="sec">完成记录</h2><p class="seclead">最近三周，按孩子分。左边是交卷的日期和时间，低于 80% 的标红。</p><div class="grid2">`;
   ['grace','warren'].forEach(k=>{
     const mine = ATT.filter(a=>a.kid===k && a.date>=sinceIso);
     const scored = mine.filter(a=>a.pct!=null);
@@ -608,7 +683,7 @@ function viewHist(){
         <div style="height:12px"></div>`;
     }
     mine.slice(0,8).forEach(a=>{
-      html += `<div class="hrow2"><span class="who">${a.date.slice(5)}</span>
+      html += `<div class="hrow2"><span class="who">${a.date.slice(5)}${a.at?'<br>'+hm(a.at):''}</span>
         <span class="nm">${esc(a.t)}<div class="bar"><i style="width:${a.pct==null?100:a.pct}%;background:${pctColor(a.pct)}"></i></div></span>
         <span class="sc" style="color:${pctColor(a.pct)}">${pctText(a.pct)}</span></div>`;
     });
@@ -887,6 +962,23 @@ const bar = document.getElementById('assignbar');
 function render(){
   viewEl.innerHTML = V==='today'?viewToday() : V==='bank'?viewBank() : V==='hist'?viewHist()
                    : V==='reading'?viewReading() : viewFocus();
+  if(V==='today'){
+    const goDay = async d=>{
+      if(!d || d===TD) return;
+      TD = d; MOVING = '';
+      try { await loadDay(d); } catch(e){ console.error(e); toast('读取这天的作业失败：' + (e.code||e.message), true); }
+      if(V==='today' && TD===d) render();
+    };
+    viewEl.querySelectorAll('.fchip[data-day]').forEach(b=>b.addEventListener('click',()=>goDay(b.dataset.day)));
+    document.getElementById('tdpick').addEventListener('change', e=>goDay(e.target.value));
+    viewEl.querySelectorAll('[data-pull]').forEach(b=>b.addEventListener('click',()=>{
+      const [k, id] = b.dataset.pull.split('|'); pullItem(k, id, b); }));
+    viewEl.querySelectorAll('[data-move]').forEach(b=>b.addEventListener('click',()=>{
+      MOVING = MOVING===b.dataset.move ? '' : b.dataset.move; render(); }));
+    viewEl.querySelectorAll('[data-movecancel]').forEach(b=>b.addEventListener('click',()=>{ MOVING = ''; render(); }));
+    viewEl.querySelectorAll('[data-movego]').forEach(b=>b.addEventListener('click',()=>{
+      const [k, id] = b.dataset.movego.split('|'); moveItem(k, id, viewEl.querySelector('.movedate').value, b); }));
+  }
   if(V==='focus'){
     viewEl.querySelectorAll('.fchip[data-fr]').forEach(c=>c.addEventListener('click',()=>{
       FR = Number(c.dataset.fr); render(); }));
@@ -965,12 +1057,16 @@ document.getElementById('assgo').addEventListener('click', async ()=>{
           const b = BANK_BY_ID[id];
           if(!b || have.has(id)) return;
           // Kids can't read `bank`, so the title and link travel with the assignment.
-          items.push({ id, t:b.t, href:b.href, type:b.type, n:b.n||0, ic:b.ic||'', subj:b.subj||'', book:b.book||'' });
+          // `at`: client time, because serverTimestamp() isn't allowed inside an array.
+          items.push({ id, t:b.t, href:b.href, type:b.type, n:b.n||0, ic:b.ic||'', subj:b.subj||'', book:b.book||'',
+                       at: firebase.firestore.Timestamp.now() });
         });
-        tx.set(refs[i], { items, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+        // Assigned again after a withdrawal: it's back on the day, so it no longer counts as withdrawn.
+        const withdrawn = ((snap.data()||{}).withdrawn || []).filter(p=>!have.has(p.id) && !ids.includes(p.id));
+        tx.set(refs[i], { items, withdrawn, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
       });
     });
-    if(d===iso(today)) for(const [i, kk] of kids.entries()) ASSIGN[kk] = ((await refs[i].get()).data()||{}).items || [];
+    if(d===TD) await loadDay(TD);
     SEL.clear(); render();
     toast(`已派给 ${kids.map(kk=>KID[kk].n).join(' 和 ')} · ${d} · ${ids.length} 份`);
   } catch(e){
@@ -981,6 +1077,59 @@ document.getElementById('assgo').addEventListener('click', async ()=>{
   }
 });
 document.getElementById('assclear').addEventListener('click',()=>{ SEL.clear(); render(); });
+
+// 撤回: the item leaves the kid's day. A copy goes to `withdrawn`, so the parent sees what was taken
+// back and the kids page still knows the subject of any score on it. Attempts are never touched.
+async function pullItem(k, id, btn){
+  const d = TD, it = ASSIGN[k].find(x=>x.id===id);
+  if(!it) return;
+  const did = ATT.some(a=>a.kid===k && a.id===id && a.date===d);
+  if(!confirm(`从 ${KID[k].n} ${d} 的作业里撤回「${it.t}」？${did?`\n\n${KID[k].n} 这天已经做过这份，成绩记录会保留。`:''}`)) return;
+  btn.disabled = true;
+  const ref = dayRef(k, d);
+  try {
+    await db.runTransaction(async tx=>{
+      const x = (await tx.get(ref)).data() || {};
+      const items = x.items || [], gone = items.find(i=>i.id===id);
+      if(!gone) return;   // already withdrawn (another tab or device)
+      tx.set(ref, { items: items.filter(i=>i.id!==id),
+        withdrawn: [...(x.withdrawn||[]).filter(p=>p.id!==id), { ...gone, withdrawnAt: firebase.firestore.Timestamp.now() }],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+    });
+    MOVING = ''; await loadDay(d); render();
+    toast(`已撤回 · ${KID[k].n} · ${d} · ${it.t}`);
+  } catch(e){
+    console.error(e); btn.disabled = false;
+    toast('撤回失败：' + (e.code||e.message) + '，没有改动', true);
+  }
+}
+
+// 改日期: off this day and onto another, in one transaction — never on both days, never on neither.
+// If the other day already has it, it just comes off this one.
+async function moveItem(k, id, to, btn){
+  const from = TD, it = ASSIGN[k].find(x=>x.id===id);
+  if(!it) return;
+  if(!to || to===from) return toast('选一个别的日期', true);
+  btn.disabled = true;
+  const src = dayRef(k, from), dst = dayRef(k, to);
+  try {
+    await db.runTransaction(async tx=>{
+      const [s, t] = await Promise.all([tx.get(src), tx.get(dst)]);
+      const sItems = (s.data()||{}).items || [], tItems = (t.data()||{}).items || [];
+      const cur = sItems.find(i=>i.id===id);
+      if(!cur) return;
+      const now = firebase.firestore.FieldValue.serverTimestamp();
+      tx.set(src, { items: sItems.filter(i=>i.id!==id), updatedAt: now }, { merge:true });
+      if(!tItems.some(i=>i.id===id))
+        tx.set(dst, { items: [...tItems, { ...cur, movedFrom: from }], updatedAt: now }, { merge:true });
+    });
+    MOVING = ''; await loadDay(from); render();
+    toast(`已把「${it.t}」从 ${from} 挪到 ${to}`);
+  } catch(e){
+    console.error(e); btn.disabled = false;
+    toast('改日期失败：' + (e.code||e.message) + '，没有改动', true);
+  }
+}
 
 document.getElementById('demodel').addEventListener('click', async ()=>{
   const demo = ATT.filter(a=>a.demo);
@@ -1012,7 +1161,7 @@ provider.setCustomParameters({ prompt:'select_account' });
 let gateMsg = '';
 
 function showGate(msg){
-  BANK = []; BANK_BY_ID = {}; ATT = []; ASSIGN = { grace:[], warren:[] }; SEL.clear();
+  BANK = []; BANK_BY_ID = {}; ATT = []; ASSIGN = { grace:[], warren:[] }; PULLED = { grace:[], warren:[] }; SEL.clear();
   RD.data = null; RD.err = ''; RD.loading = false; RD.want = 0;
   viewEl.innerHTML = ''; bar.hidden = true; document.getElementById('demobar').hidden = true;
   document.getElementById('whoami').textContent = '';

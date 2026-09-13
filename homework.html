@@ -253,7 +253,9 @@ async function load(){
     db.collection('attempts').where('kidId','==',ME.uid).get()
   ]);
   const label = new Map();   // item id → hub subject label
-  days.docs.forEach(d=>((d.data()||{}).items||[]).forEach(it=>{ if(it.subj) label.set(it.id, it.subj); }));
+  // Withdrawn items count too: a score on something the parent later took back still has a subject.
+  days.docs.forEach(d=>{ const x = d.data()||{};
+    [...(x.withdrawn||[]), ...(x.items||[])].forEach(it=>{ if(it.subj) label.set(it.id, it.subj); }); });
   const day = days.docs.find(d=>d.id===iso(today));
   ITEMS = ((day && day.data()) || {}).items || [];
   ITEMS = ITEMS.map(it=>({ ...it, subj: subjOf(it.subj) }));
