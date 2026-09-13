@@ -292,7 +292,15 @@
     try { localStorage.setItem(ACTIVE_KEY, String(touchedAt)); } catch (e) {}
   }
 
-  var badgeEl = null;
+  // Signed in, the badge shrinks to a small avatar bubble so it doesn't cover the quiz: 5 seconds after
+  // it shows, when the kid scrolls or taps the page, or with its "−" button. Tapping the bubble opens it
+  // again. The not-signed-in warning stays open.
+  var badgeEl = null, badgeFolds = false, badgeTimer = 0;
+  function badgeSmall(small) {
+    clearTimeout(badgeTimer);
+    badgeEl.classList.toggle('kb-small', small);
+    if (!small) badgeTimer = setTimeout(function () { badgeSmall(true); }, 5000);
+  }
   function badge(user, auth) {
     if (!badgeEl) {
       var css = document.createElement('style');
@@ -303,25 +311,44 @@
         'font:600 14px/1.2 system-ui,-apple-system,sans-serif;max-width:calc(100vw - 20px)}' +
         '#kid-badge .kb-go{cursor:pointer;font-weight:500;font-size:13px;padding:4px 10px;border-radius:999px;' +
         'background:#fff;border:1px solid currentColor;white-space:nowrap}' +
+        '#kid-badge .kb-av{display:none}' +
+        '#kid-badge.kb-small{width:40px;height:40px;padding:0;justify-content:center;cursor:pointer;opacity:.85}' +
+        '#kid-badge.kb-small>*{display:none}' +
+        '#kid-badge.kb-small .kb-av{display:inline;font-size:20px}' +
         '@media print{#kid-badge{display:none}}';
       document.head.appendChild(css);
       badgeEl = document.createElement('div');
       badgeEl.id = 'kid-badge';
       document.body.appendChild(badgeEl);
+      badgeEl.addEventListener('click', function (e) {
+        if (!badgeFolds) return;
+        if (badgeEl.classList.contains('kb-small')) { e.preventDefault(); badgeSmall(false); }
+        else badgeSmall(!!e.target.closest('.kb-hide'));
+      });
+      document.addEventListener('pointerdown', function (e) {
+        if (badgeFolds && !badgeEl.contains(e.target)) badgeSmall(true);
+      }, true);
+      window.addEventListener('scroll', function () { if (badgeFolds) badgeSmall(true); }, { passive: true });
     }
     var kid = user && (KIDS[user.uid] || { n: 'Signed in', av: '🙂', fg: '#5b4636', bg: '#fffdf7', line: '#e6ddd0' });
     var home = new URL('../homework.html', location.href).href;
+    badgeFolds = !!kid;
     if (kid) {
       badgeEl.style.cssText = 'color:' + kid.fg + ';background:' + kid.bg + ';border-color:' + kid.line;
       // "My homework" back to the list: the page opens in the same tab, and an iPad home-screen
       // shortcut has no back button.
-      badgeEl.innerHTML = '<span>' + kid.av + ' ' + kid.n + '</span><a class="kb-go" href="' + home + '">📋 My homework</a>' +
-        '<span class="kb-go kb-out" role="button" tabindex="0">Not you?</span>';
+      badgeEl.innerHTML = '<span class="kb-av" role="button" aria-label="' + kid.n + '">' + kid.av + '</span>' +
+        '<span>' + kid.av + ' ' + kid.n + '</span><a class="kb-go" href="' + home + '">📋 My homework</a>' +
+        '<span class="kb-go kb-out" role="button" tabindex="0">Not you?</span>' +
+        '<span class="kb-go kb-hide" role="button" tabindex="0" aria-label="Hide">−</span>';
       badgeEl.querySelector('.kb-out').onclick = function () {
         if (!confirm('Sign out ' + kid.n + ' and go to the sign-in page?')) return;
         auth.signOut().then(function () { location.href = home; });
       };
+      badgeSmall(false);
     } else {
+      clearTimeout(badgeTimer);
+      badgeEl.classList.remove('kb-small');
       badgeEl.style.cssText = 'color:#8a7d70;background:#fffdf7;border-color:#e6ddd0';
       badgeEl.innerHTML = '<span>Not signed in · score won’t be saved</span><a class="kb-go" href="' + home + '">Sign in</a>';
     }
