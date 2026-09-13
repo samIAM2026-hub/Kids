@@ -212,6 +212,36 @@
           submit({ score: score, total: data.count || data.items.length, wrong: wrongList() });
         });
       }
+    },
+    {
+      // Chinese practice games (pinyin, typing, idioms, listen-and-build): a menu of rounds, each ending on
+      // a stars screen. Finishing a round counts as done (no pct → "✓ Done") and carries how many items
+      // were right on the first try.
+      //   startLevel(lvl) … endGame()   globals firstTryOK, total, currentLvl
+      //   startTyping()   … endTyping() globals firstTryOK, total
+      //   startRound(r)   … finish()    globals solvedFirst, round, ROUNDS[r].items / .name
+      name: 'practice',
+      pairs: [['startLevel', 'endGame'], ['startTyping', 'endTyping'], ['startRound', 'finish']],
+      pair: function () {
+        return this.pairs.filter(function (p) { return isFn(p[0]) && isFn(p[1]); })[0];
+      },
+      match: function () {
+        return !!this.pair() && (typeof peek('firstTryOK') === 'number' || typeof peek('solvedFirst') === 'number');
+      },
+      install: function () {
+        var p = this.pair();
+        wrap(p[0], null, newSession);                         // time the round, not the menu
+        wrap(p[1], null, function () {
+          var rounds = peek('ROUNDS'), r = rounds && rounds[peek('round')];
+          var first = peek('firstTryOK'), items = peek('total'), lvl = peek('currentLvl');
+          if (typeof first !== 'number') first = peek('solvedFirst');
+          if (typeof items !== 'number') items = r && r.items ? r.items.length : null;
+          submit({
+            kind: 'practice',
+            practice: { round: r ? r.name || '' : typeof lvl === 'string' ? lvl : '', firstTry: first, items: items }
+          });
+        });
+      }
     }
   ];
 
@@ -283,8 +313,11 @@
     var home = new URL('../homework.html', location.href).href;
     if (kid) {
       badgeEl.style.cssText = 'color:' + kid.fg + ';background:' + kid.bg + ';border-color:' + kid.line;
-      badgeEl.innerHTML = '<span>' + kid.av + ' ' + kid.n + '</span><span class="kb-go" role="button" tabindex="0">Not you?</span>';
-      badgeEl.querySelector('.kb-go').onclick = function () {
+      // "My homework" back to the list: the page opens in the same tab, and an iPad home-screen
+      // shortcut has no back button.
+      badgeEl.innerHTML = '<span>' + kid.av + ' ' + kid.n + '</span><a class="kb-go" href="' + home + '">📋 My homework</a>' +
+        '<span class="kb-go kb-out" role="button" tabindex="0">Not you?</span>';
+      badgeEl.querySelector('.kb-out').onclick = function () {
         if (!confirm('Sign out ' + kid.n + ' and go to the sign-in page?')) return;
         auth.signOut().then(function () { location.href = home; });
       };
@@ -328,7 +361,7 @@
     var rec = {
       localId: t.toString(36) + Math.random().toString(36).slice(2, 10),
       itemId: itemId, href: href, t: document.title || file,
-      kind: total ? 'scored' : 'viewed',
+      kind: total ? 'scored' : result.kind || 'viewed',
       score: total ? result.score : null, total: total,
       pct: total ? Math.round(100 * result.score / total) : null,
       wrong: result.wrong || [],
@@ -349,6 +382,7 @@
       startedAtMs: s.startedAt, submittedAtMs: t,
       adapter: adapter ? adapter.name : 'viewed', reportVersion: 1
     };
+    if (result.practice) rec.practice = result.practice;
 
     // Stamp the kid who is signed in at the moment of submitting (not when the page opened —
     // they may have switched); nobody signed in (a parent previewing) → drop it.
