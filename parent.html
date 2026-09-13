@@ -314,7 +314,7 @@
 <div id="assignbar" hidden><div class="inner">
   <span class="n">已选 <b id="seln">0</b> 份</span>
   <label for="asskid">派给</label>
-  <select id="asskid"><option value="grace">👧 Grace</option><option value="warren">👦 Warren</option></select>
+  <select id="asskid"><option value="grace">👧 Grace</option><option value="warren">👦 Warren</option><option value="both">👧👦 两个人</option></select>
   <label for="assdate">日期</label>
   <input type="date" id="assdate">
   <button class="btn solid" id="assgo">派发</button>
@@ -902,25 +902,30 @@ function toast(msg, bad){
 document.getElementById('assdate').value = iso(today);
 document.getElementById('assgo').addEventListener('click', async ()=>{
   const k = document.getElementById('asskid').value;
+  const kids = k==='both' ? ['grace','warren'] : [k];   // 两个人: e.g. Chinese homework both of them do
   const d = document.getElementById('assdate').value || iso(today);
   const ids = [...SEL], go = document.getElementById('assgo');
   go.disabled = true;
   try {
-    const ref = dayRef(k, d);
+    const refs = kids.map(kk=>dayRef(kk, d));
+    // One transaction for both kids: either both days get the items or neither does.
     await db.runTransaction(async tx=>{
-      const items = ((await tx.get(ref)).data()||{}).items || [];
-      const have = new Set(items.map(it=>it.id));
-      ids.forEach(id=>{
-        const b = BANK_BY_ID[id];
-        if(!b || have.has(id)) return;
-        // Kids can't read `bank`, so the title and link travel with the assignment.
-        items.push({ id, t:b.t, href:b.href, type:b.type, n:b.n||0, ic:b.ic||'', subj:b.subj||'', book:b.book||'' });
+      const snaps = await Promise.all(refs.map(r=>tx.get(r)));   // every read before any write
+      snaps.forEach((snap, i)=>{
+        const items = (snap.data()||{}).items || [];
+        const have = new Set(items.map(it=>it.id));
+        ids.forEach(id=>{
+          const b = BANK_BY_ID[id];
+          if(!b || have.has(id)) return;
+          // Kids can't read `bank`, so the title and link travel with the assignment.
+          items.push({ id, t:b.t, href:b.href, type:b.type, n:b.n||0, ic:b.ic||'', subj:b.subj||'', book:b.book||'' });
+        });
+        tx.set(refs[i], { items, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
       });
-      tx.set(ref, { items, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
     });
-    if(d===iso(today)) ASSIGN[k] = ((await ref.get()).data()||{}).items || [];
+    if(d===iso(today)) for(const [i, kk] of kids.entries()) ASSIGN[kk] = ((await refs[i].get()).data()||{}).items || [];
     SEL.clear(); render();
-    toast(`已派给 ${KID[k].n} · ${d} · ${ids.length} 份`);
+    toast(`已派给 ${kids.map(kk=>KID[kk].n).join(' 和 ')} · ${d} · ${ids.length} 份`);
   } catch(e){
     console.error(e);
     toast('派发失败：' + (e.code||e.message) + '，没有写进去，稍后再试', true);
