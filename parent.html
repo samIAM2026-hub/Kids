@@ -27,6 +27,11 @@
   #gate h1{font-size:30px;color:var(--cream)}
   #gate .sub{color:var(--mute);font-size:13px;text-align:center;max-width:420px}
   #gate .err{color:var(--red);font-size:12.5px;min-height:16px;max-width:420px;text-align:center}
+  #gate .or{color:var(--mute);font-size:12px}
+  #gate .pinrow{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--mute);font-size:13px}
+  #gate .pinrow input{font-family:inherit;font-size:26px;letter-spacing:12px;text-align:center;width:170px;
+        padding:8px 0 8px 12px;border-radius:8px;border:1.5px solid var(--line);background:transparent;color:var(--cream);outline:none}
+  #gate .pinrow input:focus{border-color:var(--gold2)}
   .btn{font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border-radius:8px;
        padding:10px 18px;border:1.5px solid var(--gold2);background:transparent;color:var(--gold);
        transition:background .12s,color .12s}
@@ -338,8 +343,12 @@
   <h1>家长控制台</h1>
   <p class="sub">这里可以看到全部题库、派发每日作业、查看两个孩子的完成记录。孩子那边看不到这个页面。</p>
   <button class="btn solid" id="signin">用 Google 账号登录</button>
+  <div class="or">或者</div>
+  <label class="pinrow">妈妈输入 4 位密码
+    <input id="mompin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="····">
+  </label>
   <div class="err" id="gateerr"></div>
-  <p class="sub" style="opacity:.6">只有家长的 Google 账号能读到数据。</p>
+  <p class="sub" style="opacity:.6">登录一次，这台设备就会记住，下次直接进。</p>
 </div>
 
 <header>
@@ -431,6 +440,9 @@ let BANK = [], BANK_BY_ID = {}, ATT = [];
 let TD = iso(today), ASSIGN = { grace:[], warren:[] }, PULLED = { grace:[], warren:[] };
 
 const dayRef = (k, d) => db.doc(`assignments/${KID[k].uid}/days/${d}`);
+// Mom signs in with a 4-digit PIN instead of Google (password = 'family-' + PIN; Firebase wants 6+).
+// Rules count her as a parent because parents/{uid} exists — homework-system/add-mom.mjs.
+const MOM_EMAIL = 'mom@family.local';
 const kidOf = uid => Object.keys(KID).find(k => KID[k].uid === uid);
 
 function toAtt(doc){
@@ -821,6 +833,12 @@ const mins = m => m ? dur(m*60) : '不到 1 分钟';
 async function loadReading(){
   const user = auth.currentUser;
   if(!user) return;
+  if(user.email === MOM_EMAIL){   // Reading Club's feed only accepts Sam's Google account
+    RD.data = null; RD.loading = false;
+    RD.err = '阅读写作的数据在 Reading Club，那边只认爸爸的 Google 账号，妈妈的密码登录看不到。其他标签都能正常用。';
+    if(V==='reading') render();
+    return;
+  }
   const want = RD.days;
   RD.want = want; RD.loading = true; RD.err = '';
   let data = null, err = '';
@@ -1158,6 +1176,7 @@ document.getElementById('reload').addEventListener('click', async ()=>{
 const gate = document.getElementById('gate');
 const gateErr = document.getElementById('gateerr');
 const signinBtn = document.getElementById('signin');
+const momPin = document.getElementById('mompin');
 const provider = new firebase.auth.GoogleAuthProvider();
 provider.setCustomParameters({ prompt:'select_account' });
 let gateMsg = '';
@@ -1168,9 +1187,28 @@ function showGate(msg){
   viewEl.innerHTML = ''; bar.hidden = true; document.getElementById('demobar').hidden = true;
   document.getElementById('whoami').textContent = '';
   signinBtn.disabled = false; signinBtn.textContent = '用 Google 账号登录';
+  momPin.disabled = false; momPin.value = '';
   gateErr.textContent = msg || '';
   gate.hidden = false;
 }
+
+// Mom's PIN signs in as soon as the 4th digit is typed. Firebase remembers the login on this
+// device (the page never signs itself out), so she only types it again after 退出登录.
+function momSignIn(){
+  const pin = momPin.value;
+  if(!/^\d{4}$/.test(pin)) return;
+  gateErr.textContent = ''; momPin.disabled = true; signinBtn.disabled = true;
+  auth.signInWithEmailAndPassword(MOM_EMAIL, 'family-' + pin).catch(e=>{
+    const wrong = ['auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials','auth/user-not-found'].includes(e.code);
+    showGate(e.code==='auth/too-many-requests' ? '输错太多次了，等几分钟再试。'
+           : wrong ? '密码不对，再试一次。' : '登录没成功：' + (e.code||e.message));
+    momPin.focus();
+  });
+}
+momPin.addEventListener('input', ()=>{
+  momPin.value = momPin.value.replace(/\D/g,'').slice(0,4);
+  if(momPin.value.length === 4) momSignIn();
+});
 
 signinBtn.addEventListener('click', ()=>{
   gateErr.textContent = ''; signinBtn.disabled = true;
@@ -1184,10 +1222,10 @@ auth.getRedirectResult().catch(e=>{ gateMsg = '登录没成功：' + (e.code||e.
 
 auth.onAuthStateChanged(async user=>{
   if(!user){ showGate(gateMsg); gateMsg = ''; return; }
-  signinBtn.disabled = true; signinBtn.textContent = '正在读取数据…';
+  signinBtn.disabled = true; signinBtn.textContent = '正在读取数据…'; momPin.disabled = true;
   try {
     await loadAll();
-    document.getElementById('whoami').textContent = user.email || '';
+    document.getElementById('whoami').textContent = user.email === MOM_EMAIL ? '👩 妈妈' : (user.email || '');
     gate.hidden = true;
     render();
   } catch(e){
