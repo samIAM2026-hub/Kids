@@ -476,6 +476,8 @@ const attFor = id => ATT.filter(a => a.id===id);   // ATT is already newest-firs
 // Opens on today; ‹ › and the date box reach any other day. Each item can be withdrawn (撤回) or
 // moved to another day (改日期) — e.g. not finished yesterday → today. Attempts are never touched.
 let MOVING = '';   // "kid|itemId" whose move-to box is open
+// ‹ › buttons say where they really go: 昨天 / 今天 / 明天 when the target is one of those, else 前一天 / 后一天.
+const dayName = (d, other) => ({ [shiftDay(iso(today),-1)]:'昨天', [iso(today)]:'今天', [shiftDay(iso(today),1)]:'明天' })[d] || other;
 
 function viewToday(){
   const day = TD, isToday = day===iso(today);
@@ -483,9 +485,9 @@ function viewToday(){
     <p class="seclead">孩子登录后只看得到这里派的内容，看不到题库本身。
       派错了、要换：<b>撤回</b>从孩子这天的作业里拿掉；没做完：<b>改日期</b>挪到另一天。做过的成绩都会保留。</p>
     <div class="daynav">
-      <button class="fchip" data-day="${shiftDay(day,-1)}">‹ 前一天</button>
+      <button class="fchip" data-day="${shiftDay(day,-1)}">‹ ${dayName(shiftDay(day,-1), '前一天')}</button>
       <input type="date" id="tdpick" value="${day}">
-      <button class="fchip" data-day="${shiftDay(day,1)}">后一天 ›</button>
+      <button class="fchip" data-day="${shiftDay(day,1)}">${dayName(shiftDay(day,1), '后一天')} ›</button>
       ${isToday?'':`<button class="fchip" data-day="${iso(today)}">回到今天</button>`}
     </div><div class="grid2">`;
   ['grace','warren'].forEach(k=>{
