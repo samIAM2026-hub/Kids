@@ -106,6 +106,11 @@
   .shelfhead{display:flex;align-items:center;gap:12px;padding:11px 0 3px;
              font-size:12.5px;font-weight:600;color:var(--gold)}
   .shelfhead label{display:flex;align-items:center;gap:9px;cursor:pointer}
+  .shelftog{font:inherit;font-weight:600;color:var(--gold);background:none;border:none;padding:2px 0;cursor:pointer;
+            display:inline-flex;align-items:center;gap:7px;text-align:left}
+  .shelftog::before{content:'▸';color:var(--gold2);font-size:13px;display:inline-block;transition:transform .12s}
+  .shelftog.open::before{transform:rotate(90deg)}
+  .shelftog:hover{color:var(--cream)}
   table{width:100%;border-collapse:collapse;font-size:13px}
   tbody tr{border-bottom:1px solid rgba(42,59,88,.55)}
   tbody tr:hover{background:rgba(42,59,88,.3)}
@@ -432,6 +437,7 @@ let F = { q:'', kid:'all', type:'all', arch:'active' }, SEL = new Set();
 const SUBJ_ORDER = ['📖 Reading','📝 SSAT','🔤 Vocabulary','🧮 Math','🧮 Algebra','✍️ Writing · Reflection',
                     '🧠 Big Ideas · concept exams','📚 中文 Chinese','🍁 More'];
 const OPEN = new Set();   // subjects the parent has expanded; everything starts folded
+const OPEN_SHELF = new Set();   // "subject|book" shelves the parent has expanded; shelves start folded too
 
 // Same address homework.html builds (hrefs are relative to Quizzes/), plus ?preview=1:
 // quiz-report.js records nothing on a preview, even if a kid is signed in on this device.
@@ -496,12 +502,16 @@ function viewBank(){
         ${nSel?`<span class="ssel">已选 ${nSel}</span>`:''}</summary>`;
     shelves.forEach((list, book)=>{
       html += `<div class="shelf">`;
+      // A shelf (a book, a mock test) folds to one line; loose items with no book are always shown.
+      const key = subj + '|' + book, shut = !!book && !searching && !OPEN_SHELF.has(key);
       if(book){
-        const all = list.every(b=>SEL.has(b.docId));
-        html += `<div class="shelfhead"><label><input type="checkbox" class="selall"${all?' checked':''}
-            data-ids="${esc(list.map(b=>b.docId).join(' '))}"> ${esc(book)}</label>
-          <span class="scount">${list.length} 份 · 勾这里整组选</span></div>`;
+        const all = list.every(b=>SEL.has(b.docId)), nSel = list.filter(b=>SEL.has(b.docId)).length;
+        html += `<div class="shelfhead"><input type="checkbox" class="selall"${all?' checked':''} title="整组选"
+            data-ids="${esc(list.map(b=>b.docId).join(' '))}">
+          <button class="shelftog${shut?'':' open'}" data-shelf="${esc(key)}">${esc(book)}</button>
+          <span class="scount">${list.length} 份${nSel?` · <span class="ssel">已选 ${nSel}</span>`:''} · 勾方框整组选</span></div>`;
       }
+      if(!shut){
       html += `<table><tbody>`;
       list.forEach(b=>{
         const h = attFor(b.docId)[0];
@@ -517,7 +527,9 @@ function viewBank(){
               ${b.archived?'<div style="margin-top:4px"><span class="badge b-arch">已归档</span></div>':''}</td>
           <td class="c" style="width:90px">${last}</td></tr>`;
       });
-      html += `</tbody></table></div>`;
+      html += `</tbody></table>`;
+      }
+      html += `</div>`;
     });
     html += `</details>`;
   });
@@ -861,13 +873,18 @@ function render(){
     viewEl.querySelectorAll('.fchip[data-f]').forEach(c=>c.addEventListener('click',()=>{
       F[c.dataset.f]=c.dataset.v; render(); }));
     viewEl.querySelectorAll('.fchip[data-act]').forEach(c=>c.addEventListener('click',()=>{
-      if(c.dataset.act==='expand') BANK.forEach(b=>OPEN.add(b.subj)); else OPEN.clear();
+      if(c.dataset.act==='expand') BANK.forEach(b=>{ OPEN.add(b.subj); if(b.book) OPEN_SHELF.add(b.subj+'|'+b.book); });
+      else { OPEN.clear(); OPEN_SHELF.clear(); }
       render(); }));
     // Re-render on every pick so the subject's "已选 N" and the shelf's select-all stay in step.
     viewEl.querySelectorAll('input.pick').forEach(cb=>cb.addEventListener('change',()=>{
       cb.checked?SEL.add(cb.dataset.id):SEL.delete(cb.dataset.id); render(); }));
     viewEl.querySelectorAll('input.selall').forEach(cb=>cb.addEventListener('change',()=>{
       cb.dataset.ids.split(' ').forEach(id=>cb.checked?SEL.add(id):SEL.delete(id)); render(); }));
+    // While searching every shelf is open (the matches must show), so the toggle only counts without a search.
+    viewEl.querySelectorAll('.shelftog').forEach(b=>b.addEventListener('click',()=>{
+      if(F.q.trim()) return;
+      const k = b.dataset.shelf; OPEN_SHELF.has(k)?OPEN_SHELF.delete(k):OPEN_SHELF.add(k); render(); }));
     viewEl.querySelectorAll('details.subj').forEach(d=>d.addEventListener('toggle',()=>{
       if(F.q.trim()) return;   // search opens every group; don't remember that as the parent's choice
       d.open?OPEN.add(d.dataset.subj):OPEN.delete(d.dataset.subj); }));
