@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit 5 Exercise 3 — Finding the Side They Did Not Give You</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #eef4f2 55%, #d9e8e5 100%);
+    min-height: 100vh; color: #1c2a28; padding: 22px 14px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header { background: #146b63; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f2faf8; box-shadow: 0 8px 0 #0d443f; margin-bottom: 14px; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+
+  .nav { position: sticky; top: 0; z-index: 30; background: rgba(255,253,247,.95); backdrop-filter: blur(4px); border-radius: 12px; padding: 8px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(13,68,63,.12); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav a { text-decoration: none; font-size: 13.5px; font-weight: bold; color: #0d443f; background: #d9e8e5; border-radius: 99px; padding: 6px 13px; }
+  .nav a:hover { background: #bcd8d3; }
+
+  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 6px 0 #cbdedb; margin-bottom: 16px; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16px; line-height: 1.55; }
+  .intro p + p { margin-top: 10px; }
+
+  h2.sect { font-size: 20px; color: #0d443f; margin: 30px 0 12px; text-align: center; scroll-margin-top: 70px; }
+  h2.sect span { background: #d9e8e5; border-radius: 99px; padding: 5px 16px; display: inline-block; }
+  h3.sub { font-size: 17px; color: #0d443f; margin: 4px 0 10px; }
+
+  .qtext { font-size: 18px; margin: 6px 0 10px; line-height: 1.45; font-weight: bold; }
+  p.body { font-size: 15.5px; line-height: 1.65; color: #3d5652; }
+  p.body + p.body { margin-top: 9px; }
+
+  .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 3px; font-family: 'Courier New', monospace; font-weight: bold; line-height: 1.05; font-size: 17px; }
+  .fr i { font-style: normal; padding: 0 4px; border-bottom: 2px solid currentColor; }
+  .fr b { padding: 0 4px; }
+  .mx { font-family: 'Courier New', monospace; font-weight: bold; font-size: 21px; vertical-align: middle; }
+
+  .math { display: block; background: #f3f8f7; border-left: 5px solid #4f9f96; border-radius: 8px; padding: 10px 13px; margin: 8px 0; font-size: 16.5px; font-family: 'Courier New', monospace; font-weight: bold; color: #0d443f; }
+  .math.answer { background: #d7f0d3; border-left-color: #3a7d44; color: #23572c; }
+
+  .step { display: flex; gap: 11px; margin-bottom: 12px; }
+  .step .num { flex: 0 0 28px; height: 28px; border-radius: 50%; background: #146b63; color: #fff; font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .step .body { flex: 1; font-size: 15.5px; line-height: 1.6; }
+  .step .body b { color: #0d443f; }
+
+  .takeaway { background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 13px 15px; font-size: 15.5px; line-height: 1.6; margin-top: 12px; }
+  .takeaway .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; color: #a06a1e; margin-bottom: 5px; }
+
+  .trap { background: #fbeaea; border: 3px solid #e2a49c; border-radius: 12px; padding: 13px 15px; font-size: 15.5px; line-height: 1.6; margin-top: 12px; color: #7d2b21; }
+  .trap .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; color: #a5352a; margin-bottom: 5px; }
+
+  .shapes { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0; justify-content: center; }
+  .shapes .lab { text-align: center; font-size: 13.5px; color: #56736e; }
+  .shapes .plus { font-size: 22px; font-weight: bold; color: #4f9f96; }
+
+  .item { border: 3px solid #dfe9e7; border-radius: 14px; padding: 16px; margin-top: 14px; background: #fdfefe; }
+  .item .tag { display: inline-block; background: #146b63; color: #fff; font-size: 12px; font-weight: bold; border-radius: 99px; padding: 3px 12px; margin-bottom: 8px; letter-spacing: .3px; }
+  .item .ask { font-size: 16.5px; font-weight: bold; color: #1c2a28; line-height: 1.45; }
+  .steps { margin-top: 12px; }
+  .steps.hidden { display: none; }
+  .peek { background: #fff; color: #56736e; border: 2px solid #dfe9e7; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-family: inherit; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+  table.tbl { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 15px; }
+  table.tbl th, table.tbl td { border: 2px solid #dfe9e7; padding: 7px 9px; text-align: left; }
+  table.tbl th { background: #eef4f2; color: #0d443f; font-size: 13.5px; }
+  table.tbl td.a { font-family: 'Courier New', monospace; font-weight: bold; color: #23572c; }
+
+  .btn { background: #146b63; color: #fff; border: none; border-radius: 12px; padding: 11px 20px; font-size: 15px; font-family: inherit; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #0d443f; transition: transform .1s; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #0d443f; }
+  .btn.amber { background: #c9761d; box-shadow: 0 5px 0 #8f5211; }
+  .btn.ghost { background: #fff; color: #56736e; box-shadow: 0 4px 0 #dfe9e7; border: 2px solid #dfe9e7; }
+  .btn.sm { padding: 8px 14px; font-size: 14px; }
+  .center { text-align: center; }
+
+  .qcard { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 5px 0 #cbdedb; margin-bottom: 14px; }
+  .qcard .n { display: inline-block; background: #146b63; color: #fff; font-size: 13px; font-weight: bold; border-radius: 99px; padding: 3px 12px; margin-bottom: 8px; }
+  .opts { display: grid; grid-template-columns: repeat(2,1fr); gap: 9px; margin-top: 10px; }
+  .opt { background: #f9fcfb; border: 3px solid #dfe9e7; border-radius: 11px; padding: 11px 13px; font-size: 17px; cursor: pointer; text-align: center; font-family: 'Courier New', monospace; font-weight: bold; color: #0d443f; transition: .12s; }
+  .opt:hover { border-color: #4f9f96; }
+  .opt.pick { border-color: #146b63; background: #e2efec; }
+  .opt.right { border-color: #3a7d44; background: #e8f5e6; color: #23572c; }
+  .opt.wrong { border-color: #c0392b; background: #fbeaea; color: #a5352a; }
+  .opt.locked { cursor: default; }
+  .why { display: none; margin-top: 10px; background: #f3f8f7; border-left: 5px solid #4f9f96; border-radius: 8px; padding: 10px 13px; font-size: 15px; line-height: 1.55; color: #3d5652; }
+  .why.show { display: block; }
+
+  .scorebox { display: none; background: #146b63; color: #f2faf8; border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 7px 0 #0d443f; margin-top: 8px; }
+  .scorebox.show { display: block; }
+  .scorebox.fail { background: #a5352a; box-shadow: 0 7px 0 #7d2b21; }
+  .scorebox .pct { font-size: 46px; font-weight: bold; line-height: 1; }
+  .scorebox .sub { font-size: 16px; margin-top: 8px; opacity: .95; line-height: 1.5; }
+  .scorebox .verdict { font-size: 22px; font-weight: bold; margin-top: 12px; }
+
+  a.home { display: inline-block; margin-top: 16px; color: #56736e; text-decoration: none; font-size: 14px; }
+  a.home:hover { text-decoration: underline; }
+  footer { text-align: center; font-size: 12px; color: #7f938f; margin-top: 18px; }
+
+  @media (max-width: 640px) { .opts { grid-template-columns: 1fr; } }
+
+  /* ---------- countdown (the test only) ---------- */
+  .timerbar { display: none; position: sticky; top: 0; z-index: 40; margin: 0 0 14px; padding: 10px 14px;
+    background: #0d443f; color: #eafaf6; border-radius: 12px; box-shadow: 0 4px 0 #072e2a;
+    align-items: center; gap: 12px; }
+  .timerbar.on { display: flex; }
+  /* while the clock is running the timer is the only thing pinned to the top */
+  body.testing .nav { position: static; }
+  .timerbar .clock { font-family: 'Courier New', monospace; font-size: 26px; font-weight: bold; letter-spacing: 1px; min-width: 86px; }
+  .timerbar .tlab { font-size: 13px; opacity: .85; }
+  .timerbar .tprog { flex: 1; height: 10px; background: rgba(255,255,255,.22); border-radius: 99px; overflow: hidden; }
+  .timerbar .tprog i { display: block; height: 100%; width: 100%; background: #7fd3bd; border-radius: 99px; transition: width 1s linear; }
+  .timerbar.low { background: #a5352a; box-shadow: 0 4px 0 #7d2b21; animation: tpulse 1s ease-in-out infinite; }
+  .timerbar.low .tprog i { background: #ffd9d4; }
+  .timerbar.done { background: #56736e; box-shadow: 0 4px 0 #3d5652; animation: none; }
+  @keyframes tpulse { 0%,100% { opacity: 1 } 50% { opacity: .74 } }
+  .timenote { background: #fbeaea; border: 3px solid #e8b4ae; border-radius: 12px; padding: 12px 14px; color: #a5352a;
+    font-size: 15px; font-weight: bold; margin-bottom: 12px; }
+  @media (max-width: 640px) { .timerbar .clock { font-size: 22px; min-width: 72px; } .timerbar .tlab { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<script>
+/* ================= shared drawing + layout helpers ================= */
+function F(n,d){ return '<span class="fr"><i>'+n+'</i><b>'+d+'</b></span>'; }
+function M(w,n,d){ return '<span class="mx">'+w+'</span>'+F(n,d); }
+var FILL = '#8fcbb4', FILL2 = '#f0c079', EMPTY = '#ffffff', LINE = '#146b63';
+
+function circle(parts, shaded, size, fill){
+  size = size || 74; fill = fill || FILL;
+  var r = size/2 - 3, cx = size/2, cy = size/2, out = '';
+  out += '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">';
+  if (parts === 1){
+    out += '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+(shaded?fill:EMPTY)+'" stroke="'+LINE+'" stroke-width="2.5"/>';
+  } else {
+    for (var i=0;i<parts;i++){
+      var a0 = (i/parts)*2*Math.PI - Math.PI/2, a1 = ((i+1)/parts)*2*Math.PI - Math.PI/2;
+      var x0 = cx + r*Math.cos(a0), y0 = cy + r*Math.sin(a0);
+      var x1 = cx + r*Math.cos(a1), y1 = cy + r*Math.sin(a1);
+      var large = (a1-a0) > Math.PI ? 1 : 0;
+      out += '<path d="M '+cx+' '+cy+' L '+x0+' '+y0+' A '+r+' '+r+' 0 '+large+' 1 '+x1+' '+y1+' Z" fill="'+(i<shaded?fill:EMPTY)+'" stroke="'+LINE+'" stroke-width="2"/>';
+    }
+  }
+  return out + '</svg>';
+}
+function bar(parts, shaded, w, h, fill){
+  w = w || 260; h = h || 42; fill = fill || FILL;
+  var out = '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">', pw = (w-4)/parts;
+  for (var i=0;i<parts;i++){
+    out += '<rect x="'+(2+i*pw)+'" y="2" width="'+pw+'" height="'+(h-4)+'" fill="'+(i<shaded?fill:EMPTY)+'" stroke="'+LINE+'" stroke-width="2"/>';
+  }
+  return out + '</svg>';
+}
+/* a set of `total` dots laid out in `groups` fenced groups, first `shadedGroups` groups filled */
+function dotSet(total, groups, shadedGroups, perRow, dotR){
+  perRow = perRow || total/groups; dotR = dotR || 11;
+  var per = total/groups, gapG = 16, gapD = 8, cols = per, colW = dotR*2 + gapD;
+  var w = groups*(cols*colW + gapG) + 10, h = dotR*2 + 22, out = '';
+  out += '<svg width="100%" viewBox="0 0 '+w+' '+h+'" style="max-width:'+w+'px;display:block;margin:6px auto">';
+  for (var g=0; g<groups; g++){
+    var gx = 5 + g*(cols*colW + gapG);
+    out += '<rect x="'+(gx-4)+'" y="4" width="'+(cols*colW+2)+'" height="'+(h-12)+'" rx="8" fill="none" stroke="#b9d2cd" stroke-width="2" stroke-dasharray="5 4"/>';
+    for (var i=0;i<per;i++){
+      var cx = gx + i*colW + dotR + 2;
+      out += '<circle cx="'+cx+'" cy="'+(h/2-2)+'" r="'+dotR+'" fill="'+(g<shadedGroups?FILL:EMPTY)+'" stroke="'+LINE+'" stroke-width="2"/>';
+    }
+  }
+  return out + '</svg>';
+}
+/* the English name for a slice size: 4 -> "quarters" */
+var SLICE = {2:'halves',3:'thirds',4:'quarters',5:'fifths',6:'sixths',7:'sevenths',8:'eighths',9:'ninths',10:'tenths',11:'elevenths',12:'twelfths'};
+function slices(d){ return SLICE[d] || (d + 'ths'); }
+function group(html, cap){ return '<div style="text-align:center">'+html+(cap?'<div class="lab">'+cap+'</div>':'')+'</div>'; }
+function rowOf(list){ return '<div class="shapes">'+list.join('')+'</div>'; }
+
+/* worked example block with a hide-the-steps button */
+var itemCount = 0;
+function item(tag, ask, steps, answer){
+  var id = 'it' + (itemCount++);
+  return '<div class="item">'
+    + '<span class="tag">'+tag+'</span>'
+    + '<div class="ask">'+ask+'</div>'
+    + '<div class="steps" id="'+id+'">'
+    +   steps.map(function(s,i){ return '<div class="step"><div class="num">'+(i+1)+'</div><div class="body">'+s+'</div></div>'; }).join('')
+    +   '<span class="math answer">'+answer+'</span>'
+    + '</div>'
+    + '<button class="peek" onclick="peek(\''+id+'\',this)">🙈 Hide the steps — let me try it myself</button>'
+    + '</div>';
+}
+function peek(id, btn){
+  var el = document.getElementById(id);
+  var hidden = el.classList.toggle('hidden');
+  btn.textContent = hidden ? '👀 Show me the steps again' : '🙈 Hide the steps — let me try it myself';
+}
+</script>
+
+  <header>
+    <div class="ic">🔍</div>
+    <h1>Unit 5 · Exercise 3 — Finding the Missing Side</h1>
+    <p>Perimeter given → halve it first · area given → divide · then fences vs carpet</p>
+  </header>
+
+  <div class="nav">
+    <a href="#flip">🔍 Two ways in</a>
+    <a href="#check">✅ The five-second check</a>
+    <a href="#worked">✏️ Worked questions</a>
+    <a href="#money">💵 The money questions</a>
+    <a href="#traps">⚠️ Traps</a>
+    <a href="#test">🎯 The test</a>
+  </div>
+
+  <div class="card intro">
+    <p><strong>Hi Grace!</strong> Exercises 1 and 2 gave you both sides and asked for a number. Exercise 3 turns it round: it gives you an <strong>answer</strong> — a perimeter or an area — and hides one of the sides. Everything depends on which one they handed you, so read that first.</p>
+    <p>Read the four sections, then take the test — <strong>12 out of 15 (80&#37;)</strong> to pass.</p>
+  </div>
+
+
+  <h2 class="sect" id="flip"><span>🔍 Two ways in, depending on what they give you</span></h2>
+
+  <div class="card">
+    <p class="body">Exercise 3 hides one of the sides. Which move you make depends entirely on whether they
+      handed you the <strong>perimeter</strong> or the <strong>area</strong>:</p>
+    <table class="tbl">
+      <tr><th>They give you</th><th>First move</th><th>Then</th></tr>
+      <tr><td>the <strong>perimeter</strong> + one side</td><td class="a">P ÷ 2 = length + width</td><td class="a">take the known side off</td></tr>
+      <tr><td>the <strong>area</strong> + one side</td><td class="a">A ÷ known side = other side</td><td class="a">then 2 × (l + w) if they want the perimeter</td></tr>
+    </table>
+    <p class="body" style="margin-top:10px;"><strong>Why P ÷ 2?</strong> Walking round uses each side twice.
+      Half the walk is exactly one length plus one width — which is why the book's own working on page 169
+      starts <em>"Length + width = 28 ÷ 2 = 14 cm"</em>.</p>
+    <div class="shapes" id="halfFig"></div>
+  </div>
+
+  <h2 class="sect" id="check"><span>✅ The check that costs five seconds</span></h2>
+
+  <div class="card">
+    <p class="body">Every answer here can be checked by going forwards again. Do it — these questions are easy
+      to get upside down.</p>
+    <span class="math">Found width 6 from area 48 and length 8? &nbsp;→&nbsp; check: 8 × 6 = 48 ✔</span>
+    <span class="math">Found side 5 from perimeter 28 and side 9? &nbsp;→&nbsp; check: 2 × (9 + 5) = 28 ✔</span>
+    <p class="body">And a quick sense test: the side you find should look believable next to the one you were
+      given. A side of 45 next to a side of 9 in a rectangle with perimeter 28 is not.</p>
+  </div>
+
+  <h2 class="sect" id="worked"><span>✏️ The book's own questions, worked out</span></h2>
+
+  <div class="card">
+    <p class="body">Questions 1 and 2 on pages 169 and 170, plus the three money questions on page 171.</p>
+    <div id="workedItems"></div>
+  </div>
+
+  <h2 class="sect" id="money"><span>💵 The money questions — which one do you need?</span></h2>
+
+  <div class="card">
+    <p class="body">Questions 3, 4 and 5 all end in a price, and the whole trick is deciding whether the price is
+      per <strong>square</strong> or per <strong>metre of edge</strong>.</p>
+    <table class="tbl">
+      <tr><th>Question</th><th>The clue</th><th>You need</th></tr>
+      <tr><td>Carpeting a floor</td><td class="a">"$12 a <strong>square</strong> yard"</td><td class="a">area</td></tr>
+      <tr><td>Fencing a field</td><td class="a">"1 <strong>m</strong> of fencing costs $7"</td><td class="a">perimeter</td></tr>
+      <tr><td>Stamps in a picture</td><td class="a">30 stamps covering the surface</td><td class="a">area</td></tr>
+    </table>
+    <p class="body" style="margin-top:10px;">Carpet covers a floor → area. Fencing, ribbon, a border and a path
+      round the edge → perimeter.</p>
+  </div>
+
+  <h2 class="sect" id="traps"><span>⚠️ The three traps in this exercise</span></h2>
+
+  <div class="card">
+    <div class="trap"><span class="lbl">Trap 1 · subtracting from the whole perimeter</span>
+      28 − 9 = 19 is wrong. Halve first: 28 ÷ 2 = 14, <em>then</em> 14 − 9 = 5.
+    </div>
+    <div class="trap"><span class="lbl">Trap 2 · multiplying when you should divide</span>
+      Given the area and one side, the other side is a <strong>division</strong>: 48 ÷ 8, not 48 × 8.
+      If your new side is bigger than the area, you have multiplied.
+    </div>
+    <div class="trap"><span class="lbl">Trap 3 · stopping one step short</span>
+      Question 2 wants the unknown side <strong>and</strong> the perimeter. Finding width 6 is halfway —
+      you still owe 2 × (8 + 6) = 28 cm.
+    </div>
+  </div>
+
+
+  <!-- ============ TEST ============ -->
+  <h2 class="sect" id="test"><span>🎯 The test — 80&#37; to pass</span></h2>
+
+  <div class="card intro" id="preTest">
+    <p><strong>15 questions</strong> — the same questions as Exercise 3 on pages 169–171, plus one more of the same kind. You need <strong>12 correct</strong> to pass.</p>
+    <p>⏱️ <strong>The clock is on for this part: 15 minutes, one minute a question.</strong> It starts when you
+       press the button below and it does not stop. If a question sticks, put down your best answer and move on —
+       a blank counts as wrong, a guess might not.</p>
+    <p>Keep paper and a pencil next to you. Reading the lesson above is <em>not</em> timed, so read it first.</p>
+    <div class="center" style="margin-top:14px;">
+      <button class="btn" id="startBtn" onclick="startQuiz()">▶️ Start the test — 15 minutes</button>
+    </div>
+  </div>
+
+  <div class="timerbar" id="timerBar">
+    <span class="clock" id="clock">--:--</span>
+    <span class="tlab">time left</span>
+    <div class="tprog"><i id="tprog"></i></div>
+  </div>
+
+  <div class="timenote" id="timeNote" hidden></div>
+
+  <div id="quizZone" hidden>
+    <div id="quiz"></div>
+    <div class="center" style="margin: 6px 0 16px;">
+      <button class="btn amber" id="submitBtn" onclick="finishQuiz()">Finish the test</button>
+      <button class="btn ghost sm" style="margin-left:8px;" onclick="resetQuiz()">Start over</button>
+    </div>
+  </div>
+
+  <div class="scorebox" id="scorebox"></div>
+
+  <div class="center"><a class="home" href="index.html">← back to all quizzes</a></div>
+
+  <footer>Made for Grace · Primary Mathematics 4A · Unit 5 Area and Perimeter · Exercise 3 (pp. 169–171)</footer>
+</div>
+
+<script>
+
+document.getElementById('halfFig').innerHTML =
+  '<svg width="100%" viewBox="0 0 300 150" style="max-width:300px">'
+  + '<rect x="30" y="35" width="200" height="80" fill="' + FILL + '" stroke="' + LINE + '" stroke-width="3"/>'
+  + '<line x1="30" y1="35" x2="230" y2="35" stroke="#c0392b" stroke-width="6"/>'
+  + '<line x1="230" y1="35" x2="230" y2="115" stroke="#c0392b" stroke-width="6"/>'
+  + '<text x="130" y="26" text-anchor="middle" font-size="14" fill="#a5352a" font-weight="bold">9 cm</text>'
+  + '<text x="248" y="80" font-size="14" fill="#a5352a" font-weight="bold">5</text>'
+  + '</svg>'
+  + '<div class="lab" style="margin-left:10px;text-align:left;line-height:1.8;">the red half of the walk = <strong>28 ÷ 2 = 14 cm</strong>'
+  + '<br>one side of it is 9, so the other is <strong>14 − 9 = 5 cm</strong>'
+  + '<br><span style="font-size:12.5px">then the area is 9 × 5 = 45 cm²</span></div>';
+
+var W53 = [
+  ['Q1 (a)', 'A rectangle has a <strong>perimeter of 28 cm</strong>. One side is <strong>9 cm</strong>. Find the other side and the area.',
+    ['<b>Halve the perimeter.</b> Length + width = 28 ÷ 2 = <b>14 cm</b>.',
+     '<b>Take the known side off.</b> 14 − 9 = <b>5 cm</b>.',
+     '<b>Now the area.</b> 9 × 5 = <b>45 cm²</b>. Check: 2 × (9 + 5) = 28 ✔'],
+    'Other side <b>5 cm</b> · Area <b>45 cm²</b>'],
+  ['Q1 (b)', 'A rectangle has a <strong>perimeter of 42 in.</strong> One side is <strong>6 in.</strong> Find the other side and the area.',
+    ['<b>Halve.</b> 42 ÷ 2 = <b>21 in.</b>',
+     '<b>Subtract.</b> 21 − 6 = <b>15 in.</b>',
+     '<b>Area.</b> 6 × 15 = <b>90 in.²</b>'],
+    'Other side <b>15 in.</b> · Area <b>90 in.²</b>'],
+  ['Q1 (c)', 'A rectangle has a <strong>perimeter of 26 m</strong>. One side is <strong>7 m</strong>. Find the other side and the area.',
+    ['<b>Halve.</b> 26 ÷ 2 = <b>13 m</b>.',
+     '<b>Subtract.</b> 13 − 7 = <b>6 m</b>.',
+     '<b>Area.</b> 7 × 6 = <b>42 m²</b>.'],
+    'Other side <b>6 m</b> · Area <b>42 m²</b>'],
+  ['Q2 (A)', 'Rectangle A has an <strong>area of 48 cm²</strong> and a <strong>length of 8 cm</strong>. Find the width and the perimeter.',
+    ['<b>Divide, do not multiply.</b> 48 ÷ 8 = <b>6 cm</b> wide.',
+     '<b>Perimeter.</b> 2 × (8 + 6) = 2 × 14 = <b>28 cm</b>.',
+     '<b>Check.</b> 8 × 6 = 48 ✔'],
+    'Width <b>6 cm</b> · Perimeter <b>28 cm</b>'],
+  ['Q2 (D)', 'Rectangle D has an <strong>area of 135 m²</strong> and a <strong>width of 9 m</strong>. Find the length and the perimeter.',
+    ['<b>Divide.</b> 135 ÷ 9 = <b>15 m</b> long. (9 × 15 = 135 — count up in nines if the division is awkward.)',
+     '<b>Perimeter.</b> 2 × (15 + 9) = 2 × 24 = <b>48 m</b>.'],
+    'Length <b>15 m</b> · Perimeter <b>48 m</b>'],
+  ['Q4', 'It costs <strong>$12 a square yard</strong> to carpet a room. The floor is <strong>5 yd</strong> long and <strong>4 yd</strong> wide. Find the cost.',
+    ['<b>Which one?</b> "a <em>square</em> yard" — carpet covers the floor, so this is <b>area</b>.',
+     '<b>Area.</b> 5 × 4 = <b>20 yd²</b>.',
+     '<b>Cost.</b> 20 × $12 = <b>$240</b>.'],
+    'The carpet costs <b>$240</b>'],
+  ['Q5', 'A rectangular field measures <strong>40 m by 30 m</strong>. Fencing costs <strong>$7 for 1 m</strong>. What does it cost to fence the field?',
+    ['<b>Which one?</b> A fence goes round the outside → <b>perimeter</b>.',
+     '<b>Perimeter.</b> 2 × (40 + 30) = 2 × 70 = <b>140 m</b>.',
+     '<b>Cost.</b> 140 × $7 = <b>$980</b>.'],
+    'The fence costs <b>$980</b>']
+];
+document.getElementById('workedItems').innerHTML = W53.map(function(r){ return item(r[0], r[1], r[2], r[3]); }).join('');
+
+
+var QUIZ = [
+
+  { q: 'A rectangle has a <strong>perimeter of 28 cm</strong>. One side is <strong>9 cm</strong>. How long is the other side?',
+    options: ["5 cm", "19 cm", "14 cm", "4 cm"], answer: 0,
+    why: 'Halve the perimeter first: 28 ÷ 2 = 14 is one length plus one width. Then 14 − 9 = 5 cm. (19 comes from 28 − 9, which forgets to halve.)' },
+
+  { q: 'A rectangle has a <strong>perimeter of 28 cm</strong> and one side of <strong>9 cm</strong>. What is its <strong>area</strong>?',
+    options: ["45 cm²", "252 cm²", "126 cm²", "40 cm²"], answer: 0,
+    why: 'The other side is 28 ÷ 2 − 9 = 5 cm, so the area is 9 × 5 = 45 cm².' },
+
+  { q: 'A rectangle has a <strong>perimeter of 42 in.</strong> and one side of <strong>6 in.</strong> How long is the other side?',
+    options: ["15 in.", "36 in.", "21 in.", "7 in."], answer: 0,
+    why: '42 ÷ 2 = 21, then 21 − 6 = 15 in.' },
+
+  { q: 'A rectangle has a <strong>perimeter of 26 m</strong> and one side of <strong>7 m</strong>. What is its <strong>area</strong>?',
+    options: ["42 m²", "133 m²", "91 m²", "36 m²"], answer: 0,
+    why: '26 ÷ 2 = 13, then 13 − 7 = 6 m. The area is 7 × 6 = 42 m².' },
+
+  { q: 'A rectangle has an <strong>area of 48 cm²</strong> and a <strong>length of 8 cm</strong>. What is its width?',
+    options: ["6 cm", "8 cm", "40 cm", "16 cm"], answer: 0,
+    why: 'Given the area and one side, divide: 48 ÷ 8 = 6 cm. Check by multiplying back: 8 × 6 = 48 ✔ (8 cm is just the length handed back to you.)' },
+
+  { q: 'A rectangle has an <strong>area of 48 cm²</strong> and a <strong>length of 8 cm</strong>. What is its <strong>perimeter</strong>?',
+    options: ["28 cm", "14 cm", "56 cm", "24 cm"], answer: 0,
+    why: 'The width is 48 ÷ 8 = 6 cm, then 2 × (8 + 6) = 28 cm. (14 is only half the walk.)' },
+
+  { q: 'A rectangle has an <strong>area of 160 ft²</strong> and a <strong>width of 10 ft</strong>. How long is it?',
+    options: ["16 ft", "150 ft", "80 ft", "26 ft"], answer: 0,
+    why: '160 ÷ 10 = 16 ft.' },
+
+  { q: 'A rectangle has an <strong>area of 100 in.²</strong> and a <strong>length of 10 in.</strong> What is its <strong>perimeter</strong>?',
+    options: ["40 in.", "20 in.", "100 in.", "30 in."], answer: 0,
+    why: 'The width is 100 ÷ 10 = 10 in. — it is a square. Then 2 × (10 + 10) = 40 in.' },
+
+  { q: 'A rectangle has an <strong>area of 135 m²</strong> and a <strong>width of 9 m</strong>. How long is it?',
+    options: ["15 m", "126 m", "1215 m", "18 m"], answer: 0,
+    why: '135 ÷ 9 = 15 m. (9 × 15 = 135 ✔)' },
+
+  { q: 'A rectangle has an <strong>area of 112 yd²</strong> and a <strong>width of 8 yd</strong>. What is its <strong>perimeter</strong>?',
+    options: ["44 yd", "22 yd", "104 yd", "36 yd"], answer: 0,
+    why: 'The length is 112 ÷ 8 = 14 yd, then 2 × (14 + 8) = 44 yd.' },
+
+  { q: 'Jane uses <strong>30 old stamps</strong> to make a picture. Each stamp measures <strong>4 cm by 3 cm</strong>. What is the area of the picture?',
+    options: ["360 cm²", "210 cm²", "120 cm²", "12 cm²"], answer: 0,
+    why: 'One stamp is 4 × 3 = 12 cm², and there are 30 of them: 30 × 12 = 360 cm².' },
+
+  { q: 'It costs <strong>$12 a square yard</strong> to carpet a floor. The room is <strong>5 yd</strong> long and <strong>4 yd</strong> wide. What does the carpet cost?',
+    options: ["$240", "$216", "$20", "$108"], answer: 0,
+    why: 'Carpet covers the floor, so use the area: 5 × 4 = 20 yd², then 20 × $12 = $240. ($216 uses the perimeter by mistake.)' },
+
+  { q: 'A rectangular field measures <strong>40 m by 30 m</strong>. Fencing costs <strong>$7 for each metre</strong>. What does it cost to fence the field?',
+    options: ["$980", "$8400", "$490", "$140"], answer: 0,
+    why: 'A fence goes round the outside, so use the perimeter: 2 × (40 + 30) = 140 m, then 140 × $7 = $980. ($8400 uses the area.)' },
+
+  { q: 'You are told a rectangle\'s <strong>perimeter</strong> and <strong>one side</strong>. What is the right <strong>first</strong> step?',
+    options: ["Divide the perimeter by 2, then subtract the side",
+              "Subtract the side from the perimeter, then halve",
+              "Divide the perimeter by the side, then subtract",
+              "Multiply the perimeter by 2, then subtract twice"], answer: 0,
+    why: 'Half the walk round is exactly one length plus one width, so halving is what turns the perimeter into something you can subtract from.' },
+
+  { q: 'A rectangle has an <strong>area of 72 cm²</strong> and a <strong>width of 6 cm</strong>. What is its <strong>perimeter</strong>?',
+    options: ["36 cm", "18 cm", "78 cm", "24 cm"], answer: 0,
+    why: 'The length is 72 ÷ 6 = 12 cm, then 2 × (12 + 6) = 36 cm.' }
+
+];
+</script>
+
+<script>
+/* ================= shared quiz engine ================= */
+/* options are plain text; "8/5" is drawn as a stacked fraction, "2 3/4" as a mixed number */
+function fmtOpt(o){
+  var m = /^(\d+)\s+(\d+)\/(\d+)$/.exec(o);
+  if (m) return M(m[1], m[2], m[3]);
+  m = /^(\d+)\/(\d+)$/.exec(o);
+  if (m) return F(m[1], m[2]);
+  return o;
+}
+
+/* shuffle each question's options so the position never gives the answer away */
+QUIZ.forEach(function(it){
+  var correct = it.options[it.answer];
+  for (var i = it.options.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = it.options[i]; it.options[i] = it.options[j]; it.options[j] = t;
+  }
+  it.answer = it.options.indexOf(correct);
+});
+
+var picks = QUIZ.map(function(){ return -1; });
+var locked = false;
+
+/* ---------- countdown: one minute a question, the teaching part is not timed ---------- */
+var SECS_PER_Q = 60;
+var QUIZ_SECS = QUIZ.length * SECS_PER_Q;
+var tLeft = QUIZ_SECS, tId = null, timedOut = false, started = false;
+
+function fmtT(s){ var m = Math.floor(s/60), x = s % 60; return m + ':' + (x < 10 ? '0' : '') + x; }
+function paintClock(){
+  document.getElementById('clock').textContent = fmtT(tLeft);
+  document.getElementById('tprog').style.width = (100 * tLeft / QUIZ_SECS) + '%';
+  document.getElementById('timerBar').classList.toggle('low', tLeft <= 120 && tLeft > 0);
+}
+function stopClock(){ if (tId) { clearInterval(tId); tId = null; } }
+function startQuiz(){
+  if (started) return;
+  started = true;
+  document.getElementById('preTest').hidden = true;
+  document.getElementById('quizZone').hidden = false;
+  document.getElementById('timerBar').className = 'timerbar on';
+  document.body.classList.add('testing');
+  paintClock();
+  tId = setInterval(function(){
+    tLeft--;
+    if (tLeft <= 0) { tLeft = 0; paintClock(); stopClock(); timedOut = true; finishQuiz(); return; }
+    paintClock();
+  }, 1000);
+  /* the clock on question 1 starts now, not when the page opened */
+  try { var s = window.QuizReport && QuizReport.session(); if (s) s.lastMark = Date.now(); } catch (e) {}
+  document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+var PASS_PCT = 80, PASS_N = Math.ceil(QUIZ.length * PASS_PCT / 100);
+
+document.getElementById('quiz').innerHTML = QUIZ.map(function(it,i){
+  var opts = it.options.map(function(o,j){
+    return '<div class="opt" id="o'+i+'_'+j+'" onclick="pick('+i+','+j+')">'+fmtOpt(o)+'</div>';
+  }).join('');
+  return '<div class="qcard">'
+    + '<span class="n">Question '+(i+1)+'</span>'
+    + '<div style="font-size:17px;line-height:1.6;">'+it.q+'</div>'
+    + '<div class="opts">'+opts+'</div>'
+    + '<div class="why" id="w'+i+'"></div>'
+    + '</div>';
+}).join('');
+
+function pick(i,j){
+  if (locked) return;
+  picks[i] = j;
+  for (var k=0;k<QUIZ[i].options.length;k++){
+    document.getElementById('o'+i+'_'+k).classList.toggle('pick', k===j);
+  }
+}
+
+function finishQuiz(){
+  if (locked || !started) return;
+  var blank = [];
+  picks.forEach(function(p,i){ if (p < 0) blank.push(i+1); });
+  if (blank.length && !timedOut){
+    alert('You still have ' + blank.length + ' question(s) with no answer: ' + blank.join(', ') + '.\n\nEvery blank counts as wrong, so go back and pick something first.');
+    return;
+  }
+  locked = true;
+  stopClock();
+  document.getElementById('timerBar').className = 'timerbar on done';
+  var score = 0;
+  QUIZ.forEach(function(it,i){
+    for (var k=0;k<it.options.length;k++){
+      var el = document.getElementById('o'+i+'_'+k);
+      el.classList.remove('pick'); el.classList.add('locked');
+      if (k === it.answer) el.classList.add('right');
+      else if (k === picks[i]) el.classList.add('wrong');
+    }
+    var w = document.getElementById('w'+i);
+    w.classList.add('show');
+    if (picks[i] === it.answer){ score++; w.innerHTML = '<strong>✅ Correct.</strong> ' + it.why; }
+    else { w.innerHTML = '<strong>❌ The right answer is highlighted in green.</strong> ' + it.why; }
+  });
+
+  var pct = Math.round(score / QUIZ.length * 100);
+  var pass = pct >= PASS_PCT;
+  var used = QUIZ_SECS - tLeft;
+  if (timedOut && blank.length) {
+    var note = document.getElementById('timeNote');
+    note.hidden = false;
+    note.textContent = '⏰ Time was up, so the test was handed in for you. ' + blank.length +
+      ' question(s) were still blank (' + blank.join(', ') + ') and those count as wrong.';
+  }
+  var box = document.getElementById('scorebox');
+  box.className = 'scorebox show' + (pass ? '' : ' fail');
+  box.innerHTML = '<div class="pct">' + pct + '%</div>'
+    + '<div class="sub">' + score + ' right out of ' + QUIZ.length + ' · the pass mark is ' + PASS_PCT + '% (' + PASS_N + ' correct)'
+    +   '<br>⏱ ' + fmtT(used) + ' used of ' + fmtT(QUIZ_SECS) + (timedOut ? ' · the clock ran out' : '') + '</div>'
+    + '<div class="verdict">' + (pass ? '🎉 You passed!' : 'Not passed yet — ' + (PASS_N - score) + ' more needed') + '</div>'
+    + '<div class="sub">' + (pass
+        ? 'Well done Grace — you can do this exercise on your own now. Show this page to Dad.'
+        : 'That is completely fine — it just means one step has not clicked yet. Scroll back up, read the green explanation under each question you missed, then press "Start over".')
+    + '</div>';
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.getElementById('submitBtn').textContent = 'Test finished';
+}
+
+function resetQuiz(){
+  locked = false;
+  started = false;
+  timedOut = false;
+  stopClock();
+  tLeft = QUIZ_SECS;
+  document.getElementById('timerBar').className = 'timerbar';
+  document.body.classList.remove('testing');
+  document.getElementById('timeNote').hidden = true;
+  document.getElementById('preTest').hidden = false;
+  document.getElementById('quizZone').hidden = true;
+  picks = QUIZ.map(function(){ return -1; });
+  QUIZ.forEach(function(it,i){
+    for (var k=0;k<it.options.length;k++){ document.getElementById('o'+i+'_'+k).className = 'opt'; }
+    var w = document.getElementById('w'+i); w.className = 'why'; w.innerHTML = '';
+  });
+  document.getElementById('scorebox').className = 'scorebox';
+  document.getElementById('submitBtn').textContent = 'Finish the test';
+  document.getElementById('preTest').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+</script>
+
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
