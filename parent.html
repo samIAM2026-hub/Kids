@@ -566,11 +566,10 @@ const FOCUS = {
 };
 // The one duration style for the whole console: always Chinese units, never a colon —
 // "1:59" meant 1 min 59 s but read like 1 h 59 min. Clock times (19:02–20:14) keep the colon.
-//   < 1 min → 45 秒 · < 10 min → 1 分 59 秒 · < 1 h → 25 分钟 · ≥ 1 h → 1 小时 3 分钟
+//   < 1 min → 不到 1 分钟 · < 1 h → 25 分钟 · ≥ 1 h → 1 小时 3 分钟. Never seconds (Sam, 2026-09-13)
 const dur = s => {
   s = Math.max(0, Math.round(s||0));
-  if(s < 60) return s+' 秒';
-  if(s < 600){ const m = Math.floor(s/60), r = s%60; return r ? `${m} 分 ${r} 秒` : `${m} 分钟`; }
+  if(s < 60) return '不到 1 分钟';
   const m = Math.round(s/60);
   return m < 60 ? m+' 分钟' : Math.floor(m/60)+' 小时'+(m%60 ? ' '+(m%60)+' 分钟' : '');
 };
@@ -592,7 +591,7 @@ function readFocus(a){
   const awayFlagged = flags.length > 0;
   const nSlow = qs.filter(q=>q.slow).length, nGuess = qs.filter(q=>q.guess).length;
   if(nSlow) flags.push(`${nSlow} 道慢题`);
-  if(nGuess) flags.push(`${nGuess} 道不到 ${FOCUS.guessSecs} 秒就答错`);
+  if(nGuess) flags.push(`${nGuess} 道答得很快又答错`);
   const attention = awayFlagged || nSlow >= FOCUS.attnSlow || nGuess >= FOCUS.attnGuess;
   return { secs, active, awaySecs, awayCount:f.awayCount||0, maxAway:f.maxAwaySecs||0, qs, med, flags, attention };
 }
@@ -642,7 +641,7 @@ function viewFocus(){
       html += `<div class="frow"><div class="ftop"><span class="when">${a.date.slice(5)}</span>
           <span class="nm">${esc(a.t)}</span><span class="fnum">${dur(f.secs)}</span></div>
         <div class="fmeta">在页面上 ${dur(f.active)} · 离开 ${f.awayCount} 次${f.awaySecs?`（共 ${dur(f.awaySecs)}）`:''}${
-          f.qs.length?` · 每题中位 ${dur(f.med)} · 最慢第 ${slowest.q} 题 ${dur(slowest.active)}`:''}</div>
+          f.qs.length?` · 最慢第 ${slowest.q} 题 ${dur(slowest.active)}`:''}</div>
         ${f.qs.length ? `<div class="qstrip">${f.qs.map(q=>`<i class="${q.slow?'slow':q.guess?'guess':q.correct===false?'miss':''}${q.away?' away':''}"
             style="height:${Math.max(8,Math.round(100*q.active/maxQ))}%"
             title="第 ${q.q} 题 · ${dur(q.active)}${q.away?' · 中途离开 '+dur(q.away):''}${q.correct===false?' · 答错':''}"></i>`).join('')}</div>`
@@ -653,10 +652,10 @@ function viewFocus(){
   });
 
   return html + `</div>
-    <div class="legend">每题小条：高度 = 这道题在页面上停留的时间（鼠标停在条上看具体秒数）
+    <div class="legend">每题小条：高度 = 这道题在页面上停留的时间（鼠标停在条上看这题用了多久）
       <br><i style="background:var(--blue)"></i>正常 <i style="background:#e59b98"></i>答错
-      <i style="background:var(--red)"></i>慢题（≥ ${FOCUS.slowMin} 秒且 ≥ 本卷中位数 ${FOCUS.slowX} 倍）
-      <i style="background:var(--amber)"></i>不到 ${FOCUS.guessSecs} 秒就答错（可能是蒙的）
+      <i style="background:var(--red)"></i>慢题（≥ ${dur(FOCUS.slowMin)}且 ≥ 本卷中位数 ${FOCUS.slowX} 倍）
+      <i style="background:var(--amber)"></i>答得很快又答错（可能是蒙的）
       · 条上方有小白点 = 做这题时离开过页面</div>`;
 }
 
