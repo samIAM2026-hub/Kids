@@ -833,12 +833,6 @@ const mins = m => m ? dur(m*60) : '不到 1 分钟';
 async function loadReading(){
   const user = auth.currentUser;
   if(!user) return;
-  if(user.email === MOM_EMAIL){   // Reading Club's feed only accepts Sam's Google account
-    RD.data = null; RD.loading = false;
-    RD.err = '阅读写作的数据在 Reading Club，那边只认爸爸的 Google 账号，妈妈的密码登录看不到。其他标签都能正常用。';
-    if(V==='reading') render();
-    return;
-  }
   const want = RD.days;
   RD.want = want; RD.loading = true; RD.err = '';
   let data = null, err = '';
@@ -848,6 +842,9 @@ async function loadReading(){
                             { headers:{ Authorization:'Bearer '+token }, cache:'no-store' });
     const body = await res.json().catch(()=>null);
     if(res.ok && body && body.ok) data = body;
+    // Mom's PIN login is let in only once Reading Club lists her uid; until then say so plainly.
+    else if((res.status===401 || res.status===403) && user.email === MOM_EMAIL)
+      err = 'Reading Club 那边还没开通妈妈的账号，暂时看不到阅读写作。其他标签都能正常用。';
     else err = res.status===401 || res.status===403
       ? `Reading Club 不认这个账号（${body&&body.why || res.status}）。`
       : `Reading Club 返回错误：${body&&body.why || 'HTTP '+res.status}`;
