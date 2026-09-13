@@ -79,6 +79,11 @@
   .kind{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.6px;
         text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--cream);color:var(--ink2);
         margin-right:6px}
+  .subj{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.6px;
+        text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--accbg);color:var(--acc);
+        border:1px solid var(--accline);margin-right:6px;white-space:nowrap;vertical-align:2px}
+  h3.group{font-size:22px;margin:28px 0 -4px;display:flex;align-items:baseline;gap:10px;color:var(--acc)}
+  h3.group .gn{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:var(--mute)}
   .status{font-size:15px;margin-top:6px;font-weight:600}
   .status.ok{color:var(--green)} .status.low{color:var(--red)}
   .go{flex:0 0 auto;text-decoration:none;font-weight:600;font-size:17px;border-radius:14px;padding:12px 20px;
@@ -173,6 +178,9 @@
    Today   : assignments/{uid}/days/{YYYY-MM-DD} — each item carries its own
              title and link, because kids can't read the question bank
    Scores  : attempts where kidId == my uid
+   Subject : every item is filed under one English subject (Chinese, Math, …).
+             Today and Mistakes are grouped by it; scores carry a tag. Attempts
+             have no subject, so it comes from the days that item was assigned.
    Shared  : kids share iPads / computers, and a quiz page records whoever is
              signed in. So: a clear "I'm done · Sign out", and 30 minutes with
              nobody using the site (this page or any quiz page) signs out.
@@ -194,6 +202,27 @@ const KIDS = {
 };
 const PASS = 80;
 const KIND = { quiz:'Quiz', practice:'Practice', ref:'Read' };
+// Subject names on this page are always English, one word. Items carry the hub's label
+// ('📚 中文 Chinese', '🧮 Algebra', …); the first pattern that matches wins, and this is
+// also the order the groups appear in. No label → 'Other' (file names aren't a safe guess:
+// SSAT-Reading-… is SSAT, not Reading).
+const SUBJECTS = [
+  ['Chinese',    /Chinese|中文/i],
+  ['Math',       /Math|Algebra/i],
+  ['Reading',    /Reading/i],
+  ['Vocabulary', /Vocab/i],
+  ['Writing',    /Writing/i],
+  ['SSAT',       /SSAT/i],
+  ['Big Ideas',  /Big Ideas/i],
+];
+const subjOf = label => (SUBJECTS.find(([,re])=>re.test(label||'')) || ['Other'])[0];
+const subjRank = name => { const i = SUBJECTS.findIndex(([n])=>n===name); return i<0 ? SUBJECTS.length : i; };
+// [[subject, items], …] in SUBJECTS order; items keep the order they came in.
+function bySubject(list){
+  const m = new Map();
+  list.forEach(x=>{ if(!m.has(x.subj)) m.set(x.subj, []); m.get(x.subj).push(x); });
+  return [...m].sort((a,b)=>subjRank(a[0])-subjRank(b[0]));
+}
 const today = new Date(); today.setHours(0,0,0,0);
 // Local date, not toISOString() (UTC) — must match the key the parent console writes.
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -217,17 +246,23 @@ function touch(force){
 
 /* ---------- data ---------- */
 async function load(){
-  const [day, att] = await Promise.all([
-    db.doc(`assignments/${ME.uid}/days/${iso(today)}`).get(),
+  const [days, att] = await Promise.all([
+    // All my assigned days (today's included): older days tell the subject of past attempts.
+    db.collection(`assignments/${ME.uid}/days`).get(),
     // No orderBy here: kidId == x plus orderBy another field would need a composite index.
     db.collection('attempts').where('kidId','==',ME.uid).get()
   ]);
-  ITEMS = (day.data() || {}).items || [];
+  const label = new Map();   // item id → hub subject label
+  days.docs.forEach(d=>((d.data()||{}).items||[]).forEach(it=>{ if(it.subj) label.set(it.id, it.subj); }));
+  const day = days.docs.find(d=>d.id===iso(today));
+  ITEMS = ((day && day.data()) || {}).items || [];
+  ITEMS = ITEMS.map(it=>({ ...it, subj: subjOf(it.subj) }));
   ATT = att.docs.map(d=>{
     const a = d.data();
     const when = a.submittedAt && a.submittedAt.toDate ? a.submittedAt.toDate() : null;
     const pct = typeof a.pct==='number' ? a.pct : a.total ? Math.round(100*a.score/a.total) : null;
-    return { id:a.itemId, t:a.t||'', href:a.href||'', pct, wrong:a.wrong||[], when, date: when?iso(when):'' };
+    return { id:a.itemId, t:a.t||'', href:a.href||'', subj: subjOf(label.get(a.itemId)),
+             pct, wrong:a.wrong||[], when, date: when?iso(when):'' };
   }).sort((a,b)=>(b.when||0)-(a.when||0));
 }
 
@@ -244,29 +279,34 @@ function viewToday(){
   if(nDone===ITEMS.length) html += `<div class="cheer">🌟 All done for today — great work, ${esc(ME.n)}!
     <div style="margin-top:12px"><button class="out" data-signout>👋 I'm done · Sign out</button></div></div>`;
 
-  ITEMS.forEach(it=>{
-    const a = doneToday(it);
-    const scored = a && a.pct!=null;
-    const low = scored && a.pct < PASS;
-    let status = '', btn = `<a class="go" href="${esc(pageUrl(it.href))}">Start →</a>`;
-    if(a){
-      status = !scored ? `<div class="status ok">✓ Done</div>`
-        : low ? `<div class="status low">${a.pct}% — so close! Want another go?</div>`
-              : `<div class="status ok">${a.pct}% ⭐ Nice job!</div>`;
-      btn = `<a class="go again" href="${esc(pageUrl(it.href))}">${low?'Try again':'Open again'}</a>`;
-    }
-    const size = it.n ? ` · ${it.n} ${it.type==='quiz'?'questions':'steps'}` : '';
-    html += `<div class="card${a?(low?' low':' done'):''}">
-      <span class="ic">${esc(it.ic)||'📄'}</span>
-      <div class="body">
-        <div class="t">${esc(it.t)}</div>
-        <div class="meta"><span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book||it.subj)}${size}</div>
-        ${status}
-      </div>
-      ${btn}
-    </div>`;
+  bySubject(ITEMS).forEach(([subj, items])=>{
+    html += `<h3 class="group">${esc(subj)} <span class="gn">${items.filter(doneToday).length} of ${items.length} done</span></h3>`;
+    items.forEach(it=>{ html += card(it, doneToday(it)); });
   });
   return html;
+}
+
+// One homework card; a = today's attempt at it, if any.
+function card(it, a){
+  const scored = a && a.pct!=null;
+  const low = scored && a.pct < PASS;
+  let status = '', btn = `<a class="go" href="${esc(pageUrl(it.href))}">Start →</a>`;
+  if(a){
+    status = !scored ? `<div class="status ok">✓ Done</div>`
+      : low ? `<div class="status low">${a.pct}% — so close! Want another go?</div>`
+            : `<div class="status ok">${a.pct}% ⭐ Nice job!</div>`;
+    btn = `<a class="go again" href="${esc(pageUrl(it.href))}">${low?'Try again':'Open again'}</a>`;
+  }
+  const size = it.n ? `${it.book?' · ':''}${it.n} ${it.type==='quiz'?'questions':'steps'}` : '';
+  return `<div class="card${a?(low?' low':' done'):''}">
+    <span class="ic">${esc(it.ic)||'📄'}</span>
+    <div class="body">
+      <div class="t">${esc(it.t)}</div>
+      <div class="meta"><span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book)}${size}</div>
+      ${status}
+    </div>
+    ${btn}
+  </div>`;
 }
 
 function viewScores(){
@@ -286,7 +326,7 @@ function viewScores(){
   mine.forEach(a=>{
     const col = a.pct==null || a.pct>=PASS ? 'var(--green)' : 'var(--red)';
     html += `<div class="row"><span class="d">${a.date.slice(5)}</span>
-      <div class="body"><div class="t">${esc(a.t)}</div>
+      <div class="body"><div class="t"><span class="subj">${esc(a.subj)}</span>${esc(a.t)}</div>
         <div class="bar"><i style="width:${a.pct==null?100:a.pct}%;background:${col}"></i></div></div>
       <span class="sc" style="color:${col}">${a.pct==null?'✓':a.pct+'%'}</span>
       ${a.href?`<a class="go again" href="${esc(pageUrl(a.href))}">Redo</a>`:''}</div>`;
@@ -311,11 +351,14 @@ function viewMistakes(){
   if(!list.length){
     return html + `<div class="empty"><span class="e">📒</span>Nothing to fix right now!<br>Missed questions will collect here.</div>`;
   }
-  list.forEach(a=>{
-    html += `<div class="row"><span class="d">${a.date.slice(5)}</span>
-      <div class="body"><div class="t">${esc(a.t)}</div>
-        <div class="lead2" style="font-size:14.5px">${a.wrong.length} question${a.wrong.length>1?'s':''} to practise</div></div>
-      ${a.href?`<a class="go" href="${esc(pageUrl(a.href))}">Practise</a>`:''}</div>`;
+  bySubject(list).forEach(([subj, rows])=>{
+    html += `<h3 class="group">${esc(subj)} <span class="gn">${rows.length} to fix</span></h3>`;
+    rows.forEach(a=>{
+      html += `<div class="row"><span class="d">${a.date.slice(5)}</span>
+        <div class="body"><div class="t">${esc(a.t)}</div>
+          <div class="lead2" style="font-size:14.5px">${a.wrong.length} question${a.wrong.length>1?'s':''} to practise</div></div>
+        ${a.href?`<a class="go" href="${esc(pageUrl(a.href))}">Practise</a>`:''}</div>`;
+    });
   });
   return html;
 }

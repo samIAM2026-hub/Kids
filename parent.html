@@ -54,7 +54,7 @@
 
   /* ---------- generic card ---------- */
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
-  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px;margin-top:16px}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(330px,100%),1fr));gap:14px;margin-top:16px}
   h2.sec{font-size:19px;margin:26px 0 2px}
   .seclead{color:var(--mute);font-size:12.5px;margin-bottom:12px}
 
@@ -263,10 +263,56 @@
   .rc .hint{font-size:11px;color:var(--faint);margin-top:8px;line-height:1.6}
   @media(max-width:760px){ .rc .dgrid{grid-template-columns:1fr;gap:18px} .rhead .link{display:none} }
 
+  .rc .swipe{display:none}
+
+  /* ---------- phone (≤ 700px). iPad and computer keep the layout above ---------- */
   @media(max-width:700px){
+    body{padding-bottom:140px}                      /* the assign bar is two lines tall here */
     .wrap{padding:0 12px}
-    .metrics{gap:12px}
+    .metrics{gap:12px;flex-wrap:wrap}
     td .d{display:none}
+    input[type=checkbox]{width:20px;height:20px}
+
+    /* header: title and the two buttons on one line; tabs scroll sideways instead of wrapping */
+    .hrow{flex-wrap:nowrap;align-items:center;gap:8px;padding:12px 0 6px}
+    .hrow h1{font-size:20px}
+    .whoami{display:none}
+    .hrow .btn{padding:7px 10px;font-size:12px;white-space:nowrap}
+    .tabs{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{white-space:nowrap;padding:9px 7px;font-size:12.5px;flex:0 0 auto}   /* all five fit at 390px; narrower phones swipe */
+    .tab .pill{margin-left:4px}
+
+    /* bank: each row becomes a small card — title on its own line, the facts on a line under it */
+    details.subj>summary{padding:12px 14px;font-size:16px}
+    .shelf{padding:2px 12px 6px}
+    details.subj table, details.subj tbody{display:block}
+    details.subj tbody tr{display:flex;flex-wrap:wrap;align-items:center;column-gap:12px;row-gap:4px;padding:9px 0}
+    details.subj td{padding:0;width:auto!important;text-align:left}
+    details.subj td:nth-child(1){flex:0 0 22px;align-self:flex-start;padding-top:1px}
+    details.subj td:nth-child(2){flex:1 1 calc(100% - 34px);min-width:0}
+    details.subj td:nth-child(3){margin-left:34px}   /* 22px box + 12px gap: line up under the title */
+    details.subj td:nth-child(5) div, details.subj td:nth-child(6) .crumb{display:inline;margin:0 0 0 6px}
+
+    /* assign bar: labels go (the controls say what they are), toast sits above the bar */
+    #assignbar .inner{padding:10px 12px;gap:8px}
+    #assignbar label{display:none}
+    .toast{bottom:124px;width:max-content;max-width:calc(100vw - 24px)}
+
+    .hrow2 .who{width:42px}
+
+    /* reading club: the day table still scrolls sideways, but the date stays put
+       and an unfolded day's detail fits the screen instead of the 700px table */
+    .rc .swipe{display:block;font-size:11px;color:var(--mute);padding:8px 14px 0}
+    .rc th:first-child,.rc td:first-child{position:sticky;left:0;z-index:1;background:var(--card);padding-left:14px}
+    .rc th:first-child{background:#17253e}
+    .rc tr.day.open td:first-child{background:#202f49}
+    .rc tr.detail td{padding:12px 0 16px}
+    .rc tr.detail .dgrid{position:sticky;left:0;width:calc(100vw - 26px);padding:0 14px}
+    .rc .brow{grid-template-columns:36px minmax(40px,1fr) 150px;gap:8px}
+    .rc .brow .val{white-space:normal}
+    .rhead{padding:12px 14px}
+    .kpi{padding:10px 14px}
   }
 </style>
 </head>
@@ -775,6 +821,7 @@ function readingKid(kid, F){
       <div class="kpi"><div class="v">${essays?`${words}<small>词 · ${essays} 篇</small>`:'—'}</div><div class="k">写作</div></div>
       ${paste==null?'':`<div class="kpi"><div class="v ${paste?'amber':''}">${paste}<small>字符</small></div><div class="k">粘贴</div></div>`}
     </div>
+    <div class="swipe">← 表格左右滑动看全部列 →</div>
     <div class="tablewrap"><table><thead><tr>
       <th>日期</th><th>章</th><th>三件事</th><th class="r">在页时长</th><th class="r">离开次数</th>
       <th class="r">测验</th><th class="r">单词</th><th class="r">写作</th>${F.showPaste?'<th class="r">粘贴</th>':''}<th></th>
