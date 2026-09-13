@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Homework</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c1a17; --ink2:#5b4636; --mute:#8a7d70; --cream:#f6f3ed; --paper:#fffdf7; --line:#e6ddd0;
+    --rust:#b4622f; --green:#3f7d4e; --greenbg:#e6f2e8; --red:#c0392b; --redbg:#fbeae7;
+    --acc:#b4622f; --accbg:#fff4e8; --accline:#ffb37b;
+  }
+  body.peach{ --acc:#d84315; --accbg:#fff4e8; --accline:#ffb37b; }
+  body.river{ --acc:#35704a; --accbg:#eef6f0; --accline:#8bb98f; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none!important}
+  body{background:var(--cream);color:var(--ink);font-family:'Newsreader',Georgia,serif;font-size:18px;
+       line-height:1.45;padding-bottom:60px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px}
+  h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:600}
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+  button{font-family:inherit}
+
+  /* ---------- sign-in ---------- */
+  #signin{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+          gap:22px;padding:24px;text-align:center}
+  #signin h1{font-size:40px}
+  #signin .lead{color:var(--ink2);font-size:19px}
+  .pick{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+  .who{width:180px;padding:22px 10px 18px;border-radius:22px;cursor:pointer;background:var(--paper);
+       border:3px solid var(--line);transition:transform .12s,border-color .12s}
+  .who:hover{transform:translateY(-3px)}
+  .who .av{font-size:64px;line-height:1}
+  .who .nm{font-family:'Fraunces',serif;font-size:26px;font-weight:600;margin-top:8px}
+  .who.peach{background:#fff4e8;border-color:#ffb37b} .who.peach .nm{color:#d84315}
+  .who.river{background:#eef6f0;border-color:#8bb98f} .who.river .nm{color:#35704a}
+  #pinstep .av{font-size:70px;line-height:1}
+  #pin{width:250px;text-align:center;font-size:34px;letter-spacing:16px;padding:14px 10px 14px 26px;
+       border-radius:16px;border:3px solid var(--accline);background:var(--paper);color:var(--ink);
+       font-family:'IBM Plex Mono',monospace;outline:none}
+  #pin:focus{border-color:var(--acc)}
+  .err{color:var(--red);font-size:16px;min-height:22px;max-width:380px}
+  .link{background:none;border:none;color:var(--mute);font-size:16px;cursor:pointer;text-decoration:underline}
+  .out{background:var(--paper);border:2px solid var(--acc);color:var(--acc);font-weight:600;font-size:16px;
+       border-radius:12px;padding:9px 14px;cursor:pointer;white-space:nowrap}
+
+  /* ---------- header ---------- */
+  header{background:var(--accbg);border-bottom:3px solid var(--accline)}
+  .hrow{display:flex;align-items:center;gap:14px;padding:22px 0 14px}
+  .hrow .av{font-size:46px;line-height:1}
+  .hrow h1{font-size:30px;color:var(--acc)}
+  .hrow .date{font-size:15px;color:var(--ink2)}
+  .hrow .spacer{margin-left:auto}
+  .tabs{display:flex;gap:6px}
+  .tab{background:none;border:none;cursor:pointer;font-size:17px;font-weight:600;color:var(--ink2);
+       padding:10px 16px;border-bottom:4px solid transparent}
+  .tab.on{color:var(--acc);border-bottom-color:var(--acc)}
+  .tab .n{font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--paper);border-radius:99px;
+          padding:1px 8px;margin-left:5px;color:var(--ink2)}
+
+  /* ---------- today ---------- */
+  .progress{margin:26px 0 8px}
+  .progress .big{font-family:'Fraunces',serif;font-size:26px}
+  .meter{height:14px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:8px}
+  .meter i{display:block;height:100%;background:var(--green);border-radius:99px;transition:width .3s}
+  .cheer{margin-top:16px;background:var(--greenbg);color:var(--green);border-radius:16px;padding:16px 18px;
+         font-size:19px;font-weight:600;text-align:center}
+  .card{display:flex;align-items:center;gap:16px;background:var(--paper);border:2px solid var(--line);
+        border-radius:18px;padding:16px 18px;margin-top:14px}
+  .card.done{border-color:#b9d7c0}
+  .card.low{border-color:#efc2bb}
+  .card .ic{font-size:36px;line-height:1;flex:0 0 auto}
+  .card .body{flex:1;min-width:0}
+  .card .t{font-family:'Fraunces',serif;font-size:20px;font-weight:600;line-height:1.25}
+  .card .meta{font-size:14.5px;color:var(--mute);margin-top:3px}
+  .kind{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.6px;
+        text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--cream);color:var(--ink2);
+        margin-right:6px}
+  .status{font-size:15px;margin-top:6px;font-weight:600}
+  .status.ok{color:var(--green)} .status.low{color:var(--red)}
+  .go{flex:0 0 auto;text-decoration:none;font-weight:600;font-size:17px;border-radius:14px;padding:12px 20px;
+      background:var(--acc);color:#fff;white-space:nowrap}
+  .go.again{background:var(--paper);color:var(--acc);border:2px solid var(--acc)}
+  .empty{text-align:center;color:var(--ink2);background:var(--paper);border:2px dashed var(--line);
+         border-radius:18px;padding:34px 20px;margin-top:26px;font-size:19px}
+  .empty .e{font-size:44px;display:block;margin-bottom:6px}
+
+  /* ---------- scores & mistakes ---------- */
+  h2.sec{font-size:24px;margin:26px 0 4px}
+  .lead2{color:var(--ink2);font-size:16px}
+  .stats{display:flex;gap:12px;margin:16px 0 6px;flex-wrap:wrap}
+  .stat{flex:1;min-width:130px;background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:12px 16px}
+  .stat .v{font-family:'Fraunces',serif;font-size:30px;font-weight:600;line-height:1.1}
+  .stat .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
+  .row{display:flex;align-items:center;gap:14px;background:var(--paper);border:2px solid var(--line);
+       border-radius:16px;padding:12px 16px;margin-top:10px}
+  .row .d{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--mute);width:48px;flex:0 0 auto}
+  .row .body{flex:1;min-width:0}
+  .row .t{font-size:17px;font-weight:600}
+  .bar{height:9px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:6px}
+  .bar i{display:block;height:100%;border-radius:99px}
+  .row .sc{font-family:'Fraunces',serif;font-size:22px;font-weight:600;width:62px;text-align:right}
+  .row .go{font-size:15px;padding:9px 14px}
+
+  @media(max-width:560px){
+    body{font-size:17px}
+    .card{flex-wrap:wrap}
+    .card .go{width:100%;text-align:center}
+    .hrow h1{font-size:25px}
+    .tab{padding:10px 10px;font-size:16px}
+    .hrow .av{font-size:36px}
+    .out{font-size:14px;padding:7px 10px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ---------- sign-in ---------- -->
+<section id="signin" hidden>
+  <div id="pickstep">
+    <h1>Homework time! 📚</h1>
+    <p class="lead" style="margin:10px 0 26px">Who's doing homework today?</p>
+    <div class="pick">
+      <button class="who peach" data-kid="grace"><div class="av">👧</div><div class="nm">Grace</div></button>
+      <button class="who river" data-kid="warren"><div class="av">👦</div><div class="nm">Warren</div></button>
+    </div>
+  </div>
+  <div id="pinstep" hidden>
+    <div class="av" id="pinav"></div>
+    <h1 id="pinhi" style="margin:10px 0 6px"></h1>
+    <p class="lead" style="margin-bottom:18px">Type your 6-digit PIN</p>
+    <input id="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="······">
+    <div class="err" id="pinerr" style="margin-top:12px"></div>
+    <button class="link" id="notme">← That's not me</button>
+  </div>
+</section>
+
+<!-- ---------- signed in ---------- -->
+<div id="app" hidden>
+  <header>
+    <div class="wrap">
+      <div class="hrow">
+        <span class="av" id="hav"></span>
+        <div>
+          <h1 id="hname"></h1>
+          <div class="date" id="hdate"></div>
+        </div>
+        <span class="spacer"></span>
+        <button class="out" id="switch">👋 I'm done · Sign out</button>
+      </div>
+      <nav class="tabs">
+        <button class="tab on" data-v="today">Today <span class="n" id="ntoday"></span></button>
+        <button class="tab" data-v="scores">My scores</button>
+        <button class="tab" data-v="mistakes">Mistakes <span class="n" id="nmiss"></span></button>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap" id="view"></main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+/* =====================================================================
+   Kids' homework page
+   Sign-in : tap your name + 6-digit PIN → Firebase email/password
+             (<kid>@family.local, password = PIN). What each kid can read is
+             enforced by Firestore rules — this page only shows it.
+   Today   : assignments/{uid}/days/{YYYY-MM-DD} — each item carries its own
+             title and link, because kids can't read the question bank
+   Scores  : attempts where kidId == my uid
+   Shared  : kids share iPads / computers, and a quiz page records whoever is
+             signed in. So: a clear "I'm done · Sign out", and 30 minutes with
+             nobody using the site (this page or any quiz page) signs out.
+             quiz-report.js uses the same key and rule.
+===================================================================== */
+const firebaseConfig = {
+  apiKey: 'AIzaSyDMKUeccjFtMbotXulnMhYcoykWpw4Y7ls',
+  authDomain: 'family-checklist-acc6b.firebaseapp.com',
+  projectId: 'family-checklist-acc6b',
+  appId: '1:127899043154:web:5a49cce9a1913fbc41e68b'
+};
+// Named app: this sign-in is stored apart from the parent console's and the checklists'.
+const app = firebase.initializeApp(firebaseConfig, 'kid');
+const auth = app.auth(), db = app.firestore();
+
+const KIDS = {
+  grace:  { n:'Grace',  av:'👧', cls:'peach', uid:'mbtSDgfFrOOS4xIT3eXr7pETEt33' },
+  warren: { n:'Warren', av:'👦', cls:'river', uid:'paACSAD0W0bBNknKrAf3GfpHy8x1' }
+};
+const PASS = 80;
+const KIND = { quiz:'Quiz', practice:'Practice', ref:'Read' };
+const today = new Date(); today.setHours(0,0,0,0);
+// Local date, not toISOString() (UTC) — must match the key the parent console writes.
+const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// Item hrefs are relative to Quizzes/ (a few step out with ../), same as the hub.
+const pageUrl = href => encodeURI('Quizzes/' + href);
+
+let ME = null, ITEMS = [], ATT = [], V = 'today';
+
+/* ---------- shared device: idle sign-out ---------- */
+const ACTIVE_KEY = 'kid.lastActive.v1', IDLE_MS = 30*60*1000;
+const lastActive = () => { try { return +localStorage.getItem(ACTIVE_KEY) || 0; } catch(e){ return Date.now(); } };
+const idle = () => Date.now() - lastActive() > IDLE_MS;
+const idleAtLoad = idle();          // read before any listener can refresh it
+let touchedAt = 0;
+function touch(force){
+  if(!force && Date.now()-touchedAt < 10000) return;
+  touchedAt = Date.now();
+  try { localStorage.setItem(ACTIVE_KEY, String(touchedAt)); } catch(e){}
+}
+
+/* ---------- data ---------- */
+async function load(){
+  const [day, att] = await Promise.all([
+    db.doc(`assignments/${ME.uid}/days/${iso(today)}`).get(),
+    // No orderBy here: kidId == x plus orderBy another field would need a composite index.
+    db.collection('attempts').where('kidId','==',ME.uid).get()
+  ]);
+  ITEMS = (day.data() || {}).items || [];
+  ATT = att.docs.map(d=>{
+    const a = d.data();
+    const when = a.submittedAt && a.submittedAt.toDate ? a.submittedAt.toDate() : null;
+    const pct = typeof a.pct==='number' ? a.pct : a.total ? Math.round(100*a.score/a.total) : null;
+    return { id:a.itemId, t:a.t||'', href:a.href||'', pct, wrong:a.wrong||[], when, date: when?iso(when):'' };
+  }).sort((a,b)=>(b.when||0)-(a.when||0));
+}
+
+/* ---------- views ---------- */
+function viewToday(){
+  const day = iso(today);
+  if(!ITEMS.length){
+    return `<div class="empty"><span class="e">🎉</span>No homework today!<br>Enjoy your free time.</div>`;
+  }
+  const doneToday = it => ATT.find(a=>a.id===it.id && a.date===day);
+  const nDone = ITEMS.filter(doneToday).length;
+  let html = `<div class="progress"><div class="big">${nDone} of ${ITEMS.length} done</div>
+    <div class="meter"><i style="width:${Math.round(100*nDone/ITEMS.length)}%"></i></div></div>`;
+  if(nDone===ITEMS.length) html += `<div class="cheer">🌟 All done for today — great work, ${esc(ME.n)}!
+    <div style="margin-top:12px"><button class="out" data-signout>👋 I'm done · Sign out</button></div></div>`;
+
+  ITEMS.forEach(it=>{
+    const a = doneToday(it);
+    const scored = a && a.pct!=null;
+    const low = scored && a.pct < PASS;
+    let status = '', btn = `<a class="go" href="${esc(pageUrl(it.href))}">Start →</a>`;
+    if(a){
+      status = !scored ? `<div class="status ok">✓ Done</div>`
+        : low ? `<div class="status low">${a.pct}% — so close! Want another go?</div>`
+              : `<div class="status ok">${a.pct}% ⭐ Nice job!</div>`;
+      btn = `<a class="go again" href="${esc(pageUrl(it.href))}">${low?'Try again':'Open again'}</a>`;
+    }
+    const size = it.n ? ` · ${it.n} ${it.type==='quiz'?'questions':'steps'}` : '';
+    html += `<div class="card${a?(low?' low':' done'):''}">
+      <span class="ic">${esc(it.ic)||'📄'}</span>
+      <div class="body">
+        <div class="t">${esc(it.t)}</div>
+        <div class="meta"><span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book||it.subj)}${size}</div>
+        ${status}
+      </div>
+      ${btn}
+    </div>`;
+  });
+  return html;
+}
+
+function viewScores(){
+  const since = new Date(today); since.setDate(since.getDate()-21);
+  const mine = ATT.filter(a=>a.date >= iso(since));
+  const scored = mine.filter(a=>a.pct!=null);
+  let html = `<h2 class="sec">My scores</h2><p class="lead2">The last three weeks. ${PASS}% or more is a pass.</p>`;
+  if(!mine.length){
+    return html + `<div class="empty"><span class="e">📈</span>Your scores will show up here<br>after you finish a quiz.</div>`;
+  }
+  const avg = scored.length ? Math.round(scored.reduce((s,a)=>s+a.pct,0)/scored.length) : null;
+  html += `<div class="stats">
+    <div class="stat"><div class="v">${mine.length}</div><div class="k">Finished</div></div>
+    <div class="stat"><div class="v" style="color:${avg==null?'var(--mute)':avg>=PASS?'var(--green)':'var(--rust)'}">${avg==null?'—':avg+'%'}</div><div class="k">Average</div></div>
+    <div class="stat"><div class="v" style="color:var(--green)">${scored.filter(a=>a.pct>=PASS).length}</div><div class="k">Passed</div></div>
+  </div>`;
+  mine.forEach(a=>{
+    const col = a.pct==null || a.pct>=PASS ? 'var(--green)' : 'var(--red)';
+    html += `<div class="row"><span class="d">${a.date.slice(5)}</span>
+      <div class="body"><div class="t">${esc(a.t)}</div>
+        <div class="bar"><i style="width:${a.pct==null?100:a.pct}%;background:${col}"></i></div></div>
+      <span class="sc" style="color:${col}">${a.pct==null?'✓':a.pct+'%'}</span>
+      ${a.href?`<a class="go again" href="${esc(pageUrl(a.href))}">Redo</a>`:''}</div>`;
+  });
+  return html;
+}
+
+// One entry per page: the most recent attempt that still had wrong answers.
+function mistakes(){
+  const seen = new Set(), out = [];
+  ATT.forEach(a=>{
+    if(seen.has(a.id)) return;
+    seen.add(a.id);                       // newest attempt per page decides
+    if(a.wrong.length) out.push(a);
+  });
+  return out;
+}
+function viewMistakes(){
+  const list = mistakes();
+  let html = `<h2 class="sec">Mistakes notebook</h2>
+    <p class="lead2">Questions you missed get saved here. Get them right next time and they disappear.</p>`;
+  if(!list.length){
+    return html + `<div class="empty"><span class="e">📒</span>Nothing to fix right now!<br>Missed questions will collect here.</div>`;
+  }
+  list.forEach(a=>{
+    html += `<div class="row"><span class="d">${a.date.slice(5)}</span>
+      <div class="body"><div class="t">${esc(a.t)}</div>
+        <div class="lead2" style="font-size:14.5px">${a.wrong.length} question${a.wrong.length>1?'s':''} to practise</div></div>
+      ${a.href?`<a class="go" href="${esc(pageUrl(a.href))}">Practise</a>`:''}</div>`;
+  });
+  return html;
+}
+
+const viewEl = document.getElementById('view');
+function render(){
+  viewEl.innerHTML = V==='today' ? viewToday() : V==='scores' ? viewScores() : viewMistakes();
+  const nDone = ITEMS.filter(it=>ATT.find(a=>a.id===it.id && a.date===iso(today))).length;
+  document.getElementById('ntoday').textContent = ITEMS.length ? `${nDone}/${ITEMS.length}` : '';
+  const nm = mistakes().length;
+  document.getElementById('nmiss').textContent = nm || '';
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on', x===t));
+  V = t.dataset.v; render(); window.scrollTo({top:0});
+}));
+
+/* ---------- sign-in ---------- */
+const signinEl = document.getElementById('signin'), appEl = document.getElementById('app');
+const pickStep = document.getElementById('pickstep'), pinStep = document.getElementById('pinstep');
+const pin = document.getElementById('pin'), pinErr = document.getElementById('pinerr');
+let picking = null, signinMsg = '';
+
+function showPick(msg){
+  ME = null; ITEMS = []; ATT = []; viewEl.innerHTML = '';
+  document.body.className = '';
+  appEl.hidden = true; signinEl.hidden = false;
+  pickStep.hidden = false; pinStep.hidden = true;
+  if(msg){ pickStep.querySelector('.lead').textContent = msg; }
+}
+function showPin(key){
+  picking = key;
+  document.body.className = KIDS[key].cls;
+  document.getElementById('pinav').textContent = KIDS[key].av;
+  document.getElementById('pinhi').textContent = `Hi ${KIDS[key].n}!`;
+  pickStep.hidden = true; pinStep.hidden = false;
+  pin.value = ''; pin.disabled = false; pinErr.textContent = '';
+  pin.focus();
+}
+document.querySelectorAll('.who').forEach(b=>b.addEventListener('click',()=>showPin(b.dataset.kid)));
+document.getElementById('notme').addEventListener('click',()=>showPick());
+
+async function tryPin(){
+  if(!/^\d{6}$/.test(pin.value)){ pinErr.textContent = 'Your PIN has 6 numbers.'; return; }
+  pin.disabled = true; pinErr.textContent = '';
+  try {
+    await auth.signInWithEmailAndPassword(`${picking}@family.local`, pin.value);
+  } catch(e){
+    pinErr.textContent =
+      e.code==='auth/too-many-requests' ? 'Too many tries. Take a little break, or ask a parent.' :
+      e.code==='auth/network-request-failed' ? 'No internet right now. Check the Wi-Fi and try again.' :
+      "That PIN didn't work. Try again!";
+    pin.value = ''; pin.disabled = false; pin.focus();
+  }
+}
+pin.addEventListener('input',()=>{ pin.value = pin.value.replace(/\D/g,''); pinErr.textContent='';
+  if(pin.value.length===6) tryPin(); });
+pin.addEventListener('keydown',e=>{ if(e.key==='Enter') tryPin(); });
+
+let firstAuth = true;
+auth.onAuthStateChanged(async user=>{
+  const restored = firstAuth; firstAuth = false;   // first call = the sign-in saved on this device
+  if(!user){ showPick(signinMsg); signinMsg = ''; return; }
+  const key = Object.keys(KIDS).find(k=>KIDS[k].uid===user.uid);
+  if(!key){
+    signinMsg = "Who's doing homework today?";
+    await auth.signOut();
+    return;
+  }
+  // Saved sign-in, but nobody used the site for 30 minutes: probably someone else now → ask again.
+  if(restored && idleAtLoad){ await auth.signOut(); return; }
+  touch(true);
+  ME = KIDS[key];
+  document.body.className = ME.cls;
+  document.getElementById('hav').textContent = ME.av;
+  document.getElementById('hname').textContent = `Hi, ${ME.n}!`;
+  document.getElementById('hdate').textContent =
+    today.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  signinEl.hidden = true; appEl.hidden = false;
+  viewEl.innerHTML = `<div class="empty"><span class="e">⏳</span>Loading your homework…</div>`;
+  try { await load(); render(); }
+  catch(e){
+    console.error(e);
+    viewEl.innerHTML = `<div class="empty"><span class="e">📡</span>Couldn't load your homework.<br>Check the Wi-Fi, then pull down to refresh.</div>`;
+  }
+});
+document.getElementById('switch').addEventListener('click',()=>auth.signOut());
+viewEl.addEventListener('click', e=>{ if(e.target.closest('[data-signout]')) auth.signOut(); });
+
+['pointerdown','keydown','scroll','touchstart'].forEach(ev=>
+  window.addEventListener(ev, ()=>{ if(ME) touch(); }, { capture:true, passive:true }));
+setInterval(()=>{ if(ME && idle()) auth.signOut(); }, 60*1000);
+
+// Coming back from a quiz page: refresh so the new score shows straight away.
+// Coming back after a long time away (screen locked, iPad put down): sign out instead.
+function comeBack(){
+  if(!ME) return;
+  if(idle()) auth.signOut();
+  else load().then(render).catch(console.error);
+}
+window.addEventListener('pageshow', e=>{ if(e.persisted) comeBack(); });
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') comeBack(); });
+</script>
+</body>
+</html>

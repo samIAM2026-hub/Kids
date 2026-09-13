@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家长控制台 · Parent Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0d1626; --ink2:#14203a; --card:#1a2942; --line:#2a3b58;
+    --cream:#f3f0e7; --mute:#93a2bd; --gold:#c9a227; --gold2:#b0894e;
+    --green:#4bb67a; --red:#d9534f; --amber:#e0a33e; --blue:#5b8fc7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none!important}
+  body{background:var(--ink);color:var(--cream);
+       font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px;line-height:1.5;
+       padding:0 0 60px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+  h1,h2,h3{font-family:'Playfair Display',Georgia,serif;font-weight:700;letter-spacing:.2px}
+
+  /* ---------- sign-in gate ---------- */
+  #gate{position:fixed;inset:0;background:var(--ink);z-index:200;
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:20px}
+  #gate h1{font-size:30px;color:var(--cream)}
+  #gate .sub{color:var(--mute);font-size:13px;text-align:center;max-width:420px}
+  #gate .err{color:var(--red);font-size:12.5px;min-height:16px;max-width:420px;text-align:center}
+  .btn{font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border-radius:8px;
+       padding:10px 18px;border:1.5px solid var(--gold2);background:transparent;color:var(--gold);
+       transition:background .12s,color .12s}
+  .btn:hover{background:var(--gold2);color:var(--ink)}
+  .btn.solid{background:var(--gold2);color:var(--ink);border-color:var(--gold2)}
+  .btn.solid:hover{background:var(--gold)}
+  .btn.ghost{border-color:var(--line);color:var(--mute)}
+  .btn.ghost:hover{background:var(--line);color:var(--cream)}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+
+  /* ---------- header ---------- */
+  header{border-bottom:1px solid var(--line);background:var(--ink2);position:sticky;top:0;z-index:80}
+  .hrow{display:flex;align-items:baseline;gap:14px;padding:16px 0 12px;flex-wrap:wrap}
+  .hrow h1{font-size:23px}
+  .eyebrow{font-size:10.5px;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold2)}
+  .hrow .spacer{margin-left:auto}
+  .whoami{font-size:11px;color:var(--mute)}
+  .tabs{display:flex;gap:4px;padding-bottom:0}
+  .tab{font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;background:none;border:none;
+       color:var(--mute);padding:9px 15px;border-bottom:2.5px solid transparent;transition:color .12s}
+  .tab:hover{color:var(--cream)}
+  .tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+  .tab .pill{background:var(--line);color:var(--cream);border-radius:999px;
+             font-size:10.5px;padding:1px 7px;margin-left:6px}
+
+  /* ---------- generic card ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px;margin-top:16px}
+  h2.sec{font-size:19px;margin:26px 0 2px}
+  .seclead{color:var(--mute);font-size:12.5px;margin-bottom:12px}
+
+  /* ---------- today ---------- */
+  .kidhead{display:flex;align-items:center;gap:10px;margin-bottom:3px}
+  .kidhead .av{font-size:24px}
+  .kidhead h3{font-size:19px}
+  .kidhead .when{margin-left:auto;font-size:11px;color:var(--mute)}
+  .metrics{display:flex;gap:18px;margin:12px 0 14px;padding:11px 0;
+           border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .metric .v{font-size:21px;font-weight:600;font-family:'Playfair Display',serif}
+  .metric .k{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);margin-top:1px}
+  .task{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
+  .task:last-child{border-bottom:none}
+  .task .ic{font-size:17px}
+  .task .nm{flex:1;min-width:0}
+  .task .nm b{font-weight:600;font-size:13px;display:block}
+  .task .nm span{font-size:11px;color:var(--mute)}
+  .chipst{font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .st-done{background:rgba(75,182,122,.16);color:var(--green)}
+  .st-low{background:rgba(217,83,79,.16);color:var(--red)}
+  .st-open{background:rgba(224,163,62,.16);color:var(--amber)}
+  .empty{color:var(--mute);font-size:12.5px;padding:14px 0;text-align:center}
+
+  /* ---------- bank ---------- */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 12px}
+  .filters input[type=search]{flex:1;min-width:230px;font-family:inherit;font-size:13.5px;
+        background:var(--card);border:1.5px solid var(--line);border-radius:8px;color:var(--cream);
+        padding:10px 13px;outline:none}
+  .filters input[type=search]:focus{border-color:var(--gold2)}
+  .fchip{font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;border-radius:999px;
+         padding:7px 13px;border:1.5px solid var(--line);background:transparent;color:var(--mute)}
+  .fchip:hover{color:var(--cream);border-color:var(--gold2)}
+  .fchip.on{background:var(--gold2);border-color:var(--gold2);color:var(--ink)}
+  .groupbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .groupbar .spacer{margin-left:auto}
+  details.subj{background:var(--card);border:1px solid var(--line);border-radius:12px;
+               margin-bottom:10px;overflow:hidden}
+  details.subj>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;
+               padding:13px 18px;font-family:'Playfair Display',Georgia,serif;font-size:17px;font-weight:700}
+  details.subj>summary::-webkit-details-marker{display:none}
+  details.subj>summary::before{content:'▸';color:var(--gold2);font-size:13px;transition:transform .12s}
+  details.subj[open]>summary::before{transform:rotate(90deg)}
+  details.subj>summary:hover{background:rgba(42,59,88,.35)}
+  .scount{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:500;color:var(--mute)}
+  .ssel{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;font-weight:600;
+        background:var(--gold2);color:var(--ink);border-radius:999px;padding:1px 8px}
+  .shelf{border-top:1px solid var(--line);padding:2px 18px 6px}
+  .shelfhead{display:flex;align-items:center;gap:12px;padding:11px 0 3px;
+             font-size:12.5px;font-weight:600;color:var(--gold)}
+  .shelfhead label{display:flex;align-items:center;gap:9px;cursor:pointer}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  tbody tr{border-bottom:1px solid rgba(42,59,88,.55)}
+  tbody tr:hover{background:rgba(42,59,88,.3)}
+  tbody tr.sel{background:rgba(201,162,39,.09)}
+  td{padding:9px}
+  td.c{text-align:center}
+  td .t{font-weight:600}
+  td .d{font-size:11px;color:var(--mute);margin-top:2px}
+  td .crumb{font-size:10.5px;color:var(--mute);letter-spacing:.2px}
+  input[type=checkbox]{width:16px;height:16px;accent-color:var(--gold);cursor:pointer}
+  .badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap}
+  .b-quiz{background:rgba(91,143,199,.18);color:var(--blue)}
+  .b-ref{background:rgba(147,162,189,.15);color:var(--mute)}
+  .b-practice{background:rgba(201,162,39,.16);color:var(--gold)}
+  .lock{font-size:11px;color:var(--mute)}
+  tbody tr.arch{opacity:.5}
+  tbody tr.arch:hover{opacity:.85}
+  .b-arch{background:rgba(147,162,189,.13);color:var(--mute);border:1px solid var(--line)}
+  .archnote{font-size:11.5px;color:var(--mute);margin-top:-6px;margin-bottom:10px}
+
+  /* ---------- assign bar ---------- */
+  #assignbar{position:fixed;left:0;right:0;bottom:0;z-index:90;background:var(--ink2);
+             border-top:2px solid var(--gold2);box-shadow:0 -8px 26px rgba(0,0,0,.45)}
+  #assignbar .inner{max-width:1180px;margin:0 auto;padding:13px 20px;
+             display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  #assignbar .n{font-size:14px;font-weight:600}
+  #assignbar .n b{color:var(--gold);font-size:19px;font-family:'Playfair Display',serif}
+  #assignbar label{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute)}
+  #assignbar select,#assignbar input[type=date]{font-family:inherit;font-size:13px;background:var(--card);
+             border:1.5px solid var(--line);border-radius:7px;color:var(--cream);padding:8px 10px;outline:none}
+  #assignbar select:focus,#assignbar input[type=date]:focus{border-color:var(--gold2)}
+  .toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);z-index:120;
+         background:var(--green);color:#05210f;font-weight:600;font-size:13px;
+         padding:11px 20px;border-radius:9px;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+  .toast.bad{background:var(--red);color:#fff}
+  .demo{background:#3a2c12;border:1px solid var(--gold2);color:#e8d9ae;font-size:12.5px;
+        padding:9px 14px;border-radius:8px;margin:16px 0 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .demo .btn{margin-left:auto;padding:6px 14px;font-size:12px}
+
+  /* ---------- focus summary ---------- */
+  .stack{display:flex;height:10px;border-radius:99px;overflow:hidden;background:var(--line)}
+  .stack .on{background:var(--green)}
+  .stack .off{background:var(--amber)}
+  .stacklbl{font-size:11px;color:var(--mute);margin:5px 0 2px}
+  .subhd{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);margin:18px 0 2px}
+  .flagrow{display:flex;gap:11px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+  .flagrow .when,.frow .when{font-size:11px;color:var(--mute);width:44px;flex:0 0 auto}
+  .flagrow .nm{flex:1;min-width:0}
+  .flags span{display:inline-block;background:rgba(224,163,62,.16);color:var(--amber);
+              font-size:10.5px;padding:2px 7px;border-radius:4px;margin:4px 4px 0 0}
+  .frow{padding:10px 0;border-bottom:1px dashed var(--line)}
+  .frow:last-child{border-bottom:none}
+  .ftop{display:flex;gap:11px;align-items:baseline;font-size:12.5px}
+  .ftop .nm{flex:1;min-width:0}
+  .fnum{font-family:'Playfair Display',serif;font-size:15px;font-weight:700}
+  .fmeta{font-size:11px;color:var(--mute);margin:3px 0 0 55px}
+  .qstrip{display:flex;align-items:flex-end;gap:1px;height:36px;margin:8px 0 0 55px;padding-top:6px}
+  .qstrip i{flex:1 1 0;max-width:10px;min-width:2px;background:var(--blue);opacity:.8;
+            border-radius:2px 2px 0 0;position:relative}
+  .qstrip i.miss{background:#e59b98;opacity:1}
+  .qstrip i.slow{background:var(--red);opacity:1}
+  .qstrip i.guess{background:var(--amber);opacity:1}
+  .qstrip i.away::after{content:'';position:absolute;top:-6px;left:50%;width:4px;height:4px;
+                        margin-left:-2px;border-radius:50%;background:var(--cream)}
+  .legend{font-size:11.5px;color:var(--mute);margin-top:14px;line-height:1.8}
+  .legend i{display:inline-block;width:9px;height:12px;border-radius:2px;vertical-align:-1px;margin:0 3px 0 8px}
+
+  /* ---------- history ---------- */
+  .bar{height:7px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:5px}
+  .bar i{display:block;height:100%;border-radius:99px}
+  .hrow2{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px dashed var(--line)}
+  .hrow2 .who{font-size:11px;color:var(--mute);width:64px;flex:0 0 auto}
+  .hrow2 .nm{flex:1;min-width:0;font-size:12.5px}
+  .hrow2 .sc{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;width:52px;text-align:right}
+  .wrongs{margin-top:4px}
+  .wrongs span{display:inline-block;background:rgba(217,83,79,.14);color:#e59b98;
+               font-size:10.5px;padding:2px 7px;border-radius:4px;margin:3px 4px 0 0}
+
+  /* ---------- reading club (layout: homework-system/reading-tab-mockup.html) ---------- */
+  /* Everything is scoped to .rc: .kidhead, .bar and table/td already mean something on the other tabs. */
+  .rc{--faint:#5d6c88}
+  .rc a{color:var(--gold)}
+  .rc .sechead{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:24px 0 4px}
+  .rc .sechead h2{font-size:21px}
+  .rc .range{font-size:12px}
+  .rc .chips{display:flex;gap:6px;margin-left:auto}
+  .rc details.note{color:var(--mute);font-size:12px;margin:2px 0 6px}
+  .rc details.note summary{cursor:pointer;color:var(--gold2);list-style:none;display:inline}
+  .rc details.note summary::-webkit-details-marker{display:none}
+  .rc details.note p{margin-top:6px;max-width:880px;line-height:1.75}
+  .rc details.note b{color:var(--cream);font-weight:600}
+
+  .rkid{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-top:18px;overflow:hidden}
+  .rhead{display:flex;align-items:center;gap:11px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .rhead .av{font-size:26px;line-height:1}
+  .rhead h3{font-size:20px}
+  .rhead .sub{color:var(--mute);font-size:12px}
+  .rhead .link{margin-left:auto;font-size:12px;text-decoration:none}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));overflow:hidden;
+        border-bottom:1px solid var(--line)}
+  /* Hairlines drawn by each tile, so a wrapped last row leaves no coloured gap behind it. */
+  .kpi{padding:12px 18px;min-width:0;box-shadow:1px 0 0 var(--line),0 1px 0 var(--line)}
+  .kpi .v{font:700 19px 'Playfair Display',Georgia,serif;line-height:1.35}
+  .kpi .v small{font:500 11.5px 'IBM Plex Mono',monospace;color:var(--mute);margin-left:3px;white-space:nowrap;display:inline-block}
+  .kpi .k{font-size:10.5px;letter-spacing:1.2px;color:var(--mute);margin-top:1px}
+
+  .rc .tablewrap{overflow-x:auto}
+  .rc table{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}
+  .rc tbody tr{border-bottom:none}
+  .rc tbody tr:hover{background:none}
+  .rc th{font-size:10.5px;letter-spacing:1.2px;color:var(--mute);font-weight:500;text-align:left;text-transform:none;
+         padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;background:rgba(20,32,58,.5)}
+  .rc td{padding:9px 10px;border-bottom:1px solid rgba(42,59,88,.55);white-space:nowrap;vertical-align:middle}
+  .rc th:first-child,.rc td:first-child{padding-left:18px}
+  .rc th.r,.rc td.r{text-align:right}
+  .rc tr.day{cursor:pointer}
+  .rc tr.day:hover td{background:rgba(42,59,88,.32)}
+  .rc tr.day.open td{background:rgba(42,59,88,.45);border-bottom-color:transparent}
+  .rc tr.quiet td{color:var(--faint)}
+  .rc .date b{font-weight:600}
+  .rc .date span{color:var(--mute);font-size:11.5px;margin-left:7px}
+  .rc tr.quiet .date span{color:var(--faint)}
+  .rc .unit{color:var(--gold)}
+  .rc .dots{display:inline-flex;gap:4px}
+  .rc .dot{min-width:26px;height:22px;padding:0 4px;border-radius:5px;font-size:11px;display:inline-flex;
+           align-items:center;justify-content:center;color:var(--faint);border:1px dashed var(--line)}
+  .rc .dot.on{background:rgba(75,182,122,.16);color:var(--green);border:1px solid rgba(75,182,122,.45)}
+  .rc .num{font-weight:600}
+  .rc .ok{color:var(--green)} .rc .low{color:var(--amber)}
+  .rc .muted{color:var(--mute)} .rc .amber{color:var(--amber)}
+  .rc .caret{color:var(--gold2);font-size:11px;display:inline-block;transition:transform .12s}
+  .rc tr.open .caret{transform:rotate(90deg)}
+
+  .rc tr.detail td{background:var(--ink2);padding:14px 22px 18px;white-space:normal;border-bottom:1px solid var(--line)}
+  .rc .dgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:34px}
+  .rc .dh{font-size:10.5px;letter-spacing:1.2px;color:var(--mute);margin-bottom:8px;display:flex;gap:10px}
+  .rc .dh b{color:var(--cream);font-weight:600;letter-spacing:0}
+  /* Fixed value column: every bar in a block is the same length, so the planned-time marks line up. */
+  .rc .brow{display:grid;grid-template-columns:42px minmax(60px,1fr) 196px;gap:12px;align-items:center;font-size:12.5px;margin:6px 0}
+  .rc .brow .lbl{color:var(--mute)}
+  .rc .brow .val{text-align:right;white-space:nowrap}
+  .rbar{height:8px;background:rgba(42,59,88,.8);border-radius:99px;position:relative}
+  .rbar i{position:absolute;left:0;top:0;bottom:0;background:var(--blue);border-radius:99px}
+  .rbar i.over{background:linear-gradient(90deg,var(--blue) 0,var(--blue) calc(100% - 10px),transparent 100%)}
+  .rbar b{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--cream);opacity:.8;border-radius:2px}
+  .rc .hint{font-size:11px;color:var(--faint);margin-top:8px;line-height:1.6}
+  @media(max-width:760px){ .rc .dgrid{grid-template-columns:1fr;gap:18px} .rhead .link{display:none} }
+
+  @media(max-width:700px){
+    .wrap{padding:0 12px}
+    .metrics{gap:12px}
+    td .d{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="eyebrow">Parent Console</div>
+  <h1>家长控制台</h1>
+  <p class="sub">这里可以看到全部题库、派发每日作业、查看两个孩子的完成记录。孩子那边看不到这个页面。</p>
+  <button class="btn solid" id="signin">用 Google 账号登录</button>
+  <div class="err" id="gateerr"></div>
+  <p class="sub" style="opacity:.6">只有家长的 Google 账号能读到数据。</p>
+</div>
+
+<header>
+  <div class="wrap">
+    <div class="hrow">
+      <div>
+        <div class="eyebrow">Parent Console</div>
+        <h1>家长控制台</h1>
+      </div>
+      <div class="spacer"></div>
+      <span class="whoami" id="whoami"></span>
+      <button class="btn ghost" id="reload">刷新</button>
+      <button class="btn ghost" id="lock">退出登录</button>
+    </div>
+    <nav class="tabs">
+      <button class="tab on" data-v="today">今日作业</button>
+      <button class="tab" data-v="bank">题库 <span class="pill" id="bankn"></span></button>
+      <button class="tab" data-v="hist">完成记录</button>
+      <button class="tab" data-v="focus">监视总结</button>
+      <button class="tab" data-v="reading">阅读写作</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="demo" id="demobar" hidden>
+    <b>演示数据</b><span id="demotext"></span>
+    <button class="btn" id="demodel">一键删除</button>
+  </div>
+  <main id="view"></main>
+</div>
+
+<div id="assignbar" hidden><div class="inner">
+  <span class="n">已选 <b id="seln">0</b> 份</span>
+  <label for="asskid">派给</label>
+  <select id="asskid"><option value="grace">👧 Grace</option><option value="warren">👦 Warren</option></select>
+  <label for="assdate">日期</label>
+  <input type="date" id="assdate">
+  <button class="btn solid" id="assgo">派发</button>
+  <button class="btn ghost" id="assclear">取消</button>
+</div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+/* =====================================================================
+   家长控制台
+   登录  : Google 账号。页面里没有口令，也不判断谁是家长 —— 能不能读到数据
+           完全由 Firestore rules 决定（见 HOMEWORK-SYSTEM.md），这里只管登录和显示
+   BANK  : Firestore bank/{docId}，docId = encodeURIComponent(href)
+   ATT   : Firestore attempts，孩子做完卷子写入
+   派作业: Firestore assignments/{uid}/days/{YYYY-MM-DD}
+===================================================================== */
+const firebaseConfig = {
+  apiKey: 'AIzaSyDMKUeccjFtMbotXulnMhYcoykWpw4Y7ls',
+  authDomain: 'family-checklist-acc6b.firebaseapp.com',
+  projectId: 'family-checklist-acc6b',
+  appId: '1:127899043154:web:5a49cce9a1913fbc41e68b'
+};
+// Named app: its sign-in is stored separately, so the checklists' anonymous sign-in
+// (and later the kids' PIN sign-in) on the same site can't log the parent out.
+const app = firebase.initializeApp(firebaseConfig, 'parent');
+const auth = app.auth(), db = app.firestore();
+
+const KID = {
+  grace:  { n:'Grace',  av:'👧', uid:'mbtSDgfFrOOS4xIT3eXr7pETEt33' },
+  warren: { n:'Warren', av:'👦', uid:'paACSAD0W0bBNknKrAf3GfpHy8x1' },
+  both:   { n:'共用',   av:'🧒' }
+};
+const LABEL = { quiz:'可判分', practice:'练习', ref:'参考' };
+const today = new Date(); today.setHours(0,0,0,0);
+// Local date, not toISOString(): that's UTC, which turns into "tomorrow" on a Pacific evening.
+const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pctColor = p => p==null || p>=80 ? 'var(--green)' : 'var(--red)';
+const pctText = p => p==null ? '✓' : p+'%';
+
+let BANK = [], BANK_BY_ID = {}, ATT = [], ASSIGN = { grace:[], warren:[] };
+
+const dayRef = (k, d) => db.doc(`assignments/${KID[k].uid}/days/${d}`);
+const kidOf = uid => Object.keys(KID).find(k => KID[k].uid === uid);
+
+function toAtt(doc){
+  const a = doc.data(), kid = kidOf(a.kidId);
+  if(!kid) return null;
+  const b = BANK_BY_ID[a.itemId] || {};
+  const when = a.submittedAt && a.submittedAt.toDate ? a.submittedAt.toDate() : null;
+  // practice / ref pages report completion, not a score — pct stays null for those
+  const pct = typeof a.pct==='number' ? a.pct : a.total ? Math.round(100*a.score/a.total) : null;
+  return { kid, id:a.itemId, t:a.t||b.t||a.itemId, subj:b.subj||'', book:b.book||'',
+           pct, secs:a.secs||0, date: when ? iso(when) : '',
+           activeSecs: typeof a.activeSecs==='number' ? a.activeSecs : null,
+           focus: a.focus || null, qTimes: a.qTimes || [],
+           demo: a._demo===true, ref: doc.ref };   // _demo: preview data from demo-data.mjs
+}
+
+async function loadAll(){
+  const [bankSnap, attSnap, gDay, wDay] = await Promise.all([
+    db.collection('bank').get(),
+    // A family writes a handful a day, so fetch them all: "最近一次" needs more than three weeks.
+    db.collection('attempts').orderBy('submittedAt','desc').get(),
+    dayRef('grace', iso(today)).get(),
+    dayRef('warren', iso(today)).get()
+  ]);
+  const col = new Intl.Collator('zh', { numeric:true });
+  BANK = bankSnap.docs.map(d => Object.assign({ docId:d.id }, d.data()))
+    .sort((a,b) => col.compare(a.subj,b.subj) || col.compare(a.book||'',b.book||'') || col.compare(a.t,b.t));
+  BANK_BY_ID = Object.fromEntries(BANK.map(b => [b.docId, b]));
+  ATT = attSnap.docs.map(toAtt).filter(Boolean);
+  ASSIGN.grace = (gDay.data()||{}).items || [];
+  ASSIGN.warren = (wDay.data()||{}).items || [];
+}
+
+const attFor = id => ATT.filter(a => a.id===id);   // ATT is already newest-first
+
+/* ===================== TODAY ===================== */
+function viewToday(){
+  const day = iso(today);
+  let html = `<h2 class="sec">今天 · ${day}</h2>
+    <p class="seclead">孩子登录后只看得到这里派的内容，看不到题库本身。</p><div class="grid2">`;
+  ['grace','warren'].forEach(k=>{
+    const list = ASSIGN[k];
+    const done = list.map(it=>ATT.find(a=>a.kid===k&&a.id===it.id&&a.date===day)).filter(Boolean);
+    const quizzes = list.filter(it=>it.type==='quiz');
+    const scored = done.filter(a=>a.pct!=null);
+    const avg = scored.length ? Math.round(scored.reduce((s,a)=>s+a.pct,0)/scored.length) : null;
+    html += `<div class="card"><div class="kidhead"><span class="av">${KID[k].av}</span>
+      <h3>${KID[k].n}</h3><span class="when">${list.length?'已派 '+list.length+' 份':'今天还没派'}</span></div>
+      <div class="metrics">
+        <div class="metric"><div class="v">${done.length}/${list.length}</div><div class="k">完成</div></div>
+        <div class="metric"><div class="v">${quizzes.reduce((s,it)=>s+(it.n||0),0)}</div><div class="k">题目数</div></div>
+        <div class="metric"><div class="v">${list.length-quizzes.length}</div><div class="k">练习/参考</div></div>
+        <div class="metric"><div class="v" style="color:${avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</div><div class="k">平均分</div></div>
+      </div>`;
+    if(!list.length){
+      html += `<p class="empty">到「题库」勾选几份，再派给 ${KID[k].n}。</p>`;
+    } else {
+      list.forEach(it=>{
+        const a = done.find(x=>x.id===it.id);
+        const st = !a ? `<span class="chipst st-open">未开始</span>`
+          : `<span class="chipst ${a.pct==null||a.pct>=80?'st-done':'st-low'}">${a.pct==null?'✓ 完成':a.pct+'%'}</span>`;
+        html += `<div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
+          <b>${esc(it.t)}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
+          </span>${st}</div>`;
+      });
+    }
+    html += `</div>`;
+  });
+  return html + `</div>`;
+}
+
+/* ===================== BANK ===================== */
+let F = { q:'', kid:'all', type:'all', arch:'active' }, SEL = new Set();
+// Same running order as the Quizzes hub (Quizzes/index.html SUBJ_ORDER); unknown subjects go last.
+const SUBJ_ORDER = ['📖 Reading','📝 SSAT','🔤 Vocabulary','🧮 Math','🧮 Algebra','✍️ Writing · Reflection',
+                    '🧠 Big Ideas · concept exams','📚 中文 Chinese','🍁 More'];
+const OPEN = new Set();   // subjects the parent has expanded; everything starts folded
+
+function bankRows(){
+  const q = F.q.trim().toLowerCase();
+  return BANK.filter(b=>{
+    if(F.kid!=='all' && b.kid!==F.kid && b.kid!=='both') return false;
+    if(F.type!=='all' && b.type!==F.type) return false;
+    if(F.arch==='active' && b.archived) return false;
+    if(F.arch==='archived' && !b.archived) return false;
+    if(q && !(b.t+' '+b.d+' '+b.subj+' '+b.book+' '+b.href).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+function viewBank(){
+  const rows = bankRows();
+  const nAct = BANK.filter(b=>!b.archived).length;
+  let html = `<h2 class="sec">题库 · 在用 ${nAct} · 已归档 ${BANK.length-nAct}</h2>
+    <p class="seclead">全部 ${BANK.length} 份都在这里，只有这个页面看得到。勾选后在底部派给孩子。<br>
+      <b style="color:var(--blue)">可判分</b> 做完自动出分 ·
+      <b style="color:var(--gold)">练习</b> 闯关式，回传完成度 ·
+      <b style="color:var(--mute)">参考</b> 只记看过没看过</p>
+    <div class="filters">
+      <input type="search" id="bq" placeholder="搜书名、章节、科目、文件名…" value="${esc(F.q)}">
+      ${[['all','全部'],['grace','👧 Grace'],['warren','👦 Warren']].map(([v,l])=>
+        `<button class="fchip${F.kid===v?' on':''}" data-f="kid" data-v="${v}">${l}</button>`).join('')}
+      ${[['all','不限'],['quiz','可判分'],['practice','练习'],['ref','参考']].map(([v,l])=>
+        `<button class="fchip${F.type===v?' on':''}" data-f="type" data-v="${v}">${l}</button>`).join('')}
+      ${[['active','在用'],['all','含已归档'],['archived','只看归档']].map(([v,l])=>
+        `<button class="fchip${F.arch===v?' on':''}" data-f="arch" data-v="${v}">${l}</button>`).join('')}
+    </div>
+    <div class="seclead groupbar">${rows.length} 条${F.q?` 匹配「${esc(F.q)}」`:''}
+      <span class="spacer"></span>
+      <button class="fchip" data-act="expand">全部展开</button>
+      <button class="fchip" data-act="collapse">全部收起</button></div>
+    <p class="archnote">归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。</p>`;
+  if(!rows.length) return html + `<p class="empty">没有匹配的内容。</p>`;
+
+  // subject → book shelf → items. rows are already sorted by subject, book, title, so Map
+  // insertion order puts loose items (no book) first, then the shelves A→Z.
+  const bySubj = new Map();
+  rows.forEach(b=>{
+    if(!bySubj.has(b.subj)) bySubj.set(b.subj, new Map());
+    const shelves = bySubj.get(b.subj), key = b.book || '';
+    if(!shelves.has(key)) shelves.set(key, []);
+    shelves.get(key).push(b);
+  });
+  const rank = s => { const i = SUBJ_ORDER.indexOf(s); return i < 0 ? 99 : i; };
+  const searching = F.q.trim() !== '';
+
+  [...bySubj.keys()].sort((a,b)=>rank(a)-rank(b)).forEach(subj=>{
+    const shelves = bySubj.get(subj);
+    const items = [...shelves.values()].flat();
+    const nSel = items.filter(b=>SEL.has(b.docId)).length;
+    html += `<details class="subj" data-subj="${esc(subj)}"${searching||OPEN.has(subj)?' open':''}>
+      <summary><span class="sname">${esc(subj)}</span><span class="scount">${items.length} 份</span>
+        ${nSel?`<span class="ssel">已选 ${nSel}</span>`:''}</summary>`;
+    shelves.forEach((list, book)=>{
+      html += `<div class="shelf">`;
+      if(book){
+        const all = list.every(b=>SEL.has(b.docId));
+        html += `<div class="shelfhead"><label><input type="checkbox" class="selall"${all?' checked':''}
+            data-ids="${esc(list.map(b=>b.docId).join(' '))}"> ${esc(book)}</label>
+          <span class="scount">${list.length} 份 · 勾这里整组选</span></div>`;
+      }
+      html += `<table><tbody>`;
+      list.forEach(b=>{
+        const h = attFor(b.docId)[0];
+        const last = h ? `<span style="color:${pctColor(h.pct)};font-weight:600">${pctText(h.pct)}</span>
+                          <div class="crumb">${h.date.slice(5)}</div>` : `<span class="lock">没做过</span>`;
+        const kid = KID[b.kid] || KID.both;
+        html += `<tr class="${SEL.has(b.docId)?'sel':''}${b.archived?' arch':''}">
+          <td class="c" style="width:34px"><input type="checkbox" class="pick" ${SEL.has(b.docId)?'checked':''} data-id="${esc(b.docId)}"></td>
+          <td><div class="t">${esc(b.ic)} ${esc(b.t)}</div><div class="d">${esc(b.d)}</div></td>
+          <td class="crumb" style="width:92px">${kid.av} ${kid.n}</td>
+          <td class="c crumb" style="width:64px">${b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '—'}</td>
+          <td class="c" style="width:82px"><span class="badge b-${esc(b.type)}">${LABEL[b.type]||esc(b.type)}</span>
+              ${b.archived?'<div style="margin-top:4px"><span class="badge b-arch">已归档</span></div>':''}</td>
+          <td class="c" style="width:90px">${last}</td></tr>`;
+      });
+      html += `</tbody></table></div>`;
+    });
+    html += `</details>`;
+  });
+  return html;
+}
+
+/* ===================== HISTORY ===================== */
+function viewHist(){
+  const since = new Date(today); since.setDate(since.getDate()-21);
+  const sinceIso = iso(since);
+  let html = `<h2 class="sec">完成记录</h2><p class="seclead">最近三周，按孩子分。低于 80% 的标红。</p><div class="grid2">`;
+  ['grace','warren'].forEach(k=>{
+    const mine = ATT.filter(a=>a.kid===k && a.date>=sinceIso);
+    const scored = mine.filter(a=>a.pct!=null);
+    const avg = scored.length ? Math.round(scored.reduce((s,a)=>s+a.pct,0)/scored.length) : null;
+    const weak = {};
+    scored.filter(a=>a.pct<80).forEach(a=>{ const key=a.book||a.subj||a.t; weak[key]=(weak[key]||0)+1; });
+    const weakTop = Object.entries(weak).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    html += `<div class="card"><div class="kidhead"><span class="av">${KID[k].av}</span><h3>${KID[k].n}</h3>
+        <span class="when">${mine.length} 次</span></div>
+      <div class="metrics">
+        <div class="metric"><div class="v" style="color:${avg==null?'var(--mute)':avg>=80?'var(--green)':'var(--amber)'}">${avg==null?'—':avg+'%'}</div><div class="k">平均</div></div>
+        <div class="metric"><div class="v">${scored.filter(a=>a.pct>=80).length}</div><div class="k">达标</div></div>
+        <div class="metric"><div class="v" style="color:var(--red)">${scored.filter(a=>a.pct<80).length}</div><div class="k">未达标</div></div>
+        <div class="metric"><div class="v">${dur(mine.reduce((s,a)=>s+a.secs,0))}</div><div class="k">总时长</div></div>
+      </div>`;
+    if(weakTop.length){
+      html += `<div style="font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);margin-bottom:2px">薄弱集中在</div>
+        <div class="wrongs">${weakTop.map(([n,c])=>`<span>${esc(n)} ×${c}</span>`).join('')}</div>
+        <div style="height:12px"></div>`;
+    }
+    mine.slice(0,8).forEach(a=>{
+      html += `<div class="hrow2"><span class="who">${a.date.slice(5)}</span>
+        <span class="nm">${esc(a.t)}<div class="bar"><i style="width:${a.pct==null?100:a.pct}%;background:${pctColor(a.pct)}"></i></div></span>
+        <span class="sc" style="color:${pctColor(a.pct)}">${pctText(a.pct)}</span></div>`;
+    });
+    if(!mine.length) html += `<p class="empty">还没有记录。</p>`;
+    html += `</div>`;
+  });
+  return html+`</div>`;
+}
+
+/* ===================== FOCUS (监视总结) ===================== */
+// A web page sees the page leave the foreground (another app, another tab, screen locked),
+// never which app. HOMEWORK-SYSTEM.md §五.
+let FR = 7;   // days shown
+const FOCUS = {
+  awayCount: 3,     // flag a paper that left the page this many times
+  awayShare: 0.2,   // … or spent this share of its time off the page
+  longAway: 60,     // … or had one absence this long (s)
+  slowMin: 60,      // a question is "slow" at ≥ this many seconds on the page
+  slowX: 3,         // … and ≥ this many times the paper's median
+  guessSecs: 3,     // a wrong answer faster than this looks like a guess
+  attnSlow: 3,      // "需要留意" only for ≥ this many slow questions (one slow question is normal)
+  attnGuess: 2      // … or ≥ this many fast wrong answers; any page-leaving flag always counts
+};
+// The one duration style for the whole console: always Chinese units, never a colon —
+// "1:59" meant 1 min 59 s but read like 1 h 59 min. Clock times (19:02–20:14) keep the colon.
+//   < 1 min → 45 秒 · < 10 min → 1 分 59 秒 · < 1 h → 25 分钟 · ≥ 1 h → 1 小时 3 分钟
+const dur = s => {
+  s = Math.max(0, Math.round(s||0));
+  if(s < 60) return s+' 秒';
+  if(s < 600){ const m = Math.floor(s/60), r = s%60; return r ? `${m} 分 ${r} 秒` : `${m} 分钟`; }
+  const m = Math.round(s/60);
+  return m < 60 ? m+' 分钟' : Math.floor(m/60)+' 小时'+(m%60 ? ' '+(m%60)+' 分钟' : '');
+};
+
+function readFocus(a){
+  const f = a.focus || {};
+  const secs = a.secs || 0, awaySecs = f.awaySecs || 0;
+  const active = a.activeSecs!=null ? a.activeSecs : Math.max(0, secs-awaySecs);
+  const qs = a.qTimes.map(q=>({ q:q.q, active:Math.max(0,(q.secs||0)-(q.awaySecs||0)),
+                                away:q.awaySecs||0, correct:q.correct }));
+  const sorted = qs.map(q=>q.active).sort((x,y)=>x-y);
+  const med = sorted.length ? sorted[Math.floor(sorted.length/2)] : 0;
+  const slowAt = Math.max(FOCUS.slowMin, FOCUS.slowX*med);
+  qs.forEach(q=>{ q.slow = q.active>=slowAt; q.guess = q.correct===false && q.active<FOCUS.guessSecs; });
+  const flags = [];
+  if((f.awayCount||0) >= FOCUS.awayCount) flags.push(`离开页面 ${f.awayCount} 次`);
+  if(secs && awaySecs/secs >= FOCUS.awayShare) flags.push(`${Math.round(100*awaySecs/secs)}% 时间不在页面`);
+  if((f.maxAwaySecs||0) >= FOCUS.longAway) flags.push(`最长一次离开 ${dur(f.maxAwaySecs)}`);
+  const awayFlagged = flags.length > 0;
+  const nSlow = qs.filter(q=>q.slow).length, nGuess = qs.filter(q=>q.guess).length;
+  if(nSlow) flags.push(`${nSlow} 道慢题`);
+  if(nGuess) flags.push(`${nGuess} 道不到 ${FOCUS.guessSecs} 秒就答错`);
+  const attention = awayFlagged || nSlow >= FOCUS.attnSlow || nGuess >= FOCUS.attnGuess;
+  return { secs, active, awaySecs, awayCount:f.awayCount||0, maxAway:f.maxAwaySecs||0, qs, med, flags, attention };
+}
+
+function viewFocus(){
+  const since = new Date(today); since.setDate(since.getDate()-(FR-1));
+  const sinceIso = iso(since);
+  let html = `<h2 class="sec">监视总结</h2>
+    <p class="seclead">做题时页面在不在前台、一共用了多久、每道题停留多久。<br>
+      ⚠️ 网页只知道<b>页面离开了前台</b>（切到别的 APP、别的标签页或锁屏），<b>不知道切去了哪个 APP</b>。
+      离开可能是去查字典或被叫去吃饭，页面开着也不代表人在做题 —— 这是参考，不是判决书。
+      要限制 APP，用 iPad 的「屏幕使用时间」或「引导式访问」。</p>
+    <div class="filters">${[[1,'今天'],[7,'近 7 天'],[21,'近 21 天']].map(([v,l])=>
+      `<button class="fchip${FR===v?' on':''}" data-fr="${v}">${l}</button>`).join('')}</div>
+    <div class="grid2">`;
+
+  ['grace','warren'].forEach(k=>{
+    const mine = ATT.filter(a=>a.kid===k && a.date>=sinceIso).map(a=>Object.assign({ f:readFocus(a) }, a));
+    const T = mine.reduce((s,a)=>({ secs:s.secs+a.f.secs, active:s.active+a.f.active, away:s.away+a.f.awaySecs,
+                                    n:s.n+a.f.awayCount, max:Math.max(s.max,a.f.maxAway) }),
+                          { secs:0, active:0, away:0, n:0, max:0 });
+    const share = T.secs ? Math.round(100*T.active/T.secs) : null;
+    const shareCol = share==null ? 'var(--mute)' : share>=90 ? 'var(--green)' : share>=75 ? 'var(--amber)' : 'var(--red)';
+    html += `<div class="card"><div class="kidhead"><span class="av">${KID[k].av}</span><h3>${KID[k].n}</h3>
+        <span class="when">${mine.length} 次</span></div>
+      <div class="metrics">
+        <div class="metric"><div class="v">${dur(T.secs)}</div><div class="k">学习时长</div></div>
+        <div class="metric"><div class="v" style="color:${shareCol}">${share==null?'—':share+'%'}</div><div class="k">在页面上</div></div>
+        <div class="metric"><div class="v" style="color:${T.n?'var(--amber)':'var(--cream)'}">${T.n}</div><div class="k">离开次数</div></div>
+        <div class="metric"><div class="v">${T.max?dur(T.max):'—'}</div><div class="k">最长离开</div></div>
+      </div>`;
+    if(!mine.length){ html += `<p class="empty">这段时间没有做题记录。</p></div>`; return; }
+
+    html += `<div class="stack"><i class="on" style="width:${share}%"></i><i class="off" style="width:${100-share}%"></i></div>
+      <div class="stacklbl">在页面上 ${dur(T.active)} · 不在页面 ${dur(T.away)}</div>`;
+
+    const flagged = mine.filter(a=>a.f.attention);
+    html += `<div class="subhd">需要留意 · ${flagged.length} 份</div>`;
+    html += flagged.length ? flagged.map(a=>`<div class="flagrow"><span class="when">${a.date.slice(5)}</span>
+        <span class="nm">${esc(a.t)}<div class="flags">${a.f.flags.map(x=>`<span>${esc(x)}</span>`).join('')}</div></span></div>`).join('')
+      : `<p class="empty" style="padding:8px 0">都挺专心，没有要特别留意的。</p>`;
+
+    html += `<div class="subhd">每份用时 · 每题停留</div>`;
+    mine.forEach(a=>{
+      const f = a.f, maxQ = Math.max(1, ...f.qs.map(q=>q.active));
+      const slowest = f.qs.reduce((m,q)=>!m||q.active>m.active?q:m, null);
+      html += `<div class="frow"><div class="ftop"><span class="when">${a.date.slice(5)}</span>
+          <span class="nm">${esc(a.t)}</span><span class="fnum">${dur(f.secs)}</span></div>
+        <div class="fmeta">在页面上 ${dur(f.active)} · 离开 ${f.awayCount} 次${f.awaySecs?`（共 ${dur(f.awaySecs)}）`:''}${
+          f.qs.length?` · 每题中位 ${dur(f.med)} · 最慢第 ${slowest.q} 题 ${dur(slowest.active)}`:''}</div>
+        ${f.qs.length ? `<div class="qstrip">${f.qs.map(q=>`<i class="${q.slow?'slow':q.guess?'guess':q.correct===false?'miss':''}${q.away?' away':''}"
+            style="height:${Math.max(8,Math.round(100*q.active/maxQ))}%"
+            title="第 ${q.q} 题 · ${dur(q.active)}${q.away?' · 中途离开 '+dur(q.away):''}${q.correct===false?' · 答错':''}"></i>`).join('')}</div>`
+          : `<div class="fmeta" style="opacity:.7">练习 / 参考类，没有逐题记录</div>`}
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  return html + `</div>
+    <div class="legend">每题小条：高度 = 这道题在页面上停留的时间（鼠标停在条上看具体秒数）
+      <br><i style="background:var(--blue)"></i>正常 <i style="background:#e59b98"></i>答错
+      <i style="background:var(--red)"></i>慢题（≥ ${FOCUS.slowMin} 秒且 ≥ 本卷中位数 ${FOCUS.slowX} 倍）
+      <i style="background:var(--amber)"></i>不到 ${FOCUS.guessSecs} 秒就答错（可能是蒙的）
+      · 条上方有小白点 = 做这题时离开过页面</div>`;
+}
+
+/* ===================== READING CLUB (阅读写作) ===================== */
+// The data lives in Reading Club (英文阅读写作助手: Vercel + Supabase); this tab only reads its
+// /api/parent-feed. That endpoint reads the database and nothing else — no grading, no cost.
+// Auth is this page's Firebase Google sign-in: the server checks the signature, the parent email,
+// and that the same email is a guardian over there. See HOMEWORK-SYSTEM.md §十.
+// Wording follows Reading Club's own parent page: 「离开 N 次」, never 「走神」; no focus %; these
+// numbers stay out of 监视总结's 需要留意 list (an iPad lock screen counts as leaving).
+const READING = 'https://reading-app-delta-seven.vercel.app';
+let RD = { days:7, data:null, err:'', loading:false, want:0, open:{} };   // open: day rows the parent unfolded / folded
+const WD = ['日','一','二','三','四','五','六'];
+const wdOf = ymd => WD[new Date(ymd+'T12:00:00').getDay()];
+// Minutes are rounded on the server; a 20-second visit arrives as 0, which reads like "never there".
+const mins = m => m ? dur(m*60) : '不到 1 分钟';
+
+async function loadReading(){
+  const user = auth.currentUser;
+  if(!user) return;
+  const want = RD.days;
+  RD.want = want; RD.loading = true; RD.err = '';
+  let data = null, err = '';
+  try {
+    const token = await user.getIdToken();
+    const res = await fetch(`${READING}/api/parent-feed?days=${want}`,
+                            { headers:{ Authorization:'Bearer '+token }, cache:'no-store' });
+    const body = await res.json().catch(()=>null);
+    if(res.ok && body && body.ok) data = body;
+    else err = res.status===401 || res.status===403
+      ? `Reading Club 不认这个账号（${body&&body.why || res.status}）。`
+      : `Reading Club 返回错误：${body&&body.why || 'HTTP '+res.status}`;
+  } catch(e){
+    // A missing route comes back without CORS headers, so it lands here too, not as a 404.
+    err = `连不上 Reading Club（接口还没部署，或者网络断了）：${e.message||e}。其他标签不受影响。`;
+  }
+  if(RD.want !== want) return;   // the parent switched range while this was in flight
+  RD.data = data; RD.err = err; RD.loading = false;
+  if(V==='reading') render();
+}
+
+// Layout agreed from homework-system/reading-tab-mockup.html (2026-09-13): kids stacked, one summary row
+// each, one aligned row per day, the per-page / timer detail folded into a click-to-open row.
+const TASK_SHORT = { words:'词', check:'测', write:'写' };
+// Under 80% right is marked amber — a nudge to look, not an alert; it stays out of 需要留意 like the rest.
+const frac = (c,t) => `<span class="num ${c/t>=0.8?'ok':'low'}">${c}/${t}</span>`;
+const mmdd = ymd => ymd.slice(5).replace('-','/');
+
+function viewReading(){
+  let html = `<div class="rc"><div class="sechead">
+      <h2>阅读写作 · Reading Club</h2>
+      <span class="muted range">${RD.data?`${mmdd(RD.data.from)} – ${mmdd(RD.data.to)}`:''}</span>
+      <div class="chips">${[[1,'今天'],[7,'近 7 天'],[21,'近 21 天']].map(([v,l])=>
+        `<button class="fchip${RD.days===v?' on':''}" data-rd="${v}">${l}</button>`).join('')}</div>
+    </div>
+    <details class="note"><summary>ⓘ 这些数字怎么读</summary>
+      <p><b>在页</b> = 页面在前台的时间，不等于在读；<b>离开</b> = 页面不在前台了几次（锁屏、屏幕变暗、被叫走都算），不是走神几次。
+      这里不算专注度百分比，也不进「监视总结」的需要留意。
+      阅读是在纸上读的：每天只算<b>词 / 测验 / 写</b>三件事，也不报阅读页的时长。<b>计时</b>从打开那一页算起、中途不暂停，页面忘了关会显示得很长。
+      测验、单词答对不到 80% 标黄。作文原文和批改在 <a href="${READING}/family" target="_blank" rel="noopener">Reading Club 家长页</a>看。</p>
+    </details>`;
+
+  if(RD.err) return html + `<p class="empty" style="color:var(--red)">${esc(RD.err)}</p>
+    <p style="text-align:center"><button class="btn" data-rdretry>重试</button></p></div>`;
+  const F = RD.data;
+  if(!F) return html + `<p class="empty">正在从 Reading Club 取数据…</p></div>`;
+  if(!F.kids.length) return html + `<p class="empty">Reading Club 里这个账号名下没有孩子。</p></div>`;
+  return html + F.kids.map(kid=>readingKid(kid, F)).join('') + `</div>`;
+}
+
+function readingKid(kid, F){
+  const key = Object.keys(KID).find(k=>KID[k].n.toLowerCase()===String(kid.name).toLowerCase());
+  const days = kid.days, tracked = days.filter(d=>d.tracked);
+  const sum = f => days.reduce((s,d)=>s+(f(d)||0),0);
+  const full = days.filter(d=>d.tasks.every(t=>t.done)).length;
+  const opened = days.filter(d=>d.time || d.tasks.some(t=>t.done)).length;
+  const qc = sum(d=>d.quiz&&d.quiz.correct), qt = sum(d=>d.quiz&&d.quiz.total);
+  const wc = sum(d=>d.words&&d.words.correct), wt = sum(d=>d.words&&d.words.total);
+  const essays = days.filter(d=>d.writing).length, words = sum(d=>d.writing&&d.writing.words);
+  const paste = F.showPaste ? sum(d=>d.pasteChars) : null;
+  const unit = [...days].reverse().find(d=>d.unitNo);
+
+  let h = `<section class="rkid">
+    <div class="rhead"><span class="av">${key?KID[key].av:'🧒'}</span><div><h3>${esc(kid.name)}</h3>
+      <div class="sub">${unit?`最近在做 第 ${unit.unitNo} 章`:'这段时间没有打卡'}</div></div>
+      <a class="link" href="${READING}/family" target="_blank" rel="noopener">作文和批改 → Reading Club</a></div>
+    <div class="kpis">
+      <div class="kpi"><div class="v"><span style="white-space:nowrap">${full}<small>/ ${days.length} 天</small></span><small>· 打开 ${opened} 天</small></div><div class="k">三件全做完</div></div>
+      <div class="kpi"><div class="v">${tracked.length?dur(sum(d=>d.time&&d.time.activeMin)*60):'—'}</div><div class="k">在页时长</div></div>
+      <div class="kpi"><div class="v">${tracked.length?sum(d=>d.time&&d.time.blurCount):'—'}<small>次</small></div><div class="k">离开</div></div>
+      <div class="kpi"><div class="v">${qt?`${qc}<small>/ ${qt}</small>`:'—'}</div><div class="k">测验答对</div></div>
+      <div class="kpi"><div class="v">${wt?`${wc}<small>/ ${wt}</small>`:'—'}</div><div class="k">单词答对</div></div>
+      <div class="kpi"><div class="v">${essays?`${words}<small>词 · ${essays} 篇</small>`:'—'}</div><div class="k">写作</div></div>
+      ${paste==null?'':`<div class="kpi"><div class="v ${paste?'amber':''}">${paste}<small>字</small></div><div class="k">粘贴</div></div>`}
+    </div>
+    <div class="tablewrap"><table><thead><tr>
+      <th>日期</th><th>章</th><th>三件事</th><th class="r">在页</th><th class="r">离开</th>
+      <th class="r">测验</th><th class="r">单词</th><th class="r">写作</th>${F.showPaste?'<th class="r">粘贴</th>':''}<th></th>
+    </tr></thead><tbody>`;
+
+  // By default only the most recent day with a visit is unfolded; a parent's own clicks win after that.
+  const firstActive = [...days].reverse().find(d=>d.time);
+  [...days].reverse().forEach(d=>{
+    const did = d.time || d.tasks.some(t=>t.done) || d.quiz || d.words || d.writing;
+    const id = `${kid.name}-${d.day}`;
+    const hasDetail = d.time || (d.timers && d.timers.length);
+    const open = hasDetail && (id in RD.open ? RD.open[id] : d === firstActive);
+    h += `<tr class="day${did?'':' quiet'}${open?' open':''}" data-id="${esc(id)}">
+      <td class="date"><b>${mmdd(d.day)}</b><span>周${wdOf(d.day)}</span></td>
+      <td>${d.unitNo?`<span class="unit">第 ${d.unitNo} 章</span>`:'<span class="muted">—</span>'}</td>
+      <td><span class="dots">${d.tasks.map(t=>`<span class="dot${t.done?' on':''}" title="${esc(t.zh)}">${TASK_SHORT[t.task]||esc(t.zh)}</span>`).join('')}</span></td>
+      <td class="r">${!d.tracked?'<span class="muted">还没有记录</span>':d.time?mins(d.time.activeMin):(did?'—':'没打开')}</td>
+      <td class="r">${d.time?`${d.time.blurCount} 次`:'—'}</td>
+      <td class="r">${d.quiz?frac(d.quiz.correct,d.quiz.total)+(d.quiz.tries>1?` <span class="muted" title="做了 ${d.quiz.tries} 次，取最好的一次">×${d.quiz.tries}</span>`:''):'—'}</td>
+      <td class="r">${d.words?frac(d.words.correct,d.words.total):'—'}</td>
+      <td class="r">${d.writing?`${d.writing.words} 词`:'—'}</td>
+      ${F.showPaste?`<td class="r">${d.pasteChars?`<span class="amber">${d.pasteChars} 字</span>`:'—'}</td>`:''}
+      <td class="r">${hasDetail?'<span class="caret">▶</span>':''}</td></tr>`;
+    if(hasDetail) h += readingDetail(d, id, open, F);
+  });
+  return h + `</tbody></table></div></section>`;
+}
+
+function readingDetail(d, id, open, F){
+  const cols = F.showPaste ? 10 : 9;
+  const pmax = Math.max(1, ...d.pages.map(p=>p.activeMin));
+  const pages = d.pages.length ? d.pages.map(p=>`<div class="brow"><span class="lbl">${esc(p.zh)}</span>
+      <span class="rbar"><i style="width:${Math.max(3,Math.round(100*p.activeMin/pmax))}%"></i></span>
+      <span class="val">${mins(p.activeMin)}${p.blurCount?` <span class="muted">· 离开 ${p.blurCount}</span>`:''}</span></div>`).join('')
+    : '<div class="muted" style="font-size:12.5px">没有各页记录</div>';
+
+  // null = that day predates the timer feature (timerSince), which is not the same as "no timer that day".
+  const timers = d.timers || [];
+  // Every bar is scaled to twice the planned time; anything longer is capped and fades out.
+  const tim = d.timers==null ? `<div class="muted" style="font-size:12.5px">这天还没有计时功能（${F.timerSince} 起）</div>`
+    : timers.length ? timers.map(x=>{
+      if(!x.on) return `<div class="brow"><span class="lbl">${esc(x.zh)}</span><span class="muted" style="font-size:12px">没记到钟</span><span></span></div>`;
+      const cap = x.plannedMin*2, w = cap ? Math.min(100, Math.round(100*x.usedMin/cap)) : 100, over = x.usedMin > cap;
+      return `<div class="brow"><span class="lbl">${esc(x.zh)}</span>
+        <span class="rbar"><i class="${over?'over':''}" style="width:${Math.max(3,w)}%"></i><b style="left:50%"></b></span>
+        <span class="val">${dur(x.usedMin*60)} <span class="muted">/ 定 ${mins(x.plannedMin)}</span></span></div>`;
+    }).join('') : '<div class="muted" style="font-size:12.5px">这天没有计时</div>';
+
+  return `<tr class="detail" data-for="${esc(id)}"${open?'':' hidden'}><td colspan="${cols}"><div class="dgrid">
+      <div><div class="dh">各页停留${d.time?` <b>时段 ${d.time.from}–${d.time.to}</b>`:''}</div>${pages}
+        ${d.time&&d.time.blurMin?`<div class="hint">离开一共 ${mins(d.time.blurMin)}</div>`:''}
+        ${d.writing&&d.writing.typedMin!=null?`<div class="hint">作文打字 ${mins(d.writing.typedMin)}</div>`:''}</div>
+      <div><div class="dh">计时 · 用了多久 / 定了多久</div>${tim}
+        <div class="hint">白线 = 定的时间。条画到定的 2 倍为止，更长的会淡出 —— 多半是页面开着没关。</div></div>
+    </div></td></tr>`;
+}
+
+/* ===================== wiring ===================== */
+let V = 'today';
+const viewEl = document.getElementById('view');
+const bar = document.getElementById('assignbar');
+
+function render(){
+  viewEl.innerHTML = V==='today'?viewToday() : V==='bank'?viewBank() : V==='hist'?viewHist()
+                   : V==='reading'?viewReading() : viewFocus();
+  if(V==='focus'){
+    viewEl.querySelectorAll('.fchip[data-fr]').forEach(c=>c.addEventListener('click',()=>{
+      FR = Number(c.dataset.fr); render(); }));
+  }
+  if(V==='reading'){
+    viewEl.querySelectorAll('.fchip[data-rd]').forEach(c=>c.addEventListener('click',()=>{
+      RD.days = Number(c.dataset.rd); RD.data = null; RD.err = ''; render(); }));
+    // Reading Club (or Supabase behind it) can hiccup for a moment; retry without reloading every tab.
+    viewEl.querySelectorAll('[data-rdretry]').forEach(b=>b.addEventListener('click',()=>{
+      RD.data = null; RD.err = ''; render(); }));
+    // Toggle in place (no re-render), and remember it so switching tabs doesn't fold it back.
+    viewEl.querySelectorAll('.rc tr.day').forEach(tr=>tr.addEventListener('click',()=>{
+      const det = viewEl.querySelector(`tr.detail[data-for="${CSS.escape(tr.dataset.id)}"]`);
+      if(!det) return;
+      det.hidden = !det.hidden; tr.classList.toggle('open', !det.hidden);
+      RD.open[tr.dataset.id] = !det.hidden; }));
+    // Fetched lazily: Reading Club being down must never block the other four tabs.
+    if(!RD.data && !RD.err && !RD.loading) loadReading();
+  }
+  document.getElementById('bankn').textContent = BANK.length;
+  const nDemo = ATT.filter(a=>a.demo).length;
+  document.getElementById('demobar').hidden = !nDemo;
+  document.getElementById('demotext').textContent =
+    `现在有 ${nDemo} 条假成绩（只为看效果），完成记录、今日作业和孩子页面里都会显示。`;
+  bar.hidden = !(V==='bank' && SEL.size);
+  document.getElementById('seln').textContent = SEL.size;
+  if(V==='bank'){
+    const bq = document.getElementById('bq');
+    bq.addEventListener('input', ()=>{ F.q=bq.value; const p=bq.selectionStart; render();
+      const n=document.getElementById('bq'); n.focus(); n.setSelectionRange(p,p); });
+    viewEl.querySelectorAll('.fchip[data-f]').forEach(c=>c.addEventListener('click',()=>{
+      F[c.dataset.f]=c.dataset.v; render(); }));
+    viewEl.querySelectorAll('.fchip[data-act]').forEach(c=>c.addEventListener('click',()=>{
+      if(c.dataset.act==='expand') BANK.forEach(b=>OPEN.add(b.subj)); else OPEN.clear();
+      render(); }));
+    // Re-render on every pick so the subject's "已选 N" and the shelf's select-all stay in step.
+    viewEl.querySelectorAll('input.pick').forEach(cb=>cb.addEventListener('change',()=>{
+      cb.checked?SEL.add(cb.dataset.id):SEL.delete(cb.dataset.id); render(); }));
+    viewEl.querySelectorAll('input.selall').forEach(cb=>cb.addEventListener('change',()=>{
+      cb.dataset.ids.split(' ').forEach(id=>cb.checked?SEL.add(id):SEL.delete(id)); render(); }));
+    viewEl.querySelectorAll('details.subj').forEach(d=>d.addEventListener('toggle',()=>{
+      if(F.q.trim()) return;   // search opens every group; don't remember that as the parent's choice
+      d.open?OPEN.add(d.dataset.subj):OPEN.delete(d.dataset.subj); }));
+  }
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+  V = t.dataset.v; render(); window.scrollTo({top:0}); }));
+
+function toast(msg, bad){
+  const t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : '');
+  t.textContent = msg; document.body.appendChild(t); setTimeout(()=>t.remove(), bad ? 5000 : 2600);
+}
+
+document.getElementById('assdate').value = iso(today);
+document.getElementById('assgo').addEventListener('click', async ()=>{
+  const k = document.getElementById('asskid').value;
+  const d = document.getElementById('assdate').value || iso(today);
+  const ids = [...SEL], go = document.getElementById('assgo');
+  go.disabled = true;
+  try {
+    const ref = dayRef(k, d);
+    await db.runTransaction(async tx=>{
+      const items = ((await tx.get(ref)).data()||{}).items || [];
+      const have = new Set(items.map(it=>it.id));
+      ids.forEach(id=>{
+        const b = BANK_BY_ID[id];
+        if(!b || have.has(id)) return;
+        // Kids can't read `bank`, so the title and link travel with the assignment.
+        items.push({ id, t:b.t, href:b.href, type:b.type, n:b.n||0, ic:b.ic||'', subj:b.subj||'', book:b.book||'' });
+      });
+      tx.set(ref, { items, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+    });
+    if(d===iso(today)) ASSIGN[k] = ((await ref.get()).data()||{}).items || [];
+    SEL.clear(); render();
+    toast(`已派给 ${KID[k].n} · ${d} · ${ids.length} 份`);
+  } catch(e){
+    console.error(e);
+    toast('派发失败：' + (e.code||e.message) + '，没有写进去，稍后再试', true);
+  } finally {
+    go.disabled = false;
+  }
+});
+document.getElementById('assclear').addEventListener('click',()=>{ SEL.clear(); render(); });
+
+document.getElementById('demodel').addEventListener('click', async ()=>{
+  const demo = ATT.filter(a=>a.demo);
+  if(!demo.length || !confirm(`删除全部 ${demo.length} 条演示数据？真实成绩不受影响。`)) return;
+  const btn = document.getElementById('demodel'); btn.disabled = true;
+  try {
+    const batch = db.batch();            // a family's demo set is far under the 500-write limit
+    demo.forEach(a=>batch.delete(a.ref));
+    await batch.commit();
+    await loadAll(); render();
+    toast(`已删除 ${demo.length} 条演示数据`);
+  } catch(e){
+    console.error(e); toast('删除失败：' + (e.code||e.message), true);
+  } finally { btn.disabled = false; }
+});
+
+document.getElementById('reload').addEventListener('click', async ()=>{
+  RD.data = null; RD.err = ''; RD.loading = false;
+  try { await loadAll(); render(); toast('已刷新'); }
+  catch(e){ console.error(e); toast('刷新失败：' + (e.code||e.message), true); }
+});
+
+/* ===================== sign-in ===================== */
+const gate = document.getElementById('gate');
+const gateErr = document.getElementById('gateerr');
+const signinBtn = document.getElementById('signin');
+const provider = new firebase.auth.GoogleAuthProvider();
+provider.setCustomParameters({ prompt:'select_account' });
+let gateMsg = '';
+
+function showGate(msg){
+  BANK = []; BANK_BY_ID = {}; ATT = []; ASSIGN = { grace:[], warren:[] }; SEL.clear();
+  RD.data = null; RD.err = ''; RD.loading = false; RD.want = 0;
+  viewEl.innerHTML = ''; bar.hidden = true; document.getElementById('demobar').hidden = true;
+  document.getElementById('whoami').textContent = '';
+  signinBtn.disabled = false; signinBtn.textContent = '用 Google 账号登录';
+  gateErr.textContent = msg || '';
+  gate.hidden = false;
+}
+
+signinBtn.addEventListener('click', ()=>{
+  gateErr.textContent = ''; signinBtn.disabled = true;
+  auth.signInWithPopup(provider).catch(e=>{
+    if(e.code==='auth/popup-blocked') return auth.signInWithRedirect(provider);
+    const quiet = e.code==='auth/popup-closed-by-user' || e.code==='auth/cancelled-popup-request';
+    showGate(quiet ? '' : '登录没成功：' + (e.code||e.message));
+  });
+});
+auth.getRedirectResult().catch(e=>{ gateMsg = '登录没成功：' + (e.code||e.message); });
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){ showGate(gateMsg); gateMsg = ''; return; }
+  signinBtn.disabled = true; signinBtn.textContent = '正在读取数据…';
+  try {
+    await loadAll();
+    document.getElementById('whoami').textContent = user.email || '';
+    gate.hidden = true;
+    render();
+  } catch(e){
+    console.error(e);
+    if(e.code==='permission-denied'){
+      // Rules said no: this Google account isn't a parent. Sign it out of this page only.
+      gateMsg = `${user.email||'这个账号'} 不是家长账号，读不到数据。换一个 Google 账号试试。`;
+      await auth.signOut();
+    } else {
+      showGate('读取数据失败：' + (e.code||e.message) + '。检查网络后刷新页面。');
+    }
+  }
+});
+document.getElementById('lock').addEventListener('click', ()=>auth.signOut());
+</script>
+</body>
+</html>
