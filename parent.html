@@ -113,6 +113,9 @@
   td{padding:9px}
   td.c{text-align:center}
   td .t{font-weight:600}
+  a.open{color:inherit;text-decoration:none}
+  a.open:hover{color:var(--gold);text-decoration:underline}
+  a.open .ext{color:var(--gold2);font-size:11px;font-weight:500}
   td .d{font-size:11px;color:var(--mute);margin-top:2px}
   td .crumb{font-size:10.5px;color:var(--mute);letter-spacing:.2px}
   input[type=checkbox]{width:16px;height:16px;accent-color:var(--gold);cursor:pointer}
@@ -414,7 +417,7 @@ function viewToday(){
         const st = !a ? `<span class="chipst st-open">未开始</span>`
           : `<span class="chipst ${a.pct==null||a.pct>=80?'st-done':'st-low'}">${a.pct==null?'✓ 完成':a.pct+'%'}</span>`;
         html += `<div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
-          <b>${esc(it.t)}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
+          <b>${openLink(it.href, esc(it.t))}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
           </span>${st}</div>`;
       });
     }
@@ -429,6 +432,13 @@ let F = { q:'', kid:'all', type:'all', arch:'active' }, SEL = new Set();
 const SUBJ_ORDER = ['📖 Reading','📝 SSAT','🔤 Vocabulary','🧮 Math','🧮 Algebra','✍️ Writing · Reflection',
                     '🧠 Big Ideas · concept exams','📚 中文 Chinese','🍁 More'];
 const OPEN = new Set();   // subjects the parent has expanded; everything starts folded
+
+// Same address homework.html builds (hrefs are relative to Quizzes/), plus ?preview=1:
+// quiz-report.js records nothing on a preview, even if a kid is signed in on this device.
+const previewUrl = href => encodeURI('Quizzes/' + href) + '?preview=1';
+const openLink = (href, inner) => href
+  ? `<a class="open" href="${esc(previewUrl(href))}" target="_blank" rel="noopener" title="新标签页打开看题 · 家长预览，不记成绩">${inner} <span class="ext">↗</span></a>`
+  : inner;
 
 function bankRows(){
   const q = F.q.trim().toLowerCase();
@@ -445,7 +455,7 @@ function viewBank(){
   const rows = bankRows();
   const nAct = BANK.filter(b=>!b.archived).length;
   let html = `<h2 class="sec">题库 · 在用 ${nAct} · 已归档 ${BANK.length-nAct}</h2>
-    <p class="seclead">全部 ${BANK.length} 份都在这里，只有这个页面看得到。勾选后在底部派给孩子。<br>
+    <p class="seclead">全部 ${BANK.length} 份都在这里，只有这个页面看得到。<b>点标题</b>在新标签页打开看题（家长预览，不记成绩）；勾选后在底部派给孩子。<br>
       <b style="color:var(--blue)">可判分</b> 做完自动出分 ·
       <b style="color:var(--gold)">练习</b> 闯关式，回传完成度 ·
       <b style="color:var(--mute)">参考</b> 只记看过没看过</p>
@@ -500,7 +510,7 @@ function viewBank(){
         const kid = KID[b.kid] || KID.both;
         html += `<tr class="${SEL.has(b.docId)?'sel':''}${b.archived?' arch':''}">
           <td class="c" style="width:34px"><input type="checkbox" class="pick" ${SEL.has(b.docId)?'checked':''} data-id="${esc(b.docId)}"></td>
-          <td><div class="t">${esc(b.ic)} ${esc(b.t)}</div><div class="d">${esc(b.d)}</div></td>
+          <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)}</div><div class="d">${esc(b.d)}</div></td>
           <td class="crumb" style="width:92px">${kid.av} ${kid.n}</td>
           <td class="c crumb" style="width:64px">${b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '—'}</td>
           <td class="c" style="width:82px"><span class="badge b-${esc(b.type)}">${LABEL[b.type]||esc(b.type)}</span>

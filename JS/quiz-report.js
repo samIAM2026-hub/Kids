@@ -15,12 +15,30 @@
    in → nothing is recorded. Can't reach Firestore → kept in localStorage and
    sent on the next page load or when the connection comes back.
 
+   Parent preview (?preview=1 on the URL, added by parent.html's links): nothing is
+   recorded and a 家长预览 badge is shown instead.
+
    Shared iPad / computer: a name badge in the top-right corner shows whose
    score this will be ("Not you?" signs out), and 30 minutes with nobody
    using the site signs the kid out — same rule and key as homework.html.
 ===================================================================== */
 (function () {
   'use strict';
+
+  // Parent preview: parent.html's 题库 / 今日作业 links add ?preview=1. Record nothing and touch no
+  // sign-in — otherwise a kid signed in on the same device would get the parent's clicks as a score.
+  if (/(?:^|&)preview=1(?:&|$)/.test(location.search.slice(1))) {
+    var showPreview = function () {
+      var b = document.createElement('div');
+      b.textContent = '家长预览 · 不记成绩';
+      b.style.cssText = 'position:fixed;top:10px;right:10px;z-index:2147483647;font:600 13px system-ui,sans-serif;' +
+        'padding:6px 12px;border-radius:999px;background:#fff4d6;color:#7a5200;border:1px solid #e0b64a;' +
+        'box-shadow:0 2px 8px rgba(0,0,0,.12)';
+      document.body.appendChild(b);
+    };
+    if (document.body) showPreview(); else document.addEventListener('DOMContentLoaded', showPreview);
+    return;
+  }
 
   var SDK = 'https://www.gstatic.com/firebasejs/10.14.1/';
   var CONFIG = {
