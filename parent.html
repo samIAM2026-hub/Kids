@@ -245,7 +245,7 @@
   .rc .dh{font-size:10.5px;letter-spacing:1.2px;color:var(--mute);margin-bottom:8px;display:flex;gap:10px}
   .rc .dh b{color:var(--cream);font-weight:600;letter-spacing:0}
   /* Fixed value column: every bar in a block is the same length, so the planned-time marks line up. */
-  .rc .brow{display:grid;grid-template-columns:42px minmax(60px,1fr) 196px;gap:12px;align-items:center;font-size:12.5px;margin:6px 0}
+  .rc .brow{display:grid;grid-template-columns:42px minmax(60px,1fr) 236px;gap:12px;align-items:center;font-size:12.5px;margin:6px 0}
   .rc .brow .lbl{color:var(--mute)}
   .rc .brow .val{text-align:right;white-space:nowrap}
   .rbar{height:8px;background:rgba(42,59,88,.8);border-radius:99px;position:relative}
@@ -702,7 +702,7 @@ async function loadReading(){
 // each, one aligned row per day, the per-page / timer detail folded into a click-to-open row.
 const TASK_SHORT = { words:'词', check:'测', write:'写' };
 // Under 80% right is marked amber — a nudge to look, not an alert; it stays out of 需要留意 like the rest.
-const frac = (c,t) => `<span class="num ${c/t>=0.8?'ok':'low'}">${c}/${t}</span>`;
+const frac = (c,t) => `<span class="num ${c/t>=0.8?'ok':'low'}">${c}/${t}</span> 题`;
 const mmdd = ymd => ymd.slice(5).replace('-','/');
 
 function viewReading(){
@@ -716,7 +716,9 @@ function viewReading(){
       <p><b>在页</b> = 页面在前台的时间，不等于在读；<b>离开</b> = 页面不在前台了几次（锁屏、屏幕变暗、被叫走都算），不是走神几次。
       这里不算专注度百分比，也不进「监视总结」的需要留意。
       阅读是在纸上读的：每天只算<b>词 / 测验 / 写</b>三件事，也不报阅读页的时长。<b>计时</b>从打开那一页算起、中途不暂停，页面忘了关会显示得很长。
-      测验、单词答对不到 80% 标黄。作文原文和批改在 <a href="${READING}/family" target="_blank" rel="noopener">Reading Club 家长页</a>看。</p>
+      数字的单位：<b>在页时长</b>、<b>计时</b>是时和分；<b>离开</b>是次数（各页停留里的「离开 2 次」= 在那一页上离开了 2 次）；
+      <b>测验 / 单词</b>「7/7 题」= 答对几题 / 一共几题，不到 80% 标黄；「做 2 遍」= 那天这份测验做了 2 遍，显示最好的一遍；
+      <b>写作</b>按英文词数算；<b>粘贴</b>按字符数算（一个字母算一个）；时段跨过半夜写「次日」。作文原文和批改在 <a href="${READING}/family" target="_blank" rel="noopener">Reading Club 家长页</a>看。</p>
     </details>`;
 
   if(RD.err) return html + `<p class="empty" style="color:var(--red)">${esc(RD.err)}</p>
@@ -747,13 +749,13 @@ function readingKid(kid, F){
       <div class="kpi"><div class="v"><span style="white-space:nowrap">${full}<small>/ ${days.length} 天</small></span><small>· 打开 ${opened} 天</small></div><div class="k">三件全做完</div></div>
       <div class="kpi"><div class="v">${tracked.length?dur(sum(d=>d.time&&d.time.activeMin)*60):'—'}</div><div class="k">在页时长</div></div>
       <div class="kpi"><div class="v">${tracked.length?sum(d=>d.time&&d.time.blurCount):'—'}<small>次</small></div><div class="k">离开</div></div>
-      <div class="kpi"><div class="v">${qt?`${qc}<small>/ ${qt}</small>`:'—'}</div><div class="k">测验答对</div></div>
-      <div class="kpi"><div class="v">${wt?`${wc}<small>/ ${wt}</small>`:'—'}</div><div class="k">单词答对</div></div>
+      <div class="kpi"><div class="v">${qt?`${qc}<small>/ ${qt} 题</small>`:'—'}</div><div class="k">测验答对</div></div>
+      <div class="kpi"><div class="v">${wt?`${wc}<small>/ ${wt} 题</small>`:'—'}</div><div class="k">单词答对</div></div>
       <div class="kpi"><div class="v">${essays?`${words}<small>词 · ${essays} 篇</small>`:'—'}</div><div class="k">写作</div></div>
-      ${paste==null?'':`<div class="kpi"><div class="v ${paste?'amber':''}">${paste}<small>字</small></div><div class="k">粘贴</div></div>`}
+      ${paste==null?'':`<div class="kpi"><div class="v ${paste?'amber':''}">${paste}<small>字符</small></div><div class="k">粘贴</div></div>`}
     </div>
     <div class="tablewrap"><table><thead><tr>
-      <th>日期</th><th>章</th><th>三件事</th><th class="r">在页</th><th class="r">离开</th>
+      <th>日期</th><th>章</th><th>三件事</th><th class="r">在页时长</th><th class="r">离开次数</th>
       <th class="r">测验</th><th class="r">单词</th><th class="r">写作</th>${F.showPaste?'<th class="r">粘贴</th>':''}<th></th>
     </tr></thead><tbody>`;
 
@@ -770,10 +772,10 @@ function readingKid(kid, F){
       <td><span class="dots">${d.tasks.map(t=>`<span class="dot${t.done?' on':''}" title="${esc(t.zh)}">${TASK_SHORT[t.task]||esc(t.zh)}</span>`).join('')}</span></td>
       <td class="r">${!d.tracked?'<span class="muted">还没有记录</span>':d.time?mins(d.time.activeMin):(did?'—':'没打开')}</td>
       <td class="r">${d.time?`${d.time.blurCount} 次`:'—'}</td>
-      <td class="r">${d.quiz?frac(d.quiz.correct,d.quiz.total)+(d.quiz.tries>1?` <span class="muted" title="做了 ${d.quiz.tries} 次，取最好的一次">×${d.quiz.tries}</span>`:''):'—'}</td>
+      <td class="r">${d.quiz?frac(d.quiz.correct,d.quiz.total)+(d.quiz.tries>1?` <span class="muted" title="这天这份测验做了 ${d.quiz.tries} 遍，显示最好的一遍">· 做 ${d.quiz.tries} 遍</span>`:''):'—'}</td>
       <td class="r">${d.words?frac(d.words.correct,d.words.total):'—'}</td>
       <td class="r">${d.writing?`${d.writing.words} 词`:'—'}</td>
-      ${F.showPaste?`<td class="r">${d.pasteChars?`<span class="amber">${d.pasteChars} 字</span>`:'—'}</td>`:''}
+      ${F.showPaste?`<td class="r">${d.pasteChars?`<span class="amber">${d.pasteChars} 字符</span>`:'—'}</td>`:''}
       <td class="r">${hasDetail?'<span class="caret">▶</span>':''}</td></tr>`;
     if(hasDetail) h += readingDetail(d, id, open, F);
   });
@@ -785,7 +787,7 @@ function readingDetail(d, id, open, F){
   const pmax = Math.max(1, ...d.pages.map(p=>p.activeMin));
   const pages = d.pages.length ? d.pages.map(p=>`<div class="brow"><span class="lbl">${esc(p.zh)}</span>
       <span class="rbar"><i style="width:${Math.max(3,Math.round(100*p.activeMin/pmax))}%"></i></span>
-      <span class="val">${mins(p.activeMin)}${p.blurCount?` <span class="muted">· 离开 ${p.blurCount}</span>`:''}</span></div>`).join('')
+      <span class="val">${mins(p.activeMin)}${p.blurCount?` <span class="muted">· 离开 ${p.blurCount} 次</span>`:''}</span></div>`).join('')
     : '<div class="muted" style="font-size:12.5px">没有各页记录</div>';
 
   // null = that day predates the timer feature (timerSince), which is not the same as "no timer that day".
@@ -797,11 +799,11 @@ function readingDetail(d, id, open, F){
       const cap = x.plannedMin*2, w = cap ? Math.min(100, Math.round(100*x.usedMin/cap)) : 100, over = x.usedMin > cap;
       return `<div class="brow"><span class="lbl">${esc(x.zh)}</span>
         <span class="rbar"><i class="${over?'over':''}" style="width:${Math.max(3,w)}%"></i><b style="left:50%"></b></span>
-        <span class="val">${dur(x.usedMin*60)} <span class="muted">/ 定 ${mins(x.plannedMin)}</span></span></div>`;
+        <span class="val">${dur(x.usedMin*60)} <span class="muted">/ 定了 ${mins(x.plannedMin)}</span></span></div>`;
     }).join('') : '<div class="muted" style="font-size:12.5px">这天没有计时</div>';
 
   return `<tr class="detail" data-for="${esc(id)}"${open?'':' hidden'}><td colspan="${cols}"><div class="dgrid">
-      <div><div class="dh">各页停留${d.time?` <b>时段 ${d.time.from}–${d.time.to}</b>`:''}</div>${pages}
+      <div><div class="dh">各页停留${d.time?` <b>时段 ${d.time.from}–${d.time.to<d.time.from?'次日 ':''}${d.time.to}</b>`:''}</div>${pages}
         ${d.time&&d.time.blurMin?`<div class="hint">离开一共 ${mins(d.time.blurMin)}</div>`:''}
         ${d.writing&&d.writing.typedMin!=null?`<div class="hint">作文打字 ${mins(d.writing.typedMin)}</div>`:''}</div>
       <div><div class="dh">计时 · 用了多久 / 定了多久</div>${tim}
