@@ -12,6 +12,7 @@
     --ink:#1c1a17; --ink2:#5b4636; --mute:#8a7d70; --cream:#f6f3ed; --paper:#fffdf7; --line:#e6ddd0;
     --rust:#b4622f; --green:#3f7d4e; --greenbg:#e6f2e8; --red:#c0392b; --redbg:#fbeae7;
     --acc:#b4622f; --accbg:#fff4e8; --accline:#ffb37b;
+    --goldbg:#fbf1d6; --goldline:#e8c766;
   }
   body.peach{ --acc:#d84315; --accbg:#fff4e8; --accline:#ffb37b; }
   body.river{ --acc:#35704a; --accbg:#eef6f0; --accline:#8bb98f; }
@@ -30,13 +31,19 @@
   #signin h1{font-size:40px}
   #signin .lead{color:var(--ink2);font-size:19px}
   .pick{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
-  .who{width:180px;padding:22px 10px 18px;border-radius:22px;cursor:pointer;background:var(--paper);
-       border:3px solid var(--line);transition:transform .12s,border-color .12s}
+  .who{width:230px;max-width:100%;padding:18px 12px 16px;border-radius:22px;cursor:pointer;color:var(--ink);
+       border:3px solid var(--line);transition:transform .12s,border-color .12s;
+       display:flex;flex-direction:column;align-items:center;gap:8px}
   .who:hover{transform:translateY(-3px)}
-  .who .av{font-size:64px;line-height:1}
-  .who .nm{font-family:'Fraunces',serif;font-size:26px;font-weight:600;margin-top:8px}
-  .who.peach{background:#fff4e8;border-color:#ffb37b} .who.peach .nm{color:#d84315}
-  .who.river{background:#eef6f0;border-color:#8bb98f} .who.river .nm{color:#35704a}
+  .who .nm{font-family:'Fraunces',serif;font-size:26px;font-weight:600;line-height:1.1;color:var(--k)}
+  .who .petnm{font-size:15px;color:var(--ink2);margin-top:-6px;line-height:1.3}
+  .who .whisper{font-size:15px;font-weight:600;color:var(--k);line-height:1.3}
+  .who.peach{--k:#d84315;--kl:#ffb37b;background:#fff4e8;border-color:#ffb37b}
+  .who.river{--k:#35704a;--kl:#8bb98f;background:#eef6f0;border-color:#8bb98f}
+  .streak{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--ink2);background:var(--paper);
+          border:1px solid var(--kl,var(--accline));border-radius:99px;padding:3px 10px;font-variant-numeric:tabular-nums}
+  .streak.off{color:var(--mute)}
+  .medals{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}
   #pinstep .av{font-size:70px;line-height:1}
   #pin{width:250px;text-align:center;font-size:34px;letter-spacing:16px;padding:14px 10px 14px 26px;
        border-radius:16px;border:3px solid var(--accline);background:var(--paper);color:var(--ink);
@@ -54,9 +61,9 @@
   .hrow h1{font-size:30px;color:var(--acc)}
   .hrow .date{font-size:15px;color:var(--ink2)}
   .hrow .spacer{margin-left:auto}
-  .tabs{display:flex;gap:6px}
+  .tabs{display:flex;gap:6px;overflow-x:auto}
   .tab{background:none;border:none;cursor:pointer;font-size:17px;font-weight:600;color:var(--ink2);
-       padding:10px 16px;border-bottom:4px solid transparent}
+       padding:10px 16px;border-bottom:4px solid transparent;white-space:nowrap}
   .tab.on{color:var(--acc);border-bottom-color:var(--acc)}
   .tab .n{font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--paper);border-radius:99px;
           padding:1px 8px;margin-left:5px;color:var(--ink2)}
@@ -110,12 +117,107 @@
   .row .sc{font-family:'Fraunces',serif;font-size:22px;font-weight:600;width:62px;text-align:right}
   .row .go{font-size:15px;padding:9px 14px}
 
+  /* ---------- pets & badges ---------- */
+  .habitat{--k2:var(--k,var(--acc));position:relative;width:132px;height:132px;flex:0 0 auto}
+  .habitat svg{position:absolute;inset:0;transform:rotate(-90deg)}
+  .habitat .track{fill:none;stroke:var(--paper);stroke-width:9}
+  .habitat .fill{fill:none;stroke:var(--k2);stroke-width:9;stroke-linecap:round}
+  .habitat .pet{position:absolute;inset:16px;border-radius:50%;background:var(--paper);display:grid;place-items:center;
+                font-size:58px;line-height:1}
+  .habitat .pet span{display:block;animation:bob 2.6s ease-in-out infinite}
+  .habitat .lvl{position:absolute;right:-2px;bottom:4px;background:var(--k2);color:#fff;font-family:'IBM Plex Mono',monospace;
+                font-size:12px;font-weight:600;border-radius:99px;padding:2px 8px;border:2px solid var(--paper)}
+  .habitat .zz{position:absolute;left:2px;top:0;font-size:24px}
+  @keyframes bob{50%{transform:translateY(-5px)}}
+  .medal{--s:34px;width:var(--s);height:var(--s);border-radius:50%;display:grid;place-items:center;flex:0 0 auto;
+         font-size:calc(var(--s)*.5);line-height:1;border:2px solid var(--goldline);box-shadow:inset 0 0 0 2px var(--paper);
+         background:radial-gradient(circle at 35% 30%,#fff8e0,var(--goldbg))}
+  .medal.locked{background:var(--cream);border:2px dashed var(--line);box-shadow:none;color:var(--mute);
+                font-family:'Fraunces',serif;font-weight:600}
+  button.go{border:none;cursor:pointer}
+  button.go[disabled]{opacity:.45;cursor:default}
+
+  #pop{position:fixed;inset:0;z-index:50;background:rgba(28,26,23,.5);display:grid;place-items:center;padding:18px;overflow:auto}
+  .popcard{width:100%;max-width:460px;background:var(--accbg);border:3px solid var(--accline);border-radius:24px;
+           padding:26px 20px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;outline:none}
+  .popcard h2{font-size:30px;color:var(--acc);line-height:1.15;text-wrap:balance}
+  .popcard .plead{font-size:18px;color:var(--ink2);text-wrap:balance}
+  .evolve{display:flex;align-items:center;gap:14px;font-size:58px;line-height:1}
+  .evolve .from{opacity:.45;font-size:40px}
+  .evolve .arrow{font-family:'Fraunces',serif;font-size:26px;color:var(--accline)}
+  .evolve .to{animation:grow 1.8s ease-in-out infinite}
+  @keyframes grow{0%,24%,100%{transform:scale(1)}12%{transform:scale(1.18)}}
+  .since{width:100%;background:var(--paper);border:2px solid var(--accline);border-radius:18px;padding:14px 16px;
+         display:flex;flex-direction:column;gap:10px;text-align:left}
+  .since .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
+  .since .r{display:flex;align-items:center;gap:12px}
+  .since .v{font-family:'Fraunces',serif;font-weight:600;font-size:22px;min-width:74px;font-variant-numeric:tabular-nums}
+  .since .t{font-size:16px;line-height:1.3;min-width:0}
+  .since .t small{display:block;color:var(--mute);font-size:14px}
+  .since .medals{justify-content:flex-start}
+  .newbadge{display:flex;align-items:center;gap:12px;background:var(--goldbg);border:2px solid var(--goldline);
+            border-radius:14px;padding:10px 12px}
+  .newbadge .medal{--s:48px}
+  .petopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+  .petopt{background:var(--paper);border:3px solid var(--line);border-radius:18px;padding:12px 8px;cursor:pointer;color:var(--ink);
+          display:flex;flex-direction:column;align-items:center;gap:2px;transition:transform .12s}
+  .petopt .po-ic{font-size:44px;line-height:1.15}
+  .petopt .po-n{font-family:'Fraunces',serif;font-weight:600;font-size:19px}
+  .petopt .po-g{font-size:14px;color:var(--mute)}
+  .petopt[aria-pressed="true"]{border-color:var(--acc);transform:scale(1.04)}
+  .plabel{font-weight:600;font-size:17px}
+  #petname{width:100%;max-width:280px;text-align:center;font-size:24px;padding:10px;border-radius:14px;outline:none;
+           border:3px solid var(--accline);background:var(--paper);color:var(--ink);font-family:'Fraunces',serif}
+  #petname:focus{border-color:var(--acc)}
+  #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--paper);
+         font-weight:600;font-size:17px;border-radius:99px;padding:10px 20px;max-width:calc(100% - 32px);text-align:center;
+         box-shadow:0 10px 24px -12px rgba(28,26,23,.6)}
+
+  .petcard{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-top:24px}
+  .petcard .habitat{width:150px;height:150px}
+  .petcard .habitat .pet{font-size:68px;background:var(--accbg)}
+  .petcard .habitat .track{stroke:var(--line)}
+  .petcard .info{flex:1 1 260px;display:flex;flex-direction:column;gap:7px;min-width:0}
+  .petcard .pname{font-family:'Fraunces',serif;font-size:32px;font-weight:600;line-height:1.1;color:var(--acc)}
+  .petcard .stage{font-size:16px;color:var(--ink2)}
+  .xpbar{height:12px;background:var(--line);border-radius:99px;overflow:hidden}
+  .xpbar i{display:block;height:100%;background:var(--acc);border-radius:99px}
+  .xpcap{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
+  .stages{display:flex;gap:6px;align-items:center;font-size:24px;flex-wrap:wrap}
+  .stages span{opacity:.3} .stages span.got{opacity:1}
+  .stages i{font-style:normal;color:var(--mute);font-size:14px}
+  .petcard .streakrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .earn{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:12px 16px;margin-top:22px}
+  .lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin-bottom:4px}
+  .earn table{width:100%;border-collapse:collapse;font-size:16px}
+  .earn td{padding:6px 0;border-top:1px solid var(--line);vertical-align:top}
+  .earn tr:first-child td{border-top:none}
+  .earn td.xp{text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--green);white-space:nowrap;padding-left:12px}
+  .badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:14px}
+  .bdg{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;padding:12px 6px;border-radius:14px;
+       background:var(--paper);border:2px solid var(--line)}
+  .bdg .medal{--s:54px}
+  .bdg .bn{font-family:'Fraunces',serif;font-weight:600;font-size:15px;line-height:1.2}
+  .bdg .bd{font-size:13px;color:var(--mute);line-height:1.25}
+  .bdg.locked{background:transparent;border-style:dashed}
+  .bdg.locked .bn{color:var(--mute)}
+  .sib{display:flex;align-items:center;gap:14px;margin-top:22px;background:var(--paper);border:2px solid var(--line);
+       border-radius:16px;padding:10px 16px;font-size:16px;line-height:1.35}
+  .sib .e{font-size:36px;line-height:1}
+  .foot{font-size:15px;color:var(--mute);margin-top:16px}
+
+  @media(prefers-reduced-motion:reduce){
+    .habitat .pet span,.evolve .to{animation:none}
+    .who,.petopt{transition:none}
+  }
+
   @media(max-width:560px){
     body{font-size:17px}
     .card{flex-wrap:wrap}
     .card .go{width:100%;text-align:center}
     .hrow h1{font-size:25px}
-    .tab{padding:10px 10px;font-size:16px}
+    .tab{padding:10px 8px;font-size:15px}
+    .popcard h2{font-size:26px}
     .hrow .av{font-size:36px}
     .out{font-size:14px;padding:7px 10px}
   }
@@ -128,10 +230,7 @@
   <div id="pickstep">
     <h1>Homework time! 📚</h1>
     <p class="lead" style="margin:10px 0 26px">Who's doing homework today?</p>
-    <div class="pick">
-      <button class="who peach" data-kid="grace"><div class="av">👧</div><div class="nm">Grace</div></button>
-      <button class="who river" data-kid="warren"><div class="av">👦</div><div class="nm">Warren</div></button>
-    </div>
+    <div class="pick" id="pickcards"></div>
   </div>
   <div id="pinstep" hidden>
     <div class="av" id="pinav"></div>
@@ -160,15 +259,21 @@
         <button class="tab on" data-v="today">Today <span class="n" id="ntoday"></span></button>
         <button class="tab" data-v="scores">My scores</button>
         <button class="tab" data-v="mistakes">Mistakes <span class="n" id="nmiss"></span></button>
+        <button class="tab" data-v="pet">My pet <span class="n" id="npet"></span></button>
       </nav>
     </div>
   </header>
   <main class="wrap" id="view"></main>
 </div>
 
+<!-- pet picker / "welcome back" -->
+<div id="pop" hidden><div class="popcard" id="popcard" role="dialog" aria-modal="true"></div></div>
+<div id="toast" role="status" hidden></div>
+
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="JS/kid-pets.js"></script>
 <script>
 /* =====================================================================
    Kids' homework page
@@ -185,6 +290,10 @@
              signed in. So: a clear "I'm done · Sign out", and 30 minutes with
              nobody using the site (this page or any quiz page) signs out.
              quiz-report.js uses the same key and rule.
+   Pets    : JS/kid-pets.js works out XP, streak and badges from attempts + days.
+             pets/{uid} keeps the pet the kid picked and a summary (both kids can
+             read both pets). The sign-in screen can't read the database yet, so
+             it shows this device's last look at both pets (kid.pets.v1).
 ===================================================================== */
 const firebaseConfig = {
   apiKey: 'AIzaSyDMKUeccjFtMbotXulnMhYcoykWpw4Y7ls',
@@ -230,7 +339,9 @@ const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&l
 // Item hrefs are relative to Quizzes/ (a few step out with ../), same as the hub.
 const pageUrl = href => encodeURI('Quizzes/' + href);
 
-let ME = null, ITEMS = [], ATT = [], V = 'today';
+let ME = null, ITEMS = [], ATT = [], DAYS = [], V = 'today';
+// PET / SIB: my pet doc and the other kid's — null = not picked yet, undefined = couldn't read it.
+let PET, SIB, GAME = null, petSkipped = false;
 
 /* ---------- shared device: idle sign-out ---------- */
 const ACTIVE_KEY = 'kid.lastActive.v1', IDLE_MS = 30*60*1000;
@@ -246,12 +357,17 @@ function touch(force){
 
 /* ---------- data ---------- */
 async function load(){
-  const [days, att] = await Promise.all([
+  const sib = Object.values(KIDS).find(k=>k.uid!==ME.uid);
+  const [days, att, pet, sibPet] = await Promise.all([
     // All my assigned days (today's included): older days tell the subject of past attempts.
     db.collection(`assignments/${ME.uid}/days`).get(),
     // No orderBy here: kidId == x plus orderBy another field would need a composite index.
-    db.collection('attempts').where('kidId','==',ME.uid).get()
+    db.collection('attempts').where('kidId','==',ME.uid).get(),
+    getPet(ME.uid), getPet(sib.uid)
   ]);
+  // A pet that can't be read this time keeps what we already knew.
+  if(pet!==undefined || !PET) PET = pet;
+  if(sibPet!==undefined || !SIB) SIB = sibPet;
   const label = new Map();   // item id → hub subject label
   // Withdrawn items count too: a score on something the parent later took back still has a subject.
   days.docs.forEach(d=>{ const x = d.data()||{};
@@ -266,6 +382,19 @@ async function load(){
     return { id:a.itemId, t:a.t||'', href:a.href||'', subj: subjOf(label.get(a.itemId)),
              pct, wrong:a.wrong||[], when, date: when?iso(when):'' };
   }).sort((a,b)=>(b.when||0)-(a.when||0));
+  DAYS = days.docs.map(d=>{
+    const x = d.data()||{}, one = it=>({ id:it.id, t:it.t, subj:subjOf(it.subj) });
+    return { date:d.id, items:(x.items||[]).map(one), withdrawn:(x.withdrawn||[]).map(one) };
+  });
+  GAME = KidPets.compute(
+    ATT.map(a=>({ id:a.id, t:a.t, pct:a.pct, wrong:a.wrong.length, date:a.date, at:a.when?+a.when:0 })),
+    DAYS, iso(today));
+}
+// A pet doc; null if this kid hasn't picked one, undefined if it can't be read right now.
+function getPet(uid){
+  return db.doc(`pets/${uid}`).get()
+    .then(d=>{ const p = d.exists ? d.data() : null; return p && !KidPets.PETS[p.kind] ? undefined : p; })
+    .catch(e=>{ console.warn('[pets] read failed:', e.code||e); return undefined; });
 }
 
 /* ---------- views ---------- */
@@ -365,9 +494,221 @@ function viewMistakes(){
   return html;
 }
 
+/* ---------- pets & badges (the rules live in JS/kid-pets.js) ---------- */
+const PETS_KEY = 'kid.pets.v1', NAP_MS = 3*24*3600*1000, RING = 2*Math.PI*58;
+const plural = (n, w) => `${n} ${w}${n===1?'':'s'}`;
+const shortDate = ms => new Date(ms).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+const petOf = p => p && KidPets.PETS[p.kind];
+const stageIc = p => petOf(p).stages[KidPets.stageOf(p.xp)][0];
+const otherKey = () => Object.keys(KIDS).find(k=>k!==ME.key);
+function readPetCache(){ try { return JSON.parse(localStorage.getItem(PETS_KEY)) || {}; } catch(e){ return {}; } }
+function cachePet(key, pet){ try { const c = readPetCache(); c[key] = pet; localStorage.setItem(PETS_KEY, JSON.stringify(c)); } catch(e){} }
+
+// The pet inside a ring that fills up towards the next level.
+function habitat(p, extra){
+  const L = KidPets.level(p ? p.xp : 0), frac = p ? L.into/L.need : 0;
+  const fill = frac>0 ? `<circle class="fill" cx="66" cy="66" r="58" stroke-dasharray="${RING.toFixed(1)}" stroke-dashoffset="${(RING*(1-frac)).toFixed(1)}"/>` : '';
+  return `<span class="habitat"><svg viewBox="0 0 132 132" aria-hidden="true"><circle class="track" cx="66" cy="66" r="58"/>${fill}</svg>
+    <span class="pet"><span>${p ? stageIc(p) : '🥚'}</span></span>${p ? `<span class="lvl">Lv ${L.lv}</span>` : ''}${extra||''}</span>`;
+}
+
+// What pets/{uid} holds: the pet the kid picked, plus the latest summary.
+function petDoc(pet, g){
+  return { kind:pet.kind, name:pet.name, chosenAt:pet.chosenAt,
+    xp:g.xp, lv:g.lv, streak:g.streak, best:g.best, pages:g.pages, badges:g.badges.map(b=>b.id),
+    todayDone:g.todayDone, day:iso(today), updatedAt:Date.now() };
+}
+
+const popEl = document.getElementById('pop'), popCard = document.getElementById('popcard');
+const toastEl = document.getElementById('toast');
+// Focus the card itself: focusing its first button would ring the first pet and look pre-picked.
+function openPop(html){ popCard.innerHTML = html; popEl.hidden = false; popCard.tabIndex = -1; popCard.focus(); }
+function closePop(){ popEl.hidden = true; popCard.innerHTML = ''; }
+popEl.addEventListener('click', e=>{ if(e.target.closest('[data-close]')) closePop(); });
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Escape' || popEl.hidden) return;
+  const later = document.getElementById('later');
+  later ? later.click() : closePop();
+});
+let toastTimer = 0;
+function toast(msg){
+  toastEl.textContent = msg; toastEl.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>{ toastEl.hidden = true; }, 3500);
+}
+
+// After every load. No pet yet → offer the picker (on sign-in only). Otherwise save the new
+// summary and celebrate what changed: a level, a stage, a badge or the streak gets the big
+// card; XP alone gets a small toast.
+async function afterLoad(from){
+  const me = ME;
+  if(SIB!==undefined) cachePet(otherKey(), SIB);
+  if(PET===undefined) return;                 // couldn't read it — try again next time
+  if(!PET){
+    cachePet(ME.key, null);
+    if(from==='signin' && !petSkipped) showPicker();
+    return;
+  }
+  const prev = PET, next = petDoc(PET, GAME);
+  cachePet(ME.key, next);
+  const same = ['xp','lv','streak','best','pages','todayDone','day'].every(k=>prev[k]===next[k])
+    && String(prev.badges)===String(next.badges);
+  if(!same){
+    try { await db.doc(`pets/${ME.uid}`).set(next); }
+    catch(e){ console.warn('[pets] save failed:', e.code||e); }
+  }
+  if(ME!==me) return;                         // signed out meanwhile
+  PET = next;
+  render();
+  const had = new Set(prev.badges||[]);
+  const n = {
+    xp: Math.max(0, GAME.xp-(prev.xp||0)),
+    badges: GAME.badges.filter(b=>!had.has(b.id)),
+    stageUp: KidPets.stageOf(GAME.xp) > KidPets.stageOf(prev.xp||0),
+    lvUp: GAME.lv > (prev.lv||1),
+    streakUp: GAME.streak > (prev.streak||0)
+  };
+  if(!popEl.hidden) return;
+  if(n.badges.length || n.stageUp || n.lvUp || n.streakUp) showNews(prev, n, from);
+  else if(n.xp) toast(`+${n.xp} XP for ${PET.name} ${stageIc(PET)}`);
+}
+
+function sinceLabel(ms){
+  const d = new Date(ms||0); d.setHours(0,0,0,0);
+  const ago = Math.round((today-d)/864e5);
+  return ago<=0 ? 'earlier today' : ago===1 ? 'yesterday'
+    : ago<7 ? d.toLocaleDateString('en-US', { weekday:'long' }) : shortDate(ms);
+}
+
+function showNews(prev, n, from){
+  const P = petOf(PET), st = KidPets.stageOf(GAME.xp), name = esc(PET.name);
+  const pic = n.stageUp
+    ? `<div class="evolve" aria-hidden="true"><span class="from">${P.stages[KidPets.stageOf(prev.xp||0)][0]}</span><span class="arrow">→</span><span class="to">${P.stages[st][0]}</span></div>`
+    : habitat(PET);
+  const head = n.stageUp ? `${name} grew into a ${esc(P.stages[st][1].toLowerCase())}!`
+    : n.lvUp ? `${name} reached Lv ${GAME.lv}!`
+    : from==='signin' ? `Here's what you did since ${sinceLabel(prev.updatedAt)}.` : 'Look what you just earned!';
+  const pages = GAME.events.filter(e=>e.kind==='page' && e.at > (prev.updatedAt||0));
+  let rows = '';
+  if(n.xp) rows += `<div class="r"><span class="v" style="color:var(--green)">+${n.xp} XP</span><span class="t">${pages.length
+    ? `${plural(pages.length, 'homework page')} finished<small>${esc(pages.slice(0,3).map(e=>e.t).join(' · '))}${pages.length>3?` · +${pages.length-3} more`:''}</small>`
+    : 'for your homework'}</span></div>`;
+  if(n.streakUp){
+    const s = GAME.streak, b = GAME.best;
+    rows += `<div class="r"><span class="v">🔥 ${s}</span><span class="t">${s===1?'homework day':'homework days in a row'}, all done<small>${
+      s===1 ? 'Do it again next homework day to start a streak' : s>=b ? "That's your best ever!" : `Your best is ${b}. ${b-s+1} more to beat it!`}</small></span></div>`;
+  }
+  n.badges.slice(0,3).forEach(b=>{
+    const i = KidPets.badgeInfo(b.id, PET.kind);
+    if(i) rows += `<div class="newbadge"><span class="medal">${i.ic}</span><span class="t"><b>New badge: ${esc(i.n)}</b><small>${esc(i.d)}</small></span></div>`;
+  });
+  if(n.badges.length>3) rows += `<span class="t" style="font-size:15px;color:var(--ink2)">…and ${plural(n.badges.length-3, 'more badge')} in the My pet tab.</span>`;
+  openPop(`<h2>${from==='signin' ? `Welcome back, ${esc(ME.n)}!` : `Nice work, ${esc(ME.n)}!`}</h2>${pic}
+    <p class="plead">${head}</p>${rows ? `<div class="since">${rows}</div>` : ''}
+    <button class="go" type="button" data-close>${from==='signin' ? "See today's homework →" : 'Keep going →'}</button>`);
+}
+
+function showPicker(){
+  openPop(`<h2>Pick your pet!</h2>
+    <p class="plead">Your pet grows every time you do your homework. It stays with you, so choose carefully!</p>
+    <div class="petopts">${Object.entries(KidPets.PETS).map(([k,p])=>`<button class="petopt" type="button" id="po-${k}" data-kind="${k}" aria-pressed="false">
+      <span class="po-ic">${p.stages[1][0]}</span><span class="po-n">${p.n}</span><span class="po-g">grows into ${p.stages[3][0]}</span></button>`).join('')}</div>
+    <label class="plabel" for="petname">Give it a name</label>
+    <input id="petname" maxlength="12" autocomplete="off" placeholder="Type a name">
+    <div class="err" id="peterr"></div>
+    <button class="go" type="button" id="hatch" disabled>Meet my pet →</button>
+    <button class="link" type="button" id="later">Maybe later</button>`);
+  let kind = null;
+  const nameEl = document.getElementById('petname'), hatch = document.getElementById('hatch');
+  const ready = () => { hatch.disabled = !(kind && nameEl.value.trim()); };
+  popCard.querySelectorAll('.petopt').forEach(b=>b.addEventListener('click', ()=>{
+    kind = b.dataset.kind;
+    popCard.querySelectorAll('.petopt').forEach(x=>x.setAttribute('aria-pressed', String(x===b)));
+    ready(); nameEl.focus();
+  }));
+  nameEl.addEventListener('input', ready);
+  nameEl.addEventListener('keydown', e=>{ if(e.key==='Enter' && !hatch.disabled) hatch.click(); });
+  document.getElementById('later').addEventListener('click', ()=>{ petSkipped = true; closePop(); });
+  hatch.addEventListener('click', async ()=>{
+    const me = ME, doc = petDoc({ kind, name:nameEl.value.trim().slice(0,12), chosenAt:Date.now() }, GAME);
+    hatch.disabled = true; document.getElementById('peterr').textContent = '';
+    try { await db.doc(`pets/${ME.uid}`).set(doc); }
+    catch(e){
+      console.warn('[pets] save failed:', e.code||e);
+      document.getElementById('peterr').textContent = "Couldn't save your pet. Check the Wi-Fi and try again.";
+      hatch.disabled = false; return;
+    }
+    if(ME!==me) return;
+    PET = doc; cachePet(ME.key, doc); render(); showMeet();
+  });
+}
+
+function showMeet(){
+  const P = petOf(PET), st = KidPets.stageOf(GAME.xp), name = esc(PET.name);
+  const pic = st
+    ? `<div class="evolve" aria-hidden="true"><span class="from">${P.stages[0][0]}</span><span class="arrow">→</span><span class="to">${P.stages[st][0]}</span></div>`
+    : habitat(PET);
+  const line = GAME.xp
+    ? `The homework you've already done gave ${name} <b>${GAME.xp} XP</b>. That's Lv ${GAME.lv}!`
+    : `Finish a homework page and ${name} will start to grow.`;
+  const got = GAME.badges.map(b=>KidPets.badgeInfo(b.id, PET.kind)).filter(Boolean);
+  const medals = got.length ? `<div class="since"><span class="k">Badges you already earned</span>
+    <div class="medals">${got.map(i=>`<span class="medal" title="${esc(i.n)}">${i.ic}</span>`).join('')}</div>
+    <span class="t" style="font-size:15px;color:var(--ink2)">See them all in the <b>My pet</b> tab.</span></div>` : '';
+  openPop(`<h2>Meet ${name}!</h2>${pic}<p class="plead">${line}</p>${medals}
+    <button class="go" type="button" data-close>See today's homework →</button>`);
+}
+
+function viewPet(){
+  const head = `<h2 class="sec">My pet</h2>`;
+  if(PET===undefined) return head + `<div class="empty"><span class="e">📡</span>Couldn't load your pet right now.<br>Check the Wi-Fi and try again.</div>`;
+  if(!PET) return head + `<div class="empty"><span class="e">🥚</span>You haven't picked a pet yet.<br>
+    <button class="go" type="button" data-pickpet style="margin-top:14px">Pick my pet</button></div>`;
+  const g = GAME, me = { ...PET, xp:g.xp }, P = petOf(PET), st = KidPets.stageOf(g.xp), name = esc(PET.name);
+  const next = st===0 ? 'Starts growing after your first homework page'
+    : st<3 ? `Grows into a ${esc(P.stages[st+1][1].toLowerCase())} at Lv ${KidPets.STAGE_LV[st]}`
+    : 'Fully grown! Keep going to level up.';
+  let html = `<div class="petcard">${habitat(me)}
+    <div class="info">
+      <div class="pname">${name}</div>
+      <div class="stage">${esc(P.stages[st][1])} · ${next}</div>
+      <div class="xpbar"><i style="width:${Math.round(100*g.into/g.need)}%"></i></div>
+      <div class="xpcap">${g.into} / ${g.need} XP to Lv ${g.lv+1}</div>
+      <div class="stages">${P.stages.map((s,i)=>`${i?'<i>›</i>':''}<span class="${i<=st?'got':''}" title="${esc(s[1])}">${s[0]}</span>`).join('')}</div>
+      <div class="streakrow"><span class="streak${g.streak?'':' off'}">${g.streak ? `🔥 ${plural(g.streak, 'day')} in a row` : 'No streak yet'}</span>
+        <span class="xpcap">best ${g.best}</span></div>
+    </div></div>`;
+
+  const X = KidPets.XP;
+  html += `<div class="earn"><div class="lbl">How ${name} grows</div><table>
+    <tr><td>Finish a homework page</td><td class="xp">+${X.page} XP</td></tr>
+    <tr><td>Get ${PASS}% or more on a homework quiz (redoing it counts)</td><td class="xp">+${X.pass} XP</td></tr>
+    <tr><td>Clear a page from your Mistakes notebook</td><td class="xp">+${X.fix} XP</td></tr>
+    <tr><td>Finish all of a day's homework on that day</td><td class="xp">+${X.day} XP</td></tr>
+  </table></div>`;
+
+  const subjects = [...new Set(DAYS.flatMap(d=>[...d.items, ...d.withdrawn].map(it=>it.subj)))];
+  const cat = KidPets.catalog(PET.kind, subjects), got = new Map(g.badges.map(b=>[b.id, b.at]));
+  const ctx = { mistakes: mistakes().length };
+  const earned = cat.filter(b=>got.has(b.id)).sort((a,b)=>got.get(b.id)-got.get(a.id));
+  html += `<h3 class="group">Badges <span class="gn">${earned.length} of ${cat.length}</span></h3><div class="badges">`
+    + earned.map(b=>`<div class="bdg"><span class="medal">${b.ic}</span><span class="bn">${esc(b.n)}</span>
+        <span class="bd">${esc(b.d)}${got.get(b.id) ? ` · ${shortDate(got.get(b.id))}` : ''}</span></div>`).join('')
+    + cat.filter(b=>!got.has(b.id)).map(b=>`<div class="bdg locked"><span class="medal locked">?</span>
+        <span class="bn">${esc(b.n)}</span><span class="bd">${esc(b.hint(g, ctx))}</span></div>`).join('')
+    + `</div>`;
+
+  if(petOf(SIB)){
+    const L = KidPets.level(SIB.xp);
+    html += `<div class="sib"><span class="e">${stageIc(SIB)}</span><span><b>${esc(KIDS[otherKey()].n)}'s pet: ${esc(SIB.name)}</b><br>
+      <span class="xpcap">Lv ${L.lv} · ${SIB.streak ? `🔥 ${plural(SIB.streak, 'day')}` : 'no streak yet'} · ${plural((SIB.badges||[]).length, 'badge')}</span></span></div>`;
+  }
+  return html + `<p class="foot">Days with no homework never break your streak. Pets never get sick. If you're away for a while, yours just takes a nap.</p>`;
+}
+
 const viewEl = document.getElementById('view');
 function render(){
-  viewEl.innerHTML = V==='today' ? viewToday() : V==='scores' ? viewScores() : viewMistakes();
+  viewEl.innerHTML = V==='today' ? viewToday() : V==='scores' ? viewScores() : V==='pet' ? viewPet() : viewMistakes();
+  document.getElementById('npet').textContent = petOf(PET) && GAME ? stageIc({ ...PET, xp:GAME.xp }) : '';
   const nDone = ITEMS.filter(it=>ATT.find(a=>a.id===it.id && a.date===iso(today))).length;
   document.getElementById('ntoday').textContent = ITEMS.length ? `${nDone}/${ITEMS.length}` : '';
   const nm = mistakes().length;
@@ -385,12 +726,42 @@ const pin = document.getElementById('pin'), pinErr = document.getElementById('pi
 let picking = null, signinMsg = '';
 
 function showPick(msg){
-  ME = null; ITEMS = []; ATT = []; viewEl.innerHTML = '';
+  ME = null; ITEMS = []; ATT = []; DAYS = []; viewEl.innerHTML = '';
+  PET = undefined; SIB = undefined; GAME = null; petSkipped = false;
+  closePop(); toastEl.hidden = true;
   document.body.className = '';
   appEl.hidden = true; signinEl.hidden = false;
   pickStep.hidden = false; pinStep.hidden = true;
   if(msg){ pickStep.querySelector('.lead').textContent = msg; }
+  renderPick();
 }
+
+// Both kids' cards, from what this device last saw of each pet.
+const pickCards = document.getElementById('pickcards');
+function renderPick(){
+  const cache = readPetCache();
+  pickCards.innerHTML = Object.entries(KIDS).map(([key, k])=>{
+    const p = petOf(cache[key]) ? cache[key] : null;
+    if(!p) return `<button class="who ${k.cls}" type="button" data-kid="${key}">${habitat(null)}
+      <span class="nm">${k.n}</span>
+      <span class="whisper">${cache[key]===null ? 'Sign in to pick your pet!' : 'Sign in to see your pet!'}</span></button>`;
+    const L = KidPets.level(p.xp), st = KidPets.stageOf(p.xp);
+    const nap = Date.now() - (p.updatedAt||0) > NAP_MS;
+    const wh = p.day===iso(today) && p.todayDone ? 'All done today ⭐'
+      : nap ? `${esc(p.name)} is napping. Come say hi!`
+      : `${esc(p.name)} is ${L.need-L.into} XP from Lv ${L.lv+1}`;
+    const medals = (p.badges||[]).slice(-3).reverse().map(id=>KidPets.badgeInfo(id, p.kind)).filter(Boolean)
+      .map(i=>`<span class="medal" title="${esc(i.n)}">${i.ic}</span>`).join('');
+    return `<button class="who ${k.cls}" type="button" data-kid="${key}">
+      ${habitat(p, nap ? '<span class="zz">💤</span>' : '')}
+      <span class="nm">${k.n}</span>
+      <span class="petnm">&amp; ${esc(p.name)} the ${esc(petOf(p).stages[st][1].toLowerCase())}</span>
+      <span class="streak${p.streak?'':' off'}">${p.streak ? `🔥 ${plural(p.streak, 'day')}` : 'No streak yet'}</span>
+      ${medals ? `<span class="medals">${medals}</span>` : ''}
+      <span class="whisper">${wh}</span></button>`;
+  }).join('');
+}
+pickCards.addEventListener('click', e=>{ const b = e.target.closest('.who'); if(b) showPin(b.dataset.kid); });
 function showPin(key){
   picking = key;
   document.body.className = KIDS[key].cls;
@@ -400,7 +771,6 @@ function showPin(key){
   pin.value = ''; pin.disabled = false; pinErr.textContent = '';
   pin.focus();
 }
-document.querySelectorAll('.who').forEach(b=>b.addEventListener('click',()=>showPin(b.dataset.kid)));
 document.getElementById('notme').addEventListener('click',()=>showPick());
 
 async function tryPin(){
@@ -433,7 +803,7 @@ auth.onAuthStateChanged(async user=>{
   // Saved sign-in, but nobody used the site for 30 minutes: probably someone else now → ask again.
   if(restored && idleAtLoad){ await auth.signOut(); return; }
   touch(true);
-  ME = KIDS[key];
+  ME = { ...KIDS[key], key };
   document.body.className = ME.cls;
   document.getElementById('hav').textContent = ME.av;
   document.getElementById('hname').textContent = `Hi, ${ME.n}!`;
@@ -445,10 +815,15 @@ auth.onAuthStateChanged(async user=>{
   catch(e){
     console.error(e);
     viewEl.innerHTML = `<div class="empty"><span class="e">📡</span>Couldn't load your homework.<br>Check the Wi-Fi, then pull down to refresh.</div>`;
+    return;
   }
+  afterLoad('signin').catch(console.error);
 });
 document.getElementById('switch').addEventListener('click',()=>auth.signOut());
-viewEl.addEventListener('click', e=>{ if(e.target.closest('[data-signout]')) auth.signOut(); });
+viewEl.addEventListener('click', e=>{
+  if(e.target.closest('[data-signout]')) auth.signOut();
+  if(e.target.closest('[data-pickpet]')) showPicker();
+});
 
 ['pointerdown','keydown','scroll','touchstart'].forEach(ev=>
   window.addEventListener(ev, ()=>{ if(ME) touch(); }, { capture:true, passive:true }));
@@ -459,7 +834,7 @@ setInterval(()=>{ if(ME && idle()) auth.signOut(); }, 60*1000);
 function comeBack(){
   if(!ME) return;
   if(idle()) auth.signOut();
-  else load().then(render).catch(console.error);
+  else load().then(render).then(()=>afterLoad('back')).catch(console.error);
 }
 window.addEventListener('pageshow', e=>{ if(e.persisted) comeBack(); });
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') comeBack(); });
