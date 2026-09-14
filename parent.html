@@ -1199,10 +1199,17 @@ function readingKid(kid, F){
   const essays = days.filter(d=>d.writing).length, words = sum(d=>d.writing&&d.writing.words);
   const paste = F.showPaste ? sum(d=>d.pasteChars) : null;
   const unit = [...days].reverse().find(d=>d.unitNo);
+  // Reading Club: a kid can read one book while another is paused (their docs/22). Unit numbers restart at 1
+  // in every book, so once two books show up in this range each 章 cell says which book it belongs to.
+  // Older feeds have no reading / paused / book fields — everything below falls back to the old look.
+  const reading = kid.reading || null, paused = kid.paused || [];
+  const multiBook = new Set(days.filter(d=>d.book).map(d=>d.book.title)).size > 1;
+  const unitOf = d => (d.book && (multiBook || (reading && d.book.title!==reading.title)) ? `${esc(d.book.short)} ` : '') + `第 ${d.unitNo} 章`;
 
   let h = `<section class="rkid">
     <div class="rhead"><span class="av">${key?KID[key].av:'🧒'}</span><div><h3>${esc(kid.name)}</h3>
-      <div class="sub">${unit?`最近在做 第 ${unit.unitNo} 章`:'这段时间没有打卡'}</div></div>
+      <div class="sub">${reading?`在读《${esc(reading.title)}》· `:''}${unit?`最近在做 ${unit.book&&reading&&unit.book.title===reading.title?`第 ${unit.unitNo} 章`:unitOf(unit)}`:'这段时间没有打卡'}</div>
+      ${paused.map(p=>`<div class="sub">《${esc(p.title)}》暂停中 · 做到第 ${p.unitNo} 章 / 共 ${p.totalUnits} 章 · 回来接着做</div>`).join('')}</div>
       <a class="link" href="${READING}/family" target="_blank" rel="noopener">作文和批改 → Reading Club</a></div>
     <div class="kpis">
       <div class="kpi"><div class="v"><span style="white-space:nowrap">${full}<small>/ ${days.length} 天</small></span><small>· 打开 ${opened} 天</small></div><div class="k">三件全做完</div></div>
@@ -1232,7 +1239,7 @@ function readingKid(kid, F){
     const st = (l, has) => `class="r st${has?'':' nil'}" data-l="${l}"`;
     h += `<tr class="day${did?'':' quiet'}${open?' open':''}" data-id="${esc(id)}">
       <td class="date"><b>${mmdd(d.day)}</b><span>周${wdOf(d.day)}</span></td>
-      <td${d.unitNo?'':' class="nil"'}>${d.unitNo?`<span class="unit">第 ${d.unitNo} 章</span>`:'<span class="muted">—</span>'}</td>
+      <td${d.unitNo?'':' class="nil"'}>${d.unitNo?`<span class="unit"${d.book?` title="${esc(d.book.title)}"`:''}>${unitOf(d)}</span>`:'<span class="muted">—</span>'}</td>
       <td><span class="dots">${d.tasks.map(t=>`<span class="dot${t.done?' on':''}" title="${esc(t.zh)}">${TASK_SHORT[t.task]||esc(t.zh)}</span>`).join('')}</span></td>
       <td ${!d.tracked||(!d.time&&!did)?'class="r st plain" data-l="在页"':st('在页', d.time).replace('st', 'st act')}>${!d.tracked?'<span class="muted">还没有记录</span>':d.time?mins(d.time.activeMin):(did?'—':'没打开')}</td>
       <td ${st('离开', d.time)}>${d.time?`${d.time.blurCount} 次`:'—'}</td>
