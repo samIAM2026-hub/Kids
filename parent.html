@@ -205,16 +205,46 @@
   .legend{font-size:11.5px;color:var(--mute);margin-top:14px;line-height:1.8}
   .legend i{display:inline-block;width:9px;height:12px;border-radius:2px;vertical-align:-1px;margin:0 3px 0 8px}
 
-  /* ---------- history ---------- */
-  .bar{height:7px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:5px}
+  /* ---------- history (完成记录): one day at a time, every number with a note ---------- */
+  .bar{height:7px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:7px}
   .bar i{display:block;height:100%;border-radius:99px}
-  .hrow2{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px dashed var(--line)}
-  .hrow2 .who{font-size:11px;color:var(--mute);width:64px;flex:0 0 auto}
-  .hrow2 .nm{flex:1;min-width:0;font-size:12.5px}
-  .hrow2 .sc{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;width:52px;text-align:right}
-  .wrongs{margin-top:4px}
-  .wrongs span{display:inline-block;background:rgba(217,83,79,.14);color:#e59b98;
-               font-size:10.5px;padding:2px 7px;border-radius:4px;margin:3px 4px 0 0}
+  .hguide{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-top:12px;
+          font-size:12px;color:var(--mute);line-height:1.8}
+  .hguide ul{margin:2px 0 0 18px}
+  .hguide b{color:var(--cream);font-weight:600}
+  .hguide .chipst{font-size:10px;padding:1px 7px}
+  .hnote{font-size:11px;color:var(--mute);margin:0 0 4px;line-height:1.6}
+  .dsum{background:rgba(201,162,39,.08);border-left:3px solid var(--gold2);border-radius:0 8px 8px 0;
+        padding:9px 12px;font-size:12.5px;line-height:1.8;margin:12px 0 4px}
+  .dsum .lbl{display:block;font-size:10.5px;letter-spacing:1.2px;color:var(--gold2)}
+  .dsum b{color:var(--cream);font-weight:600}
+  .hmet{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px 16px;margin:12px 0 4px;
+        padding:11px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .hmet .v{font-size:21px;font-weight:600;font-family:'Playfair Display',serif;line-height:1.3}
+  .hmet .k{font-size:11.5px;font-weight:600;margin-top:1px}
+  .hmet .x{font-size:10.5px;color:var(--mute);line-height:1.5;margin-top:2px}
+  .prow{padding:11px 0;border-bottom:1px dashed var(--line)}
+  .prow:last-child{border-bottom:none}
+  .ptop{display:flex;gap:10px;align-items:flex-start}
+  .ptop .nm{flex:1;min-width:0;font-size:13px}
+  .ptop .nm b{font-weight:600;display:block}
+  .ptop .crumb{display:block;font-size:11px;color:var(--mute)}
+  .pscore{flex:0 0 auto;text-align:right}
+  .pscore .sc{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;line-height:1.2}
+  .pscore .cap{font-size:10px;color:var(--mute)}
+  .tries{font-size:11.5px;color:var(--mute);margin-top:6px;line-height:1.9}
+  .tries .try{display:inline-block;margin-right:4px}
+  .tries .try b{font-weight:600}
+  .tries .arr{color:var(--gold2);margin-right:4px}
+  .pfoot{display:flex;gap:6px 10px;align-items:center;flex-wrap:wrap;margin-top:4px;font-size:11px;color:var(--mute)}
+  .st-prac{background:rgba(91,143,199,.16);color:var(--blue)}
+  .dayrow{display:flex;gap:10px;align-items:baseline;width:100%;font:inherit;font-size:12px;color:var(--cream);
+          text-align:left;background:none;border:none;border-bottom:1px dashed var(--line);padding:7px 6px;cursor:pointer}
+  .dayrow:hover{background:rgba(42,59,88,.35)}
+  .dayrow.on{background:rgba(201,162,39,.12)}
+  .dayrow .d{width:78px;flex:0 0 auto;color:var(--mute);white-space:nowrap}
+  .dayrow .s{flex:1;min-width:0}
+  .dayrow.quiet .s{color:var(--mute)}
 
   /* ---------- reading club (layout: homework-system/reading-tab-mockup.html) ---------- */
   /* Everything is scoped to .rc: .kidhead, .bar and table/td already mean something on the other tabs. */
@@ -325,7 +355,7 @@
     #assignbar label{display:none}
     .toast{bottom:124px;width:max-content;max-width:calc(100vw - 24px)}
 
-    .hrow2 .who{width:42px}
+    .dayrow .d{width:72px}
 
     /* reading club: the day table still scrolls sideways, but the date stays put
        and an unfolded day's detail fits the screen instead of the 700px table */
@@ -461,7 +491,9 @@ function toAtt(doc){
   // practice / ref pages report completion, not a score — pct stays null for those
   const pct = typeof a.pct==='number' ? a.pct : a.total ? Math.round(100*a.score/a.total) : null;
   return { kid, id:a.itemId, t:a.t||b.t||a.itemId, subj:b.subj||'', book:b.book||'',
-           pct, secs:a.secs||0, date: when ? iso(when) : '', at: when,
+           pct, score: typeof a.score==='number' ? a.score : null, total: a.total||0, wrong: a.wrong || [],
+           practice: a.practice || null,   // { round, firstTry, items } from the Chinese practice games
+           secs:a.secs||0, date: when ? iso(when) : '', at: when,
            activeSecs: typeof a.activeSecs==='number' ? a.activeSecs : null,
            focus: a.focus || null, qTimes: a.qTimes || [],
            demo: a._demo===true, ref: doc.ref };   // _demo: preview data from demo-data.mjs
@@ -511,7 +543,16 @@ function viewToday(){
       <input type="date" id="tdpick" value="${day}">
       <button class="fchip" data-day="${shiftDay(day,1)}">${dayName(shiftDay(day,1), '后一天')} ›</button>
       ${isToday?'':`<button class="fchip" data-day="${iso(today)}">回到今天</button>`}
-    </div><div class="grid2">`;
+    </div>
+    <div class="hguide"><b>这一页怎么看</b><ul>
+      <li>卡片右上角 <b>已派 N 份</b> = 这天派给孩子、没有撤回的份数。</li>
+      <li>每份后面的状态：<span class="chipst st-open">未开始</span> = 这天还没交卷；
+        <span class="chipst st-done">✓ 完成</span> 或绿色分数 = 练习做完了，或答对 80% 及以上；
+        <span class="chipst st-low">红色分数</span> = 不到 80%。分数后面是交卷的钟点。</li>
+      <li>一份做了好几遍：状态里是<b>最后一遍</b>的分数，标题下面的小字写这天做了几遍、第一遍多少分。每一遍的细节看「完成记录」。</li>
+      <li><b>派于</b> = 什么时候派的；<b>从 09-12 挪来</b> = 用「改日期」从别的日子挪过来的。</li>
+      <li>只算<b>这一天</b>交的卷：以前做过、这天没做，这里照样显示「未开始」。</li>
+    </ul></div><div class="grid2">`;
   ['grace','warren'].forEach(k=>{
     const list = ASSIGN[k];
     const doneOf = it => ATT.find(a=>a.kid===k&&a.id===it.id&&a.date===day);
@@ -521,11 +562,15 @@ function viewToday(){
     const avg = scored.length ? Math.round(scored.reduce((s,a)=>s+a.pct,0)/scored.length) : null;
     html += `<div class="card"><div class="kidhead"><span class="av">${KID[k].av}</span>
       <h3>${KID[k].n}</h3><span class="when">${list.length?'已派 '+list.length+' 份':isToday?'今天还没派':'这天没派'}</span></div>
-      <div class="metrics">
-        <div class="metric"><div class="v">${done.length}/${list.length}</div><div class="k">完成</div></div>
-        <div class="metric"><div class="v">${quizzes.reduce((s,it)=>s+(it.n||0),0)}</div><div class="k">题目数</div></div>
-        <div class="metric"><div class="v">${list.length-quizzes.length}</div><div class="k">练习/参考</div></div>
-        <div class="metric"><div class="v" style="color:${avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</div><div class="k">平均分</div></div>
+      <div class="hmet">
+        <div><div class="v">${done.length}/${list.length}</div><div class="k">完成</div>
+          <div class="x">派的 ${list.length} 份里，这天交过卷的份数</div></div>
+        <div><div class="v">${quizzes.reduce((s,it)=>s+(it.n||0),0)}</div><div class="k">题目数</div>
+          <div class="x">${quizzes.length} 份打分卷子加起来一共几道题</div></div>
+        <div><div class="v">${list.length-quizzes.length}</div><div class="k">练习/参考</div>
+          <div class="x">不打分的份数：练习做完一轮、参考打开看过就算完成</div></div>
+        <div><div class="v" style="color:${avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</div><div class="k">平均分</div>
+          <div class="x">${scored.length?`做完的 ${scored.length} 份打分卷子，每份取这天最后一遍的分数再平均`:'这天还没有打分的成绩'}</div></div>
       </div>`;
     if(!list.length){
       html += `<p class="empty">到「题库」勾选几份，再派给 ${KID[k].n}。</p>`;
@@ -535,7 +580,10 @@ function viewToday(){
         const st = !a ? `<span class="chipst st-open">未开始</span>`
           : `<span class="chipst ${a.pct==null||a.pct>=80?'st-done':'st-low'}" title="交卷 ${a.at?stamp(a.at):''}">${a.pct==null?'✓ 完成':a.pct+'%'}${a.at?' · '+hm(a.at):''}</span>`;
         // Items assigned before 2026-09-14 carry no `at`, so they show no assign time.
-        const tm = [at?'派于 '+stamp(at):'', it.movedFrom?'从 '+ymd(it.movedFrom)+' 挪来':''].filter(Boolean).join(' · ');
+        // Several tries that day: the chip shows the last one, so say how many and what the first try scored.
+        const tries = ATT.filter(x=>x.kid===k && x.id===it.id && x.date===day), first = tries[tries.length-1];
+        const again = tries.length>1 ? `这天做了 ${tries.length} 遍${first.pct!=null?'，第一遍 '+first.pct+'%':''}` : '';
+        const tm = [at?'派于 '+stamp(at):'', it.movedFrom?'从 '+ymd(it.movedFrom)+' 挪来':'', again].filter(Boolean).join(' · ');
         html += `<div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
           <b>${openLink(it.href, esc(it.t))}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
           ${tm?`<span class="tm">${tm}</span>`:''}
@@ -693,40 +741,162 @@ function viewBank(){
   return html;
 }
 
-/* ===================== HISTORY ===================== */
-function viewHist(){
-  const since = new Date(today); since.setDate(since.getDate()-21);
-  const sinceIso = iso(since);
-  let html = `<h2 class="sec">完成记录</h2><p class="seclead">最近三周，按孩子分。左边是交卷的日期和时间，低于 80% 的标红。</p><div class="grid2">`;
-  ['grace','warren'].forEach(k=>{
-    const mine = ATT.filter(a=>a.kid===k && a.date>=sinceIso);
-    const scored = mine.filter(a=>a.pct!=null);
-    const avg = scored.length ? Math.round(scored.reduce((s,a)=>s+a.pct,0)/scored.length) : null;
-    const weak = {};
-    scored.filter(a=>a.pct<80).forEach(a=>{ const key=a.book||a.subj||a.t; weak[key]=(weak[key]||0)+1; });
-    const weakTop = Object.entries(weak).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    html += `<div class="card"><div class="kidhead"><span class="av">${KID[k].av}</span><h3>${KID[k].n}</h3>
-        <span class="when">${mine.length} 次</span></div>
-      <div class="metrics">
-        <div class="metric"><div class="v" style="color:${avg==null?'var(--mute)':avg>=80?'var(--green)':'var(--amber)'}">${avg==null?'—':avg+'%'}</div><div class="k">平均</div></div>
-        <div class="metric"><div class="v">${scored.filter(a=>a.pct>=80).length}</div><div class="k">达标</div></div>
-        <div class="metric"><div class="v" style="color:var(--red)">${scored.filter(a=>a.pct<80).length}</div><div class="k">未达标</div></div>
-        <div class="metric"><div class="v">${dur(mine.reduce((s,a)=>s+a.secs,0))}</div><div class="k">总时长</div></div>
-      </div>`;
-    if(weakTop.length){
-      html += `<div style="font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);margin-bottom:2px">薄弱集中在</div>
-        <div class="wrongs">${weakTop.map(([n,c])=>`<span>${esc(n)} ×${c}</span>`).join('')}</div>
-        <div style="height:12px"></div>`;
+/* ===================== HISTORY (完成记录) ===================== */
+// One day at a time with a written summary per kid (Sam 2026-09-13: 每天都要总结，不要三周总结), and
+// every number carries a note saying what it counts. The same paper done several times that day is
+// one row — 第一遍 20% → 第二遍 100% — so a quick retry can't hide a weak first try.
+let HD = iso(today);   // the day 完成记录 is showing
+const PASS = 80;       // same pass line as the quiz pages and pctColor
+const ZH_N = '一二三四五六七八九十';
+const nthTry = i => i < 10 ? `第${ZH_N[i]}遍` : `第 ${i+1} 遍`;
+
+// A kid's papers on day d: attempts grouped by item, each group oldest-first; latest activity first.
+function dayPapers(k, d){
+  const by = new Map();
+  ATT.filter(a=>a.kid===k && a.date===d).reverse().forEach(a=>{   // ATT is newest-first
+    if(!by.has(a.id)) by.set(a.id, []);
+    by.get(a.id).push(a);
+  });
+  return [...by.values()].map(tries=>{
+    const s = tries.filter(a=>a.pct!=null);   // practice / viewed attempts carry no score
+    const last = tries[tries.length-1];
+    return { id:last.id, t:last.t, subj:last.subj, book:last.book, tries, scored:s.length>0,
+             first:s[0]||tries[0], last:s[s.length-1]||last, secs:tries.reduce((x,a)=>x+a.secs,0),
+             before:ATT.filter(a=>a.kid===k && a.id===last.id && a.date && a.date<d).length, end:last.at };
+  }).sort((a,b)=>(b.end||0)-(a.end||0));
+}
+
+function dayStats(papers){
+  const scored = papers.filter(p=>p.scored);
+  return { scored, prac:papers.filter(p=>!p.scored),
+           firstOk:scored.filter(p=>p.first.pct>=PASS), lastOk:scored.filter(p=>p.last.pct>=PASS),
+           nAtt:papers.reduce((s,p)=>s+p.tries.length,0), secs:papers.reduce((s,p)=>s+p.secs,0) };
+}
+
+// Book, else subject without its emoji ("🔤 Vocabulary" → "Vocabulary") — for the sentences below.
+const where = p => p.book || (p.subj||'').replace(/^[^\p{L}\p{N}《]+/u, '');
+
+// The day in plain sentences: what was done, what passed on the first try, what only passed on a retry.
+function histSummary(k, papers, S){
+  const n = KID[k].n;
+  if(!papers.length) return `${n} 这天没有交卷记录。派了作业却没做的话，到「今日作业」翻到这一天看。`;
+  const books = [...new Set(papers.map(where).filter(Boolean))];
+  const out = [`${n} 这天做了 <b>${papers.length} 份</b>（交卷 ${S.nAtt} 次），一共用了 <b>${dur(S.secs)}</b>` +
+    (books.length ? `，内容是 ${books.slice(0,3).map(esc).join('、')}${books.length>3?' 等':''}` : '') + '。'];
+  const sc = S.scored.length;
+  if(sc){
+    const fixed = S.scored.filter(p=>p.first.pct<PASS && p.last.pct>=PASS);
+    const open = S.scored.filter(p=>p.last.pct<PASS);
+    if(S.firstOk.length===sc) out.push(`打分的 ${sc} 份<b>第一遍就全部达标</b>。`);
+    else {
+      const parts = [];
+      if(S.firstOk.length) parts.push(`${S.firstOk.length} 份第一遍就达标`);
+      if(fixed.length){
+        const lo = Math.min(...fixed.map(p=>p.first.pct)), hi = Math.max(...fixed.map(p=>p.first.pct));
+        parts.push(`<b>${fixed.length} 份第一遍没到 ${PASS}%</b>（第一遍 ${lo===hi?lo:lo+'–'+hi}%），重做后才达标`);
+      }
+      if(open.length) parts.push(`<b style="color:var(--red)">${open.length} 份到最后还没达标</b>（${open.map(p=>'「'+esc(p.t)+'」').join('、')}）`);
+      out.push(`打分的 ${sc} 份里，${parts.join('；')}。`);
+      // Minutes between the first try and the passing one: that close, the answers were still fresh.
+      const gaps = fixed.map(p=>{
+        const ok = p.tries.find(a=>a.pct!=null && a.pct>=PASS);
+        return p.first.at && ok && ok.at ? Math.round((ok.at - p.first.at)/60000) : null;
+      });
+      if(fixed.length && gaps.every(g=>g!=null && g<=30))
+        out.push(`${fixed.length>1?`这 ${fixed.length} 份都是`:'这份是'}第一遍之后 ${Math.max(1,...gaps)} 分钟内就重做到达标。分数涨得这么快，可能是真学会了，也可能是记住了上一遍的答案 —— 建议隔一天再做一遍，看第一遍能不能过。`);
+      const weak = [...new Set(S.scored.filter(p=>p.first.pct<PASS).map(where).filter(Boolean))];
+      if(weak.length) out.push(`第一遍没过的都在 <b>${weak.map(esc).join('、')}</b>。`);
+      out.push(`第一遍每道题用了几秒、中途有没有离开页面，到「监视总结」看。`);
     }
-    mine.slice(0,8).forEach(a=>{
-      html += `<div class="hrow2"><span class="who">${a.date.slice(5)}${a.at?'<br>'+hm(a.at):''}</span>
-        <span class="nm">${esc(a.t)}<div class="bar"><i style="width:${a.pct==null?100:a.pct}%;background:${pctColor(a.pct)}"></i></div></span>
-        <span class="sc" style="color:${pctColor(a.pct)}">${pctText(a.pct)}</span></div>`;
-    });
-    if(!mine.length) html += `<p class="empty">还没有记录。</p>`;
+  }
+  if(S.prac.length){
+    const rounds = S.prac.reduce((s,p)=>s+p.tries.length,0), np = S.prac.length;
+    out.push(`${sc?`另外 ${np} 份是`:np>1?`${np} 份都是`:'这份是'}练习，不打分，做完一轮记一次 ✓${rounds>np?`，一共做了 ${rounds} 轮`:''}。`);
+  }
+  return out.join('');
+}
+
+// One paper: every try that day in order, the last score on the right, and a verdict tag.
+function histPaper(p){
+  const b = BANK_BY_ID[p.id] || {};
+  const fin = p.scored ? p.last.pct : null, many = p.tries.length > 1;
+  const tag = !p.scored ? `<span class="chipst st-prac">练习 · 不打分</span>`
+    : p.first.pct>=PASS ? `<span class="chipst st-done">第一遍就达标</span>`
+    : fin>=PASS ? `<span class="chipst st-open">第一遍没过 · 重做后达标</span>`
+    : `<span class="chipst st-low">还没达标</span>`;
+  const meta = [p.subj, p.book, LABEL[b.type]||'', b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '',
+                p.before ? `这天之前做过 ${p.before} 次` : ''].filter(Boolean).map(esc).join(' · ');
+  const tries = p.tries.map((a,i)=>{
+    const pr = a.practice;
+    const what = a.pct!=null
+      ? `<b style="color:${pctColor(a.pct)}">${a.pct}%</b>${a.total?`（对 ${a.score}/${a.total} 题）`:''}`
+      : `<b style="color:var(--green)">✓</b>${pr && typeof pr.firstTry==='number' && pr.items ? `（一次就对 ${pr.firstTry}/${pr.items}）` : ''}`;
+    const name = p.scored ? nthTry(i) : `第 ${i+1} 轮${pr && pr.round ? ' '+esc(pr.round) : ''}`;
+    return `<span class="try">${name} ${what}${a.at?` · ${hm(a.at)} 交`:''} · 用 ${dur(a.secs)}</span>`;
+  }).join('<span class="arr">→</span>');
+  const wrong = p.scored && fin<100 && p.last.wrong.length ? `${many?'最后一遍':''}错的是第 ${p.last.wrong.join('、')} 题` : '';
+  return `<div class="prow"><div class="ptop">
+      <div class="nm"><b>${openLink(b.href, esc(p.t))}</b><span class="crumb">${meta}</span></div>
+      <div class="pscore"><div class="sc" style="color:${pctColor(fin)}">${pctText(fin)}</div>
+        <div class="cap">${!p.scored?'做完了':many?'最后一遍':'得分'}</div></div></div>
+    <div class="bar"><i style="width:${fin==null?100:fin}%;background:${pctColor(fin)}"></i></div>
+    <div class="tries">${tries}</div>
+    <div class="pfoot">${tag}${many?`<span>这天做了 ${p.tries.length} ${p.scored?'遍':'轮'}，一共 ${dur(p.secs)}</span>`:''}${wrong?`<span>${wrong}</span>`:''}</div>
+  </div>`;
+}
+
+function viewHist(){
+  const day = HD, rel = dayName(day, ''), isToday = day===iso(today);
+  let html = `<h2 class="sec">完成记录 · ${rel?rel+' · ':''}${day} 周${wdOf(day)}</h2>
+    <p class="seclead">一天一页：两个孩子这一天交的每一份卷子，加一段文字总结。用 ‹ › 或日期框换一天，每张卡片最下面也能点最近 7 天。</p>
+    <div class="daynav">
+      <button class="fchip" data-hday="${shiftDay(day,-1)}">‹ ${dayName(shiftDay(day,-1), '前一天')}</button>
+      <input type="date" id="hdpick" value="${day}" max="${iso(today)}">
+      ${isToday?'':`<button class="fchip" data-hday="${shiftDay(day,1)}">${dayName(shiftDay(day,1), '后一天')} ›</button>
+      <button class="fchip" data-hday="${iso(today)}">回到今天</button>`}
+    </div>
+    <div class="hguide"><b>这一页怎么看</b><ul>
+      <li><b>达标</b> = 这一遍答对 ${PASS}% 及以上，标绿；不到 ${PASS}% 标红。</li>
+      <li>同一份卷子一天里做了几遍，<b>合成一行</b>，写成「第一遍 20% → 第二遍 100%」。<b>第一遍</b>最能看出是不是真的会；<b>最后一遍</b>看重做后改对了没有。</li>
+      <li><b>练习</b>（中文闯关、单词卡这类）不打分，做完一轮记一次 ✓，不算进达标。</li>
+      <li><b>用时</b> = 从打开卷子到交卷，中途离开页面的时间也算在里面。离开了几次、多久，看「监视总结」。</li>
+      <li>日期按<b>交卷那一刻</b>算；「14:31 交」是交卷的钟点。点卷子标题可以打开看题（家长预览，不记成绩）。</li>
+    </ul></div><div class="grid2">`;
+
+  ['grace','warren'].forEach(k=>{
+    const papers = dayPapers(k, day), S = dayStats(papers), sc = S.scored.length;
+    html += `<div class="card"><div class="kidhead"><span class="av">${KID[k].av}</span><h3>${KID[k].n}</h3>
+        <span class="when">${papers.length?`${papers.length} 份 · 交卷 ${S.nAtt} 次`:'这天没交卷'}</span></div>
+      <div class="dsum"><span class="lbl">${rel||'这天'}的总结</span>${histSummary(k, papers, S)}</div>`;
+    if(papers.length){
+      const met = (v, name, note, col) => `<div><div class="v" style="color:${col||'var(--cream)'}">${v}</div>
+        <div class="k">${name}</div><div class="x">${note}</div></div>`;
+      const none = '这天没有打分的卷子';
+      html += `<div class="hmet">
+        ${met(papers.length+' 份', '做了几份', `交卷 ${S.nAtt} 次：同一份做几遍就交几次`)}
+        ${met(sc?`${S.firstOk.length}/${sc}`:'—', '第一遍达标', sc?`打分的 ${sc} 份里，第一次做就 ≥ ${PASS}% 的份数`:none,
+              !sc?'var(--mute)':S.firstOk.length===sc?'var(--green)':'var(--amber)')}
+        ${met(sc?`${S.lastOk.length}/${sc}`:'—', '最后达标', sc?`最后一遍 ≥ ${PASS}% 的份数，看重做后改对没有`:none,
+              !sc?'var(--mute)':S.lastOk.length===sc?'var(--green)':'var(--red)')}
+        ${met(S.prac.length+' 份', '练习', '不打分，做完一轮记一次 ✓')}
+        ${met(dur(S.secs), '用时', '每一遍从打开到交卷加起来，离开页面也算')}
+      </div>
+      <div class="subhd">每份卷子 · 最近做的在上面</div>
+      ${papers.map(histPaper).join('')}`;
+    }
+    // A week around the day shown (up to 3 days after it, never past today), one line a day.
+    const end = shiftDay(day,3) < iso(today) ? shiftDay(day,3) : iso(today);
+    html += `<div class="subhd">最近 7 天 · 点一天换过去</div>`;
+    for(let i=0; i<7; i++){
+      const d = shiftDay(end,-i), P = dayPapers(k, d), s = dayStats(P), n = s.scored.length;
+      const txt = !P.length ? '没交卷' : [`${P.length} 份`, n?`第一遍达标 ${s.firstOk.length}/${n}`:'',
+        n?`最后达标 ${s.lastOk.length}/${n}`:'', s.prac.length?`练习 ${s.prac.length} 份`:'', dur(s.secs)].filter(Boolean).join(' · ');
+      html += `<button class="dayrow${d===day?' on':''}${P.length?'':' quiet'}" data-hday="${d}">
+        <span class="d">${d.slice(5)} 周${wdOf(d)}</span><span class="s">${txt}</span></button>`;
+    }
     html += `</div>`;
   });
-  return html+`</div>`;
+  return html + `</div>`;
 }
 
 /* ===================== FOCUS (监视总结) ===================== */
@@ -785,6 +955,16 @@ function viewFocus(){
       要限制 APP，用 iPad 的「屏幕使用时间」或「引导式访问」。</p>
     <div class="filters">${[[1,'今天'],[7,'近 7 天'],[21,'近 21 天']].map(([v,l])=>
       `<button class="fchip${FR===v?' on':''}" data-fr="${v}">${l}</button>`).join('')}</div>
+    <div class="hguide"><b>这些数字怎么读</b><ul>
+      <li><b>学习时长</b> = 每份卷子从打开到交卷的时间加起来（练习、参考也算）。</li>
+      <li><b>在页面上</b> = 这些时间里页面在前台的比例：90% 及以上绿色，75%–89% 黄色，更低红色。</li>
+      <li><b>离开次数</b> = 页面离开前台的次数。切到别的 APP、别的标签页、锁屏、屏幕变暗都算，去查一次字典也算一次。</li>
+      <li><b>需要留意</b>只列满足任一条的卷子：离开 ≥ ${FOCUS.awayCount} 次；离开的时间占 ≥ ${Math.round(FOCUS.awayShare*100)}%；有一次离开 ≥ ${dur(FOCUS.longAway)}；
+        ≥ ${FOCUS.attnSlow} 道慢题；≥ ${FOCUS.attnGuess} 道答得很快又答错。</li>
+      <li><b>慢题</b> = 这道题在页面上停了 ≥ ${dur(FOCUS.slowMin)}，而且是这份卷子一般题目（中位数）的 ${FOCUS.slowX} 倍以上。
+        <b>答得很快又答错</b> = 不到 ${FOCUS.guessSecs} 秒就选了、选错了，可能是蒙的。</li>
+      <li>按交卷那天算。上面的「今天 / 近 7 天 / 近 21 天」换统计的天数。</li>
+    </ul></div>
     <div class="grid2">`;
 
   ['grace','warren'].forEach(k=>{
@@ -795,12 +975,16 @@ function viewFocus(){
     const share = T.secs ? Math.round(100*T.active/T.secs) : null;
     const shareCol = share==null ? 'var(--mute)' : share>=90 ? 'var(--green)' : share>=75 ? 'var(--amber)' : 'var(--red)';
     html += `<div class="card"><div class="kidhead"><span class="av">${KID[k].av}</span><h3>${KID[k].n}</h3>
-        <span class="when">${mine.length} 次</span></div>
-      <div class="metrics">
-        <div class="metric"><div class="v">${dur(T.secs)}</div><div class="k">学习时长</div></div>
-        <div class="metric"><div class="v" style="color:${shareCol}">${share==null?'—':share+'%'}</div><div class="k">在页面上</div></div>
-        <div class="metric"><div class="v" style="color:${T.n?'var(--amber)':'var(--cream)'}">${T.n}</div><div class="k">离开次数</div></div>
-        <div class="metric"><div class="v">${T.max?dur(T.max):'—'}</div><div class="k">最长离开</div></div>
+        <span class="when">交卷 ${mine.length} 次</span></div>
+      <div class="hmet">
+        <div><div class="v">${dur(T.secs)}</div><div class="k">学习时长</div>
+          <div class="x">${mine.length} 次交卷，每次从打开到交卷加起来</div></div>
+        <div><div class="v" style="color:${shareCol}">${share==null?'—':share+'%'}</div><div class="k">在页面上</div>
+          <div class="x">${share==null?'这段时间没有记录':`页面在前台 ${dur(T.active)}，占学习时长的比例`}</div></div>
+        <div><div class="v" style="color:${T.n?'var(--amber)':'var(--cream)'}">${T.n}</div><div class="k">离开次数</div>
+          <div class="x">页面离开前台的次数${T.away?`，一共离开 ${dur(T.away)}`:''}</div></div>
+        <div><div class="v">${T.max?dur(T.max):'—'}</div><div class="k">最长离开</div>
+          <div class="x">单独一次离开最久的时长</div></div>
       </div>`;
     if(!mine.length){ html += `<p class="empty">这段时间没有做题记录。</p></div>`; return; }
 
@@ -808,12 +992,14 @@ function viewFocus(){
       <div class="stacklbl">在页面上 ${dur(T.active)} · 不在页面 ${dur(T.away)}</div>`;
 
     const flagged = mine.filter(a=>a.f.attention);
-    html += `<div class="subhd">需要留意 · ${flagged.length} 份</div>`;
+    html += `<div class="subhd">需要留意 · ${flagged.length} 份</div>
+      <p class="hnote">满足上面「需要留意」任一条的卷子。标签写的是它为什么被列进来；这是参考，不是判决。</p>`;
     html += flagged.length ? flagged.map(a=>`<div class="flagrow"><span class="when">${a.date.slice(5)}</span>
         <span class="nm">${esc(a.t)}<div class="flags">${a.f.flags.map(x=>`<span>${esc(x)}</span>`).join('')}</div></span></div>`).join('')
       : `<p class="empty" style="padding:8px 0">都挺专心，没有要特别留意的。</p>`;
 
-    html += `<div class="subhd">每份用时 · 每题停留</div>`;
+    html += `<div class="subhd">每份用时 · 每题停留</div>
+      <p class="hnote">右边大数字 = 这份从打开到交卷的时间。下面一排小条，一根是一道题，越高停得越久；颜色的意思在页面最下面。</p>`;
     mine.forEach(a=>{
       const f = a.f, maxQ = Math.max(1, ...f.qs.map(q=>q.active));
       const slowest = f.qs.reduce((m,q)=>!m||q.active>m.active?q:m, null);
@@ -1017,6 +1203,11 @@ function render(){
     viewEl.querySelectorAll('[data-movecancel]').forEach(b=>b.addEventListener('click',()=>{ MOVING = ''; render(); }));
     viewEl.querySelectorAll('[data-movego]').forEach(b=>b.addEventListener('click',()=>{
       const [k, id] = b.dataset.movego.split('|'); moveItem(k, id, viewEl.querySelector('.movedate').value, b); }));
+  }
+  if(V==='hist'){
+    const goHist = d=>{ if(!d) return; HD = d > iso(today) ? iso(today) : d; render(); };
+    viewEl.querySelectorAll('[data-hday]').forEach(b=>b.addEventListener('click',()=>goHist(b.dataset.hday)));
+    document.getElementById('hdpick').addEventListener('change', e=>goHist(e.target.value));
   }
   if(V==='focus'){
     viewEl.querySelectorAll('.fchip[data-fr]').forEach(c=>c.addEventListener('click',()=>{
