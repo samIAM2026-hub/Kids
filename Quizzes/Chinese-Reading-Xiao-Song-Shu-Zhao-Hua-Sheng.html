@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《小松鼠找花生》 朗读 + 选字游戏 — Read Aloud &amp; Pick the Character</title>
+<style>
+  :root{
+    --cream:#fff6e9; --card:#fffdf7; --ink:#3a2c1e; --muted:#8b7a66;
+    --shell:#a9711f;     /* peanut shell — the page accent */
+    --shell-d:#7d5214;
+    --leaf:#3f7d4e;      /* green = right / done */
+    --leaf-d:#2f5f3b;
+    --red:#c0392b; --softred:#fbeae7;
+    --line:#ecdcc2;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    background:var(--cream); color:var(--ink);
+    padding:16px 12px 70px; line-height:1.65;
+  }
+  .zh{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",Georgia,serif;}
+  .wrap{max-width:900px; margin:0 auto;}
+
+  header{text-align:center; margin-bottom:14px;}
+  h1{font-size:2rem; margin:.1em 0 .05em; color:var(--shell); letter-spacing:.04em;
+     font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",Georgia,serif;}
+  .en-title{font-size:1.05rem; color:var(--leaf-d); margin:0 0 .3em; letter-spacing:.04em;}
+  .sub{color:var(--muted); font-size:.92rem; margin:0;}
+
+  .teacher{
+    background:#fdf1de; border:2px solid #ecd6b4; border-left:8px solid var(--shell);
+    border-radius:14px; padding:12px 16px; margin:14px 0 6px; font-size:.93rem; color:#6b5744;
+  }
+  .teacher b{color:var(--shell-d);}
+  .teacher .cn{display:block; margin-top:6px; color:#8b7a66; font-size:.88rem;}
+
+  /* ---- sticky tabs ---- */
+  .tabs{position:sticky; top:0; z-index:20; display:flex; gap:6px; flex-wrap:wrap; justify-content:center;
+        background:rgba(255,246,233,.95); padding:8px 4px; margin:10px -12px 18px; border-bottom:2px solid var(--line);
+        backdrop-filter:blur(4px);}
+  .tabs button{border:2px solid var(--line); background:var(--card); color:var(--muted); cursor:pointer;
+        font-family:inherit; font-size:.86rem; padding:7px 13px; border-radius:999px;}
+  .tabs button.on{background:var(--shell); border-color:var(--shell); color:#fff;}
+
+  section{background:var(--card); border:2px solid var(--line); border-radius:20px;
+          padding:20px 18px; margin-bottom:22px; box-shadow:0 6px 20px rgba(169,113,31,.07);}
+  h2{font-size:1.2rem; color:var(--shell); margin:0 0 4px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  h2 .cnt{font-size:.78rem; color:var(--muted); font-weight:normal;}
+  .lead{color:var(--muted); font-size:.9rem; margin:0 0 16px;}
+  .lead b{color:#6b5744;}
+
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
+  .tb{border:2px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;
+      font-family:inherit; font-size:.85rem; padding:7px 13px; border-radius:12px;}
+  .tb.on{background:var(--leaf); border-color:var(--leaf); color:#fff;}
+  select.tb{padding:7px 8px; max-width:210px;}
+  .hide{display:none !important;}
+
+  /* ---- read aloud ---- */
+  .roundbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+  .round{flex:1 1 200px; border:2px solid var(--line); border-radius:14px; padding:10px 14px; background:#fffdf7;}
+  .round.done{background:#eef5ef; border-color:var(--leaf);}
+  .round .rt{font-size:.86rem; color:var(--muted);}
+  .round .rn{font-size:1.1rem; color:var(--shell);}
+  .round.done .rn{color:var(--leaf-d);}
+
+  .para{display:flex; gap:10px; align-items:flex-start; padding:13px 0; border-top:1px solid var(--line);}
+  .para:first-of-type{border-top:none;}
+  .para .pbody{flex:1 1 auto;}
+  .para .ptxt{font-size:1.22rem; line-height:2.5;
+              font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif;}
+  .para .ptr{font-size:.88rem; color:var(--muted); font-style:italic; margin-top:4px; line-height:1.55;}
+  body.notr .ptr{display:none;}
+  .para .pact{flex:0 0 auto; display:flex; flex-direction:column; gap:5px; align-items:center; padding-top:6px;}
+  .pact button{border:2px solid var(--line); background:#fff; border-radius:11px; cursor:pointer;
+               font-family:inherit; font-size:.74rem; padding:5px 8px; color:var(--muted); min-width:56px;}
+  .pact button.sp{color:var(--shell);}
+  .pact button.tick.on{background:var(--leaf); border-color:var(--leaf); color:#fff;}
+  ruby{ruby-position:over;}
+  rt{font-size:.46em; color:var(--shell); font-family:Georgia,"PingFang SC",serif;
+     letter-spacing:0; font-weight:normal;}
+  body.nopy rt{visibility:hidden;}
+
+  .done-note{margin-top:16px; font-size:.97rem; color:var(--leaf-d);
+             background:#eef5ef; border-radius:14px; padding:14px 16px; display:none;}
+  .done-note.show{display:block;}
+
+  /* ---- pick-the-character game ---- */
+  .menu{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:11px;}
+  .mcard{border:2px solid var(--line); border-radius:16px; background:#fffdf7; padding:13px 15px;
+         cursor:pointer; text-align:left; font-family:inherit; color:var(--ink); transition:transform .12s;}
+  .mcard:hover{border-color:var(--shell);}
+  .mcard:active{transform:scale(.98);}
+  .mcard .mt{font-size:1.02rem; color:var(--shell-d);
+             font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",Georgia,serif;}
+  .mcard .mn{font-size:.8rem; color:var(--muted); margin-top:3px;}
+  .mcard .ms{font-size:.95rem; margin-top:6px; letter-spacing:.06em; min-height:1.2em;}
+  .mcard.cleared{background:#eef5ef; border-color:var(--leaf);}
+
+  .play{display:none;} .play.on{display:block;}
+  .phead{display:flex; justify-content:space-between; align-items:center; gap:10px;
+         flex-wrap:wrap; margin-bottom:10px;}
+  .phead .pname{font-size:1.02rem; color:var(--shell-d);
+                font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",Georgia,serif;}
+  .phead .pprog{font-size:.84rem; color:var(--muted); font-family:Georgia,serif;}
+  .bar{height:11px; background:#efe4d3; border-radius:8px; overflow:hidden; margin:0 0 18px;}
+  .bar > div{height:100%; width:0%; background:linear-gradient(90deg,#ffd27f,var(--leaf)); transition:width .35s;}
+
+  .sent{font-size:1.5rem; line-height:2.1; text-align:center; margin:6px 0 4px;
+        font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif;}
+  .blank{display:inline-block; min-width:1.45em; border-bottom:4px solid var(--shell);
+         color:var(--shell); text-align:center;}
+  .blank.filled{border-bottom-color:var(--leaf); color:var(--leaf-d);}
+  .hint{text-align:center; font-size:1.05rem; color:var(--leaf-d); letter-spacing:.06em; margin:0 0 4px;}
+  .gloss{text-align:center; font-size:.88rem; color:var(--muted); font-style:italic; margin:0 0 16px;}
+  body.notr .gloss{visibility:hidden;}
+
+  .opts{display:grid; grid-template-columns:repeat(auto-fit,minmax(92px,1fr)); gap:10px; max-width:520px; margin:0 auto;}
+  .opt{border:2px solid var(--line); background:#fffdf7; border-radius:16px; padding:14px 6px;
+       font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif; font-size:2.2rem;
+       cursor:pointer; color:var(--ink); transition:transform .1s;}
+  .opt:hover:not(:disabled){border-color:var(--shell);}
+  .opt:active:not(:disabled){transform:scale(.95);}
+  .opt.right{background:#e7f2e9; border-color:var(--leaf); color:var(--leaf-d);}
+  .opt.wrong{background:var(--softred); border-color:#e8b3a8; color:var(--red);}
+  .opt:disabled{cursor:default;}
+
+  .why{margin:16px auto 0; max-width:560px; font-size:.92rem; padding:11px 14px; border-radius:12px;
+       background:#fdf6ea; border-left:5px solid #ecd6b4; color:#6b5744;}
+  .why.ok{background:#eef5ef; border-left-color:var(--leaf);}
+  .why .zh{font-size:1.15em; color:var(--shell-d);}
+
+  .pfoot{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:18px;}
+
+  .endcard{text-align:center; padding:10px 4px;}
+  .endcard .em{font-size:3.4rem; line-height:1.2;}
+  .stars{font-size:1.6rem; letter-spacing:.12em; margin:6px 0;}
+  .endcard .et{font-size:1rem; color:var(--ink); margin-bottom:6px;}
+  .endcard .en2{font-size:.9rem; color:var(--muted);}
+
+  a.home{display:block; text-align:center; margin-top:8px; color:var(--muted); text-decoration:none; font-size:.86rem;}
+  a.home:hover{text-decoration:underline;}
+
+  @media print{
+    .tabs,.toolbar,.pact,.opts,.pfoot,a.home,#s-game{display:none !important;}
+    body{background:#fff;} section{break-inside:avoid; box-shadow:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>小松鼠找花生</h1>
+  <p class="en-title">“Little Squirrel Looks for the Peanuts” · xiǎo sōng shǔ zhǎo huā shēng</p>
+  <p class="sub">Read the whole story aloud twice · then play the pick-the-character game</p>
+</header>
+
+<div class="teacher">
+  <b>What to do on this page:</b> first read the story out loud — <b>twice</b>, once with the pinyin showing
+  and once with it covered. Then play the <b>pick-the-character game</b>: every sentence of the story comes
+  back with one character missing, and you click the right one. The pinyin is always given, so you are
+  choosing between characters that <i>sound the same</i> — that is the hard part in Chinese, and the whole
+  point of the game.
+  <span class="cn zh">先把《小松鼠找花生》朗读两遍（第一遍看拼音，第二遍盖住拼音），再玩选字游戏——全文每句话都会出现一次。</span>
+</div>
+
+<div class="tabs" id="tabs">
+  <button data-go="s-read" class="on">📖 Read aloud ×2</button>
+  <button data-go="s-game">🖱️ Pick the character</button>
+</div>
+
+<!-- ============ 1. read aloud ============ -->
+<section id="s-read">
+  <h2>📖 Read the story aloud — twice <span class="cnt">· 5 paragraphs</span></h2>
+  <p class="lead">Pinyin sits above the characters your teacher marked. <b>Round 1:</b> read with the pinyin showing.
+     <b>Round 2:</b> try it with the pinyin covered. Tap the round's button after you finish each paragraph.
+     The English underneath is only there if you get stuck — try the Chinese first.</p>
+  <div class="toolbar">
+    <button class="tb on" id="pyToggle">🔤 Pinyin: showing</button>
+    <button class="tb on" id="trToggle">🇬🇧 English: showing</button>
+    <button class="tb" id="slowBtn">🐢 Slow: off</button>
+    <select class="tb" id="voiceSel" title="Reading voice"></select>
+    <button class="tb" id="readAll">▶️ Hear the whole story</button>
+    <button class="tb" id="resetRead">↺ Clear my check-marks</button>
+  </div>
+  <div class="roundbar">
+    <div class="round" id="r1"><div class="rt">Round 1 · read with pinyin</div><div class="rn" id="r1n">0 / 5 paragraphs</div></div>
+    <div class="round" id="r2"><div class="rt">Round 2 · cover the pinyin</div><div class="rn" id="r2n">0 / 5 paragraphs</div></div>
+  </div>
+  <div id="story"></div>
+  <div class="done-note" id="doneNote">🎉 Both rounds done — the whole story, out loud, on your own.
+    Now the big question the story never answers out loud: <b>why did Little Squirrel never find a peanut?</b>
+    Nobody took them. Peanut flowers bend down and push into the soil, and the peanuts grow
+    <b>underground</b> — <span class="zh">花生长在地下</span>. He was looking in exactly the wrong place.
+    Go and tell someone that.</div>
+</section>
+
+<!-- ============ 2. pick-the-character game ============ -->
+<section id="s-game">
+  <h2>🖱️ Pick the character <span class="cnt" id="gameCnt"></span></h2>
+  <p class="lead">Five rounds, following the story from beginning to end — <b>every sentence appears</b>.
+     One character is missing; the pinyin tells you how it sounds, and you click the character that
+     writes that sound <b>here</b>. Get it on the first click and you win a ⭐. Get it wrong and the
+     page tells you what the right one means and how to tell them apart — then you try again.</p>
+
+  <div id="menu" class="menu"></div>
+
+  <div class="play" id="play">
+    <div class="phead">
+      <div class="pname" id="pname"></div>
+      <div class="pprog" id="pprog"></div>
+    </div>
+    <div class="bar"><div id="pbar"></div></div>
+
+    <div id="stage">
+      <div class="sent zh" id="sent"></div>
+      <div class="hint" id="hint"></div>
+      <div class="gloss" id="gloss"></div>
+      <div class="opts" id="opts"></div>
+      <div class="why hide" id="why"></div>
+    </div>
+
+    <div class="endcard hide" id="endcard">
+      <div class="em" id="endEmoji">🥜</div>
+      <div class="stars" id="endStars"></div>
+      <div class="et" id="endText"></div>
+      <div class="en2" id="endNote"></div>
+    </div>
+
+    <div class="pfoot">
+      <button class="tb" id="sayBtn">🔊 Hear the sentence</button>
+      <button class="tb" id="backBtn">← All rounds</button>
+    </div>
+  </div>
+</section>
+
+<a class="home" href="index.html">← Back to the Quiz Hub</a>
+</div>
+
+<script>
+/* ==================================================================
+   《小松鼠找花生》 "Little Squirrel Looks for the Peanuts"
+   Source: the story sheet as handed in — the pinyin in {字|py} marks
+   is exactly the set printed above the characters on that sheet.
+   The game covers the full text: every sentence of the story turns up
+   once, with one character taken out.
+   ================================================================== */
+
+/* ---- the story: {字|pinyin} puts little pinyin above the character ---- */
+const STORY = [
+  {cn:"大树旁边的地里种了许多花生。花生已经开花了，一朵朵金黄色的小花，在阳光下{格|gé}外{鲜|xiān}{艳|yàn}。",
+   en:"Beside the big tree, a lot of peanuts had been planted. They were already in flower — cluster after cluster of little golden blossoms, especially bright in the sunshine."},
+  {cn:"小松鼠问{鼹|yǎn}鼠：“这是什么花呀？”{鼹|yǎn}鼠说：“这是花生的花。到了秋天，会{结|jiē}花生，花生可好吃啦！”小松鼠很高兴，他想：{等|děng}花生{结|jiē}了果，我就把花生{摘|zhāi}下来，{留|liú}着冬天吃。",
+   en:"Little Squirrel asked Mole, “What kind of flower is this?” Mole said, “That is the peanut flower. When autumn comes it will make peanuts, and peanuts taste wonderful!” Little Squirrel was delighted. He thought: once the peanuts have grown, I will pick them and keep them to eat in the winter."},
+  {cn:"小松鼠每天都到地里去，看看{结|jiē}花生了没有。",
+   en:"Every single day Little Squirrel went out to the field, to see whether any peanuts had come yet."},
+  {cn:"他{等|děng}啊，{等|děng}啊，{等|děng}到花都落光了，也没看见一个花生。",
+   en:"He waited, and waited, and waited — until every last flower had dropped, and still he had not seen a single peanut."},
+  {cn:"小松鼠{感|gǎn}到很{奇|qí}{怪|guài}，自言自语地说：“是谁把花生{摘|zhāi}走了呢？”",
+   en:"Little Squirrel thought this was very strange. He said to himself, “Who on earth picked all the peanuts?”"}
+];
+
+/* ---- the game: five rounds, straight through the story ----
+   s   : the sentence with ▢ where the character was taken out
+   a   : the character that belongs there
+   py  : its pinyin (always shown — the choice is between same-sounding characters)
+   opts: the four buttons (shuffled at load)
+   en  : what the sentence means
+   why : how to tell the right character from the look-alikes
+   say : what to read out loud                                           */
+const ROUNDS = [
+  { name:"① 花开了 · The peanut flowers", items:[
+    {s:"大树▢边的地里种了许多花生。", a:"旁", py:"páng", opts:["旁","房","放","方"],
+     en:"Beside the big tree, a lot of peanuts had been planted.",
+     why:"<b class='zh'>旁</b> páng means <b>beside / next to</b>. <span class='zh'>房</span> fáng is a house, <span class='zh'>放</span> fàng is to put down, <span class='zh'>方</span> fāng is a square — close in sound, nothing to do with being next to something.",
+     say:"大树旁边的地里种了许多花生。"},
+    {s:"大树旁边的地里▢了许多花生。", a:"种", py:"zhòng", opts:["中","种","重","钟"],
+     en:"…a lot of peanuts had been planted there.",
+     why:"<b class='zh'>种</b> zhòng means <b>to plant</b> — look for <span class='zh'>禾</span> on the left, the grain radical. <span class='zh'>中</span> middle, <span class='zh'>重</span> heavy, <span class='zh'>钟</span> clock all sound close, but only one of them grows in a field.",
+     say:"大树旁边的地里种了许多花生。"},
+    {s:"花生▢经开花了", a:"已", py:"yǐ", opts:["己","以","已","衣"],
+     en:"The peanut plants were already in flower.",
+     why:"<b class='zh'>已经</b> yǐjīng = <b>already</b>. <span class='zh'>已</span> and <span class='zh'>己</span> (jǐ, self) are nearly twins — on <span class='zh'>已</span> the little stroke at the top left pokes <i>halfway</i> through.",
+     say:"花生已经开花了。"},
+    {s:"一▢朵金黄色的小花", a:"朵", py:"duǒ", opts:["多","朵","采","杂"],
+     en:"cluster after cluster of little golden-yellow flowers",
+     why:"<b class='zh'>朵</b> duǒ is the <b>measure word for flowers</b>, so <span class='zh'>一朵朵</span> = bunch after bunch. <span class='zh'>多</span> duō means <i>many</i> and sounds almost identical — but you can't say <span class='zh'>一多</span>.",
+     say:"一朵朵金黄色的小花"},
+    {s:"在阳光下▢外鲜艳。", a:"格", py:"gé", opts:["各","格","客","阁"],
+     en:"…especially bright in the sunshine.",
+     why:"<b class='zh'>格外</b> géwài = <b>especially, extra</b>. <span class='zh'>格</span> carries <span class='zh'>木</span> (wood) on the left; <span class='zh'>各</span> gè on its own means <i>each</i>.",
+     say:"在阳光下格外鲜艳。"},
+    {s:"在阳光下格外▢艳。", a:"鲜", py:"xiān", opts:["鲜","先","新","仙"],
+     en:"…especially bright in the sunshine.",
+     why:"<b class='zh'>鲜</b> xiān = <b>fresh, bright</b>. Take it apart: <span class='zh'>鱼</span> (fish) + <span class='zh'>羊</span> (sheep) — the two freshest things on an old Chinese table.",
+     say:"在阳光下格外鲜艳。"},
+    {s:"在阳光下格外鲜▢。", a:"艳", py:"yàn", opts:["严","验","艳","眼"],
+     en:"…especially bright in the sunshine.",
+     why:"<b class='zh'>鲜艳</b> xiānyàn = <b>brilliantly colourful</b>. <span class='zh'>艳</span> has <span class='zh'>色</span> (colour) standing on the right — colour is literally built into it.",
+     say:"在阳光下格外鲜艳。"}
+  ]},
+  { name:"② 鼹鼠告诉他 · Mole explains", items:[
+    {s:"小松鼠问▢鼠：“这是什么花呀？”", a:"鼹", py:"yǎn", opts:["眼","烟","鼹","言"],
+     en:"Little Squirrel asked Mole, “What kind of flower is this?”",
+     why:"<b class='zh'>鼹鼠</b> yǎnshǔ = a <b>mole</b>. You can spot it without knowing it: the left half is <span class='zh'>鼠</span>, the rat radical, so it must be some small burrowing animal. <span class='zh'>眼</span> yǎn is an eye.",
+     say:"小松鼠问鼹鼠：这是什么花呀？"},
+    {s:"鼹鼠说：“这是花生的▢。”", a:"花", py:"huā", opts:["化","花","华","草"],
+     en:"Mole said, “That is the peanut's flower.”",
+     why:"<b class='zh'>花</b> huā = <b>flower</b>: <span class='zh'>艹</span> (grass) on top for the meaning, <span class='zh'>化</span> huà underneath for the sound. Two jobs, one character — that is how most Chinese characters are built.",
+     say:"鼹鼠说：这是花生的花。"},
+    {s:"到了▢天，会结花生", a:"秋", py:"qiū", opts:["秒","秋","科","求"],
+     en:"When autumn comes, it will make peanuts.",
+     why:"<b class='zh'>秋</b> qiū = <b>autumn</b>: <span class='zh'>禾</span> (grain) beside <span class='zh'>火</span> (fire) — grain ripening in the fiery autumn sun. Once you see the fire you will never miss it again.",
+     say:"到了秋天，会结花生。"},
+    {s:"到了秋天，会▢花生", a:"结", py:"jiē", opts:["给","红","结","绿"],
+     en:"When autumn comes, it will bear peanuts.",
+     why:"<b class='zh'>结</b> here means <b>to bear fruit</b>. All four choices wear <span class='zh'>纟</span> (silk thread) on the left, so the left side is no help — check the right: <span class='zh'>吉</span> jí is what gives <span class='zh'>结</span> its sound.",
+     say:"到了秋天，会结花生。"},
+    {s:"花生可▢吃啦！", a:"好", py:"hǎo", opts:["好","女","她","子"],
+     en:"Peanuts taste wonderful!",
+     why:"<b class='zh'>好吃</b> hǎochī = <b>tasty</b>. <span class='zh'>好</span> is <span class='zh'>女</span> (woman) and <span class='zh'>子</span> (child) standing side by side — the old picture of something good.",
+     say:"花生可好吃啦！"},
+    {s:"小松鼠很高▢", a:"兴", py:"xìng", opts:["共","兵","兴","只"],
+     en:"Little Squirrel was delighted.",
+     why:"<b class='zh'>高兴</b> gāoxìng = <b>happy, pleased</b>. Careful with this one: <span class='zh'>兴</span> has two readings — xīng in <span class='zh'>兴奋</span> (excited), xìng in <span class='zh'>高兴</span>.",
+     say:"小松鼠很高兴。"}
+  ]},
+  { name:"③ 小松鼠的打算 · The squirrel's plan", items:[
+    {s:"▢花生结了果", a:"等", py:"děng", opts:["等","待", "算","第"],
+     en:"Once the peanuts have grown…",
+     why:"<b class='zh'>等</b> děng = <b>to wait</b>. It wears the bamboo top <span class='zh'>⺮</span>, and so does <span class='zh'>第</span> dì — so look underneath: <span class='zh'>等</span> has <span class='zh'>寺</span>, <span class='zh'>第</span> does not.",
+     say:"等花生结了果"},
+    {s:"等花生结了▢", a:"果", py:"guǒ", opts:["东","呆","果","课"],
+     en:"Once the peanuts have set their fruit…",
+     why:"<b class='zh'>果</b> guǒ = <b>fruit</b>. It is a picture: a tree <span class='zh'>木</span> with the fruit <span class='zh'>田</span> sitting up in its branches.",
+     say:"等花生结了果"},
+    {s:"我就把花生▢下来", a:"摘", py:"zhāi", opts:["搬","摘","指","擦"],
+     en:"I will pick them.",
+     why:"<b class='zh'>摘</b> zhāi = <b>to pick with your hand</b>. Every choice here has <span class='zh'>扌</span> (hand), so the hand tells you nothing — the right-hand part <span class='zh'>啇</span> is what makes it <i>zhāi</i>.",
+     say:"我就把花生摘下来"},
+    {s:"▢着冬天吃。", a:"留", py:"liú", opts:["流","留","柳","刘"],
+     en:"…and keep them to eat in the winter.",
+     why:"<b class='zh'>留</b> liú = <b>to keep, to save for later</b>. <span class='zh'>流</span> liú is water <i>flowing away</i> — the exact opposite of keeping. <span class='zh'>留</span> has <span class='zh'>田</span> (a field) underneath: something that stays put.",
+     say:"留着冬天吃。"},
+    {s:"留着▢天吃。", a:"冬", py:"dōng", opts:["东","终","冬","冻"],
+     en:"…to eat in the winter.",
+     why:"<b class='zh'>冬</b> dōng = <b>winter</b>. The two little strokes at the bottom are <span class='zh'>冫</span>, the ice mark. <span class='zh'>东</span> dōng is east — same sound, no ice.",
+     say:"留着冬天吃。"}
+  ]},
+  { name:"④ 等啊等 · Waiting and waiting", items:[
+    {s:"小松鼠▢天都到地里去", a:"每", py:"měi", opts:["母","梅","海","每"],
+     en:"Every day Little Squirrel went out to the field.",
+     why:"<b class='zh'>每天</b> měitiān = <b>every day</b>. <span class='zh'>每</span> grew out of <span class='zh'>母</span> (mother) — the difference is the extra stroke lying across the top.",
+     say:"小松鼠每天都到地里去"},
+    {s:"小松鼠每天都到地▢去，看看结花生了没有。", a:"里", py:"lǐ", opts:["理","里","黑","果"],
+     en:"…out into the field, to see whether any peanuts had come.",
+     why:"<b class='zh'>地里</b> dìlǐ = <b>in the field</b> — <span class='zh'>里</span> means <b>inside</b>. <span class='zh'>理</span> lǐ sounds the same but means reason or to tidy; it carries the jade radical <span class='zh'>王</span> on the left.",
+     say:"小松鼠每天都到地里去，看看结花生了没有。"},
+    {s:"他等啊，等啊，等到花都▢光了", a:"落", py:"luò", opts:["洛","落","答","络"],
+     en:"He waited and waited, until every flower had fallen.",
+     why:"<b class='zh'>落</b> luò = <b>to fall</b>. <span class='zh'>艹</span> (grass) sits on top, which is your hint: it is petals and leaves coming down.",
+     say:"他等啊，等啊，等到花都落光了"},
+    {s:"等到花都落▢了", a:"光", py:"guāng", opts:["先","光","当","兄"],
+     en:"…until the flowers had fallen, every last one.",
+     why:"<b class='zh'>光</b> on its own means <i>light</i> — but stuck after a verb it means <b>completely, until none are left</b>. <span class='zh'>落光</span> = fallen until there is nothing left to fall. You will meet this again in <span class='zh'>吃光</span> (eaten up).",
+     say:"等到花都落光了"},
+    {s:"也没看见一▢花生。", a:"个", py:"gè", opts:["人","个","介","伞"],
+     en:"…and he had not seen a single peanut.",
+     why:"<b class='zh'>个</b> gè is the everyday <b>measure word</b>: <span class='zh'>一个花生</span> = one single peanut. <span class='zh'>个</span> is <span class='zh'>人</span> rén (person) with one line dropped straight down the middle.",
+     say:"也没看见一个花生。"}
+  ]},
+  { name:"⑤ 花生哪儿去了 · Where did they go?", items:[
+    {s:"小松鼠▢到很奇怪", a:"感", py:"gǎn", opts:["咸","减","感","敢"],
+     en:"Little Squirrel felt that this was very strange.",
+     why:"<b class='zh'>感</b> gǎn = <b>to feel</b>. There is a <span class='zh'>心</span> (heart) sitting at the bottom — in Chinese, feelings live in the heart, and the character says so.",
+     say:"小松鼠感到很奇怪"},
+    {s:"小松鼠感到很▢怪", a:"奇", py:"qí", opts:["奇","骑","寄","椅"],
+     en:"…felt that this was very strange.",
+     why:"<b class='zh'>奇怪</b> qíguài = <b>strange</b>. <span class='zh'>奇</span> is <span class='zh'>大</span> (big) sitting on <span class='zh'>可</span> — something big enough to make you stop and say “huh?”. The other three all borrow <span class='zh'>奇</span> just for its sound.",
+     say:"小松鼠感到很奇怪"},
+    {s:"小松鼠感到很奇▢", a:"怪", py:"guài", opts:["快","怪","性","忙"],
+     en:"…felt that this was very strange.",
+     why:"<b class='zh'>怪</b> guài = <b>odd, strange</b>. Every option here wears <span class='zh'>忄</span>, the standing heart — all four are feelings. The right side <span class='zh'>圣</span> is what makes this one <i>guài</i>.",
+     say:"小松鼠感到很奇怪"},
+    {s:"自言自▢地说", a:"语", py:"yǔ", opts:["话","语","说","词"],
+     en:"…said to himself…",
+     why:"<b class='zh'>自言自语</b> zìyánzìyǔ = <b>talking to yourself</b>. All four have <span class='zh'>讠</span> (speech), because all four are about words — the right side <span class='zh'>吾</span> wú is what gives this one its sound.",
+     say:"自言自语地说"},
+    {s:"“是▢把花生摘走了呢？”", a:"谁", py:"shéi", opts:["推","谁","准","难"],
+     en:"“Who picked all the peanuts?”",
+     why:"<b class='zh'>谁</b> shéi = <b>who</b>. The <span class='zh'>讠</span> (speech) on the left is the giveaway — asking is a kind of speaking. The other three share the same right half <span class='zh'>隹</span> (short-tailed bird).",
+     say:"是谁把花生摘走了呢？"},
+    {s:"“是谁把花生摘▢了呢？”", a:"走", py:"zǒu", opts:["足","走","是","起"],
+     en:"“Who picked the peanuts and took them away?”",
+     why:"<b class='zh'>摘走</b> zhāizǒu = <b>pick them and take them away</b>. <span class='zh'>走</span> zǒu = to walk, to go; added after a verb it means the thing left. (And the answer, of course, is that nobody took them — peanuts grow underground.)",
+     say:"是谁把花生摘走了呢？"}
+  ]}
+];
+
+const $ = id => document.getElementById(id);
+function memGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function memSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+const READ_KEY='songshu_read_v1', GAME_KEY='songshu_game_v1',
+      VOICE_KEY='songshu_voice', SLOW_KEY='songshu_slow';
+
+/* ================= speech ================= */
+let zhVoices=[], chosenVoice=null, slow = memGet(SLOW_KEY)==='1';
+const NOVELTY=/Bells|Bubbles|Jester|Organ|Cellos|Trinoids|Whisper|Zarvox|Wobble|Boing|Good News|Bad News|Bahh|Albert|Superstar/i;
+function rankVoice(v){
+  const n=v.name, l=v.lang||'';
+  if(/Google/i.test(n) && /普通话|zh-CN/i.test(n+l)) return 0;
+  if(/Ting-?ting/i.test(n)) return 1;
+  if(l==='zh-CN' && !NOVELTY.test(n)) return 2;
+  if(/^zh/i.test(l) && !NOVELTY.test(n)) return 3;
+  return 4;
+}
+function loadVoices(){
+  if(!('speechSynthesis' in window)) return;
+  const all=window.speechSynthesis.getVoices();
+  zhVoices=all.filter(v=>/^zh/i.test(v.lang)||/Chinese|普通话|中文/i.test(v.name));
+  zhVoices.sort((a,b)=>rankVoice(a)-rankVoice(b)||a.name.localeCompare(b.name));
+  const sel=$('voiceSel');
+  if(!zhVoices.length){ sel.innerHTML='<option>(no Chinese voice found)</option>'; return; }
+  const saved=memGet(VOICE_KEY);
+  chosenVoice=zhVoices.find(v=>v.name===saved)||zhVoices[0];
+  sel.innerHTML=zhVoices.map(v=>{
+    const r=rankVoice(v), tag=r===0?' ⭐best':(r===1?' ✅works offline':'');
+    return '<option value="'+v.name.replace(/"/g,'&quot;')+'">'+v.name+tag+'</option>';
+  }).join('');
+  sel.value=chosenVoice.name;
+}
+if('speechSynthesis' in window){ loadVoices(); window.speechSynthesis.onvoiceschanged=loadVoices; }
+$('voiceSel').addEventListener('change', e=>{
+  chosenVoice=zhVoices.find(v=>v.name===e.target.value)||chosenVoice;
+  memSet(VOICE_KEY, e.target.value); speak('小松鼠找花生');
+});
+function paintSlow(){ $('slowBtn').classList.toggle('on',slow); $('slowBtn').textContent = slow?'🐢 Slow: on':'🐢 Slow: off'; }
+$('slowBtn').addEventListener('click',()=>{ slow=!slow; memSet(SLOW_KEY,slow?'1':'0'); paintSlow(); speak('一朵朵金黄色的小花'); });
+paintSlow();
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN'; u.rate = slow?0.6:0.85;
+    if(chosenVoice) u.voice=chosenVoice;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ================= read aloud ================= */
+let readState;
+try{ readState = JSON.parse(memGet(READ_KEY)||'null'); }catch(e){ readState=null; }
+if(!readState || !readState.r1 || readState.r1.length!==STORY.length)
+  readState = {r1:STORY.map(()=>false), r2:STORY.map(()=>false)};
+
+function render(p){ return p.replace(/\{([^|]+)\|([^}]+)\}/g,(m,hz,py)=>'<ruby>'+hz+'<rt>'+py+'</rt></ruby>'); }
+function plain(p){ return p.replace(/\{([^|]+)\|([^}]+)\}/g,'$1'); }
+
+$('story').innerHTML = STORY.map((p,i)=>
+  '<div class="para">'
+  + '<div class="pact">'
+  +   '<button class="sp" data-say="'+i+'">🔊 hear</button>'
+  +   '<button class="tick" data-r="1" data-i="'+i+'">round 1</button>'
+  +   '<button class="tick" data-r="2" data-i="'+i+'">round 2</button>'
+  + '</div>'
+  + '<div class="pbody"><div class="ptxt">'+render(p.cn)+'</div>'
+  +   '<div class="ptr">'+p.en+'</div></div>'
+  + '</div>').join('');
+
+function paintRead(){
+  document.querySelectorAll('.tick').forEach(b=>{
+    b.classList.toggle('on', readState['r'+b.dataset.r][+b.dataset.i]);
+  });
+  const a=readState.r1.filter(Boolean).length, b=readState.r2.filter(Boolean).length;
+  $('r1n').textContent=a+' / '+STORY.length+' paragraphs';
+  $('r2n').textContent=b+' / '+STORY.length+' paragraphs';
+  $('r1').classList.toggle('done', a===STORY.length);
+  $('r2').classList.toggle('done', b===STORY.length);
+  $('doneNote').classList.toggle('show', a===STORY.length && b===STORY.length);
+  memSet(READ_KEY, JSON.stringify(readState));
+}
+$('story').addEventListener('click', ev=>{
+  const s=ev.target.closest('[data-say]');
+  if(s){ speak(plain(STORY[+s.dataset.say].cn)); return; }
+  const t=ev.target.closest('.tick');
+  if(t){ readState['r'+t.dataset.r][+t.dataset.i]=!readState['r'+t.dataset.r][+t.dataset.i]; paintRead(); }
+});
+$('resetRead').addEventListener('click',()=>{
+  if(!confirm('Clear all the read-aloud check-marks?')) return;
+  readState={r1:STORY.map(()=>false), r2:STORY.map(()=>false)}; paintRead();
+});
+$('readAll').addEventListener('click',()=>speak(STORY.map(p=>plain(p.cn)).join('')));
+
+let showPy=true, showTr=true;
+$('pyToggle').addEventListener('click',()=>{
+  showPy=!showPy;
+  document.body.classList.toggle('nopy', !showPy);
+  $('pyToggle').classList.toggle('on', showPy);
+  $('pyToggle').textContent = showPy?'🔤 Pinyin: showing':'🔤 Pinyin: covered';
+});
+$('trToggle').addEventListener('click',()=>{
+  showTr=!showTr;
+  document.body.classList.toggle('notr', !showTr);
+  $('trToggle').classList.toggle('on', showTr);
+  $('trToggle').textContent = showTr?'🇬🇧 English: showing':'🇬🇧 English: hidden';
+});
+paintRead();
+
+/* ================= pick-the-character game ================= */
+/* the four buttons are shuffled every load, so no answer sits in a fixed slot */
+ROUNDS.forEach(r=>r.items.forEach(it=>{
+  for(let i=it.opts.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [it.opts[i],it.opts[j]]=[it.opts[j],it.opts[i]];
+  }
+}));
+
+const TOTAL_ITEMS = ROUNDS.reduce((n,r)=>n+r.items.length,0);
+$('gameCnt').textContent = '· '+ROUNDS.length+' rounds · '+TOTAL_ITEMS+' characters · the whole story';
+
+let cleared;
+try{ cleared = JSON.parse(memGet(GAME_KEY)||'null'); }catch(e){ cleared=null; }
+if(!cleared || cleared.length!==ROUNDS.length) cleared = ROUNDS.map(()=>null);
+
+let round = 0, idx = 0, tries = 0, solvedFirst = 0;
+
+function drawMenu(){
+  $('menu').innerHTML = ROUNDS.map((r,i)=>{
+    const c = cleared[i];
+    const stars = c==null ? '' : '⭐'.repeat(c)+'✩'.repeat(r.items.length-c);
+    return '<button class="mcard'+(c!=null?' cleared':'')+'" data-r="'+i+'">'
+      + '<div class="mt zh">'+r.name+'</div>'
+      + '<div class="mn">'+r.items.length+' characters'+(c!=null?' · done':'')+'</div>'
+      + '<div class="ms">'+stars+'</div>'
+      + '</button>';
+  }).join('');
+}
+drawMenu();
+
+$('menu').addEventListener('click', ev=>{
+  const b=ev.target.closest('[data-r]'); if(!b) return;
+  startRound(+b.dataset.r);
+});
+
+function startRound(r){
+  round = r; idx = 0; solvedFirst = 0;
+  $('menu').classList.add('hide');
+  $('play').classList.add('on');
+  $('endcard').classList.add('hide');
+  $('stage').classList.remove('hide');
+  $('pname').textContent = ROUNDS[r].name;
+  drawItem();
+  $('play').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function item(){ return ROUNDS[round].items[idx]; }
+
+function drawItem(){
+  const it = item(), n = ROUNDS[round].items.length;
+  tries = 0;
+  $('pprog').textContent = 'Character '+(idx+1)+' of '+n+' · ⭐ '+solvedFirst;
+  $('pbar').style.width = (idx/n*100)+'%';
+  $('sent').innerHTML = it.s.replace('▢','<span class="blank" id="blank">?</span>');
+  $('hint').innerHTML = 'It sounds like <b>'+it.py+'</b> — which character is it here?';
+  $('gloss').textContent = it.en;
+  $('opts').innerHTML = it.opts.map((o,i)=>
+    '<button class="opt zh" data-o="'+i+'">'+o+'</button>').join('');
+  const w=$('why'); w.className='why hide'; w.innerHTML='';
+  speak(it.py);
+}
+
+$('opts').addEventListener('click', ev=>{
+  const b = ev.target.closest('.opt'); if(!b || b.disabled) return;
+  const it = item(), picked = it.opts[+b.dataset.o], ok = picked === it.a;
+  const w = $('why');
+  if(ok){
+    $('opts').querySelectorAll('.opt').forEach(x=>x.disabled=true);
+    b.classList.add('right');
+    const bl=$('blank'); bl.textContent=it.a; bl.classList.add('filled');
+    if(tries===0) solvedFirst++;
+    w.className='why ok';
+    w.innerHTML = (tries===0 ? '⭐ First try! ' : '✅ That\'s the one. ') + it.why;
+    speak(it.say);
+    const n = ROUNDS[round].items.length;
+    $('pprog').textContent = 'Character '+(idx+1)+' of '+n+' · ⭐ '+solvedFirst;
+    $('pbar').style.width = ((idx+1)/n*100)+'%';
+    setTimeout(()=>{ idx++; if(idx>=n) finish(); else drawItem(); }, 2600);
+  }else{
+    tries++;
+    b.disabled = true;
+    b.classList.add('wrong');
+    w.className='why';
+    w.innerHTML = '<b>Not that one.</b> <span class="zh">'+picked+'</span> is a different character — '
+      + 'read the sentence again and think about what it <i>means</i> here, then try another.';
+  }
+});
+
+function finish(){
+  const n = ROUNDS[round].items.length;
+  $('stage').classList.add('hide');
+  $('endcard').classList.remove('hide');
+  $('pbar').style.width='100%';
+  $('pprog').textContent = 'Round finished · ⭐ '+solvedFirst+' / '+n;
+  $('endStars').textContent = '⭐'.repeat(solvedFirst)+'✩'.repeat(n-solvedFirst);
+  $('endEmoji').textContent = solvedFirst===n ? '🏆' : (solvedFirst >= n-2 ? '🥜' : '🐿️');
+  $('endText').innerHTML = 'First-try stars: <b>'+solvedFirst+' / '+n+'</b>';
+  $('endNote').textContent = solvedFirst===n
+    ? 'Every character on the first click. Read this part of the story out loud once more and you own it.'
+    : 'The ones you missed are the ones worth saying out loud a few times — same sound, different character.';
+  cleared[round] = solvedFirst;
+  memSet(GAME_KEY, JSON.stringify(cleared));
+  drawMenu();
+}
+
+$('sayBtn').addEventListener('click',()=>{
+  if($('endcard').classList.contains('hide')) speak(item().say);
+});
+$('backBtn').addEventListener('click',()=>{
+  $('play').classList.remove('on');
+  $('menu').classList.remove('hide');
+  $('s-game').scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+/* ================= sticky tabs ================= */
+$('tabs').addEventListener('click', ev=>{
+  const b=ev.target.closest('[data-go]'); if(!b) return;
+  document.getElementById(b.dataset.go).scrollIntoView({behavior:'smooth', block:'start'});
+});
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(!e.isIntersecting) return;
+    document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on', b.dataset.go===e.target.id));
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('section').forEach(s=>io.observe(s));
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
