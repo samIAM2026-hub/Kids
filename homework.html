@@ -27,9 +27,38 @@
 
   /* ---------- sign-in ---------- */
   #signin{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
-          gap:22px;padding:24px;text-align:center}
+          gap:22px;padding:24px 24px 130px;text-align:center;position:relative;overflow:hidden}
   #signin h1{font-size:40px}
   #signin .lead{color:var(--ink2);font-size:19px}
+  body:has(#signin:not([hidden])){padding-bottom:0}
+  /* Meadow backdrop: the sky follows the clock (data-t = morn / noon / eve, set by skyNow()). */
+  #signin{--sky:linear-gradient(#ffd9b8,#fff0dc 48%,#f5f6e6);--hill1:#cfe3c3;--hill2:#a8cb98;--hill3:#8dbb7f;
+          --orb:#ffb37b;--glow:rgba(255,179,123,.45);background:var(--sky)}
+  #signin[data-t="noon"]{--sky:linear-gradient(#bcdff3,#e6f3f7 55%,#f6f3ed);--hill1:#bfe0b3;--hill2:#98c98b;--hill3:#7db470;
+          --orb:#ffd36b;--glow:rgba(255,211,107,.5)}
+  #signin[data-t="eve"]{--sky:linear-gradient(#2d3864,#57578c 50%,#c68ea0);--hill1:#56657c;--hill2:#435368;--hill3:#344356;
+          --orb:#fff4d2;--glow:rgba(255,244,210,.35)}
+  #pickstep,#pinstep{position:relative}
+  .sky{position:absolute;inset:0;pointer-events:none}
+  .sky svg{position:absolute;display:block;left:0;width:100%}
+  .sky .orb{position:absolute;width:86px;height:86px;border-radius:50%;background:var(--orb);left:9%;top:22%;
+            box-shadow:0 0 0 18px var(--glow),0 0 70px 30px var(--glow)}
+  #signin[data-t="noon"] .orb{left:80%;top:9%}
+  #signin[data-t="eve"] .orb{left:82%;top:11%;width:64px;height:64px}
+  .sky .stars{top:0;height:300px;opacity:0}
+  #signin[data-t="eve"] .stars{opacity:1}
+  .sky .clouds{top:40px;height:200px;animation:drift 60s linear infinite alternate}
+  #signin[data-t="eve"] .clouds{opacity:.25}
+  .sky .hills{bottom:0;height:240px}
+  .sky .grass{bottom:8px;height:60px}
+  .hill1{fill:var(--hill1)} .hill2{fill:var(--hill2)} .hill3{fill:var(--hill3)}
+  .grass path{fill:none;stroke:var(--hill2);stroke-width:3;stroke-linecap:round}
+  @keyframes drift{to{transform:translateX(40px)}}
+  #signin .who{box-shadow:0 14px 30px -16px rgba(30,50,30,.45)}
+  #signin[data-t="eve"] h1{color:#fffaf0}
+  #signin[data-t="eve"] .lead{color:#ece6f4}
+  #signin[data-t="eve"] .link{color:#e2dcef}
+  #signin[data-t="eve"] .err:not(:empty){background:var(--paper);border-radius:10px;padding:4px 12px}
   .pick{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
   .who{width:230px;max-width:100%;padding:18px 12px 16px;border-radius:22px;cursor:pointer;color:var(--ink);
        border:3px solid var(--line);transition:transform .12s,border-color .12s;
@@ -207,7 +236,7 @@
   .foot{font-size:15px;color:var(--mute);margin-top:16px}
 
   @media(prefers-reduced-motion:reduce){
-    .habitat .pet span,.evolve .to{animation:none}
+    .habitat .pet span,.evolve .to,.sky .clouds{animation:none}
     .who,.petopt{transition:none}
   }
 
@@ -220,6 +249,8 @@
     .popcard h2{font-size:26px}
     .hrow .av{font-size:36px}
     .out{font-size:14px;padding:7px 10px}
+    #signin h1{font-size:32px}
+    .sky .orb{width:60px;height:60px}
   }
 </style>
 </head>
@@ -227,6 +258,25 @@
 
 <!-- ---------- sign-in ---------- -->
 <section id="signin" hidden>
+  <div class="sky" aria-hidden="true">
+    <svg class="stars" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMin slice"><g fill="#fff8e1">
+      <circle cx="80" cy="60" r="2.2"/><circle cx="190" cy="140" r="1.6"/><circle cx="300" cy="40" r="2"/><circle cx="420" cy="110" r="1.4"/>
+      <circle cx="560" cy="50" r="2.4"/><circle cx="650" cy="150" r="1.6"/><circle cx="720" cy="80" r="1.8"/><circle cx="900" cy="190" r="2"/>
+      <circle cx="960" cy="70" r="1.5"/><circle cx="130" cy="230" r="1.4"/><circle cx="520" cy="200" r="1.3"/></g></svg>
+    <span class="orb"></span>
+    <svg class="clouds" viewBox="0 0 1000 200" preserveAspectRatio="xMidYMin slice"><g fill="#fff" opacity=".85">
+      <ellipse cx="220" cy="70" rx="70" ry="22"/><ellipse cx="260" cy="54" rx="40" ry="26"/><ellipse cx="190" cy="60" rx="30" ry="18"/>
+      <ellipse cx="640" cy="120" rx="80" ry="20"/><ellipse cx="680" cy="104" rx="42" ry="24"/></g></svg>
+    <svg class="hills" viewBox="0 0 1200 240" preserveAspectRatio="none">
+      <path class="hill1" d="M0 120 C200 40 380 60 560 110 C760 160 960 40 1200 90 L1200 240 L0 240 Z"/>
+      <path class="hill2" d="M0 170 C240 110 420 140 640 170 C860 200 1000 130 1200 150 L1200 240 L0 240 Z"/>
+      <path class="hill3" d="M0 215 C300 185 600 200 900 212 C1020 216 1120 205 1200 200 L1200 240 L0 240 Z"/></svg>
+    <svg class="grass" viewBox="0 0 1200 60" preserveAspectRatio="xMidYMax slice">
+      <path d="M120 58 l-6 -18 M120 58 l0 -22 M120 58 l6 -17"/><path d="M430 58 l-5 -14 M430 58 l0 -18 M430 58 l5 -13"/>
+      <path d="M880 58 l-6 -16 M880 58 l0 -20 M880 58 l6 -15"/><path d="M1080 58 l-5 -13 M1080 58 l0 -17 M1080 58 l5 -12"/>
+      <circle cx="250" cy="44" r="5" fill="#fff"/><circle cx="250" cy="44" r="2" fill="#ffd36b"/>
+      <circle cx="980" cy="48" r="5" fill="#ffd9e0"/><circle cx="980" cy="48" r="2" fill="#ffd36b"/></svg>
+  </div>
   <div id="pickstep">
     <h1>Homework time! 📚</h1>
     <p class="lead" style="margin:10px 0 26px">Who's doing homework today?</p>
@@ -724,6 +774,13 @@ const signinEl = document.getElementById('signin'), appEl = document.getElementB
 const pickStep = document.getElementById('pickstep'), pinStep = document.getElementById('pinstep');
 const pin = document.getElementById('pin'), pinErr = document.getElementById('pinerr');
 let picking = null, signinMsg = '';
+
+// Sign-in sky follows the clock: morning 5–12, afternoon 12–18, evening otherwise.
+function skyNow(){
+  const h = new Date().getHours();
+  signinEl.dataset.t = h>=5 && h<12 ? 'morn' : h>=12 && h<18 ? 'noon' : 'eve';
+}
+skyNow(); setInterval(skyNow, 5*60*1000);
 
 function showPick(msg){
   ME = null; ITEMS = []; ATT = []; DAYS = []; viewEl.innerHTML = '';
