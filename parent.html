@@ -166,6 +166,12 @@
   tbody tr.arch:hover{opacity:.85}
   .b-arch{background:rgba(147,162,189,.13);color:var(--mute);border:1px solid var(--line)}
   .archnote{font-size:11.5px;color:var(--mute);margin-top:-6px;margin-bottom:10px}
+  /* 每行的归档开关：安静地待在类型下面，点一下就归档 / 放回来 */
+  .archbtn{font:inherit;font-size:10.5px;font-weight:600;color:var(--mute);background:none;
+           border:1px solid var(--line);border-radius:5px;padding:2px 7px;cursor:pointer;white-space:nowrap}
+  .archbtn:hover{color:var(--cream);border-color:var(--gold2)}
+  .archbtn:disabled{opacity:.45;cursor:default}
+  .archline{margin-top:4px;display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap}
 
   /* ---------- assign bar ---------- */
   #assignbar{position:fixed;left:0;right:0;bottom:0;z-index:90;background:var(--ink2);
@@ -494,6 +500,7 @@
   <label for="assdate">日期</label>
   <input type="date" id="assdate">
   <button class="btn solid" id="assgo">派发</button>
+  <button class="btn ghost" id="archgo" data-to="1">归档</button>
   <button class="btn ghost" id="assclear">取消</button>
 </div></div>
 
@@ -788,6 +795,35 @@ function assignedBadge(id){
   const tip = ks.map(k => KID[k].n + (ATT.some(a=>a.kid===k && a.id===id && a.date===iso(today)) ? '（今天已做）' : '（还没做）')).join('、');
   return `<span class="badge b-assigned" title="今天已派给 ${esc(tip)}">✓ Assigned ${ks.map(k=>KID[k].av).join('')}</span>`;
 }
+// The archive switch that sits under the type badge, one per row. Archived rows also say when and why
+// (the reason is whatever archived them — the batches in HOMEWORK-SYSTEM.md §三之二, or 家长手动).
+function archCell(b){
+  const why = [b.archivedOn ? ymd(b.archivedOn) : '', b.archivedWhy || ''].filter(Boolean).join(' · ');
+  return b.archived
+    ? `<span class="badge b-arch"${why?` title="${esc(why)}"`:''}>已归档</span>
+       <button class="archbtn" data-arch="${esc(b.docId)}" data-to="0" title="放回在用列表">放回</button>`
+    : `<button class="archbtn" data-arch="${esc(b.docId)}" data-to="1" title="从默认列表里收起来，不删文件、不动成绩">归档</button>`;
+}
+
+// 归档 = 从默认题库列表里收起来。文件留着、历史成绩照样指得到、归档的还能派作业（§三之二）。
+// 只写 Firestore。归档状态从此以线上为准，bank.json 不会自己跟上 ——
+// 要把它抄回本机那份：node homework-system/check-bank.mjs --pull。
+async function setArchived(ids, on){
+  const del = firebase.firestore.FieldValue.delete();
+  const batch = db.batch();
+  ids.forEach(id => batch.set(db.collection('bank').doc(id), on
+    ? { archived:true, archivedOn: iso(today), archivedWhy: '家长手动归档' }
+    : { archived:false, archivedOn: del, archivedWhy: del }, { merge:true }));
+  await batch.commit();
+  // BANK 和 BANK_BY_ID 指的是同一批对象，改一处两边都跟上，不用重新拉一次题库
+  ids.forEach(id=>{
+    const b = BANK_BY_ID[id];
+    if(!b) return;
+    if(on){ b.archived = true; b.archivedOn = iso(today); b.archivedWhy = '家长手动归档'; }
+    else { b.archived = false; delete b.archivedOn; delete b.archivedWhy; }
+  });
+}
+
 // One bank row. withPlace: also say which subject / book it sits in (the by-time list has no groups).
 function bankRow(b, withPlace){
   const h = attFor(b.docId)[0], hr = h && dayResult(h.kid, b.docId, h.date);
@@ -801,8 +837,8 @@ function bankRow(b, withPlace){
       ${withPlace?`<div class="crumb">${esc(b.subj)}${b.book?' · '+esc(b.book):''}</div>`:''}${bankDates(b)}</td>
     <td class="crumb" style="width:92px">${kid.av} ${kid.n}</td>
     <td class="c crumb" style="width:64px">${b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '—'}</td>
-    <td class="c" style="width:82px"><span class="badge b-${esc(b.type)}">${LABEL[b.type]||esc(b.type)}</span>
-        ${b.archived?'<div style="margin-top:4px"><span class="badge b-arch">已归档</span></div>':''}</td>
+    <td class="c" style="width:124px"><span class="badge b-${esc(b.type)}">${LABEL[b.type]||esc(b.type)}</span>
+        <div class="archline">${archCell(b)}</div></td>
     <td class="c" style="width:90px">${last}</td></tr>`;
 }
 
@@ -829,7 +865,8 @@ function viewBank(){
       <span class="spacer"></span>
       ${F.sort==='time'?'':`<button class="fchip icon" data-act="expand" title="全部展开" aria-label="全部展开"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg><span class="txt">全部展开</span></button>
       <button class="fchip icon" data-act="collapse" title="全部收起" aria-label="全部收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg><span class="txt">全部收起</span></button>`}</div>
-    <p class="archnote">归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。</p>`;
+    <p class="archnote">归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。
+      每行类型下面有 <b>归档</b> 按钮，点一下就收起来；要一次收一批，就勾选后用底部那条的 <b>归档</b>。归档过的按 <b>放回</b> 回到在用列表。</p>`;
   if(!rows.length) return html + `<p class="empty">没有匹配的内容。</p>`;
 
   if(F.sort==='time'){
@@ -1549,6 +1586,12 @@ function render(){
     `现在有 ${nDemo} 条假成绩（只为看效果），完成记录、今日作业和孩子页面里都会显示。`;
   bar.hidden = !(V==='bank' && SEL.size);
   document.getElementById('seln').textContent = SEL.size;
+  // 底部那颗归档键跟着选中的走：选的全是归档过的，它就变成「放回在用」
+  const selArch = [...SEL].map(id=>BANK_BY_ID[id]).filter(Boolean);
+  const allArch = selArch.length > 0 && selArch.every(b=>b.archived);
+  const ag = document.getElementById('archgo');
+  ag.textContent = allArch ? '放回在用' : '归档';
+  ag.dataset.to = allArch ? '0' : '1';
   if(V==='bank'){
     const bq = document.getElementById('bq');
     bq.addEventListener('input', ()=>{ F.q=bq.value; const p=bq.selectionStart; render();
@@ -1566,6 +1609,18 @@ function render(){
     // Re-render on every pick so the subject's "已选 N" and the shelf's select-all stay in step.
     viewEl.querySelectorAll('input.pick').forEach(cb=>cb.addEventListener('change',()=>{
       cb.checked?SEL.add(cb.dataset.id):SEL.delete(cb.dataset.id); render(); }));
+    viewEl.querySelectorAll('button.archbtn').forEach(btn=>btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.arch, on = btn.dataset.to==='1', b = BANK_BY_ID[id];
+      btn.disabled = true;
+      try {
+        await setArchived([id], on);
+        toast(`${on?'已归档':'已放回在用'}「${b?b.t:''}」`);
+        render();   // 在「在用」筛选下，刚归档的这行会从列表里退场
+      } catch(e){
+        console.error(e); btn.disabled = false;
+        toast('归档没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
+      }
+    }));
     viewEl.querySelectorAll('input.selall').forEach(cb=>cb.addEventListener('change',()=>{
       cb.dataset.ids.split(' ').forEach(id=>cb.checked?SEL.add(id):SEL.delete(id)); render(); }));
     // While searching every shelf is open (the matches must show), so the toggle only counts without a search.
@@ -1623,6 +1678,23 @@ document.getElementById('assgo').addEventListener('click', async ()=>{
   } finally {
     go.disabled = false;
   }
+});
+// 批量归档 / 放回。派作业那条上的第二颗按钮，管的是勾选的这批。
+document.getElementById('archgo').addEventListener('click', async ()=>{
+  const go = document.getElementById('archgo'), on = go.dataset.to==='1';
+  const ids = [...SEL].filter(id => BANK_BY_ID[id] && !!BANK_BY_ID[id].archived !== on);
+  if(!ids.length){ toast(on?'选中的已经都在归档里了':'选中的都在在用列表里'); return; }
+  const asg = ids.filter(id => assignedTo(id).length).length;
+  if(on && !confirm(`把这 ${ids.length} 份收进归档？\n\n只是从默认列表里收起来，文件和成绩记录都不动，随时能放回来。${asg?`\n其中 ${asg} 份今天已经派出去了，归档不会把它们从孩子的作业里拿掉。`:''}`)) return;
+  go.disabled = true;
+  try {
+    await setArchived(ids, on);
+    SEL.clear(); render();
+    toast(`${on?'已归档':'已放回在用'} ${ids.length} 份`);
+  } catch(e){
+    console.error(e);
+    toast('归档没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
+  } finally { go.disabled = false; }
 });
 document.getElementById('assclear').addEventListener('click',()=>{ SEL.clear(); render(); });
 
