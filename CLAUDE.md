@@ -1,5 +1,9 @@
 # CLAUDE.md — Kids
 
+> 🔴 **改任何已存在的页面之前，先 `cd Kids && git pull`，并重新 stage 一次那个文件。**
+> Cowork 和 Claude Code 在同一个仓库里同时干活，拿 session 里的旧副本覆盖会抹掉对方的修正
+> （2026-09-15 已发生三次，细节见 `HOMEWORK-SYSTEM.md` 第三十三节「🔴 零」）。做新课就只写新课那一个文件。
+>
 > **Building the homework system?** Read `HOMEWORK-SYSTEM.md` in this folder first —
 > it holds the design decisions, the permission matrix, the Firestore model, and the
 > things not to re-litigate (why Firebase over Supabase, why the quiz pages stay as
@@ -159,16 +163,15 @@ Never commit account data, and keep child references to **first names only** (as
 
 ## Index sync — do this every time a page is added/renamed/moved
 
-1. **Quizzes** — add one object to the `Q` array in `Quizzes/index.html` (fields above). That
-   is the whole job: no `<a class="quiz">` markup to write, no `.count` pill to bump, no folder
-   to pick. Always stamp `a:'YYYY-MM-DD'` with the day you added it — while the card is newer
-   than `NEW_DAYS` (currently **1**, i.e. added today) it gets a red **NEW** badge and outline,
-   is pulled to the front of its set, auto-opens the shelf it lives in, and is counted in the
-   "🆕 N new pages added today" banner at the top of the page.
-   A new book/test set = just use a new `g` string. A new subject = a new `s` string, added to
-   `SUBJ_ORDER` where it belongs in the running order. A new child = a new `k` plus an entry in
-   `KID_META` (tab label, colour class, blurb) — the chips, shelves and deep links build
-   themselves from there.
+1. **Quizzes** — the old `Q` array in `Quizzes/index.html` is gone (that hub retired 2026-09-17;
+   the file is now a ~90-line signpost to `homework.html` / `parent.html`, kept only so the
+   "back to all quizzes" links at the bottom of the 94 pages under `Quizzes/` don't 404).
+   A new page is registered in three steps instead:
+   ① add its questions to `homework-system/bank.json`;
+   ② run `homework-system/inject-report.py` so the page gets its
+   `<script src="../JS/quiz-report.js"></script>` line (it injects every html that hasn't got one);
+   ③ run `node homework-system/check-bank.mjs --write` to sync the bank into Firestore.
+   The page then shows up by itself in 家长台 (`parent.html`) and can be assigned to a child.
    **Interest Lessons** — still hand-written: add its `.lcard` to the grid.
 2. Update the repo-root `../index.html` if the page is surfaced there (it currently links the two
    checklists, both hubs, the board game, and the Victoria explorer quest — under 👧🧒 孩子们 and
