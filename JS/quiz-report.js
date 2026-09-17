@@ -130,9 +130,25 @@
     if (correct !== undefined) r.correct = correct;
     session.lastMark = t;
   }
+  // Knowledge-point tag (HOMEWORK-SYSTEM.md §三十五; ids in
+  // homework-system/_Materials/Math/知识点表.md). Each adapter that can map a question number back to
+  // its question object sets skOf below. Untagged pages leave it null and untagged questions return
+  // nothing — those are recorded as a bare { q: n } and the parent page files them under 未标注.
+  // Nothing here may throw: a missing sk must never cost the kid their score.
+  var skOf = null;
+  function skFor(q) {
+    if (!skOf) return undefined;
+    try {
+      var v = skOf(q);
+      return typeof v === 'string' && v ? v : undefined;
+    } catch (e) { return undefined; }
+  }
+  // wrong[] is [{ q: 3, sk: 'm4b.08.convert' }, { q: 7 }] — sk left out when the question has none.
+  // Records written before 2026-09-17 hold plain numbers ([3, 7]); parent.html reads both.
   function wrongList() {
     return Object.keys(session.q).map(Number).filter(function (q) { return session.q[q].correct === false; })
-      .sort(function (a, b) { return a - b; });
+      .sort(function (a, b) { return a - b; })
+      .map(function (q) { var sk = skFor(q); return sk ? { q: q, sk: sk } : { q: q }; });
   }
 
   /* ---------- adapters ---------- */
@@ -157,6 +173,7 @@
               answered(c.q, peek('score') > c.score);
             });
         });
+        skOf = function (q) { var l = self.list(); var it = l && l[q - 1]; return it && it.sk; };
         wrap('render', null, turn);
         wrap('restart', null, newSession);
         wrap('showResult', null, function () {
@@ -173,6 +190,7 @@
       install: function () {
         wrap('pick', function (i) { return { q: i + 1, locked: peek('locked') }; },
           function (c) { if (!c.locked) answered(c.q); });
+        skOf = function (q) { var l = peek('QUIZ'); var it = l && l[q - 1]; return it && it.sk; };
         wrap('resetQuiz', null, newSession);
         wrap('finishQuiz', null, function () {
           if (peek('locked') !== true) return;                // blanks left: the page refused to grade
@@ -196,6 +214,13 @@
       },
       install: function () {
         wrap('start', null, newSession);                      // the clock starts at Start, not page open
+        // Numbers here are the printed SSAT numbers (31-60), not indexes — match on it.n.
+        skOf = function (q) {
+          var d = peek('DATA'), items = d && d.items;
+          if (!items) return undefined;
+          for (var i = 0; i < items.length; i++) if (items[i].n === q) return items[i].sk;
+          return undefined;
+        };
         // onPick was bound with addEventListener before this script ran, so listen instead of wrapping.
         document.addEventListener('click', function (e) {
           var b = e.target.closest && e.target.closest('.opt[data-n]');
@@ -407,7 +432,7 @@
         return o;
       }),
       startedAtMs: s.startedAt, submittedAtMs: t,
-      adapter: adapter ? adapter.name : 'viewed', reportVersion: 1
+      adapter: adapter ? adapter.name : 'viewed', reportVersion: 2
     };
     if (result.practice) rec.practice = result.practice;
 
