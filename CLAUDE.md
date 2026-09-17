@@ -173,9 +173,13 @@ Never commit account data, and keep child references to **first names only** (as
    ③ run `node homework-system/check-bank.mjs --write` to sync the bank into Firestore.
    The page then shows up by itself in 家长台 (`parent.html`) and can be assigned to a child.
    **Interest Lessons** — still hand-written: add its `.lcard` to the grid.
-2. Update the repo-root `../index.html` if the page is surfaced there (it currently links the two
-   checklists, both hubs, the board game, and the Victoria explorer quest — under 👧🧒 孩子们 and
-   🤖/🌲 sections).
+2. Update the repo-root `index.html` (`../index.html` from inside a subfolder) if the page is
+   surfaced there. It is now a single 👧🧒 孩子们 section holding ten cards: Manners Scoreboard,
+   我的作业 (`homework.html`), 家长台 (`parent.html`), the Interest Lessons hub, the board game,
+   the SSAT verbal method lab, Word Wizards, pinyin typing, the Victoria explorer quest, and
+   writing feedback. The 🤖/🌲 sections are gone; so is the Quizzes hub card — 我的作业 and
+   家长台 replaced it 2026-09-17. Grace's and Warren's weekly checklists live in `Checklists/`
+   but are deliberately *not* surfaced here — only the Manners Scoreboard is.
 3. After any move, verify every `href` still resolves (checklists reference `../JS/…`; lesson
    pages back-link `index.html`; both hubs offer **← Kids home** (`../index.html`) as well as
    **← Back to Home** (`../../index.html`)).
