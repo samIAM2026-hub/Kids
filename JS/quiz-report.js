@@ -426,9 +426,13 @@
           return { at: Math.round((x.from - s.startedAt) / 1000), secs: Math.round((x.to - x.from) / 1000) };
         })
       },
+      // sk here too, not only on wrong[]: the parent page needs the denominator (how many
+      // questions of a knowledge point were attempted) to work out a per-sk 正确率 at all.
       qTimes: Object.keys(s.q).map(Number).sort(function (a, b) { return a - b; }).map(function (q) {
         var r = s.q[q], o = { q: q, secs: Math.round(r.secs), awaySecs: Math.round(r.awaySecs) };
         if (r.correct !== undefined) o.correct = r.correct;
+        var sk = skFor(q);
+        if (sk) o.sk = sk;
         return o;
       }),
       startedAtMs: s.startedAt, submittedAtMs: t,
