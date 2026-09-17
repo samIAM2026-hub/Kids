@@ -180,6 +180,14 @@ Never commit account data, and keep child references to **first names only** (as
    writing feedback. The 🤖/🌲 sections are gone; so is the Quizzes hub card — 我的作业 and
    家长台 replaced it 2026-09-17. Grace's and Warren's weekly checklists live in `Checklists/`
    but are deliberately *not* surfaced here — only the Manners Scoreboard is.
-3. After any move, verify every `href` still resolves (checklists reference `../JS/…`; lesson
-   pages back-link `index.html`; both hubs offer **← Kids home** (`../index.html`) as well as
-   **← Back to Home** (`../../index.html`)).
+3. After any move, verify every `href` still resolves. What is actually there today:
+   - **Checklists** load `../JS/firebase-checklist-sync.js` (all four, template included).
+   - **Quiz pages** load `../JS/quiz-report.js` — one folder deep, so `../JS` resolves from
+     `Quizzes/` and from `Interest Lessons/` alike (verified live 2026-09-17).
+   - **Lesson pages** back-link the hub with `href="index.html"` — except
+     `lesson-2-geography-shapes-lives.html`, which only has prev/next lesson links and no way
+     back to the hub. Known gap, not yet fixed.
+   - **The two hubs do not match**, despite what this file used to claim: `Quizzes/index.html`
+     offers only **← Kids home** (`../index.html`), and `Interest Lessons/index.html` offers only
+     **← Back to Home Directory** (`../../index.html`, i.e. the Sites home *above* Kids — a
+     different destination, not a second spelling of the same one). Neither hub has both.
