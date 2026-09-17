@@ -3,754 +3,95 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quizzes &middot; Grace &amp; Warren</title>
+<title>Quizzes &middot; moved to My Homework</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  [hidden] { display: none !important; }
   body {
     font-family: 'Trebuchet MS', system-ui, sans-serif;
     background: linear-gradient(160deg, #fff3dd 0%, #eaf5ef 55%, #dcefe6 100%);
     background-attachment: fixed;
-    min-height: 100vh; color: #33291c; padding: 22px 16px 60px;
+    min-height: 100vh; color: #33291c;
+    padding: 34px 16px 60px;
+    display: flex; align-items: flex-start; justify-content: center;
   }
-  .wrap { max-width: 940px; margin: 0 auto; }
-  h1.title { text-align: center; font-size: 32px; color: #b3541e; margin-bottom: 3px; }
-  .sub { text-align: center; color: #6b7d72; margin-bottom: 18px; font-size: 14.5px; }
+  .wrap { width: 100%; max-width: 620px; }
 
-  /* ============ sticky top bar: search + who + view ============ */
-  .topbar {
-    position: sticky; top: 8px; z-index: 60; margin-bottom: 20px; padding: 11px 12px 10px;
-    background: rgba(255,250,240,.95); backdrop-filter: blur(10px);
-    border: 2px solid rgba(0,0,0,.08); border-radius: 18px;
-    box-shadow: 0 5px 18px rgba(0,0,0,.10);
-    display: flex; flex-direction: column; gap: 9px;
+  .hat { text-align: center; font-size: 52px; line-height: 1; margin-bottom: 10px; }
+  h1 { text-align: center; font-size: 29px; color: #b3541e; margin-bottom: 6px; }
+  .zh { text-align: center; color: #6b7d72; font-size: 15px; margin-bottom: 4px; }
+  .sub { text-align: center; color: #6b7d72; font-size: 14.5px; line-height: 1.6; margin-bottom: 24px; }
+
+  .go {
+    display: flex; align-items: center; gap: 15px;
+    background: rgba(255,250,240,.95);
+    border: 2.5px solid #e4d3b4; border-radius: 18px;
+    padding: 17px 19px; margin-bottom: 13px;
+    text-decoration: none; color: inherit;
+    box-shadow: 0 5px 16px rgba(0,0,0,.09);
+    transition: border-color .15s, transform .12s, box-shadow .15s;
   }
-  .searchrow { display: flex; gap: 8px; align-items: center; }
-  .searchbox { flex: 1; position: relative; display: flex; align-items: center; }
-  .searchbox .mag { position: absolute; left: 13px; font-size: 17px; pointer-events: none; opacity: .55; }
-  #q {
-    width: 100%; font-family: inherit; font-size: 16px; font-weight: bold; color: #33291c;
-    background: #fff; border: 2.5px solid #e4d3b4; border-radius: 999px;
-    padding: 11px 40px 11px 40px; outline: none; transition: border-color .15s, box-shadow .15s;
+  .go:hover, .go:focus-visible {
+    border-color: #b3541e; transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,.13); outline: none;
   }
-  #q::placeholder { color: #b3a892; font-weight: normal; }
-  #q:focus { border-color: #b3541e; box-shadow: 0 0 0 4px rgba(179,84,30,.13); }
-  #qclear {
-    position: absolute; right: 8px; border: none; background: #e8ddc6; color: #7a6a55;
-    width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 15px;
-    font-family: inherit; line-height: 1; display: none;
+  .go .ic { font-size: 38px; line-height: 1; flex: 0 0 auto; }
+  .go h2 { font-size: 19px; color: #b3541e; margin-bottom: 3px; }
+  .go p { font-size: 14px; color: #6b7d72; line-height: 1.5; }
+  .go .arrow { margin-left: auto; font-size: 22px; color: #c4ae88; flex: 0 0 auto; }
+
+  .note {
+    background: rgba(255,255,255,.55); border: 2px dashed #d8c7a6; border-radius: 15px;
+    padding: 14px 17px; margin-top: 20px;
+    font-size: 13.5px; color: #6b7d72; line-height: 1.65;
   }
-  #qclear:hover { background: #d9c9a8; }
-  #q.has + #qclear, #qclear.show { display: block; }
-  .dice {
-    flex: 0 0 auto; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: bold;
-    background: #fff; border: 2.5px solid #cbb789; color: #8a6d3b;
-    border-radius: 999px; padding: 10px 15px; white-space: nowrap;
-    transition: transform .12s, background .12s, color .12s;
-  }
-  .dice:hover { transform: translateY(-2px) rotate(-4deg); background: #b3541e; border-color: #b3541e; color: #fff; }
+  .note b { color: #33291c; }
 
-  .chiprow { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
-  .chiprow::-webkit-scrollbar { height: 5px; }
-  .chiprow::-webkit-scrollbar-thumb { background: #cbb789; border-radius: 999px; }
-  .chiprow.views { border-top: 1px dashed rgba(0,0,0,.12); padding-top: 8px; }
-  .chip {
-    flex: 0 0 auto; cursor: pointer; white-space: nowrap; font-family: inherit;
-    background: #fff; border: 2px solid rgba(0,0,0,.09); border-radius: 999px;
-    padding: 8px 15px; font-size: 14px; font-weight: bold; color: #5c6b62;
-    transition: background .12s, color .12s, border-color .12s, transform .12s;
-  }
-  .chip:hover { transform: translateY(-2px); border-color: #b3541e; color: #b3541e; }
-  .chip.active { background: #b3541e; border-color: #b3541e; color: #fff; }
-  .chip .n { font-size: 11px; opacity: .65; margin-left: 5px; font-weight: bold; }
-  .chip.active .n { opacity: .85; }
-  .chiprow.views .chip { font-size: 13px; padding: 6px 13px; }
-  .chiprow.views .chip.active { background: #2f6f5e; border-color: #2f6f5e; }
-  .chip .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-               background: #e2574c; vertical-align: middle; margin-left: 6px; }
-  .chip.active .dot { background: #fff; }
+  .home { text-align: center; margin-top: 22px; }
+  .home a { color: #8a7a62; font-size: 13.5px; text-decoration: none; border-bottom: 1px solid #d3c3a5; }
+  .home a:hover { color: #b3541e; border-color: #b3541e; }
 
-  /* ============ the new-today banner ============ */
-  .newbar {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    background: #fff1ef; border: 2.5px solid #f0b4ad; border-radius: 16px;
-    padding: 12px 16px; margin-bottom: 18px; box-shadow: 0 4px 0 rgba(0,0,0,.06);
-  }
-  .newbar b { color: #c0392b; font-size: 16px; }
-  .newbar .go {
-    margin-left: auto; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: bold;
-    background: #e2574c; color: #fff; border: none; border-radius: 999px; padding: 7px 14px;
-  }
-  .newbar .go:hover { background: #c0392b; }
-
-  /* ============ level 1: one block per child ============ */
-  .kid { border-radius: 22px; padding: 18px 18px 14px; margin-bottom: 22px;
-         box-shadow: 0 6px 0 rgba(0,0,0,.08); scroll-margin-top: 130px; }
-  .kid.peach     { background: #fff4e8; border: 3px solid #ffb37b; }
-  .kid.river     { background: #eef6f0; border: 3px solid #8bb98f; }
-  .kid.chocolate { background: #f7ece1; border: 3px solid #c9a06b; }
-  .kid > h2 { font-size: 25px; margin-bottom: 1px; }
-  .kid.peach > h2     { color: #d84315; }
-  .kid.river > h2     { color: #3a7d44; }
-  .kid.chocolate > h2 { color: #6d4326; }
-  .who { font-size: 12.5px; font-weight: bold; opacity: .68; text-transform: uppercase;
-         letter-spacing: .5px; margin-bottom: 15px; }
-
-  /* ============ level 2: subject ============ */
-  .subj { background: rgba(255,255,255,.6); border: 2px solid rgba(0,0,0,.06);
-          border-radius: 16px; padding: 2px 13px; margin-bottom: 11px; }
-  .subj > summary { cursor: pointer; list-style: none; padding: 11px 2px;
-                    font-size: 17.5px; font-weight: bold; color: #4b5b52;
-                    display: flex; align-items: center; gap: 9px; }
-  .subj > summary::-webkit-details-marker { display: none; }
-  .subj > summary::after { content: '\25BE'; margin-left: auto; opacity: .45; font-size: 14px;
-                           transition: transform .15s; }
-  .subj[open] > summary::after { transform: rotate(180deg); }
-  .kid.peach     .subj > summary { color: #b3541e; }
-  .kid.river     .subj > summary { color: #35704a; }
-  .kid.chocolate .subj > summary { color: #8a5a34; }
-  .count { font-size: 11px; font-weight: bold; background: rgba(0,0,0,.07);
-           color: #6b6152; border-radius: 999px; padding: 2px 8px; }
-
-  /* ============ level 3: the SHELF - one tile per book / test set ============ */
-  .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(236px, 1fr));
-           gap: 10px; margin: 3px 0 13px; align-items: stretch; }
-  .book {
-    display: flex; align-items: center; gap: 11px; cursor: pointer; text-align: left;
-    font-family: inherit; color: inherit; width: 100%;
-    background: #fff; border: 2.5px solid rgba(0,0,0,.07); border-radius: 15px;
-    padding: 13px 14px; transition: transform .12s, box-shadow .12s, border-color .12s;
-  }
-  .book:hover { transform: translateY(-3px); box-shadow: 0 7px 15px rgba(0,0,0,.13); }
-  .kid.peach     .book:hover, .kid.peach     .book.open { border-color: #ff8a5c; }
-  .kid.river     .book:hover, .kid.river     .book.open { border-color: #3a7d44; }
-  .kid.chocolate .book:hover, .kid.chocolate .book.open { border-color: #a9703f; }
-  .book.open { box-shadow: 0 5px 0 rgba(0,0,0,.07); }
-  .book .bic { font-size: 30px; line-height: 1; flex: 0 0 auto; }
-  .book > span:nth-child(2) { min-width: 0; }
-  .book .bt { display: block; font-weight: bold; font-size: 14px; line-height: 1.28;
-              overflow-wrap: break-word; }
-  .book .bn { display: block; font-size: 11.5px; color: #7a6a55; margin-top: 3px; line-height: 1.35;
-              display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-              overflow: hidden; }
-  .book .arrow { margin-left: auto; opacity: .4; font-size: 13px; transition: transform .15s; }
-  .book.open .arrow { transform: rotate(90deg); opacity: .7; }
-  .book .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-               background: #e2574c; vertical-align: middle; margin-left: 5px; }
-
-  /* the drawer that opens under a book tile */
-  .drawer { grid-column: 1 / -1; margin: -4px 0 8px; padding: 13px 14px 4px;
-            background: rgba(255,255,255,.75); border: 2px dashed rgba(0,0,0,.12);
-            border-radius: 15px; }
-  .drawer .dhead { font-size: 13px; font-weight: bold; color: #7a6a55; margin-bottom: 9px;
-                   display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .drawer .dhead .shut { margin-left: auto; cursor: pointer; font-family: inherit; font-size: 12px;
-                         font-weight: bold; background: none; border: none; color: #9a8b78; }
-  .drawer .dhead .shut:hover { color: #b3541e; text-decoration: underline; }
-
-  /* ============ cards ============ */
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
-          gap: 10px; margin: 3px 0 13px; }
-  .quiz {
-    display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit;
-    background: #fff; border-radius: 14px; padding: 12px 14px; border: 2px solid rgba(0,0,0,.06);
-    transition: transform .12s, box-shadow .12s, border-color .12s;
-  }
-  .quiz:hover { transform: translateY(-3px); box-shadow: 0 6px 14px rgba(0,0,0,.12); }
-  .kid.peach     .quiz:hover { border-color: #ff8a5c; }
-  .kid.river     .quiz:hover { border-color: #3a7d44; }
-  .kid.chocolate .quiz:hover { border-color: #a9703f; }
-  .quiz.wide { grid-column: 1 / -1; align-items: flex-start; }
-  .quiz.wide .ic { margin-top: 2px; }
-  .quiz.wide .d { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
-                  overflow: hidden; }
-  .quiz .ic { font-size: 25px; line-height: 1; flex: 0 0 auto; }
-  .quiz .t { font-weight: bold; font-size: 14.5px; line-height: 1.3; }
-  .quiz .d { font-size: 11.5px; color: #7a6a55; margin-top: 3px; line-height: 1.4; }
-  .tag { display: inline-block; font-size: 10.5px; font-weight: bold; padding: 2px 8px;
-         border-radius: 999px; margin-top: 5px; margin-right: 4px; }
-  .tag.vocab { background: #ede0c4; color: #8a6d3b; }
-  .tag.reading { background: #d7ecd7; color: #2e6b34; }
-  .tag.think { background: #d9e8f5; color: #2f5d86; }
-  .kid.peach .tag.reading { background: #ffe0cc; color: #c1440e; }
-
-  .quiz.is-new { border-color: #e2574c; box-shadow: 0 0 0 3px rgba(226,87,76,.14); }
-  .badge-new {
-    display: inline-block; vertical-align: middle; margin-left: 6px;
-    background: #e2574c; color: #fff; font-size: 10px; font-weight: bold;
-    letter-spacing: .6px; padding: 2px 7px; border-radius: 999px;
-    animation: newpulse 1.8s ease-in-out infinite;
-  }
-  @keyframes newpulse { 0%,100% { opacity:1; } 50% { opacity:.55; } }
-  @media (prefers-reduced-motion: reduce) { .badge-new, .dice { animation: none; transition: none; } }
-  summary .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-                 background: #e2574c; vertical-align: middle; }
-
-  /* ============ search results + date view ============ */
-  #panel { border-radius: 22px; padding: 18px 18px 12px; margin-bottom: 22px;
-           background: #f2f7fb; border: 3px solid #a8c4d8; box-shadow: 0 6px 0 rgba(0,0,0,.08); }
-  #panel h2 { font-size: 24px; color: #2f5d86; margin-bottom: 2px; }
-  #panel .quiz:hover { border-color: #4d84ad; }
-  .daygroup > h3 { font-size: 14px; color: #4b6b83; margin: 14px 0 2px;
-                   border-bottom: 1px dashed rgba(0,0,0,.13); padding-bottom: 5px; }
-  .crumb { display: block; font-size: 10.5px; font-weight: bold; letter-spacing: .3px;
-           color: #97887a; margin-top: 5px; text-transform: uppercase; }
-  mark { background: #ffe9a8; color: inherit; border-radius: 3px; padding: 0 2px; }
-  .empty { font-size: 14.5px; color: #7d8c84; padding: 14px 2px 18px; line-height: 1.6; }
-  .empty b { color: #b3541e; }
-  .empty .go { cursor: pointer; font-family: inherit; font-size: 13px; font-weight: bold;
-               background: #2f6f5e; color: #fff; border: none; border-radius: 999px;
-               padding: 7px 14px; margin-left: 6px; }
-  .empty .go:hover { background: #24564a; }
-
-  footer { text-align: center; font-size: 12px; color: #8a9a90; margin-top: 26px; }
-  a.home { display:inline-block; margin-top:14px; color:#6b7d72; text-decoration:none; font-size:13px; }
-  a.home:hover { text-decoration: underline; }
-  .homerow { text-align: center; display: flex; gap: 18px; justify-content: center; }
-
-  @media (max-width: 560px) {
-    body { padding: 16px 11px 50px; }
-    h1.title { font-size: 26px; }
-    .sub { font-size: 13px; }
-    .shelf, .grid { grid-template-columns: 1fr; }
-    .searchrow { flex-wrap: wrap; }        /* search gets its own full-width row */
-    .searchbox { flex: 1 1 100%; }
-    .dice { flex: 1 1 100%; padding: 9px 12px; font-size: 13.5px; }
-    #q { font-size: 16px; }                /* 16px keeps iOS from zooming on focus */
+  @media (max-width: 460px) {
+    .go { padding: 15px 15px; gap: 12px; }
+    .go .ic { font-size: 32px; }
+    .go h2 { font-size: 17px; }
+    h1 { font-size: 24px; }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1 class="title">&#128218; Quizzes</h1>
-  <p class="sub">Type to search &middot; or pick a name, a subject, then a book &middot; passing score: 80%</p>
+  <div class="wrap">
+    <div class="hat">📚 →  ✅</div>
+    <h1>The quiz hub has moved</h1>
+    <p class="zh">测验合集已并入作业系统</p>
+    <p class="sub">
+      Every quiz and lesson page still works — they just get handed out<br>
+      from the homework system now, instead of being browsed here.
+    </p>
 
-  <nav class="topbar" aria-label="Find a quiz">
-    <div class="searchrow">
-      <div class="searchbox">
-        <span class="mag">&#128269;</span>
-        <input id="q" type="search" autocomplete="off" placeholder="Search &mdash; a book, a chapter number, &ldquo;fractions&rdquo;, &ldquo;拼音&rdquo;&hellip;">
-        <button id="qclear" type="button" title="Clear">&times;</button>
+    <a class="go" href="../homework.html">
+      <div class="ic">🧒</div>
+      <div>
+        <h2>My Homework</h2>
+        <p>Sign in with your PIN — today's work, your scores, your mistakes, your pet</p>
       </div>
-      <button class="dice" id="dice" type="button">&#127922; Surprise me</button>
+      <div class="arrow">→</div>
+    </a>
+
+    <a class="go" href="../parent.html">
+      <div class="ic">👨‍👩‍👧</div>
+      <div>
+        <h2>Parent console</h2>
+        <p>The full question bank — search, filter, and assign work to Grace or Warren</p>
+      </div>
+      <div class="arrow">→</div>
+    </a>
+
+    <div class="note">
+      <b>Bookmarked a quiz page?</b> It still opens, and it still saves your score.
+      The “← back to all quizzes” link at the bottom of each page lands you right here.
     </div>
-    <div class="chiprow who-chips" id="who-chips" aria-label="Whose quizzes"></div>
-    <div class="chiprow views" id="view-chips" aria-label="How to sort"></div>
-  </nav>
 
-  <div id="newbar" class="newbar" hidden></div>
-  <section id="panel" hidden><h2 id="panel-title"></h2><div class="who" id="panel-sub"></div><div id="panel-body"></div></section>
-  <main id="shelves"></main>
-
-  <noscript><p class="empty">This page needs JavaScript to show the quiz list. Ask a grown-up for help!</p></noscript>
-
-  <div class="homerow">
-    <a class="home" href="../index.html">&larr; Kids home</a>
-    <a class="home" href="../../index.html">&larr; Back to Home</a>
+    <div class="home"><a href="../index.html">← Kids home</a></div>
   </div>
-  <footer>Updated 2026 &middot; Kids Quizzes</footer>
-</div>
-
-<script>
-/* =====================================================================
-   Kids Quizzes hub  ·  data-driven
-
-   EVERY quiz on this page comes from the Q array below. To add one, add
-   one object to Q — the shelves, the counts, the search index, the date
-   view and the NEW badge all build themselves from it. Nothing else on
-   this page needs editing, and there are no counts to keep in sync.
-
-     k  child      'grace' | 'warren' | 'both'
-     s  subject    the heading it sits under, with its emoji
-     g  book/set   '' = a loose card shown straight in the subject
-     gn note       small grey text next to the book name (optional)
-     h  href       the page it opens
-     i  icon       emoji on the card
-     t  title      short name (chapter, unit, test number...)
-     d  desc       one line of detail
-     tg tags       [['reading','Reading']] - class + label
-     a  added      YYYY-MM-DD, drives the NEW badge and the date views
-     w  wide       1 = full-width card (for "start here" / big items)
-     ac accent     custom border colour for a wide card (optional)
-     o  order      optional manual sort key; otherwise the first number
-                   in the title is used, so Ch 3 sorts before Ch 18
-===================================================================== */
-const Q = [
-  {k:"both", s:"🍁 More", h:"inside-canadas-parliament.html", i:"🏛️", t:"Inside Canada's Parliament", d:"Interactive guide", a:"2026-07-14", o:-20260714},
-  {k:"both", s:"🍁 More", h:"victoria-explorer-quest.html", i:"🗺️", t:"Victoria Explorer Quest", d:"10 stops · 30 questions · adventure map game", tg:[["think", "Game"]], a:"2026-07-14", o:-20260714},
-  {k:"both", s:"📚 中文 Chinese", g:"🐯 中文打字 · Chinese Typing", gn:"看汉字，打拼音", h:"Chinese-Idiom-Practice-Animal-9.html", i:"🐯", t:"九个动物成语 · 打字两遍 + 朗读 + 造句", d:"狼吞虎咽 · 龙飞凤舞 · 惊弓之鸟…9 个成语 · 打字 18 题（拼音或汉字）· 朗读各两遍 · 口头造句 · 进度自动保存", tg:[["reading", "Typing"]], a:"2026-09-02", o:-20260902},
-  {k:"both", s:"📚 中文 Chinese", g:"🐯 中文打字 · Chinese Typing", gn:"看汉字，打拼音", h:"Chinese-Pinyin-Game-Feng-Wa-Wa-Yuan-Di-8.html", i:"🌬️", t:"《风娃娃》+《语文园地八》· 拼音打字乐园", d:"风娃娃 13 词语 + 12 生字（各两遍）· 园地八 11 动物词 + 动物分类 + 拟声词填空 · 7 关 · 可选朗读声音", tg:[["reading", "Typing"]], a:"2026-08-31", o:-20260831},
-  {k:"both", s:"📚 中文 Chinese", g:"🐯 中文打字 · Chinese Typing", gn:"看汉字，打拼音", h:"Chinese-Pinyin-Game-Zhi-Chuan-He-Feng-Zheng.html", i:"⛵", t:"《纸船和风筝》· 拼音乐园", d:"45 题 · 学一学卡片 + 生字 · 词语 · 填空 · 漂/飘选字 · 5 关", tg:[["reading", "Typing"]], a:"2026-08-15", o:-20260815},
-  {k:"both", s:"📚 中文 Chinese", g:"🐯 中文打字 · Chinese Typing", gn:"看汉字，打拼音", h:"Chinese-Pinyin-Recorder-Zhi-Chuan-He-Feng-Zheng.html", i:"🎙️", t:"《纸船和风筝》· 真人录音棚", d:"给拼音乐园录上爸爸妈妈的读音 · 46 个词句 · 约 5 分钟", tg:[["reading", "Tool"]], a:"2026-08-15", o:-20260815},
-  {k:"both", s:"📚 中文 Chinese", g:"🐯 中文打字 · Chinese Typing", gn:"看汉字，打拼音", h:"Chinese-Typing-Quiz-Hu-Jia-Hu-Wei.html", i:"🦊", t:"《狐假虎威》· 生字词语", d:"21 题 · 6 成语 + 9 生字 + 6 填空句 · 4 关", tg:[["reading", "Typing"]], a:"2026-08-05", o:-20260805},
-  {k:"both", s:"📚 中文 Chinese", g:"🐯 中文打字 · Chinese Typing", gn:"看汉字，打拼音", h:"../Typing Game/pinyin-typing-game.html", i:"🌈", t:"拼音打字乐园", d:"43 词 · 风光 · 天气 · 生字词 · 4 关", tg:[["reading", "Typing"]], a:"2026-07-18", o:-20260718},
-  {k:"both", s:"📚 中文 Chinese", g:"📚 中文阅读 · 课文生字与朗读", gn:"read it, learn the characters, read it aloud", h:"Chinese-Listen-Build-Xiao-Bai-Tu-He-Xiao-Hui-Tu.html", i:"🥬", t:"《小白兔和小灰兔》听句子 · 摆汉字", d:"The whole story in 39 chunks over 5 rounds &middot; listen once, then drag the characters into the right boxes &middot; wrong answers name the exact box and what belongs there &middot; 12 生字 cards &middot; voice picker &amp; slow-down &middot; read-aloud sheet for parents", tg:[["reading", "Listening"]], a:"2026-09-09", o:-20260909},
-  {k:"both", s:"📚 中文 Chinese", g:"📚 中文阅读 · 课文生字与朗读", gn:"read it, learn the characters, read it aloud", h:"Chinese-Listen-Build-Xiao-Tu-Zi.html", i:"🐰", t:"《小兔子乖乖》听句子 · 摆汉字", d:"Listen to each sentence once, then find its characters in the jumble and put them in order · 20 sentences in 3 rounds · 6 生字 cards · voice picker (choose the best Chinese system voice + speed) · read-aloud sheet for parents", tg:[["reading", "Listening"]], a:"2026-09-07", o:-20260907},
-  {k:"both", s:"📚 中文 Chinese", g:"📚 中文阅读 · 课文生字与朗读", gn:"read it, learn the characters, read it aloud", h:"Chinese-Reading-Xiao-Song-Shu-Zhao-Hua-Sheng.html", i:"🥜", t:"《小松鼠找花生》朗读 + 选字游戏", d:"Read the whole story aloud twice (pinyin above the marked characters, English underneath, tap-to-hear on every paragraph) &middot; then a pick-the-character game: 5 rounds, 29 blanks, <b>every sentence of the story</b> &middot; the pinyin is given, so you choose between same-sounding characters &middot; wrong picks explain how to tell them apart", tg:[["reading", "Reading"]], a:"2026-09-14", o:-20260914},
-  {k:"both", s:"📚 中文 Chinese", g:"📚 中文阅读 · 课文生字与朗读", gn:"read it, learn the characters, read it aloud", h:"Chinese-Reading-Cheng-Zan.html", i:"🦡", t:"《称赞》 “Praise” · characters + read-aloud", d:"Meet the badger 獾 · 48 character cards with pinyin &amp; English · 18 practice questions with explanations · full story with pinyin, English translation, and a two-round read-aloud tracker", tg:[["reading", "Reading"]], a:"2026-09-06", o:-20260906},
-  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch9-11.html", i:"🍑", t:"Chapters 9–11", d:"15 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:9},
-  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Vocab-Quiz-Ch9-11.html", i:"🔤", t:"Vocabulary · Ch 9–11", d:"15 questions", tg:[["vocab", "Vocab"]], a:"2026-07-14", o:9},
-  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch13-14.html", i:"🐛", t:"Chapters 13–14", d:"15 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:13},
-  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch15-22.html", i:"🕊️", t:"Chapters 15–22", d:"40 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:15},
-  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch23-24.html", i:"🎻", t:"Chapters 23–24", d:"16 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:23},
-  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch25-26.html", i:"🐞", t:"Chapters 25–26", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:25},
-  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch27-28.html", i:"☁️", t:"Chapters 27–28", d:"20 questions · harder", tg:[["reading", "Reading"]], a:"2026-07-14", o:27},
-  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch29-30.html", i:"🌧️", t:"Chapters 29–30", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:29},
-  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch31-32.html", i:"🌆", t:"Chapters 31–32", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:31},
-  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch33-34.html", i:"✈️", t:"Chapters 33–34", d:"20 questions · harder", tg:[["reading", "Reading"]], a:"2026-07-14", o:33},
-  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch35-36.html", i:"🏙️", t:"Chapters 35–36", d:"20 questions · harder", tg:[["reading", "Reading"]], a:"2026-07-14", o:35},
-  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch37-38.html", i:"🎉", t:"Chapters 37–38", d:"20 questions · harder", tg:[["reading", "Reading"]], a:"2026-07-14", o:37},
-  {k:"grace", s:"📖 Reading", g:"🍑 James and the Giant Peach", gn:"by Roald Dahl", h:"James-Giant-Peach-Quiz-Ch39.html", i:"🏙️", t:"Chapter 39 · The End", d:"10 questions · harder", tg:[["reading", "Reading"]], a:"2026-07-14", o:39},
-  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch1-4.html", i:"🍫", t:"Chapters 1–4", d:"40 questions", tg:[["reading", "Reading"]], a:"2026-07-16", o:1},
-  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch6-7.html", i:"🎫", t:"Chapters 6–7", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-18", o:6},
-  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch8-9.html", i:"🎰", t:"Chapters 8–9", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-19", o:8},
-  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch10-11.html", i:"✨", t:"Chapters 10–11", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-20", o:10},
-  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch13-14.html", i:"🎩", t:"Chapters 13–14", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-24", o:13},
-  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch15-16.html", i:"🌊", t:"Chapters 15–16", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-25", o:15},
-  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch17-18.html", i:"🚣", t:"Chapters 17–18", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-08-02", o:17},
-  {k:"grace", s:"📖 Reading", g:"🍫 Charlie and the Chocolate Factory", gn:"by Roald Dahl", h:"Charlie-Chocolate-Factory-Quiz-Ch19-20.html", i:"🧪", t:"Chapters 19–20", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-08-02", o:19},
-  {k:"grace", s:"📝 SSAT", h:"SSAT-Reading-Unit3-4-Feedback-Grace.html", i:"🪞", t:"Reading Units 3 &amp; 4 · Marked", d:"Character + Simile &amp; Metaphor · 2/6 multiple choice · <b>the whole worksheet reprinted, with the mark and the comment sitting under each question</b> — nothing to look back at and nothing said twice · the one misread word (<i>garage</i>, not garbage) that cost four answers, both writing tasks graded against their own rubric and rewritten from her words, then three drills with the answers hidden: simile-or-metaphor, the three misses again, and 18 spelling words sorted by rule", tg:[["think", "Solutions"]], a:"2026-09-02", w:1, ac:"#2c3e63", o:-20260902},
-  {k:"grace", s:"📝 SSAT", h:"SSAT-U1-Clue-Sentences-Grace.html", i:"🔍", t:"Unit 1 · Your Four Clue Sentences", d:"Just the “cover the target word” sheet · press a button to black out the word and feel the thumb test · all four sentences checked and repaired · plus the 3 clue cards homework with one done for you", tg:[["think", "Solutions"]], a:"2026-08-31", w:1, ac:"#2c3e63", o:-20260831},
-  {k:"grace", s:"📝 SSAT", h:"SSAT-Reading-Unit1-2-Feedback-Grace.html", i:"✅", t:"Reading Units 1 &amp; 2 · Marked", d:"Context Clues + Inference · 4/6 multiple choice · both misses taught with the trap, every short answer rewritten, the Priya paragraph fixed with the 4-step frame, 11 spelling words, and a 20-word vocabulary list you can quiz yourself on", tg:[["think", "Solutions"]], a:"2026-08-31", w:1, ac:"#2c3e63", o:-20260831},
-  {k:"grace", s:"🔤 Vocabulary", h:"Grace-Class-Vocab-Sep18-Day1.html", i:"🌱", t:"Class Vocab (Sep 18) · Day 1 · Monday", d:"transient · makeshift · preserve · notion · attachment · 10 questions · 10-minute clock", tg:[["vocab", "Vocab"]], a:"2026-09-14", o:1},
-  {k:"grace", s:"🔤 Vocabulary", h:"Grace-Class-Vocab-Sep18-Day2.html", i:"🕵️", t:"Class Vocab (Sep 18) · Day 2 · Tuesday", d:"intimate · intimation · presume · presumptuous · melodramatic + review · 15 questions · 15-minute clock", tg:[["vocab", "Vocab"]], a:"2026-09-14", o:2},
-  {k:"grace", s:"🔤 Vocabulary", h:"Grace-Class-Vocab-Sep18-Day3.html", i:"🏠", t:"Class Vocab (Sep 18) · Day 3 · Wednesday", d:"reside · residence · domicile · to and fro · conversely + review · 15 questions · 15-minute clock", tg:[["vocab", "Vocab"]], a:"2026-09-14", o:3},
-  {k:"grace", s:"🔤 Vocabulary", h:"Grace-Class-Vocab-Sep18-Day4.html", i:"🤝", t:"Class Vocab (Sep 18) · Day 4 · Thursday", d:"empathize · empathy · acquiesce · acquiescence · concede · concession + review · 17 questions · 17-minute clock", tg:[["vocab", "Vocab"]], a:"2026-09-14", o:4},
-  {k:"grace", s:"🔤 Vocabulary", h:"Grace-Class-Vocab-Sep18-Day5.html", i:"🧠", t:"Class Vocab (Sep 18) · Day 5 · Friday", d:"cogitate · cogitation · mull over · lucid · lucidity + review · 15 questions · 15-minute clock", tg:[["vocab", "Vocab"]], a:"2026-09-14", o:5},
-  {k:"grace", s:"🔤 Vocabulary", h:"Grace-Class-Vocab-Sep18-Week-Test.html", i:"🏆", t:"Class Vocab (Sep 18) · Week test · all 26 words", d:"every word from Monday to Friday · 26 questions · 26-minute clock", tg:[["vocab", "Vocab"]], a:"2026-09-14", o:6},
-  {k:"grace", s:"🔤 Vocabulary", h:"Wordly-Wise-L13-14-Vocab-MCQ.html", i:"📚", t:"Wordly Wise L13–14 · Word Choice", d:"30 words in context · multiple choice · Grace", tg:[["think", "Vocab"]], a:"2026-07-17", o:-20260717},
-  {k:"grace", s:"🔤 Vocabulary", h:"Wordly-Wise-L13-14-Vocab-FillBlank.html", i:"✍️", t:"Wordly Wise L13–14 · Fill-in", d:"30 sentences · type the word · Grace", tg:[["think", "Vocab"]], a:"2026-07-16", o:-20260716},
-  {k:"grace", s:"🔤 Vocabulary", h:"Wordly-Wise-L16-17-Vocab-MCQ.html", i:"📚", t:"Wordly Wise L16–17 · Meanings", d:"30 words · multiple choice · Grace", tg:[["think", "Vocab"]], a:"2026-07-14", o:-20260714},
-  {k:"grace", s:"🔤 Vocabulary", h:"Wordly-Wise-L16-17-Vocab-FillBlank.html", i:"✍️", t:"Wordly Wise L16–17 · Fill-in", d:"30 sentences · type the word · Grace", tg:[["think", "Vocab"]], a:"2026-07-14", o:-20260714},
-  {k:"grace", s:"🔤 Vocabulary", h:"Vocab-Quiz-Lesson-29.html", i:"✏️", t:"Lesson 29", d:"12 words", tg:[["think", "Vocab"]], a:"2026-07-14", o:-20260714},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Lab-Unit3.html", i:"🧮", t:"Fractions Lab · Unit 3", d:"The whole unit taught step by step · add &amp; subtract, mixed numbers, improper fractions, converting · 10 worked examples · 20 practice questions that show the solution · 20-question test, 85% to pass", tg:[["think", "Lesson + Test"]], a:"2026-08-15", o:2},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Add-Subtract-Unit3.html", i:"🍕", t:"Fractions Workshop · Unit 3", d:"Adding &amp; subtracting fractions · 27 questions you solve yourself · pie diagrams, secret word, dot-to-dot star", tg:[["think", "Practice"]], a:"2026-08-14", o:1},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex10-Sep7.html", i:"🔟", t:"Exercise 10 · Fractions Five Ways", d:"All five questions taught one at a time · improper → mixed in simplest form, the \"equal numbers\" matching puzzle, adding with same and different bottoms, taking a fraction away from a whole number, and &gt; &lt; = · every book question worked with a hide-the-steps button · then a 20-question test with all-new numbers, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-07", o:10},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex11-Sep7.html", i:"➗", t:"Exercise 11 · A Fraction <em>is</em> a Division", d:"Why the fraction line means \"divide\" · 3 cookies shared between 2, the sharing pictures, and changing an improper fraction to a mixed number by short division · the three traps (dividing backwards, remainder underneath, remainder too big) · then a 15-question test, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-07", o:11},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex11-Retry-Sep13.html", i:"🔁", t:"Exercise 11 · Second Go — new numbers", d:"Same kinds of questions as Exercise 11, every number new · Change improper fractions to mixed numbers by dividing, remainders on top, whole-number answers · a short reminder of the method and the three traps · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Test"]], a:"2026-09-13", o:11.5},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex12-Sep7.html", i:"🧺", t:"Exercise 12 · Fractions of a Set", d:"When the whole is a group of things · dividing a set into equal parts (and how many lines to draw), what fraction of a set is shaded, counting by groups instead of one by one, and writing part-of-the-whole fractions · then a 15-question test, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-07", o:12},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex12-Retry-Sep13.html", i:"🔁", t:"Exercise 12 · Second Go — new numbers", d:"Same kinds of questions as Exercise 12, every number new · Equal parts of a set, what fraction is shaded, counting groups, part of the whole in simplest form · a short reminder of the method and the three traps · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Test"]], a:"2026-09-13", o:12.5},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex13-Sep7.html", i:"🎨", t:"Exercise 13 · How Much Is a Fraction of a Set?", d:"Colouring 2/5 of a set, ½ of 12, and the two-step recipe for ¾ of 20 — divide by the bottom, times by the top · all six book pairs worked out · the three traps, including answering with a fraction instead of a count · then a 15-question test, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-07", o:13},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex13-Retry-Sep13.html", i:"🔁", t:"Exercise 13 · Second Go — new numbers", d:"Same kinds of questions as Exercise 13, every number new · Divide by the bottom, times by the top · colouring a fraction of a set and finding how many · a short reminder of the method and the three traps · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Test"]], a:"2026-09-13", o:13.5},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex14-Sep7.html", i:"✍️", t:"Exercise 14 · Writing It Down &amp; Bigger Numbers", d:"Why ¼ of 8 gets written as 8/4, and what the \"2 ×\" line means · dividing 80, 96, 120 and 150 with break-it-up and halve-again tricks · all eight Q3 pairs worked out with a sense-check on every answer · then a 15-question test, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-07", o:14},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex14-Retry-Sep13.html", i:"🔁", t:"Exercise 14 · Second Go — new numbers", d:"Same kinds of questions as Exercise 14, every number new · Fractions of bigger numbers written as divisions · halving tricks and checking by timesing back · a short reminder of the method and the three traps · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Test"]], a:"2026-09-13", o:14.5},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex15-Sep13.html", i:"📏", t:"Exercise 15 · One Amount as a Fraction of Another", d:"Same unit first, part on top, then simplest form · the swap table ($1 = 100¢, 1 m = 100 cm, 1 hour = 60 min, 1 foot = 12 in) · five book questions worked out with a hide-the-steps button · the three traps (forgetting the swap, writing it upside down, answering the wrong half) · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:15},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex16-Sep13.html", i:"📊", t:"Exercise 16 · A Fraction of a Set", d:"Reading the bar model · divide by the bottom number to get ONE unit, then times by the top · all five book questions worked out · gave away vs had left, side by side, with the add-back check · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:16},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex17-Sep13.html", i:"🪜", t:"Exercise 17 · The Step After the Fraction", d:"When the fraction answer is only step one — the rest, altogether, how many girls · the short way straight to the leftover boxes · all six book questions worked out · the three traps, including handing in the first number you found · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:17},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex18-Sep13.html", i:"🔄", t:"Exercise 18 · Working Backwards from a Part", d:"Exercise 16 played backwards — you are given a piece and have to build the whole bar · the three-line layout the book shows (7 units = $42 → 1 unit = $6 → 10 units = $60) · all four book questions worked out · the trap where the amount given is the part that is LEFT · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:18},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Fractions-Ex19-Sep13.html", i:"🧩", t:"Exercise 19 · All of Unit 3 Mixed Together", d:"The last exercise in Unit 3, with no method given away · a table for deciding which of the three kinds each question is · the hidden number you have to build first (6 curtains × 2 m, $240 ÷ $2) · all six book questions worked out · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:19},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Review3-Sep13.html", i:"🗺️", t:"Review 3 · Everything So Far, Mixed Up", d:"Six stations across the whole review — big numbers and place value, rounding (forwards and backwards), factors vs multiples, the four operation words with brackets, all of Unit 3 fractions, and the two-step word problems · worked examples at every station · then a 20-question test on a 20-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:99},
-  {k:"grace", s:"🧮 Math", g:"📏 Math 4A · Unit 5 Area &amp; Perimeter", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U5-Ex1-Area-Sep13.html", i:"🔲", t:"Exercise 1 · The Area of a Rectangle", d:"What area really is — how many 1 cm squares fit — then why counting in rows is the same as length × width · all six of the book's rectangles worked out in cm, inches, metres, yards and feet · the three traps, starting with dropping the little ² · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:1},
-  {k:"grace", s:"🧮 Math", g:"📏 Math 4A · Unit 5 Area &amp; Perimeter", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U5-Ex2-Area-Perimeter-Sep13.html", i:"🚶", t:"Exercise 2 · Area and Perimeter Together", d:"Perimeter is the walk round the edge, area is the floor inside · why P = 2 × (l + w) and what goes wrong if you double before you add · the five figures from question 4 in one table, showing that the same area can come with a different perimeter · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:2},
-  {k:"grace", s:"🧮 Math", g:"📏 Math 4A · Unit 5 Area &amp; Perimeter", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U5-Ex3-Unknown-Side-Sep13.html", i:"🔍", t:"Exercise 3 · Finding the Missing Side", d:"Given the perimeter, halve it first; given the area, divide · the five-second check that catches an upside-down answer · the stamps, the carpet and the fence, with the rule for telling a per-square price from a per-metre one · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:3},
-  {k:"grace", s:"🧮 Math", g:"📏 Math 4A · Unit 5 Area &amp; Perimeter", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U5-Ex4-Composite-Perimeter-Sep13.html", i:"🧵", t:"Exercise 4 · Perimeter of Right-Angled Figures", d:"Finding the sides the book leaves off by matching the runs · the slide-out short cut, P = 2 × (width + height), and the drawing that shows why it works · and the one shape it cannot handle: a notch, which adds twice its depth · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:4},
-  {k:"grace", s:"🧮 Math", g:"📏 Math 4A · Unit 5 Area &amp; Perimeter", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U5-Ex5-Composite-Area-Sep13.html", i:"✂️", t:"Exercise 5 · Area of Right-Angled Figures", d:"Cut the figure into rectangles and add, or fill it into a rectangle and subtract — with each answer checked the other way · the cross, where adding two bars counts the middle patch twice · the trap of multiplying overall width by overall height · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:5},
-  {k:"grace", s:"🧮 Math", g:"📏 Math 4A · Unit 5 Area &amp; Perimeter", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U5-Ex6-Shaded-Area-Sep13.html", i:"🖼️", t:"Exercise 6 · The Shaded Part", d:"Big rectangle minus small rectangle · why a border 2 m wide makes the outside 4 m bigger, not 2 · and how to tell whether the measurements you were given are the inside or the outside — the pool and the towel go opposite ways · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:6},
-  {k:"grace", s:"🧮 Math", g:"📏 Math 4A · Unit 5 Area &amp; Perimeter", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Review5-Sep13.html", i:"🏁", t:"Review 5 · The Whole Book, Mixed Up", d:"The last review in 4A, reaching back to page one · six stations: big numbers and rounding, below zero on the number line, missing numbers with brackets, fractions, the shape words the review assumes you remember (radius, parallelogram, net, equilateral), and every area and perimeter question worked out · then a 20-question test on a 20-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:99},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex1-Right-Angles-Sep13.html", i:"📐", t:"Exercise 1 · Right Angles", d:"The square corner, and how to test one with nothing but the corner of a page · counting every right angle in a figure, including the one that points inwards on an L · and the corners that only look square, like a leaning parallelogram · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:1},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex2-Angles-Degrees-Sep13.html", i:"🔄", t:"Exercise 2 · Angles in Degrees", d:"An angle is an amount of turn — quarter 90°, half 180°, three quarters 270°, full 360° · the four names (acute, right, obtuse, straight) with a way to remember them · and why drawing the arms longer does not make the angle bigger · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:2},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex3-Measuring-Angles-Sep13.html", i:"🧰", t:"Exercise 3 · Measuring Angles", d:"The measuring is done in the book with a protractor; this page teaches the method · centre on the corner, baseline on one arm, and the rule that settles which of the two scales is yours · guess first, because that is what catches a misread · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:3},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex4-Drawing-Angles-Sep13.html", i:"✏️", t:"Exercise 4 · Drawing Angles", d:"Exercise 3 backwards — mark the number on and join it up · the four steps, and checking your own drawing by measuring it · the 360 − trick for angles over 180°, since a protractor stops at 180 · plus landmarks for estimating · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:4},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex5-Perpendicular-Sep13.html", i:"⊥", t:"Exercise 5 · Perpendicular Lines", d:"Two lines meeting at 90°, and the ⊥ sign · the two cases that look like they should not count: a tilted pair, and a pair that has to be extended before it crosses · where you already know they are, and where there are none · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:5},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex6-Drawing-Perpendicular-Sep13.html", i:"📐", t:"Exercise 6 · Drawing Perpendicular Lines", d:"The set-square carries an exact 90° corner, so it draws the right angle for you · lay one edge on the line, slide it to the point, draw along the other edge, mark it · what to do when the given line is too short to rest it on · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:6},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex7-Parallel-Lines-Sep13.html", i:"∥", t:"Exercise 7 · Parallel Lines", d:"Lines that hold the same gap for ever and never meet, and the // sign · a side-by-side table for telling parallel from perpendicular, since they are opposites · reading the arrowheads that mark a parallel set in a diagram · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:7},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex8-Drawing-Parallel-Sep13.html", i:"🛝", t:"Exercise 8 · Drawing Parallel Lines", d:"The slide: set-square on the line, ruler as the rail, slide and draw — and what goes wrong the moment the ruler shifts · then the big table of every parallel and perpendicular pair in a figure, done in a fixed order so none is missed · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:8},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex9-Sides-Of-Shapes-Sep13.html", i:"🔷", t:"Exercise 9 · The Sides of Four-Sided Shapes", d:"Rectangle, parallelogram, square and rhombus in one table · equal sides and square corners are two separate questions, which is what makes a rhombus confusing · reading the letters of PQRS to find the opposite side · and unknown lengths in a joined-up figure · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:9},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex10-Triangles-Sep13.html", i:"🔺", t:"Exercise 10 · Kinds of Triangle", d:"Equilateral, isosceles and scalene · sort them by counting tick marks rather than by how they look, because the book draws a squat one next to a tall one on purpose · what a tick mark is actually telling you · and the right-angled isosceles triangle hiding in a square · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:10},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex11-Circles-Sep13.html", i:"⭕", t:"Exercise 11 · Radius and Diameter", d:"The shortest exercise in the unit: the diameter is twice the radius · decide the direction before you calculate, because half the lost marks here are a × where a ÷ belonged · how to tell from the picture which one has been drawn · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:11},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex12-Solids-Sep13.html", i:"🧊", t:"Exercise 12 · Faces, Edges and Vertices", d:"Face, edge and vertex explained on a dice · counting in groups (top, bottom, round the side) so the hidden half of the solid does not get missed · the full table for cube, prism and pyramid · and the faces + vertices = edges + 2 check that catches a wrong count · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:12},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex13-Cube-Nets-Sep13.html", i:"📦", t:"Exercise 13 · Nets of Cubes and Boxes", d:"A net is a solid unfolded, so a cube net has exactly six squares · two rules that sort out nearly every picture without folding anything: no more than four in a line, and the last two flaps one on each side of the row · plus the matching-pairs rule for a box · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:13},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex14-Solid-To-Net-Sep13.html", i:"🔍", t:"Exercise 14 · Finding the Net of a Solid", d:"Rather than folding four pictures up in your head, read the solid and write the shopping list — two triangles and three rectangles for a prism, one square and four triangles for a pyramid · then three checks in order, ending with the edges that have to meet · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:14},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-U4-Ex15-Net-To-Solid-Sep13.html", i:"🔄", t:"Exercise 15 · Which Solid Does the Net Make?", d:"Exercise 14 read backwards: count the pieces, sort them into triangles, squares and rectangles, and the table names the solid · triangles at the two ends of a strip mean a prism, triangles all round one piece mean a pyramid · plus how to count faces on a net drawn as one joined outline · then a 15-question test on a 15-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:15},
-  {k:"grace", s:"🧮 Math", g:"📐 Math 4A · Unit 4 Geometry", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Review4-Sep13.html", i:"🧭", t:"Review 4 · Numbers, Fractions and the New Geometry", d:"The review that lands straight after the geometry unit, so shapes turn up beside everything earlier · five stations: place value and rounding, factor versus multiple, below zero, ordering fractions with the same top number, and the shape table · plus the three traps, starting with 3 times the cost, where finding the smaller one means dividing · then a 20-question test on a 20-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-13", o:99},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Mixed-Numbers-Improper-Fractions-Aug29.html", i:"🥧", t:"Mixed Numbers &amp; Improper Fractions · Aug 29 homework", d:"Grace's own worksheet taught in English · every question from Exercises 6, 7, 8 and p.76 explained step by step with drawings · hide-the-steps button to try each one yourself · 15-question test, 85% to pass", tg:[["think", "Lesson + Test"]], a:"2026-08-29", o:3},
-  {k:"grace", s:"🧮 Math", g:"📗 Math 4A · Unit 3 Fractions", gn:"Singapore Primary Mathematics 4A 练习册", h:"Math-Mixed-Numbers-Improper-Fractions-Sep6.html", i:"🍕", t:"Mixed Numbers → Improper Fractions · p.82 &amp; p.85", d:"Study guide for Q3, Q4 and Q5 · what the words mean, the \"times, then plus, then keep\" recipe, the two mistakes to watch for · all ten book questions worked through with a hide-the-steps button · then a 15-question test with all-new numbers, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-06", o:4},
-  {k:"grace", s:"🧮 Math", h:"Math-Solutions.html", i:"🧮", t:"Math Solutions · Portions &amp; Percents", d:"2 test problems worked step by step · 5 practice questions", tg:[["think", "Solutions"]], a:"2026-08-04", o:9999},
-  {k:"grace", s:"🧮 Math", g:"📘 Math 4B · Ch 8 Fractions", gn:"My Pals Are Here! Maths 4B 课本", h:"Math-4B-Ch8-L1-Mixed-Numbers-Sep15.html", i:"🍰", t:"Lesson 1 · Mixed Numbers", d:"The first lesson of the new 4B book, played rather than read · 🍕 Pizza Shop (fill each order by tapping whole pizzas and slices) · ✂️ Slice Shrinker (group the slices bigger until they will not group again, while the whole number stays locked) · 🐸 Frog Pond (hop to the right spot and the hidden fly comes out) · 📘 then all five of page 9 done on screen too — tap the answer, tap the cards into the gaps, drop pins on the line, shrink the three fractions · sound, confetti and four badges · then a 10-question test on a 10-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-15", o:1},
-  {k:"grace", s:"🧮 Math", g:"📘 Math 4B · Ch 8 Fractions", gn:"My Pals Are Here! Maths 4B 课本", h:"Math-4B-Ch8-L2-Improper-Fractions-Sep15.html", i:"🎀", t:"Lesson 2 · Improper Fractions", d:"When the top number is as big as the bottom one — played, not read · 🔢 Count the Pieces (tap every shaded slice, each tap stamps a number on it) · 🐞 Ruler Walk (walk the ladybug to the leaf and see the same spot has two names) · ✂️ Slice Shrinker · 📘 then all of pages 12–13 done on screen — two number lines to fill from a card tray, and the four fractions to shrink · then a 10-question test on a 10-minute clock, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-15", o:2},
-  {k:"warren", s:"✍️ Writing &middot; Reflection", h:"School-Visit-Reflection-Guide.html", i:"🏫", t:"School Visit Reflection · thinking guide", d:"For the 7-question school-visit questionnaire · a warm-up that replays the visit in your head, then one step per question with \"ask yourself\" prompts, tap-open examples of the <i>kinds</i> of things people notice, weak-vs-specific comparisons and sentence starters · a day-map for \"can you picture yourself here\", three program slots with the why, a squeeze-it-to-25-words takeaway box · autosaves, then builds all your notes into one page you can copy or print. The prompts are not the answers — they're there to help you find your own", tg:[["think", "Guide"]], a:"2026-09-09", o:-20260909},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch3.html", i:"🙏", t:"Chapter 3", d:"15 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:3},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Vocab-Quiz-Ch3.html", i:"🔤", t:"Vocabulary · Ch 3", d:"15 questions", tg:[["vocab", "Vocab"]], a:"2026-07-14", o:3},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch4.html", i:"🐾", t:"Chapter 4", d:"15 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:4},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch5.html", i:"👤", t:"Chapter 5", d:"15 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:5},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch6-7.html", i:"🪵", t:"Chapters 6 &amp; 7", d:"20 questions", tg:[["reading", "Reading"]], a:"2026-07-14", o:6},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch8.html", i:"🏝️", t:"Chapter 8", d:"10 questions", tg:[["think", "Comprehension"]], a:"2026-07-14", o:8},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch9.html", i:"🏚️", t:"Chapter 9", d:"10 questions", tg:[["think", "Comprehension"]], a:"2026-07-14", o:9},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch10-11.html", i:"🐍", t:"Chapters 10 &amp; 11", d:"20 questions", tg:[["think", "Comprehension"]], a:"2026-07-14", o:10},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch12.html", i:"🚢", t:"Chapter 12", d:"15 questions", tg:[["think", "Comprehension"]], a:"2026-07-14", o:12},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch13.html", i:"🚨", t:"Chapter 13", d:"10 questions · fill + comp", tg:[["think", "Comprehension"]], a:"2026-07-14", o:13},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch14.html", i:"👑", t:"Chapter 14", d:"13 questions · fill + comp", tg:[["think", "Comprehension"]], a:"2026-07-14", o:14},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch15.html", i:"🌫️", t:"Chapter 15", d:"13 questions · fill + comp", tg:[["think", "Comprehension"]], a:"2026-07-14", o:15},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch16.html", i:"⚖️", t:"Chapter 16", d:"13 questions · fill + comp", tg:[["think", "Comprehension"]], a:"2026-07-14", o:16},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch17.html", i:"🏛️", t:"Chapter 17", d:"13 questions · fill + comp", tg:[["think", "Comprehension"]], a:"2026-07-14", o:17},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch18.html", i:"🔫", t:"Chapter 18", d:"20 questions · what happened + why", tg:[["think", "Comprehension"]], a:"2026-08-30", o:18},
-  {k:"warren", s:"📖 Reading", g:"🛶 The Adventures of Huckleberry Finn", gn:"by Mark Twain", h:"Huck-Finn-Quiz-Ch18-19.html", i:"⚔️", t:"Chapters 18–19", d:"20 questions · reading + think", tg:[["reading", "Reading"]], a:"2026-07-18", o:18},
-  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Index.html", i:"🗂️", t:"Mock Test 3 · Start here", d:"The whole paper split into six timed sittings, plus the essay prompt, the timing plan, and the list of questions where the printed answer key is wrong", tg:[["think", "Index"]], a:"2026-09-07", w:1, ac:"#2f6f5e", o:0},
-  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Quant-1.html", i:"🧮", t:"Quantitative 1", d:"25 questions · 30 minutes", tg:[["think", "Test"]], a:"2026-09-07", o:1},
-  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Quant-2.html", i:"📐", t:"Quantitative 2", d:"25 questions · 30 minutes", tg:[["think", "Test"]], a:"2026-09-07", o:2},
-  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Reading-A.html", i:"📖", t:"Reading A", d:"4 passages · 23 questions · 23 minutes", tg:[["reading", "Test"]], a:"2026-09-07", o:3},
-  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Reading-B.html", i:"📜", t:"Reading B", d:"3 passages · 17 questions · 17 minutes", tg:[["reading", "Test"]], a:"2026-09-07", o:4},
-  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Synonyms.html", i:"🔤", t:"Synonyms", d:"30 questions · 12 minutes", tg:[["vocab", "Test"]], a:"2026-09-07", o:5},
-  {k:"warren", s:"📝 SSAT", g:"⏱️ Summer Mock Test 3", gn:"timed like the real SSAT &middot; no answers until you finish", h:"SSAT-MockTest3-Analogies.html", i:"🌉", t:"Analogies", d:"30 questions · 18 minutes", tg:[["vocab", "Test"]], a:"2026-09-07", o:6},
-  {k:"warren", s:"📝 SSAT", g:"📄 Graded Papers", h:"SSAT-MiddleLevel-Section3-Verbal-Graded-Review.html", i:"📝", t:"Middle Level · Section 3 Verbal · Graded Review", d:"The 60-question verbal section marked from the paper — 27 right · 10 wrong · 19 blank, raw 24.5. Every miss explained (six of them the same trap: picking a word <i>connected</i> to the question word instead of one that <i>means</i> it), all 19 blanks answered, 10 word families that pay, and three fixes worth ~8 points", tg:[["think", "Solutions"]], a:"2026-09-10", w:1, ac:"#2c3e63", o:-20260910},
-  {k:"warren", s:"📝 SSAT", g:"📄 Graded Papers", h:"SSAT-Practice-Test-5-Graded-Review.html", i:"📝", t:"Practice Test 5 · Graded Review", d:"All 150 questions worked out from the paper — Math 13/25 · Reading 22/40 · Verbal 21/60 · Math 9/25 · every one of the 36 misses explained step by step, plus the answer and method for all 49 left blank, and why filling every bubble is worth points", tg:[["think", "Solutions"]], a:"2026-09-01", w:1, ac:"#2c3e63", o:-20260901},
-  {k:"warren", s:"📝 SSAT", g:"📄 Graded Papers", h:"SSAT-Practice-Test-4-Graded-Review.html", i:"📝", t:"Practice Test 4 · Graded Review", d:"Whole test marked against the official key — Math 18/25 · Reading 16/40 · Verbal 28/60 · Section 5 unattempted · every miss explained with the line or step that decides it, plus the answer key for the 40 questions left blank", tg:[["think", "Solutions"]], a:"2026-08-31", w:1, ac:"#2c3e63", o:-20260831},
-  {k:"warren", s:"📝 SSAT", g:"📄 Graded Papers", h:"SSAT-Practice-Verbal-Reading.html", i:"📝", t:"Sections 2 &amp; 3 · Reading + Verbal", d:"100 questions · 8 passages, 30 synonyms, 30 analogies · answer sheet, no solutions", tg:[["think", "Practice Test"]], a:"2026-08-05", o:-20260805},
-  {k:"warren", s:"📝 SSAT", g:"📄 Graded Papers", h:"SSAT-Practice-Verbal-Reading.docx", i:"🖨️", t:"Same test · Word / print version", d:"16 pages · do it on paper · blank answer sheet at the back", tg:[["vocab", "Word"]], a:"2026-08-05", o:-20260805},
-  {k:"warren", s:"📝 SSAT", g:"🔁 Retry &amp; Learn", h:"SSAT-Test-8-Circled-Questions.html", i:"✏️", t:"Test 8 · The 30 Circled Questions · Try &amp; Learn", d:"Math 5 · Reading 8 · Verbal 16 · Math 1 · answer each one again first, then the steps, the trap and the rule unlock · score tracker", tg:[["think", "Solutions"]], a:"2026-08-22", w:1, ac:"#2c3e63", o:-20260822},
-  {k:"warren", s:"📝 SSAT", g:"🔁 Retry &amp; Learn", h:"SSAT-Test-7-Circled-Questions.html", i:"✏️", t:"Test 7 · The 37 Circled Questions · Try &amp; Learn", d:"Math 7 · Reading 12 · Verbal 14 · Math 4 · answer each one again first, then the steps, the trap and the rule unlock · score tracker", tg:[["think", "Solutions"]], a:"2026-08-19", w:1, ac:"#2c3e63", o:-20260819},
-  {k:"warren", s:"📝 SSAT", g:"🔁 Retry &amp; Learn", h:"SSAT-Test-6-Retest.html", i:"🎯", t:"Test 6 · The Retest · 42 new questions", d:"One rebuilt twin for every circled question · original passages · no answers until you submit · pass line 85% (36/42)", tg:[["think", "Practice Test"]], a:"2026-08-15", w:1, ac:"#1f4d3d", o:-20260815},
-  {k:"warren", s:"📝 SSAT", g:"🔁 Retry &amp; Learn", h:"SSAT-Test-6-Circled-Questions.html", i:"✏️", t:"Test 6 · The 42 Circled Questions · Try &amp; Learn", d:"Math 5 · Reading 16 · Verbal 21 · answer it yourself first, then the steps, the trap and the rule unlock · score tracker", tg:[["think", "Solutions"]], a:"2026-08-15", w:1, ac:"#7d90b8", o:-20260815},
-  {k:"warren", s:"📝 SSAT", g:"🔁 Retry &amp; Learn", h:"SSAT-Practice-Test-Review.html", i:"🔍", t:"Mistake Review", d:"37 missed questions explained · try each one again, then see why · 13 words to learn", tg:[["think", "Solutions"]], a:"2026-08-07", o:-20260807},
-  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Analogies-MockTest1-31-54-Answer-Key.html", i:"🌉", t:"Mock Test 1 · Analogies 31–54 · Answer Key", d:"Graded 20/24 · every miss is method, not vocabulary · the topic trap (34), the word-form mirror (41), the swap test (52) + the tighten-your-bridge question (45) and all 14 bridges on the paper", tg:[["think", "Solutions"]], a:"2026-09-02", w:1, ac:"#2c3e63", o:-20260902},
-  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Verbal-Test-6-Answer-Key.html", i:"✅", t:"Verbal Test 6 · Answer Key", d:"Graded 33/43 = 77% · raw 30.5 · all 9 misses and all 16 blanks explained, plus the four sentences to fix and the 7 traps behind them", tg:[["think", "Solutions"]], a:"2026-08-30", w:1, ac:"#2c3e63", o:-20260830},
-  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Analogies-31-60-Answer-Key.html", i:"🔗", t:"Analogies 31–60 · Answer Key", d:"Graded 20/26 · all 6 misses taught step by step + the 4 blanks answered · the -morph root, the in-/dis- trap, and the \"say the sentence first\" method", tg:[["think", "Solutions"]], a:"2026-08-15", w:1, ac:"#2c3e63", o:-20260815},
-  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Practice-Test-3-Verbal-Answer-Key.html", i:"✅", t:"Practice Test 3 · Verbal Answer Key", d:"Synonyms 1–30 + Analogies 31–54 · graded from the marked paper, every miss and blank explained", tg:[["think", "Solutions"]], a:"2026-08-10", o:-20260810},
-  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Verbal-Test-4-Answer-Key.html", i:"✅", t:"Verbal Test 4 · Answer Key", d:"Synonyms 1–30 + Analogies 31–60 · every circled miss explained, plus the traps behind them", tg:[["think", "Solutions"]], a:"2026-08-10", o:-20260810},
-  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Supp-Verbal-Test-2-Answer-Key.html", i:"✅", t:"Supplementary Verbal Test 2 · Answer Key", d:"30 synonyms + 30 analogies · every miss explained, 11 blanks answered, 14 words to learn", tg:[["think", "Solutions"]], a:"2026-08-10", o:-20260810},
-  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Test-5-Section-2-Reading-Answer-Key.html", i:"✅", t:"Test 5 · Section 2 Reading · Answer Key", d:"Q1–40 · 8 passages from turtles to Roethke's bat · every answer with its proof line", tg:[["think", "Solutions"]], a:"2026-08-10", o:-20260810},
-  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Reading-Test-2-Q41-80-Answer-Key.html", i:"✅", t:"Reading Test 2 · Q41–80 Answer Key", d:"8 passages · all 40 answers with the proof line from the text · printable", tg:[["think", "Solutions"]], a:"2026-08-10", o:-20260810},
-  {k:"warren", s:"📝 SSAT", g:"🔑 Answer Keys", h:"SSAT-Practice-Test-2-Answer-Key.html", i:"✅", t:"Practice Test 2 · Answer Key &amp; Score", d:"Full answer key for Reading 1–40 and Verbal 1–56 · graded paper, every miss explained", tg:[["think", "Solutions"]], a:"2026-08-09", o:-20260809},
-  {k:"warren", s:"📝 SSAT", g:"🧰 Method &amp; Word Tools", h:"SSAT-Unknown-Word-Drill.html", i:"🕵️", t:"The Unknown Word Drill", d:"For when every verbal section is full of words you've never seen — because we checked, and only 7 of Test 5's 30 words had ever appeared before. Charge → word parts → where have I heard it → cross off → commit. 18 brand-new words, no definitions until you answer, live scoring in real SSAT points", tg:[["think", "Practice"]], a:"2026-09-01", w:1, ac:"#2c3e63", o:1},
-  {k:"warren", s:"📝 SSAT", g:"🧰 Method &amp; Word Tools", h:"SSAT-Unknown-Word-Drill-Round-2.html", i:"🔮", t:"Unknown Word Drill · Round 2", d:"18 more words he has never seen, none repeated from Round 1 — now with <b>triples</b>, where three choices cancel at once and leave just two. Twins → parts → phrase → charge (skip if no feeling) → commit", tg:[["think", "Practice"]], a:"2026-09-01", w:1, ac:"#2c3e63", o:2},
-  {k:"warren", s:"📝 SSAT", g:"🧰 Method &amp; Word Tools", h:"SSAT-Word-Parts-Reference.html", i:"🧩", t:"Word Parts · The 66 That Pay", d:"Which word parts are actually worth memorising, measured against his own 66 test words — 29 prefixes to learn cold (they repeat forever), 37 roots worth the time, 22 for later, plus the free ones that need no memorising at all. Eye button hides the meanings to test yourself", tg:[["vocab", "Reference"]], a:"2026-09-01", w:1, ac:"#2c3e63", o:3},
-  {k:"warren", s:"📝 SSAT", g:"🧰 Method &amp; Word Tools", h:"../Interest Lessons/ssat-analogies-advanced-playbook.html", i:"🧰", t:"Analogies · The Advanced Playbook", d:"Part two of the Verbal Method Lab — the six moves that break ties (draw the arrow, the word-form mirror, the “always true?” test, reversibility, the double bridge, the specificity dial), a rescue kit for unknown words, 12 more bridge types, 5 more traps, a 15-second routine · 3 drills + a 10-question quiz", tg:[["think", "Lesson"]], a:"2026-09-02", w:1, ac:"#4A3F7A", o:4},
-  {k:"warren", s:"📝 SSAT", g:"🧰 Method &amp; Word Tools", h:"SSAT-Analogies-Full-Practice.html", i:"🔗", t:"Analogies · Full Practice · all 75 questions", d:"Every analogy from the paper — Test 4 (1–15 and 31–60) plus Test 3 (31–60) · answer it, then the relationship sentence and why each trap fails · tabs, score tracker, start over", tg:[["think", "Practice"]], a:"2026-08-23", w:1, ac:"#2c3e63", o:5},
-  {k:"warren", s:"🔤 Vocabulary", h:"SSAT-Vocab-Unit5-Exercise2-Explained.html", i:"🔎", t:"SSAT Unit 5 · Exercise 2 Explained", d:"Answer key · why each word fits + part-of-speech traps", tg:[["think", "Vocab"]], a:"2026-08-09", o:-20260809},
-  {k:"warren", s:"🔤 Vocabulary", h:"SSAT-Master-Vocab-Trainer.html", i:"🧠", t:"SSAT Master Vocabulary Trainer", d:"326 words · 15 new a day, spaced review, checkpoint &amp; final exams · meanings &amp; synonyms, no spelling · saves progress", tg:[["think", "Study plan"]], a:"2026-08-08", w:1, ac:"#a9b2dd", o:-20260808},
-  {k:"warren", s:"🔤 Vocabulary", h:"SSAT-Vocab-Unit5-MCQ.html", i:"📘", t:"SSAT Unit 5 · Meanings &amp; Context", d:"20 questions · multiple choice", tg:[["think", "Vocab"]], a:"2026-08-06", o:-20260806},
-  {k:"warren", s:"🔤 Vocabulary", h:"SSAT-Vocab-Unit5-FillBlank.html", i:"✍️", t:"SSAT Unit 5 · Fill-in", d:"16 sentences · type the word", tg:[["think", "Vocab"]], a:"2026-08-06", o:-20260806},
-  {k:"warren", s:"🔤 Vocabulary", h:"SSAT-Vocab-13-24-MCQ.html", i:"📚", t:"SSAT Words 13–24 · Meanings", d:"12 questions · multiple choice", tg:[["think", "Vocab"]], a:"2026-07-14", o:-20260714},
-  {k:"warren", s:"🔤 Vocabulary", h:"SSAT-Vocab-13-24-FillBlank.html", i:"✍️", t:"SSAT Words 13–24 · Fill-in", d:"12 sentences · type the word", tg:[["think", "Vocab"]], a:"2026-07-14", o:-20260714},
-  {k:"warren", s:"🧠 Big Ideas &middot; concept exams", g:"💰 The Psychology of Money", gn:"by Morgan Housel", h:"Psychology-of-Money-Exam-Parts1-3.html", i:"💰", t:"Parts 1–3 · Concept Exam", d:"30 questions · 3 auto-graded essays · tests ideas, not names", tg:[["think", "Exam"]], a:"2026-07-14", o:1},
-  {k:"warren", s:"🧠 Big Ideas &middot; concept exams", g:"💰 The Psychology of Money", gn:"by Morgan Housel", h:"Psychology-of-Money-Exam-Parts4-6.html", i:"💰", t:"Parts 4–6 · Concept Exam", d:"30 questions · 3 auto-graded essays · tests ideas, not names", tg:[["think", "Exam"]], a:"2026-07-14", o:4},
-  {k:"warren", s:"🧠 Big Ideas &middot; concept exams", g:"📉 Investing Psychology", gn:"by Tim Richards", h:"Investing-Psychology-Exam-Parts1-3.html", i:"📉", t:"Parts 1–3 · Concept Exam", d:"30 MCQ auto-scored · 3 essays for you to grade · ideas &amp; key terms", tg:[["think", "Exam"]], a:"2026-07-18", o:1},
-  {k:"warren", s:"🧠 Big Ideas &middot; concept exams", g:"🧠 Thinking, Fast and Slow", gn:"by Daniel Kahneman", h:"Thinking-Fast-Slow-Exam-Parts1-2.html", i:"🧠", t:"Parts 1–2 · Concept Exam", d:"30 questions · 2 auto-graded essays · harder · tests ideas, not names", tg:[["think", "Exam"]], a:"2026-07-16", o:1},
-  {k:"warren", s:"🧠 Big Ideas &middot; concept exams", g:"🧠 Thinking, Fast and Slow", gn:"by Daniel Kahneman", h:"Thinking-Fast-Slow-Exam-Parts3-5.html", i:"🧠", t:"Parts 3–5 · Concept Exam", d:"45 scenario questions · 3 essays graded by a real reader", tg:[["think", "Exam"]], a:"2026-07-17", o:3},
-  {k:"warren", s:"🧮 Algebra", h:"Math-Simplify-Rational-Expressions-Sep7.html", i:"➗", t:"Simplifying Algebra Fractions · Warren's Problems 7–9", d:"Factor first, then cancel · the golden rule (you may cancel factors, never terms), the three questions Warren got stuck on worked line by line — the (2x−1) cancel, the subtraction sign trap, and powers of a bracket — plus what \"Assuming that x ≠ …\" is really warning you about · then a 12-question test with all-new numbers, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-07", o:-20260907},
-  {k:"warren", s:"🧮 Algebra", h:"Math-Expand-Factor-Sep6.html", i:"📦", t:"Expanding &amp; Factoring · brackets off, brackets on", d:"The two jobs are the same move in opposite directions · area-model picture, how to multiply the pieces (add the powers), the 2-step expanding recipe and the 3-step GCF factoring recipe · 12 worked examples with a hide-the-steps button · then a 15-question test with all-new numbers, 80% to pass", tg:[["think", "Lesson + Test"]], a:"2026-09-06", o:-20260906}
-];
-
-const NEW_DAYS = 1;        // a card shows the red NEW badge while it is this new
-const KID_META = {
- "grace": {
-  "tab": "👧 Grace",
-  "cls": "peach",
-  "blurb": "Reading &middot; SSAT &middot; vocabulary &middot; math"
- },
- "warren": {
-  "tab": "👦 Warren",
-  "cls": "river",
-  "blurb": "Reading &middot; SSAT &middot; vocabulary &middot; algebra &middot; writing &middot; big ideas"
- },
- "both": {
-  "tab": "🧒 Both",
-  "cls": "chocolate",
-  "blurb": "中文 &amp; everything else"
- }
-};
-const SUBJ_ORDER = ["📖 Reading", "📝 SSAT", "🔤 Vocabulary", "🧮 Math", "🧮 Algebra", "✍️ Writing &middot; Reflection", "🧠 Big Ideas &middot; concept exams", "📚 中文 Chinese", "🍁 More"];
-
-/* ---------- helpers ---------- */
-const TODAY = new Date(); TODAY.setHours(0,0,0,0);
-const ENT = {'&amp;':'&','&middot;':'\u00b7','&mdash;':'\u2014','&ndash;':'\u2013',
-  '&ldquo;':'\u201c','&rdquo;':'\u201d','&hellip;':'\u2026','&nbsp;':' ','&rarr;':'\u2192',
-  '&times;':'\u00d7','&lt;':'<','&gt;':'>','&quot;':'"'};
-const deent = s => String(s).replace(/&[a-z]+;/gi, m => {
-  const v = ENT[m.toLowerCase()]; return v === undefined ? ' ' : v; });
-const strip = s => deent(String(s).replace(/<[^>]+>/g,''));
-const ageOf = a => { const p=String(a).split('-').map(Number);
-  return (p.length===3 && !p.some(isNaN)) ? Math.round((TODAY-new Date(p[0],p[1]-1,p[2]))/864e5) : 99999; };
-const dateOf = a => { const p=String(a).split('-').map(Number);
-  return (p.length===3 && !p.some(isNaN)) ? new Date(p[0],p[1]-1,p[2]) : null; };
-const numIn = s => { const m = strip(s).match(/\d+/); return m ? +m[0] : 9999; };
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-
-Q.forEach((c,ix) => {
-  c.ix = ix; c.age = ageOf(c.a); c.date = dateOf(c.a);
-  c.isNew = c.age >= 0 && c.age < NEW_DAYS;
-  c.ord = (c.o !== undefined) ? c.o : numIn(c.t);
-  c.hay = strip([c.t, c.d, c.s, c.g, c.gn, KID_META[c.k].tab, c.h].join(' ')).toLowerCase();
-});
-
-/* ---------- build one card ---------- */
-function cardEl(c, opts) {
-  opts = opts || {};
-  const a = document.createElement('a');
-  a.className = 'quiz' + (c.w ? ' wide' : '') + (c.isNew ? ' is-new' : '');
-  a.href = c.h;
-  if (c.ac) a.style.borderColor = c.ac;
-  const hl = t => opts.hi ? String(t).replace(opts.hi, m => '<mark>' + m + '</mark>') : t;
-  let tags = (c.tg || []).map(t => '<span class="tag ' + t[0] + '">' + t[1] + '</span>').join('');
-  a.innerHTML =
-    '<div class="ic">' + c.i + '</div><div>' +
-    '<div class="t">' + hl(c.t) + (c.isNew ? '<span class="badge-new">NEW</span>' : '') + '</div>' +
-    (c.d ? '<div class="d">' + hl(c.d) + '</div>' : '') + tags +
-    (opts.crumb ? '<span class="crumb">' + KID_META[c.k].tab + ' &middot; ' + c.s +
-                  (c.g ? ' &middot; ' + c.g : '') + '</span>' : '') +
-    '</div>';
-  return a;
-}
-function gridOf(list, opts) {
-  const g = document.createElement('div'); g.className = 'grid';
-  list.forEach(c => g.appendChild(cardEl(c, opts)));
-  return g;
-}
-
-/* ---------- render the shelves (the "by subject" view) ---------- */
-const shelvesEl = document.getElementById('shelves');
-
-function renderShelves(who) {
-  shelvesEl.innerHTML = '';
-  ['grace','warren','both'].forEach(kid => {
-    if (!(who === 'all' || kid === who || kid === 'both')) return;
-    const mine = Q.filter(c => c.k === kid);
-    if (!mine.length) return;
-    const meta = KID_META[kid];
-
-    const sec = document.createElement('section');
-    sec.className = 'kid ' + meta.cls; sec.id = kid;
-    sec.innerHTML = '<h2>' + meta.tab + '</h2><div class="who">' +
-      meta.blurb + ' &middot; ' + mine.length + ' pages</div>';
-
-    const subjects = [...new Set(mine.map(c => c.s))]
-      .sort((a,b) => (SUBJ_ORDER.indexOf(a) + 99) - (SUBJ_ORDER.indexOf(b) + 99));
-
-    subjects.forEach(subj => {
-      const inSubj = mine.filter(c => c.s === subj);
-      const det = document.createElement('details');
-      det.className = 'subj';
-      const hasNew = inSubj.some(c => c.isNew);
-      det.open = hasNew;        // everything starts folded away except today's additions
-      det.innerHTML = '<summary>' + subj + ' <span class="count">' + inSubj.length + '</span>' +
-                      (hasNew ? '<span class="dot" title="has something new"></span>' : '') + '</summary>';
-
-      const bySort = (a,b) => (b.w||0) - (a.w||0) || a.ord - b.ord || a.ix - b.ix;
-      const loose = inSubj.filter(c => !c.g).sort(bySort);
-      const books = [...new Set(inSubj.filter(c => c.g).map(c => c.g))];
-
-      if (loose.length) det.appendChild(gridOf(loose));
-
-      if (books.length) {
-        const shelf = document.createElement('div'); shelf.className = 'shelf';
-        books.forEach(bk => {
-          const items = inSubj.filter(c => c.g === bk).sort(bySort);
-          const note = items.find(c => c.gn) ? items.find(c => c.gn).gn : '';
-          const bnew = items.some(c => c.isNew);
-          const icon = (bk.match(/^\s*(\p{Extended_Pictographic}️?)/u) || [,'📘'])[1];
-          const label = bk.replace(/^\s*\p{Extended_Pictographic}️?\s*/u, '');
-
-          const tile = document.createElement('button');
-          tile.type = 'button'; tile.className = 'book';
-          tile.innerHTML = '<span class="bic">' + icon + '</span><span><span class="bt">' +
-            label + '</span><span class="bn">' + items.length + ' set' +
-            (items.length > 1 ? 's' : '') + (note ? ' &middot; ' + note : '') +
-            '</span></span><span class="arrow">&#9656;</span>' +
-            (bnew ? '<span class="dot"></span>' : '');
-
-          tile.addEventListener('click', () => toggleBook(tile, shelf, bk, items, label, icon));
-          shelf.appendChild(tile);
-          if (bnew) requestAnimationFrame(() => toggleBook(tile, shelf, bk, items, label, icon, true));
-        });
-        det.appendChild(shelf);
-      }
-      sec.appendChild(det);
-    });
-    shelvesEl.appendChild(sec);
-  });
-}
-
-/* one drawer open at a time, inside its own shelf */
-function toggleBook(tile, shelf, bk, items, label, icon, force) {
-  const already = shelf.dataset.open === bk;
-  shelf.querySelectorAll('.drawer').forEach(d => d.remove());
-  shelf.querySelectorAll('.book.open').forEach(b => b.classList.remove('open'));
-  if (already && !force) { shelf.dataset.open = ''; return; }
-  shelf.dataset.open = bk;
-
-  const dr = document.createElement('div');
-  dr.className = 'drawer';
-  const head = document.createElement('div');
-  head.className = 'dhead';
-  head.innerHTML = icon + ' <span>' + label + ' &middot; ' + items.length + ' to choose from</span>' +
-                   '<button class="shut" type="button">close &times;</button>';
-  head.querySelector('.shut').addEventListener('click', e => {
-    e.stopPropagation(); dr.remove(); tile.classList.remove('open'); shelf.dataset.open = '';
-  });
-  dr.appendChild(head);
-  dr.appendChild(gridOf(items));
-  tile.classList.add('open');
-  tile.after(dr);
-}
-
-/* ---------- the panel: search results + date views ---------- */
-const panel = document.getElementById('panel');
-const panelTitle = document.getElementById('panel-title');
-const panelSub = document.getElementById('panel-sub');
-const panelBody = document.getElementById('panel-body');
-const fmt = d => d.toLocaleDateString('en-CA', { year:'numeric', month:'short', day:'numeric' });
-const dayName = d => d.toLocaleDateString('en-CA', { weekday:'long' });
-
-function renderSearch(term, who) {
-  const t = term.trim().toLowerCase();
-  const every = Q.filter(c => c.hay.includes(t));
-  const hits = every.filter(c => (who === 'all' || c.k === who || c.k === 'both'))
-                    .sort((a,b) => (b.date||0) - (a.date||0));
-  const elsewhere = every.length - hits.length;
-  panelTitle.innerHTML = '&#128269; ' + esc(term.trim());
-  panelSub.textContent = hits.length + (hits.length === 1 ? ' page found' : ' pages found');
-  panelBody.innerHTML = '';
-
-  // a hit hidden by the current name filter is the easiest way to think
-  // something isn't here at all - so always say where the rest of them are
-  const seeAll = () => {
-    const p = document.createElement('p');
-    p.className = 'empty';
-    p.innerHTML = (hits.length ? '' : 'Nothing here for this name. ') +
-      '<b>' + elsewhere + '</b> more ' + (elsewhere === 1 ? 'page matches' : 'pages match') +
-      ' under the other names. <button class="go" type="button">Search everyone</button>';
-    p.querySelector('.go').addEventListener('click', () =>
-      document.querySelector('#who-chips .chip[data-value="all"]').click());
-    return p;
-  };
-
-  if (!hits.length) {
-    if (elsewhere) { panelBody.appendChild(seeAll()); return; }
-    panelBody.innerHTML = '<p class="empty">Nothing matched <b>' + esc(term.trim()) +
-      '</b>.<br>Try a book name (<b>huck</b>, <b>peach</b>), a chapter number (<b>18</b>), ' +
-      'a subject (<b>math</b>, <b>vocab</b>), or Chinese (<b>拼音</b>).</p>';
-    return;
-  }
-  const rx = new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'ig');
-  panelBody.appendChild(gridOf(hits, { hi: rx, crumb: true }));
-  if (elsewhere) panelBody.appendChild(seeAll());
-}
-
-function renderByDate(days, who) {
-  const list = Q.filter(c => (who === 'all' || c.k === who || c.k === 'both'))
-                .filter(c => c.date && c.age <= days)
-                .sort((a,b) => b.date - a.date);
-  panelTitle.innerHTML = '&#128197; By date';
-  panelSub.textContent = list.length + (list.length === 1 ? ' page' : ' pages') +
-    (days === Infinity ? ' · newest first' : ' · added in the last ' + days + ' days');
-  panelBody.innerHTML = '';
-  if (!list.length) {
-    panelBody.innerHTML = '<p class="empty">Nothing added in that window — try a longer one.</p>';
-    return;
-  }
-  let stamp = '', grid = null;
-  list.forEach(c => {
-    const key = c.date.toDateString();
-    if (key !== stamp) {
-      stamp = key;
-      const box = document.createElement('div'); box.className = 'daygroup';
-      const h = document.createElement('h3');
-      h.textContent = fmt(c.date) + ' · ' + dayName(c.date) +
-        (c.age === 0 ? ' · today' : c.age === 1 ? ' · yesterday' : '');
-      box.appendChild(h);
-      grid = document.createElement('div'); grid.className = 'grid';
-      box.appendChild(grid); panelBody.appendChild(box);
-    }
-    grid.appendChild(cardEl(c, { crumb: true }));
-  });
-}
-
-/* ---------- chips, state, wiring ---------- */
-(function app() {
-  const KEY_WHO = 'kids_quiz_who_v2', KEY_VIEW = 'kids_quiz_view_v2';
-  const whoBar = document.getElementById('who-chips');
-  const viewBar = document.getElementById('view-chips');
-  const qBox = document.getElementById('q');
-  const qClear = document.getElementById('qclear');
-  const VIEWS = [
-    { v:'folders', label:'📂 By subject' },
-    { v:'7',       label:'🆕 Last 7 days' },
-    { v:'30',      label:'🗓️ Last 30 days' },
-    { v:'all',     label:'📅 All, newest first' }
-  ];
-  let who = 'all', view = 'folders', term = '';
-
-  function chip(bar, label, value, handler, extra) {
-    const b = document.createElement('button');
-    b.className = 'chip'; b.type = 'button'; b.dataset.value = value;
-    b.innerHTML = label + (extra || '');
-    b.addEventListener('click', () => handler(value));
-    bar.appendChild(b); return b;
-  }
-
-  chip(whoBar, '🏠 Everyone', 'all', v => setWho(v),
-       '<span class="n">' + Q.length + '</span>');
-  ['grace','warren'].forEach(k => {
-    const mine = Q.filter(c => c.k === k);
-    chip(whoBar, KID_META[k].tab, k, v => setWho(v),
-      '<span class="n">' + (mine.length + Q.filter(c => c.k === 'both').length) + '</span>' +
-      (mine.some(c => c.isNew) ? '<span class="dot"></span>' : ''));
-  });
-  VIEWS.forEach(o => chip(viewBar, o.label, o.v, v => setView(v)));
-
-  function apply(scroll) {
-    const searching = term.trim().length > 0;
-    shelvesEl.hidden = searching || view !== 'folders';
-    panel.hidden = !searching && view === 'folders';
-
-    if (searching) renderSearch(term, who);
-    else if (view !== 'folders') renderByDate(view === 'all' ? Infinity : +view, who);
-    else renderShelves(who);
-
-    whoBar.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.value === who));
-    viewBar.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.value === view));
-    qClear.classList.toggle('show', searching);
-    try { localStorage.setItem(KEY_WHO, who); localStorage.setItem(KEY_VIEW, view); } catch(e) {}
-    if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-  const setWho  = v => { who = v; apply(true); };
-  const setView = v => { view = v; apply(true); };
-
-  let timer;
-  qBox.addEventListener('input', () => {
-    term = qBox.value;
-    clearTimeout(timer); timer = setTimeout(() => apply(false), 110);
-  });
-  qBox.addEventListener('keydown', e => { if (e.key === 'Escape') { qBox.value=''; term=''; apply(false); } });
-  qClear.addEventListener('click', () => { qBox.value=''; term=''; qBox.focus(); apply(false); });
-
-  document.getElementById('dice').addEventListener('click', () => {
-    const pool = Q.filter(c => who === 'all' || c.k === who || c.k === 'both');
-    if (pool.length) location.href = pool[Math.floor(Math.random() * pool.length)].h;
-  });
-
-  /* the "new today" banner */
-  const fresh = Q.filter(c => c.isNew);
-  if (fresh.length) {
-    const bar = document.getElementById('newbar');
-    bar.hidden = false;
-    bar.innerHTML = '<b>🆕 ' + fresh.length + (fresh.length === 1 ? ' new page' : ' new pages') +
-      ' added today</b><span style="font-size:13px;color:#96594f">' +
-      fresh.map(c => c.t).slice(0,2).join(' &middot; ') +
-      (fresh.length > 2 ? ' …' : '') + '</span>' +
-      '<button class="go" type="button">Show me</button>';
-    bar.querySelector('.go').addEventListener('click', () => setView('7'));
-  }
-
-  /* restore last choice, then honour a #grace / #warren deep link */
-  try {
-    const w = localStorage.getItem(KEY_WHO);
-    if (w && whoBar.querySelector('[data-value="' + w + '"]')) who = w;
-    const v = localStorage.getItem(KEY_VIEW);
-    if (v && viewBar.querySelector('[data-value="' + v + '"]')) view = v;
-  } catch(e) {}
-  if (location.hash) {
-    const h = location.hash.slice(1);
-    if (KID_META[h]) { view = 'folders'; who = (h === 'both') ? 'all' : h; }
-  }
-
-  apply(false);
-
-  if (location.hash) {
-    const el = document.querySelector(location.hash);
-    if (el) requestAnimationFrame(() => el.scrollIntoView({ block:'start' }));
-  }
-})();
-</script>
 </body>
 </html>
