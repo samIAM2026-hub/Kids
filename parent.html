@@ -1987,6 +1987,25 @@ function render(){
     viewEl.querySelectorAll('[data-essay]').forEach(b=>b.addEventListener('click',()=>goEssay(b.dataset.essay)));
   }
   if(V==='essay') wireEssay();
+  if(V==='focus'){
+    viewEl.querySelectorAll('.fchip[data-fr]').forEach(c=>c.addEventListener('click',()=>{
+      FR = Number(c.dataset.fr); render(); }));
+  }
+  if(V==='reading'){
+    viewEl.querySelectorAll('.fchip[data-rd]').forEach(c=>c.addEventListener('click',()=>{
+      RD.days = Number(c.dataset.rd); RD.data = null; RD.err = ''; render(); }));
+    // Reading Club (or Supabase behind it) can hiccup for a moment; retry without reloading every tab.
+    viewEl.querySelectorAll('[data-rdretry]').forEach(b=>b.addEventListener('click',()=>{
+      RD.data = null; RD.err = ''; render(); }));
+    // Toggle in place (no re-render), and remember it so switching tabs doesn't fold it back.
+    viewEl.querySelectorAll('.rc tr.day').forEach(tr=>tr.addEventListener('click',()=>{
+      const det = viewEl.querySelector(`tr.detail[data-for="${CSS.escape(tr.dataset.id)}"]`);
+      if(!det) return;
+      det.hidden = !det.hidden; tr.classList.toggle('open', !det.hidden);
+      RD.open[tr.dataset.id] = !det.hidden; }));
+    // Fetched lazily: Reading Club being down must never block the other four tabs.
+    if(!RD.data && !RD.err && !RD.loading) loadReading();
+  }
   viewEl.querySelectorAll('details.hguide').forEach(d=>d.addEventListener('toggle',()=>{
     try { localStorage.setItem('parent.guide.'+d.dataset.guide, d.open?'1':'0'); } catch(e){}
   }));
