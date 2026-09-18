@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writing Lab · ISEE / SSAT Writing Sample</title>
+<style>
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --ink:#1c1a17; --soft:#5b4636; --cream:#f6f3ed; --paper:#fffdf7;
+    --rust:#b4622f; --green:#3f7d4e; --green-soft:#eaf3ec;
+    --red:#c0392b; --red-soft:#fbeaea; --line:#e2d9c9; --gold:#c9a227;
+  }
+  body{
+    font-family:Georgia,"Times New Roman",serif; background:var(--cream); color:var(--ink);
+    line-height:1.65; padding:26px 18px 80px; -webkit-text-size-adjust:100%;
+  }
+  .wrap{ max-width:900px; margin:0 auto; }
+  .mono{ font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace; }
+
+  /* ---------- header ---------- */
+  header{ border-bottom:3px double var(--line); padding-bottom:18px; margin-bottom:26px; }
+  .topline{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+  .eyebrow{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.68rem;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--rust); margin-bottom:7px; }
+  h1{ font-size:1.75rem; line-height:1.2; letter-spacing:-.4px; }
+  .byline{ color:var(--soft); font-size:.92rem; margin-top:7px; font-style:italic; }
+  .tools{ display:flex; gap:8px; align-items:center; }
+
+  a.back{ color:var(--rust); font-size:.85rem; text-decoration:none; border-bottom:1px solid transparent; }
+  a.back:hover{ border-bottom-color:var(--rust); }
+
+  /* ---------- buttons ---------- */
+  button{ font-family:inherit; font-size:.92rem; cursor:pointer; border-radius:8px; border:1px solid var(--line);
+    background:var(--paper); color:var(--ink); padding:9px 15px; transition:.15s; }
+  button:hover{ border-color:var(--rust); color:var(--rust); }
+  button:disabled{ opacity:.45; cursor:default; }
+  button:disabled:hover{ border-color:var(--line); color:var(--ink); }
+  button.primary{ background:var(--green); border-color:var(--green); color:#fff; font-weight:700; padding:12px 24px; font-size:1rem; }
+  button.primary:hover{ background:#356140; border-color:#356140; color:#fff; }
+  button.small{ padding:6px 11px; font-size:.8rem; }
+  button.ghost{ background:transparent; }
+
+  /* ---------- screens ---------- */
+  .screen{ display:none; } .screen.on{ display:block; }
+
+  /* ---------- prompt picker ---------- */
+  .lead{ color:var(--soft); font-size:.95rem; margin-bottom:20px; }
+  .grouphead{ display:flex; align-items:baseline; gap:10px; margin:30px 0 12px;
+    padding-bottom:7px; border-bottom:1px solid var(--line); }
+  .grouphead h2{ font-size:1.1rem; letter-spacing:-.2px; }
+  .grouphead .n{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.7rem;
+    color:var(--rust); letter-spacing:.1em; text-transform:uppercase; }
+  .pcard{ background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--rust);
+    border-radius:0 10px 10px 0; padding:15px 18px; margin-bottom:11px; cursor:pointer; transition:.15s; }
+  .pcard:hover{ border-color:var(--rust); box-shadow:0 2px 10px rgba(0,0,0,.06); transform:translateX(2px); }
+  .pcard .ptxt{ font-size:1.02rem; }
+  .pcard .plook{ font-size:.82rem; color:var(--soft); margin-top:7px; font-style:italic; }
+  .pcard .ptag{ float:right; font-size:.62rem; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--gold); border:1px solid var(--gold); border-radius:999px; padding:2px 8px; margin-left:10px; }
+
+  /* ---------- writing screen ---------- */
+  .promptbar{ background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--rust);
+    border-radius:0 10px 10px 0; padding:15px 18px; margin-bottom:16px; }
+  .promptbar .k{ font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--soft);
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; margin-bottom:5px; }
+  .promptbar .v{ font-size:1.06rem; }
+  .promptbar .plook{ font-size:.82rem; color:var(--soft); margin-top:8px; font-style:italic;
+    border-top:1px dotted var(--line); padding-top:8px; }
+
+  .statbar{ display:flex; gap:9px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  .stat{ background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:6px 12px;
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.78rem; color:var(--soft); }
+  .stat b{ color:var(--ink); font-size:.95rem; }
+  .stat.warn{ border-color:var(--rust); } .stat.warn b{ color:var(--rust); }
+  .stat.over{ border-color:var(--red); background:var(--red-soft); } .stat.over b{ color:var(--red); }
+  .spacer{ flex:1; }
+
+  textarea{ width:100%; min-height:46vh; font-family:Georgia,"Times New Roman",serif; font-size:1.05rem;
+    line-height:32px; color:var(--ink); background:var(--paper); border:1px solid var(--line);
+    border-radius:10px; padding:22px 24px; resize:vertical; outline:none;
+    background-image:repeating-linear-gradient(transparent,transparent 31px,#efe7d8 31px,#efe7d8 32px);
+    background-attachment:local; }
+  textarea:focus{ border-color:var(--rust); }
+  .actions{ display:flex; gap:10px; align-items:center; margin-top:16px; flex-wrap:wrap; }
+  .saved{ font-size:.8rem; color:var(--soft); font-style:italic; }
+
+  /* ---------- feedback ---------- */
+  section{ margin-top:36px; }
+  h2.sec{ font-size:1.18rem; letter-spacing:-.2px; display:flex; align-items:baseline; gap:10px;
+    padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:16px; }
+  h2.sec .n{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.72rem;
+    color:var(--rust); letter-spacing:.1em; }
+  .scorebar{ display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+  .chip{ background:var(--paper); border:1px solid var(--line); border-radius:9px; padding:10px 14px; flex:1 1 150px; }
+  .chip .k{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.6rem;
+    letter-spacing:.13em; text-transform:uppercase; color:var(--soft); }
+  .chip .v{ font-size:1.3rem; font-weight:700; margin-top:2px; }
+  .chip .lbl{ font-size:.78rem; color:var(--soft); }
+  .chip.good .v{ color:var(--green); } .chip.warn .v{ color:var(--rust); } .chip.bad .v{ color:var(--red); }
+  .chip.big{ flex:1 1 100%; border-width:2px; }
+  .chip .note{ font-size:.84rem; color:var(--soft); margin-top:6px; line-height:1.5; }
+
+  .item{ background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:14px 17px; margin-bottom:11px; }
+  .item.good{ border-left:4px solid var(--green); border-radius:0 10px 10px 0; }
+  .item.work{ border-left:4px solid var(--rust); border-radius:0 10px 10px 0; }
+  .item .h{ font-weight:700; margin-bottom:6px; }
+  .item .q{ font-style:italic; color:var(--soft); border-left:2px solid var(--line);
+    padding-left:11px; margin:7px 0; }
+  .item .why{ font-size:.92rem; }
+  .item .fix{ font-size:.92rem; margin-top:7px; background:var(--green-soft); border-radius:7px; padding:8px 11px; }
+  .item .fix b{ color:var(--green); }
+
+  table.fixes{ width:100%; border-collapse:collapse; background:var(--paper);
+    border:1px solid var(--line); border-radius:10px; overflow:hidden; font-size:.92rem; }
+  table.fixes th{ text-align:left; font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.6rem; letter-spacing:.13em; text-transform:uppercase; color:var(--soft);
+    padding:9px 12px; border-bottom:1px solid var(--line); background:#faf6ee; }
+  table.fixes td{ padding:10px 12px; border-bottom:1px solid #f0e9dc; vertical-align:top; }
+  table.fixes tr:last-child td{ border-bottom:none; }
+  .was{ color:var(--red); text-decoration:line-through; text-decoration-color:#e0a49c; }
+  .now{ color:var(--green); font-weight:700; }
+  .tag{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.58rem;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--soft);
+    border:1px solid var(--line); border-radius:999px; padding:2px 7px; white-space:nowrap; }
+
+  .ba{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .ba > div{ background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:14px 17px; }
+  .ba .k{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.6rem;
+    letter-spacing:.13em; text-transform:uppercase; margin-bottom:8px; }
+  .ba .before .k{ color:var(--red); } .ba .after .k{ color:var(--green); }
+  .ba .after{ border-left:4px solid var(--green); border-radius:0 10px 10px 0; }
+
+  ol.next{ padding-left:22px; } ol.next li{ margin-bottom:9px; }
+
+  .manuscript{ background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:22px 24px; font-size:1.02rem; line-height:32px; white-space:pre-wrap;
+    background-image:repeating-linear-gradient(transparent,transparent 31px,#efe7d8 31px,#efe7d8 32px); }
+
+  /* ---------- panels ---------- */
+  .panel{ display:none; background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:18px 20px; margin-bottom:20px; }
+  .panel.on{ display:block; }
+  .panel h3{ font-size:1rem; margin-bottom:10px; }
+  .panel p{ font-size:.87rem; color:var(--soft); margin-bottom:11px; }
+  .panel label{ display:block; font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.62rem; letter-spacing:.13em; text-transform:uppercase; color:var(--soft); margin-bottom:5px; }
+  .panel input,.panel select{ width:100%; font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.85rem; padding:10px 12px; border:1px solid var(--line); border-radius:8px;
+    background:var(--cream); color:var(--ink); margin-bottom:13px; outline:none; }
+  .panel input:focus,.panel select:focus{ border-color:var(--rust); }
+  .note{ font-size:.8rem; color:var(--soft); background:#faf6ee; border:1px dashed var(--line);
+    border-radius:8px; padding:10px 12px; }
+
+  .hist{ background:var(--paper); border:1px solid var(--line); border-radius:9px;
+    padding:11px 15px; margin-bottom:9px; display:flex; gap:12px; align-items:center;
+    cursor:pointer; transition:.15s; }
+  .hist:hover{ border-color:var(--rust); }
+  .hist .sc{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:1.05rem;
+    font-weight:700; min-width:40px; }
+  .hist .t{ flex:1; font-size:.93rem; }
+  .hist .d{ font-size:.75rem; color:var(--soft); font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; }
+
+  .msg{ border-radius:9px; padding:13px 16px; margin:16px 0; font-size:.92rem; }
+  .msg.err{ background:var(--red-soft); border:1px solid #e6b8b0; color:#8c2d20; }
+  .msg.wait{ background:#fdf6e3; border:1px solid #e3d49a; color:#7a5c00; }
+
+  .dots::after{ content:''; animation:d 1.4s steps(4,end) infinite; }
+  @keyframes d{ 0%{content:''} 25%{content:'·'} 50%{content:'· ·'} 75%{content:'· · ·'} }
+
+  @media (max-width:640px){
+    body{ padding:18px 13px 70px; }
+    h1{ font-size:1.42rem; }
+    .ba{ grid-template-columns:1fr; }
+    textarea{ padding:18px; font-size:1.02rem; }
+    .chip{ flex:1 1 calc(50% - 5px); }
+    /* the 4-column fixes table is unreadable at phone width — stack each fix as a card */
+    table.fixes, table.fixes tbody, table.fixes tr, table.fixes td{ display:block; width:100%; }
+    table.fixes tr:first-child{ display:none; }
+    table.fixes tr{ border-bottom:1px solid #f0e9dc; padding:10px 12px; }
+    table.fixes tr:last-child{ border-bottom:none; }
+    table.fixes td{ border:none; padding:2px 0; }
+    table.fixes td:nth-child(2)::before{ content:'→ '; color:var(--green); }
+    table.fixes td:nth-child(3){ font-size:.85rem; color:var(--soft); margin-top:4px; }
+  }
+  @media print{
+    body{ background:#fff; padding:0; }
+    .noprint{ display:none !important; }
+    .item,.chip,.manuscript,table.fixes,.ba > div{ break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="topline">
+      <div>
+        <div class="eyebrow">Warren · ISEE / SSAT Writing Sample</div>
+        <h1>Writing Lab</h1>
+        <div class="byline">Pick a topic, write for 30 minutes, then get it marked like a real reader would.</div>
+      </div>
+      <div class="tools noprint">
+        <button class="small ghost" onclick="togglePanel('setup')">⚙︎ Setup</button>
+        <button class="small ghost" onclick="togglePanel('history')">📚 Past writing</button>
+      </div>
+    </div>
+    <div style="margin-top:12px" class="noprint"><a class="back" href="../index.html">← Kids home</a></div>
+  </header>
+
+  <!-- ======== setup panel ======== -->
+  <div class="panel" id="panel-setup">
+    <h3>Marking setup</h3>
+    <!-- The key lives in JS/ai-key.js under one shared storage key, so every Kids
+         page that needs marking sees the same one. Type it once per device. -->
+    <div id="setupmount"></div>
+  </div>
+
+  <!-- ======== history panel ======== -->
+  <div class="panel" id="panel-history">
+    <h3>Past writing</h3>
+    <div id="histlist"></div>
+  </div>
+
+  <!-- ======== 1. pick a topic ======== -->
+  <div class="screen on" id="screen-pick">
+    <p class="lead">Two kinds of prompt, the same two kinds the real test gives you. Read it twice before you start
+      writing — half of a low score is answering a question nobody asked.</p>
+    <div id="promptlist"></div>
+  </div>
+
+  <!-- ======== 2. write ======== -->
+  <div class="screen" id="screen-write">
+    <div class="promptbar">
+      <div class="k">Your topic</div>
+      <div class="v" id="w-prompt"></div>
+      <div class="plook" id="w-look"></div>
+    </div>
+    <div class="statbar noprint">
+      <div class="stat" id="st-time">Time left <b>30:00</b></div>
+      <div class="stat" id="st-words">Words <b>0</b></div>
+      <div class="spacer"></div>
+      <button class="small ghost" onclick="backToPick()">← different topic</button>
+    </div>
+    <textarea id="essay" placeholder="Start here. Don't stop to fix spelling — get the whole story down first, then go back."
+      spellcheck="false"></textarea>
+    <div class="actions noprint">
+      <button class="primary" id="gradebtn" onclick="gradeNow()">I'm done — mark it</button>
+      <span class="saved" id="savemsg">Saved as you type</span>
+    </div>
+    <div id="writemsg"></div>
+  </div>
+
+  <!-- ======== 3. feedback ======== -->
+  <div class="screen" id="screen-fb">
+    <div class="actions noprint" style="margin:0 0 20px">
+      <button onclick="newPiece()">← Write another one</button>
+      <button class="ghost" onclick="window.print()">🖨 Print / save as PDF</button>
+    </div>
+    <div id="fb"></div>
+  </div>
+
+</div>
+
+<script src="../JS/ai-key.js"></script>
+<script>
+/* =====================================================================
+   Writing Lab — Kids/Writing/Writing-Lab.html
+   House style: HOMEWORK-SYSTEM.md + CLAUDE.md (cream paper, Georgia,
+   green = good / red = needs work, self-contained single file).
+
+   Marking goes through JS/ai-key.js (window.KidsAI), which holds ONE
+   Anthropic key shared by every Kids page that needs marking — typed in
+   once per device, kept in localStorage there only. The repo is public,
+   so a key can never live in a file.
+
+   Score reporting: this page exposes the globals the `practice` adapter
+   in JS/quiz-report.js looks for — startRound / finish / ROUNDS / round /
+   solvedFirst — so a finished, marked piece records an attempt under the
+   signed-in kid without any change to quiz-report.js.
+===================================================================== */
+
+/* ---------- prompts ---------- */
+var PROMPTS = [
+  { id:'rivals', kind:'story', star:true,
+    t:'When I came to my senses, I realized that I had been transported inside of a game… inside of "Rivals"!!',
+    look:'You wrote the opening of this one on paper on Sep 18. Finish it this time — a story with no ending is the single most common way to lose points.' },
+  { id:'door', kind:'story',
+    t:'The door at the end of the hallway had been locked for as long as anyone could remember. This morning it was open.',
+    look:'Readers want to know who opened it and what it cost. Decide the ending before you write the middle.' },
+  { id:'letter', kind:'story',
+    t:'I opened the mailbox and found a letter addressed to me — in my own handwriting.',
+    look:'A small, strange idea beats a big loud one. Keep the world normal and let the one odd thing do the work.' },
+  { id:'message', kind:'story',
+    t:'Everyone in town got the same message at exactly the same moment.',
+    look:'You cannot show a whole town. Pick one person and let the town show through them.' },
+
+  { id:'choice', kind:'essay',
+    t:'Describe a time you had to make a difficult choice. What did you decide, and what did you learn from it?',
+    look:'The learning is the essay. One real moment told closely beats three examples told quickly.' },
+  { id:'rule', kind:'essay',
+    t:'If you could change one rule at your school, which rule would you change, and why?',
+    look:'Give the reason on the other side before you knock it down — that is what makes an argument look grown-up.' },
+  { id:'admire', kind:'essay',
+    t:'Who is someone you admire? Explain what that person has taught you.',
+    look:'Avoid "he is kind and nice and funny". One story that proves it is worth ten adjectives.' },
+  { id:'day', kind:'essay',
+    t:'Describe your most memorable day. What happened, and why does it stay with you?',
+    look:'"Why it stays with you" is half the prompt. If you only narrate the day, you answered half the question.' }
+];
+
+var LIMIT_SECS = 30 * 60;
+var K_DRAFT = 'writingLab.draft.v1', K_HIST = 'writingLab.history.v1';
+
+/* ---------- globals quiz-report.js's `practice` adapter matches on ---------- */
+var ROUNDS = PROMPTS.map(function (p) {
+  return { name: p.t.slice(0, 48), items: [1, 2, 3, 4, 5, 6] };   // 6 = the top band
+});
+var round = 0;
+var solvedFirst = 0;
+
+/* ---------- small helpers ---------- */
+function $(id){ return document.getElementById(id); }
+function ls(k, v){
+  try{ if (v === undefined) return localStorage.getItem(k);
+       if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }
+  catch(e){ return null; }
+}
+function esc(s){ return String(s == null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function words(s){ var m = String(s || '').trim().match(/[A-Za-z0-9'’\-]+/g); return m ? m.length : 0; }
+function mmss(s){ var n = Math.max(0, Math.round(s)); return Math.floor(n/60) + ':' + ('0' + (n%60)).slice(-2); }
+function band(n){ return n >= 5 ? 'good' : n >= 3.5 ? '' : n >= 2.5 ? 'warn' : 'bad'; }
+
+/* ---------- state ---------- */
+var cur = null;        // { pid, text, startedAt, elapsed, pasted }
+var tick = null;
+
+/* ---------- screens ---------- */
+function show(name){
+  ['pick','write','fb'].forEach(function(s){ $('screen-' + s).classList.toggle('on', s === name); });
+  window.scrollTo(0, 0);
+}
+function togglePanel(n){
+  var p = $('panel-' + n), was = p.classList.contains('on');
+  ['setup','history'].forEach(function(x){ $('panel-' + x).classList.remove('on'); });
+  if (!was){ p.classList.add('on'); if (n === 'history') renderHistory(); }
+}
+
+/* ---------- 1. topic picker ---------- */
+function renderPrompts(){
+  var html = '', groups = [
+    ['story', 'Story starters', 'SSAT · creative'],
+    ['essay', 'Topics', 'ISEE · personal / expository']
+  ];
+  groups.forEach(function(g){
+    html += '<div class="grouphead"><h2>' + g[1] + '</h2><span class="n">' + g[2] + '</span></div>';
+    PROMPTS.forEach(function(p, i){
+      if (p.kind !== g[0]) return;
+      html += '<div class="pcard" onclick="pickPrompt(' + i + ')">' +
+        (p.star ? '<span class="ptag">yours · Sep 18</span>' : '') +
+        '<div class="ptxt">' + esc(p.t) + '</div>' +
+        '<div class="plook">' + esc(p.look) + '</div></div>';
+    });
+  });
+  $('promptlist').innerHTML = html;
+}
+
+function pickPrompt(i){
+  var draft = readDraft();
+  if (draft && draft.pid === PROMPTS[i].id && draft.text && draft.text.trim()){
+    if (confirm('You have an unfinished draft on this topic. Keep writing it?')){ openWrite(i, draft); return; }
+  }
+  openWrite(i, null);
+}
+
+/* ---------- 2. writing ---------- */
+function openWrite(i, draft){
+  round = i;
+  var p = PROMPTS[i];
+  cur = draft || { pid: p.id, text: '', startedAt: Date.now(), elapsed: 0, pasted: 0 };
+  cur.startedAt = Date.now() - (cur.elapsed || 0) * 1000;
+  $('w-prompt').textContent = p.t;
+  $('w-look').textContent = p.look;
+  $('essay').value = cur.text || '';
+  $('writemsg').innerHTML = '';
+  $('gradebtn').disabled = false;
+  $('gradebtn').textContent = "I'm done — mark it";
+  show('write');
+  startRound(i);                       // quiz-report.js starts timing the round here
+  startTick();
+  setTimeout(function(){ $('essay').focus(); }, 60);
+}
+
+function startTick(){
+  stopTick();
+  tick = setInterval(function(){
+    cur.elapsed = Math.round((Date.now() - cur.startedAt) / 1000);
+    var left = LIMIT_SECS - cur.elapsed, el = $('st-time');
+    el.className = 'stat' + (left < 0 ? ' over' : left < 300 ? ' warn' : '');
+    el.innerHTML = left < 0 ? 'Over time <b>+' + mmss(-left) + '</b>' : 'Time left <b>' + mmss(left) + '</b>';
+  }, 1000);
+}
+function stopTick(){ if (tick){ clearInterval(tick); tick = null; } }
+
+function onType(){
+  cur.text = $('essay').value;
+  $('st-words').innerHTML = 'Words <b>' + words(cur.text) + '</b>';
+  saveDraft();
+}
+function saveDraft(){ ls(K_DRAFT, JSON.stringify(cur)); }
+function readDraft(){ try{ return JSON.parse(ls(K_DRAFT) || 'null'); }catch(e){ return null; } }
+
+function backToPick(){ stopTick(); saveDraft(); show('pick'); }
+
+/* ---------- 3. marking ---------- */
+var RUBRIC = ['Ideas & Content', 'Organization', 'Language & Style', 'Mechanics'];
+
+function sysPrompt(){
+  return [
+'You are an experienced ISEE and SSAT writing-sample reader who also tutors middle-school students.',
+'You are reading a practice writing sample by a Grade 7 boy (about 12) preparing for ISEE Middle Level and SSAT Middle Level.',
+'',
+'Judge it the way an admissions reader would, then explain it the way a good tutor would: specific, quoted, actionable.',
+'Be honest — do not inflate a score to be nice — but keep the voice warm and never discouraging. The student reads this himself.',
+'',
+'Score each dimension 1-6 for this grade level: 6 outstanding, 5 strong, 4 solid, 3 developing, 2 weak, 1 barely started.',
+'Dimensions: "Ideas & Content", "Organization", "Language & Style", "Mechanics".',
+'',
+'Hard rules:',
+'- Every strength and every weakness must quote the student\'s own words, copied exactly.',
+'- In corrections, "original" must be the student\'s exact wording, misspellings and all. Never silently fix it in the quote.',
+'- Never invent text the student did not write.',
+'- If the piece has no ending, or is clearly unfinished, say so plainly and let Organization reflect it.',
+'- The rewrite must keep his ideas, his plot and his voice. Show him a better version of HIS sentences, not yours.',
+'- 6 to 10 corrections is right. If there are more, pick the ones that repeat.',
+'',
+'Reply with JSON only — no markdown fence, no text before or after. Shape:',
+'{',
+'  "overall": <number 1-6, may be .5>,',
+'  "overall_label": "<three to six words, e.g. Strong voice, unfinished story>",',
+'  "one_line": "<one sentence a reader would write in the margin>",',
+'  "scores": [ { "key": "Ideas & Content", "score": <1-6>, "label": "<two or three words>", "note": "<one sentence>" }, ... all four in that order ],',
+'  "strengths": [ { "h": "<short title>", "quote": "<his exact words>", "why": "<why this works, 1-2 sentences>" }, ... exactly 3 ],',
+'  "improvements": [ { "h": "<short title>", "quote": "<his exact words showing the problem>", "why": "<what goes wrong, 1-2 sentences>", "fix": "<what to do instead, concrete>" }, ... 3 or 4 ],',
+'  "corrections": [ { "type": "spelling|grammar|punctuation|word choice", "original": "<exact>", "fixed": "<corrected>", "why": "<short>" }, ... ],',
+'  "rewrite": { "which": "<which part this is>", "before": "<his exact passage>", "after": "<the improved version>", "note": "<what changed and why, 1-2 sentences>" },',
+'  "next_time": [ "<one thing to do in the next piece>", ... 2 or 3 ]',
+'}'
+  ].join('\n');
+}
+
+function userPrompt(p, text, secs, pasted){
+  return [
+'PROMPT TYPE: ' + (p.kind === 'story' ? 'SSAT creative story starter — the student continues the opening line' : 'ISEE personal / expository topic'),
+'PROMPT: ' + p.t,
+'',
+'CONDITIONS: written in ' + Math.round(secs / 60) + ' minutes (the test allows 30), ' + words(text) + ' words'
+  + (pasted > 20 ? ', ' + pasted + ' characters were pasted in rather than typed' : '') + '.',
+'',
+'THE STUDENT\'S WRITING (verbatim, between the markers):',
+'<<<WRITING',
+text,
+'WRITING>>>'
+  ].join('\n');
+}
+
+function gradeNow(){
+  var text = $('essay').value.trim();
+  if (words(text) < 25){
+    msg('writemsg', 'err', 'That is only ' + words(text) + ' words. Write a bit more before asking for marking — a reader cannot say anything useful about three lines.');
+    return;
+  }
+  if (!window.KidsAI || !KidsAI.hasKey()){
+    msg('writemsg', 'err', 'No API key on this device yet. Open ⚙︎ Setup at the top and paste one in — ask Dad.');
+    togglePanel('setup');
+    return;
+  }
+  stopTick();
+  var p = PROMPTS[round], secs = cur.elapsed || 0, pasted = cur.pasted || 0;
+  $('gradebtn').disabled = true;
+  $('gradebtn').textContent = 'Reading it';
+  msg('writemsg', 'wait', '<span class="dots">Your reader is going through it</span> — this takes about half a minute. Don\'t close the page.');
+
+  KidsAI.askJSON({ system: sysPrompt(), user: userPrompt(p, text, secs, pasted), maxTokens: 4000 }).then(function (fb){
+    var rec = { at: Date.now(), pid: p.id, prompt: p.t, kind: p.kind,
+                text: text, words: words(text), secs: secs, pasted: pasted, fb: fb };
+    pushHistory(rec);
+    ls(K_DRAFT, null);
+    renderFeedback(rec);
+    show('fb');
+    solvedFirst = Math.round(Number(fb.overall) || 0);   // read by quiz-report.js
+    finish();                                            // records the attempt
+  }).catch(function (e){
+    $('gradebtn').disabled = false;
+    $('gradebtn').textContent = "I'm done — mark it";
+    startTick();
+    msg('writemsg', 'err', esc(e.message || String(e)));
+  });
+}
+
+function msg(where, cls, html){ $(where).innerHTML = '<div class="msg ' + cls + '">' + html + '</div>'; }
+
+/* ---------- feedback rendering ---------- */
+function renderFeedback(rec){
+  var fb = rec.fb, h = '';
+  var ov = Number(fb.overall) || 0;
+
+  h += '<div class="eyebrow">' + (rec.kind === 'story' ? 'SSAT story starter' : 'ISEE topic') + ' · ' +
+       new Date(rec.at).toLocaleDateString() + '</div>';
+  h += '<h1 style="font-size:1.5rem">' + esc(fb.overall_label || 'Your writing, marked') + '</h1>';
+  h += '<div class="byline">' + esc(fb.one_line || '') + '</div>';
+
+  var BANDS = { 6:'Outstanding for Grade 7', 5:'Strong', 4:'Solid', 3:'Developing', 2:'Weak', 1:'Barely started' };
+  h += '<div class="scorebar"><div class="chip big ' + band(ov) + '"><div class="k">Overall</div>' +
+       '<div class="v">' + ov + ' <span style="font-size:.9rem;color:var(--soft);font-weight:400">/ 6</span></div>' +
+       '<div class="lbl">' + (BANDS[Math.round(ov)] || '') + '</div></div></div>';
+
+  h += '<div class="scorebar">';
+  (fb.scores || []).forEach(function (s){
+    var n = Number(s.score) || 0;
+    h += '<div class="chip ' + band(n) + '"><div class="k">' + esc(s.key) + '</div><div class="v">' + n + '</div>' +
+         '<div class="lbl">' + esc(s.label || '') + '</div><div class="note">' + esc(s.note || '') + '</div></div>';
+  });
+  h += '</div>';
+
+  h += '<div class="scorebar" style="margin-top:10px">' +
+       '<div class="stat">Words <b>' + rec.words + '</b></div>' +
+       '<div class="stat">Time <b>' + mmss(rec.secs) + '</b></div>' +
+       (rec.pasted > 20 ? '<div class="stat warn">Pasted <b>' + rec.pasted + ' chars</b></div>' : '') +
+       '</div>';
+
+  h += '<section><h2 class="sec"><span class="n">01</span> What works</h2>';
+  (fb.strengths || []).forEach(function (s){
+    h += '<div class="item good"><div class="h">✓ ' + esc(s.h) + '</div>' +
+         (s.quote ? '<div class="q">“' + esc(s.quote) + '”</div>' : '') +
+         '<div class="why">' + esc(s.why) + '</div></div>';
+  });
+  h += '</section>';
+
+  h += '<section><h2 class="sec"><span class="n">02</span> What to work on</h2>';
+  (fb.improvements || []).forEach(function (s){
+    h += '<div class="item work"><div class="h">→ ' + esc(s.h) + '</div>' +
+         (s.quote ? '<div class="q">“' + esc(s.quote) + '”</div>' : '') +
+         '<div class="why">' + esc(s.why) + '</div>' +
+         (s.fix ? '<div class="fix"><b>Try this:</b> ' + esc(s.fix) + '</div>' : '') + '</div>';
+  });
+  h += '</section>';
+
+  if ((fb.corrections || []).length){
+    h += '<section><h2 class="sec"><span class="n">03</span> Line fixes</h2>' +
+         '<table class="fixes"><tr><th>What you wrote</th><th>What it should be</th><th>Why</th><th></th></tr>';
+    fb.corrections.forEach(function (c){
+      h += '<tr><td class="was">' + esc(c.original) + '</td><td class="now">' + esc(c.fixed) + '</td>' +
+           '<td>' + esc(c.why) + '</td><td><span class="tag">' + esc(c.type || '') + '</span></td></tr>';
+    });
+    h += '</table></section>';
+  }
+
+  if (fb.rewrite && fb.rewrite.after){
+    h += '<section><h2 class="sec"><span class="n">04</span> Same idea, written tighter</h2>' +
+         '<p class="lead">' + esc(fb.rewrite.which || '') + '</p><div class="ba">' +
+         '<div class="before"><div class="k">Yours</div>' + esc(fb.rewrite.before) + '</div>' +
+         '<div class="after"><div class="k">Tightened</div>' + esc(fb.rewrite.after) + '</div></div>' +
+         (fb.rewrite.note ? '<div class="item" style="margin-top:12px"><div class="why">' + esc(fb.rewrite.note) + '</div></div>' : '') +
+         '</section>';
+  }
+
+  if ((fb.next_time || []).length){
+    h += '<section><h2 class="sec"><span class="n">05</span> Next time</h2><ol class="next">';
+    fb.next_time.forEach(function (n){ h += '<li>' + esc(n) + '</li>'; });
+    h += '</ol></section>';
+  }
+
+  h += '<section><h2 class="sec"><span class="n">06</span> What you wrote</h2>' +
+       '<div class="promptbar"><div class="k">The prompt</div><div class="v">' + esc(rec.prompt) + '</div></div>' +
+       '<div class="manuscript">' + esc(rec.text) + '</div></section>';
+
+  $('fb').innerHTML = h;
+}
+
+function newPiece(){ show('pick'); }
+
+/* ---------- history ---------- */
+function pushHistory(rec){
+  var all = readHistory(); all.unshift(rec);
+  while (all.length > 30) all.pop();
+  try{ ls(K_HIST, JSON.stringify(all)); }
+  catch(e){ all = all.slice(0, 10); ls(K_HIST, JSON.stringify(all)); }
+}
+function readHistory(){ try{ return JSON.parse(ls(K_HIST) || '[]'); }catch(e){ return []; } }
+function renderHistory(){
+  var all = readHistory();
+  if (!all.length){ $('histlist').innerHTML = '<p>Nothing marked yet. Write one and it will show up here.</p>'; return; }
+  $('histlist').innerHTML = all.map(function (r, i){
+    var ov = Number(r.fb && r.fb.overall) || 0;
+    return '<div class="hist" onclick="openHistory(' + i + ')">' +
+      '<div class="sc" style="color:var(--' + (ov >= 5 ? 'green' : ov >= 3.5 ? 'ink' : ov >= 2.5 ? 'rust' : 'red') + ')">' + ov + '</div>' +
+      '<div class="t">' + esc((r.fb && r.fb.overall_label) || r.prompt.slice(0, 60)) + '</div>' +
+      '<div class="d">' + new Date(r.at).toLocaleDateString() + ' · ' + r.words + 'w</div></div>';
+  }).join('');
+}
+function openHistory(i){
+  var r = readHistory()[i]; if (!r) return;
+  togglePanel('history'); renderFeedback(r); show('fb');
+}
+
+/* ---------- quiz-report.js hooks (see HOMEWORK-SYSTEM.md §四) ---------- */
+// Declared as plain functions so JS/quiz-report.js's `practice` adapter can wrap them:
+// startRound(r) begins timing a round, finish() ends it and records the attempt.
+function startRound(r){ round = r; }
+function finish(){ /* the score is in solvedFirst; quiz-report.js reads it after this runs */ }
+
+/* ---------- boot ---------- */
+(function init(){
+  renderPrompts();
+  var ta = $('essay');
+  ta.addEventListener('input', onType);
+  ta.addEventListener('paste', function (e){
+    if (!cur) return;
+    var t = (e.clipboardData || window.clipboardData);
+    var s = t ? (t.getData('text') || '') : '';
+    cur.pasted = (cur.pasted || 0) + s.length;
+    saveDraft();
+  });
+  window.addEventListener('beforeunload', function (){ if (cur) saveDraft(); });
+
+  if (window.KidsAI) KidsAI.mountPanel($('setupmount'));
+
+  var d = readDraft();
+  if (d && d.text && d.text.trim()){
+    var i = PROMPTS.map(function (p){ return p.id; }).indexOf(d.pid);
+    if (i >= 0){
+      var el = document.createElement('div');
+      el.className = 'msg wait noprint';
+      el.style.cursor = 'pointer';
+      el.innerHTML = '📄 You have an unfinished draft (' + words(d.text) + ' words) on “' +
+        esc(PROMPTS[i].t.slice(0, 60)) + '…”. <b>Click here to keep writing it.</b>';
+      el.onclick = function (){ openWrite(i, d); };
+      $('screen-pick').insertBefore(el, $('promptlist'));
+    }
+  }
+})();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
