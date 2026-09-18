@@ -130,6 +130,25 @@
          border-radius:18px;padding:34px 20px;margin-top:26px;font-size:19px}
   .empty .e{font-size:44px;display:block;margin-bottom:6px}
 
+  /* ---------- my day (daily report) ---------- */
+  button.card.marked{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;
+    border-color:var(--gold, #c9a227);background:#fffaf0;margin-bottom:14px}
+  details.day{margin-top:18px}
+  details.day>summary{cursor:pointer;list-style:none;font-family:'Fraunces',serif;font-size:21px;font-weight:600;
+    display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  details.day>summary::-webkit-details-marker{display:none}
+  details.day>summary::before{content:'▸';color:var(--acc);font-size:16px}
+  details.day[open]>summary::before{content:'▾'}
+  details.day>summary .gn{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:var(--mute)}
+  .note{background:#fffaf0;border:2px solid #e8c766;border-radius:18px;padding:16px 18px;margin-top:14px}
+  .note .from{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.8px;
+    text-transform:uppercase;color:#a07a12}
+  .note .head{font-size:18.5px;margin-top:6px;line-height:1.5}
+  .note h4{font-family:'Fraunces',serif;font-size:17px;margin:14px 0 4px}
+  .note ul{padding-left:22px}
+  .note li{font-size:16.5px;line-height:1.5;margin-top:4px}
+  .row .sub{font-size:13.5px;color:var(--mute);margin-top:2px}
+
   /* ---------- scores & mistakes ---------- */
   h2.sec{font-size:24px;margin:26px 0 4px}
   .lead2{color:var(--ink2);font-size:16px}
@@ -308,6 +327,7 @@
       </div>
       <nav class="tabs">
         <button class="tab on" data-v="today">Today <span class="n" id="ntoday"></span></button>
+        <button class="tab" data-v="report">My day <span class="n" id="nrep"></span></button>
         <button class="tab" data-v="scores">My scores</button>
         <button class="tab" data-v="mistakes">Mistakes <span class="n" id="nmiss"></span></button>
         <button class="tab" data-v="pet">My pet <span class="n" id="npet"></span></button>
@@ -436,11 +456,11 @@ async function load(){
     const when = a.submittedAt && a.submittedAt.toDate ? a.submittedAt.toDate() : null;
     const pct = typeof a.pct==='number' ? a.pct : a.total ? Math.round(100*a.score/a.total) : null;
     return { id:a.itemId, t:a.t||'', href:a.href||'', subj: subjOf(label.get(a.itemId)),
-             pct, wrong:a.wrong||[], when, date: when?iso(when):'' };
+             pct, wrong:a.wrong||[], when, date: when?iso(when):'', secs: a.secs||0 };
   }).sort((a,b)=>(b.when||0)-(a.when||0));
   DAYS = days.docs.map(d=>{
     const x = d.data()||{}, one = it=>({ id:it.id, t:it.t, subj:subjOf(it.subj) });
-    return { date:d.id, items:(x.items||[]).map(one), withdrawn:(x.withdrawn||[]).map(one) };
+    return { date:d.id, items:(x.items||[]).map(one), withdrawn:(x.withdrawn||[]).map(one), summary: x.summary||null };
   });
   GAME = KidPets.compute(
     ATT.map(a=>({ id:a.id, t:a.t, pct:a.pct, wrong:a.wrong.length, date:a.date, at:a.when?+a.when:0 })),
@@ -467,11 +487,11 @@ function markedCards(){
 function viewToday(){
   const day = iso(today);
   if(!ITEMS.length){
-    return markedCards() + `<div class="empty"><span class="e">🎉</span>No homework today!<br>Enjoy your free time.</div>`;
+    return reportCard() + markedCards() + `<div class="empty"><span class="e">🎉</span>No homework today!<br>Enjoy your free time.</div>`;
   }
   const doneToday = it => ATT.find(a=>a.id===it.id && a.date===day);
   const nDone = ITEMS.filter(doneToday).length;
-  let html = markedCards() + `<div class="progress"><div class="big">${nDone} of ${ITEMS.length} done</div>
+  let html = reportCard() + markedCards() + `<div class="progress"><div class="big">${nDone} of ${ITEMS.length} done</div>
     <div class="meter"><i style="width:${Math.round(100*nDone/ITEMS.length)}%"></i></div></div>`;
   if(nDone===ITEMS.length) html += `<div class="cheer">🌟 All done for today — great work, ${esc(ME.n)}!
     <div style="margin-top:12px"><button class="out" data-signout>👋 I'm done · Sign out</button></div></div>`;
@@ -504,6 +524,58 @@ function card(it, a){
     </div>
     ${btn}
   </div>`;
+}
+
+/* ---------- My day: what I did each day + Dad's / Mom's daily report ----------
+   The facts come from my attempts. The report is `summary` on assignments/{uid}/days/{date}
+   (parents write it — homework-system/daily-summary.mjs; kids can already read their own days). */
+const WHO = { dad:'Dad', mom:'Mom' };
+const dayLabel = d => new Date(d+'T00:00:00').toLocaleDateString('en-US',{ weekday:'long', month:'short', day:'numeric' });
+const mins = s => s>=3600 ? `${Math.floor(s/3600)} h ${Math.round(s%3600/60)} min` : `${Math.max(1,Math.round(s/60))} min`;
+const summaryOf = d => { const x = DAYS.find(y=>y.date===d); return x && x.summary; };
+function reportCard(){
+  const s = summaryOf(iso(today));
+  if(!s) return '';
+  return `<button class="card marked" data-tab="report"><span class="ic">📝</span>
+    <div class="body"><div class="t">${WHO[s.by]||'Dad'} wrote your report for today!</div>
+      <div class="meta">${esc(String(s.headline||'').slice(0,80))}${String(s.headline||'').length>80?'…':''}</div></div>
+    <span class="go">Read it →</span></button>`;
+}
+function noteHtml(s, d){
+  const list = (h, xs) => xs && xs.length ? `<h4>${h}</h4><ul>${xs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : '';
+  return `<div class="note"><div class="from">📝 From ${WHO[s.by]||'Dad'} · ${esc(dayLabel(d))}</div>
+    ${s.headline?`<p class="head">${esc(s.headline)}</p>`:''}
+    ${list('🌟 What went well', s.good)}${list('🎯 What to work on', s.work)}${list('➡️ Next time', s.next)}</div>`;
+}
+function viewReport(){
+  const since = new Date(today); since.setDate(since.getDate()-14);
+  const from = iso(since);
+  const dates = [...new Set([...ATT.map(a=>a.date), ...DAYS.filter(x=>x.summary).map(x=>x.date)])]
+    .filter(d=>d && d>=from).sort().reverse();
+  let html = `<h2 class="sec">My day</h2><p class="lead2">What you did each day, and the report Dad or Mom writes about it. The last two weeks.</p>`;
+  if(!dates.length) return html + `<div class="empty"><span class="e">📅</span>Your days will show up here<br>after you finish some homework.</div>`;
+  dates.forEach((d, n)=>{
+    const list = ATT.filter(a=>a.date===d).slice().reverse();         // oldest first
+    const pages = new Set(list.map(a=>a.id)).size;
+    const firstTry = list.filter(a=>a.pct!=null).filter((a,i,arr)=>arr.findIndex(b=>b.id===a.id)===i);
+    const avg = firstTry.length ? Math.round(firstTry.reduce((s,a)=>s+a.pct,0)/firstTry.length) : null;
+    const secs = list.reduce((s,a)=>s+a.secs,0);
+    const s = summaryOf(d);
+    html += `<details class="day"${n===0?' open':''}><summary>${esc(dayLabel(d))}
+      <span class="gn">${pages} done${avg!=null?` · ${avg}% average`:''}${secs?` · ${mins(secs)}`:''}${s?' · 📝 report':''}</span></summary>`;
+    if(s) html += noteHtml(s, d);
+    list.forEach(a=>{
+      const col = a.pct==null || a.pct>=PASS ? 'var(--green)' : 'var(--red)';
+      const tries = list.filter(b=>b.id===a.id);
+      const k = tries.indexOf(a);
+      html += `<div class="row"><span class="d">${a.when?String(a.when.getHours()).padStart(2,'0')+':'+String(a.when.getMinutes()).padStart(2,'0'):''}</span>
+        <div class="body"><div class="t"><span class="subj">${esc(a.subj)}</span>${esc(a.t)}</div>
+          <div class="sub">${a.secs?mins(a.secs):''}${tries.length>1?` · try ${k+1}`:''}</div></div>
+        <span class="sc" style="color:${col}">${a.pct==null?'✓':a.pct+'%'}</span></div>`;
+    });
+    html += `</details>`;
+  });
+  return html;
 }
 
 function viewScores(){
@@ -773,7 +845,8 @@ function viewPet(){
 
 const viewEl = document.getElementById('view');
 function render(){
-  viewEl.innerHTML = V==='today' ? viewToday() : V==='scores' ? viewScores() : V==='pet' ? viewPet() : viewMistakes();
+  viewEl.innerHTML = V==='today' ? viewToday() : V==='report' ? viewReport() : V==='scores' ? viewScores() : V==='pet' ? viewPet() : viewMistakes();
+  document.getElementById('nrep').textContent = summaryOf(iso(today)) ? '📝' : '';
   document.getElementById('npet').textContent = petOf(PET) && GAME ? stageIc({ ...PET, xp:GAME.xp }) : '';
   const nDone = ITEMS.filter(it=>ATT.find(a=>a.id===it.id && a.date===iso(today))).length;
   document.getElementById('ntoday').textContent = ITEMS.length ? `${nDone}/${ITEMS.length}` : '';
@@ -896,6 +969,8 @@ document.getElementById('switch').addEventListener('click',()=>auth.signOut());
 viewEl.addEventListener('click', e=>{
   if(e.target.closest('[data-signout]')) auth.signOut();
   if(e.target.closest('[data-pickpet]')) showPicker();
+  const tab = e.target.closest('[data-tab]');
+  if(tab) document.querySelector(`.tab[data-v="${tab.dataset.tab}"]`).click();
 });
 
 ['pointerdown','keydown','scroll','touchstart'].forEach(ev=>
