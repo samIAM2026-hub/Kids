@@ -245,7 +245,7 @@
       //   startLevel(lvl) … endGame()   globals firstTryOK, total, currentLvl
       //   startTyping()   … endTyping() globals firstTryOK, total
       //   startRound(r)   … finish()    globals solvedFirst, round, ROUNDS[r].items / .name
-      // A page may also set REPORT_WRITING (the Writing Lab: the kid's text + the marking) before
+      // A page may also set REPORT_WRITING (the Writing Lab: the kid's text, handed in to be marked) before
       // finish(); it goes to writings/{same ID as the attempt}, after the attempt itself.
       name: 'practice',
       pairs: [['startLevel', 'endGame'], ['startTyping', 'endTyping'], ['startRound', 'finish']],
@@ -508,5 +508,7 @@
   window.addEventListener('online', flush);
 
   // For checking by hand in the console: QuizReport.adapter, QuizReport.session()
-  window.QuizReport = { adapter: adapter ? adapter.name : 'viewed', itemId: itemId, session: function () { return session; }, flush: flush };
+  // ready: Promise<{ db, auth }> on the kid's sign-in — the Writing Lab reads the kid's own writings with it.
+  window.QuizReport = { adapter: adapter ? adapter.name : 'viewed', itemId: itemId, session: function () { return session; },
+                        flush: flush, ready: ready };
 })();

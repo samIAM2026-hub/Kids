@@ -189,6 +189,32 @@
     .noprint{ display:none !important; }
     .item,.chip,.manuscript,table.fixes,.ba > div{ break-inside:avoid; }
   }
+
+  /* ---------- marked writing (notes from Dad / Mom; JS/writing-review.js draws the marks) ---------- */
+  .manuscript.marked mark{ border-radius:3px; padding:1px 0; color:inherit; cursor:pointer; }
+  mark.wr-fix{ background:#fbe3c8; border-bottom:2px solid var(--rust); }
+  mark.wr-good{ background:#dff0e3; border-bottom:2px solid var(--green); }
+  mark.wr-note{ background:#e3eaf6; border-bottom:2px solid #5b7fb0; }
+  .manuscript sup{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.62rem; font-weight:700;
+    color:var(--soft); margin:0 1px; }
+  .legend{ font-size:.8rem; color:var(--soft); margin:-6px 0 12px; }
+  .legend span{ padding:1px 6px; border-radius:3px; margin-right:6px; }
+  .item.cmt{ border-left:4px solid #5b7fb0; border-radius:0 10px 10px 0; }   /* not .note: an old panel style owns that name */
+  .item .num{ display:inline-block; min-width:22px; height:22px; line-height:22px; text-align:center; border-radius:999px;
+    background:var(--cream); border:1px solid var(--line); font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.72rem; margin-right:6px; }
+  .item.flash{ box-shadow:0 0 0 3px var(--gold); transition:box-shadow .2s; }
+  .summary{ white-space:pre-wrap; font-size:1rem; }
+  .hist .st{ font-size:.78rem; white-space:nowrap; }
+  .hist .st.new{ color:var(--rust); font-weight:700; }
+  .hist .st.wait{ color:var(--soft); font-style:italic; }
+  .hist .st.ok{ color:var(--green); }
+  .prevnotes{ background:var(--paper); border:1px dashed var(--rust); border-radius:10px; padding:12px 16px; margin-bottom:14px; }
+  .prevnotes summary{ cursor:pointer; font-weight:700; }
+  .prevnotes .item{ margin:9px 0 0; padding:10px 13px; }
+  a.btnlink{ display:inline-block; font-size:.92rem; border-radius:8px; border:1px solid var(--line);
+    background:var(--paper); color:var(--ink); padding:9px 15px; text-decoration:none; }
+  a.btnlink:hover{ border-color:var(--rust); color:var(--rust); }
 </style>
 </head>
 <body>
@@ -199,33 +225,16 @@
       <div>
         <div class="eyebrow">Warren · ISEE / SSAT Writing Sample</div>
         <h1>Writing Lab</h1>
-        <div class="byline">Pick a topic, write for 30 minutes, then get it marked like a real reader would.</div>
-      </div>
-      <div class="tools noprint">
-        <button class="small ghost" onclick="togglePanel('setup')">⚙︎ Setup</button>
-        <button class="small ghost" onclick="togglePanel('history')">📚 Past writing</button>
+        <div class="byline">Pick a topic, write for 30 minutes, then hand it in. Dad or Mom will mark it and send it back.</div>
       </div>
     </div>
-    <div style="margin-top:12px" class="noprint"><a class="back" href="../index.html">← Kids home</a></div>
+    <div style="margin-top:12px" class="noprint"><a class="back" href="../homework.html">← My homework</a></div>
   </header>
 
-  <!-- ======== setup panel ======== -->
-  <div class="panel" id="panel-setup">
-    <h3>Marking setup</h3>
-    <!-- The key lives in JS/ai-key.js under one shared storage key, so every Kids
-         page that needs marking sees the same one. Type it once per device. -->
-    <div id="setupmount"></div>
-  </div>
-
-  <!-- ======== history panel ======== -->
-  <div class="panel" id="panel-history">
-    <h3>Past writing</h3>
-    <div id="histlist"></div>
-  </div>
-
-  <!-- ======== 1. pick a topic ======== -->
+  <!-- ======== 1. my writing + pick a topic ======== -->
   <div class="screen on" id="screen-pick">
-    <p class="lead">Two kinds of prompt, the same two kinds the real test gives you. Read it twice before you start
+    <div id="minebox"></div>
+    <p class="lead" style="margin-top:22px">Two kinds of prompt, the same two kinds the real test gives you. Read it twice before you start
       writing — half of a low score is answering a question nobody asked.</p>
     <div id="promptlist"></div>
   </div>
@@ -233,52 +242,63 @@
   <!-- ======== 2. write ======== -->
   <div class="screen" id="screen-write">
     <div class="promptbar">
-      <div class="k">Your topic</div>
+      <div class="k" id="w-k">Your topic</div>
       <div class="v" id="w-prompt"></div>
       <div class="plook" id="w-look"></div>
     </div>
+    <div id="w-notes"></div>
     <div class="statbar noprint">
       <div class="stat" id="st-time">Time left <b>30:00</b></div>
       <div class="stat" id="st-words">Words <b>0</b></div>
       <div class="spacer"></div>
-      <button class="small ghost" onclick="backToPick()">← different topic</button>
+      <button class="small ghost" onclick="backToPick()">← back</button>
     </div>
     <textarea id="essay" placeholder="Start here. Don't stop to fix spelling — get the whole story down first, then go back."
       spellcheck="false"></textarea>
     <div class="actions noprint">
-      <button class="primary" id="gradebtn" onclick="gradeNow()">I'm done — mark it</button>
-      <span class="saved" id="savemsg">Saved as you type</span>
+      <button class="primary" id="gradebtn" onclick="handIn()">I'm done — hand it in</button>
+      <span class="saved" id="savemsg">Saved on this device as you type</span>
     </div>
     <div id="writemsg"></div>
   </div>
 
-  <!-- ======== 3. feedback ======== -->
-  <div class="screen" id="screen-fb">
-    <div class="actions noprint" style="margin:0 0 20px">
-      <button onclick="newPiece()">← Write another one</button>
-      <button class="ghost" onclick="window.print()">🖨 Print / save as PDF</button>
+  <!-- ======== 3. handed in ======== -->
+  <div class="screen" id="screen-done">
+    <div class="item good"><div class="h" style="font-size:1.2rem">✅ Handed in!</div><div class="why" id="done-msg"></div></div>
+    <div class="actions noprint">
+      <button onclick="backHome()">← Back to topics</button>
+      <a class="btnlink" href="../homework.html">📋 My homework</a>
     </div>
-    <div id="fb"></div>
+  </div>
+
+  <!-- ======== 4. one piece: waiting, or marked ======== -->
+  <div class="screen" id="screen-view">
+    <div class="actions noprint" style="margin:0 0 20px">
+      <button onclick="backHome()">← My writing</button>
+      <button class="ghost" onclick="window.print()">🖨 Print</button>
+    </div>
+    <div id="view"></div>
   </div>
 
 </div>
 
-<script src="../JS/ai-key.js"></script>
+<script src="../JS/writing-review.js"></script>
 <script>
 /* =====================================================================
    Writing Lab — Kids/Writing/Writing-Lab.html
    House style: HOMEWORK-SYSTEM.md + CLAUDE.md (cream paper, Georgia,
    green = good / red = needs work, self-contained single file).
 
-   Marking goes through JS/ai-key.js (window.KidsAI), which holds ONE
-   Anthropic key shared by every Kids page that needs marking — typed in
-   once per device, kept in localStorage there only. The repo is public,
-   so a key can never live in a file.
+   The kid writes and hands it in; Dad or Mom marks it on parent.html (Claude
+   can draft the marking there, but the kid only ever sees what a parent sent)
+   and the marked piece comes back here, with notes tied to his own sentences.
+   Then he can write draft 2. Design: HOMEWORK-SYSTEM.md, 2026-09-18 手动批改.
 
-   Score reporting: this page exposes the globals the `practice` adapter
-   in JS/quiz-report.js looks for — startRound / finish / ROUNDS / round /
-   solvedFirst — so a finished, marked piece records an attempt under the
-   signed-in kid without any change to quiz-report.js.
+   Handing in goes through JS/quiz-report.js: this page exposes the globals its
+   `practice` adapter looks for — startRound / finish / ROUNDS / round /
+   solvedFirst — and puts the piece in REPORT_WRITING just around finish(), so
+   the attempt and writings/{same ID} ride the same offline-safe queue.
+   The marked pieces are read back with QuizReport.ready (the kid's sign-in).
 ===================================================================== */
 
 /* ---------- prompts ---------- */
@@ -311,14 +331,17 @@ var PROMPTS = [
 ];
 
 var LIMIT_SECS = 30 * 60;
-var K_DRAFT = 'writingLab.draft.v1', K_HIST = 'writingLab.history.v1';
+var K_DRAFT = 'writingLab.draft.v1';
+var WHO = { dad:'Dad', mom:'Mom' };
+var BANDS = { 6:'Outstanding for Grade 7', 5:'Strong', 4:'Solid', 3:'Developing', 2:'Weak', 1:'Barely started' };
+var PREVIEW = /(?:^|&)preview=1(?:&|$)/.test(location.search.slice(1));   // a parent looking from parent.html
 
 /* ---------- globals quiz-report.js's `practice` adapter matches on ---------- */
 var ROUNDS = PROMPTS.map(function (p) {
   return { name: p.t.slice(0, 48), items: [1, 2, 3, 4, 5, 6] };   // 6 = the top band
 });
 var round = 0;
-var solvedFirst = 0;
+var solvedFirst = 0;         // must be a number when quiz-report.js looks; null at hand-in = not marked yet
 var REPORT_WRITING = null;   // set just around finish(); quiz-report.js sends it to `writings`
 
 /* ---------- small helpers ---------- */
@@ -328,28 +351,64 @@ function ls(k, v){
        if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }
   catch(e){ return null; }
 }
-function esc(s){ return String(s == null ? '' : s)
-  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+var esc = WritingReview.esc;
 function words(s){ var m = String(s || '').trim().match(/[A-Za-z0-9'’\-]+/g); return m ? m.length : 0; }
 function mmss(s){ var n = Math.max(0, Math.round(s)); return Math.floor(n/60) + ':' + ('0' + (n%60)).slice(-2); }
+function ms(t){ return t && t.toMillis ? t.toMillis() : 0; }
+function day(t){ return t && t.toDate ? t.toDate().toLocaleDateString() : ''; }
 function band(n){ return n >= 5 ? 'good' : n >= 3.5 ? '' : n >= 2.5 ? 'warn' : 'bad'; }
 
 /* ---------- state ---------- */
-var cur = null;        // { pid, text, startedAt, elapsed, pasted }
+var cur = null;        // { pid, text, startedAt, elapsed, pasted, draftNo, prevId? }
 var tick = null;
+var FB = null, ME = null;   // { db, auth } from quiz-report.js; the signed-in kid
+var MINE = null;            // this kid's writings, newest first (null = not read yet)
+var MINE_ERR = '';
 
 /* ---------- screens ---------- */
 function show(name){
-  ['pick','write','fb'].forEach(function(s){ $('screen-' + s).classList.toggle('on', s === name); });
+  ['pick','write','done','view'].forEach(function(s){ $('screen-' + s).classList.toggle('on', s === name); });
+  if (name !== 'view' && /^#w=/.test(location.hash)) history.replaceState(null, '', location.pathname + location.search);
   window.scrollTo(0, 0);
 }
-function togglePanel(n){
-  var p = $('panel-' + n), was = p.classList.contains('on');
-  ['setup','history'].forEach(function(x){ $('panel-' + x).classList.remove('on'); });
-  if (!was){ p.classList.add('on'); if (n === 'history') renderHistory(); }
+function backHome(){ show('pick'); loadMine(); }
+
+/* ---------- 1. my writing ---------- */
+function loadMine(){
+  if (!FB || !ME){ MINE = null; renderMine(); return; }
+  FB.db.collection('writings').where('kidId', '==', ME.uid).get().then(function (snap){
+    MINE = snap.docs.map(function (d){ return Object.assign({ id: d.id }, d.data()); })
+      .sort(function (a, b){ return ms(b.submittedAt) - ms(a.submittedAt); });
+    MINE_ERR = '';
+    renderMine(); openFromHash();
+  }).catch(function (e){ MINE_ERR = 'Could not load your writing (' + (e.code || e.message) + ').'; renderMine(); });
 }
 
-/* ---------- 1. topic picker ---------- */
+function renderMine(){
+  var h = '';
+  if (PREVIEW){ $('minebox').innerHTML = ''; return; }
+  if (!ME){
+    h = '<div class="msg err">You are not signed in, so your writing can\'t reach Dad or Mom. ' +
+        '<a class="back" href="../homework.html">Sign in on My Homework</a> first, then come back here.</div>';
+  } else if (MINE_ERR){
+    h = '<div class="msg err">' + esc(MINE_ERR) + '</div>';
+  } else if (MINE && MINE.length){
+    var fresh = MINE.filter(function (w){ return w.status === 'reviewed' && !w.seenAt; }).length;
+    h = '<div class="grouphead" style="margin-top:0"><h2>My writing</h2><span class="n">' +
+        (fresh ? fresh + ' newly marked' : MINE.length + ' handed in') + '</span></div>';
+    h += MINE.slice(0, 10).map(function (w){
+      var r = w.review, st = w.status !== 'reviewed' ? '<span class="st wait">⏳ Waiting to be marked</span>'
+        : !w.seenAt ? '<span class="st new">✨ Marked — new!</span>'
+        : '<span class="st ok">✓ Marked' + (r && r.score ? ' · ' + r.score + '/6' : '') + '</span>';
+      return '<div class="hist" onclick="openView(\'' + w.id + '\')">' +
+        '<div class="t">' + esc(String(w.prompt || '').slice(0, 70)) + ((w.draftNo || 1) > 1 ? ' · <b>Draft ' + w.draftNo + '</b>' : '') + '</div>' +
+        st + '<div class="d">' + day(w.submittedAt) + '</div></div>';
+    }).join('');
+  }
+  $('minebox').innerHTML = h;
+}
+
+/* ---------- 2. topic picker ---------- */
 function renderPrompts(){
   var html = '', groups = [
     ['story', 'Story starters', 'SSAT · creative'],
@@ -370,35 +429,52 @@ function renderPrompts(){
 
 function pickPrompt(i){
   var draft = readDraft();
-  if (draft && draft.pid === PROMPTS[i].id && draft.text && draft.text.trim()){
+  if (draft && draft.pid === PROMPTS[i].id && !draft.prevId && draft.text && draft.text.trim()){
     if (confirm('You have an unfinished draft on this topic. Keep writing it?')){ openWrite(i, draft); return; }
   }
   openWrite(i, null);
 }
 
-/* ---------- 2. writing ---------- */
+/* ---------- 3. writing (a first draft, or draft 2 from a marked one) ---------- */
 function openWrite(i, draft){
   round = i;
   var p = PROMPTS[i];
-  cur = draft || { pid: p.id, text: '', startedAt: Date.now(), elapsed: 0, pasted: 0 };
+  cur = draft || { pid: p.id, text: '', startedAt: Date.now(), elapsed: 0, pasted: 0, draftNo: 1 };
   cur.startedAt = Date.now() - (cur.elapsed || 0) * 1000;
+  $('w-k').textContent = cur.prevId ? 'Your topic · draft ' + cur.draftNo : 'Your topic';
   $('w-prompt').textContent = p.t;
-  $('w-look').textContent = p.look;
+  $('w-look').textContent = cur.prevId ? 'Fix what was marked, then read it once more from the top before you hand it in.' : p.look;
   $('essay').value = cur.text || '';
+  $('st-words').innerHTML = 'Words <b>' + words(cur.text) + '</b>';
   $('writemsg').innerHTML = '';
   $('gradebtn').disabled = false;
-  $('gradebtn').textContent = "I'm done — mark it";
+  $('gradebtn').textContent = cur.prevId ? 'Hand in draft ' + cur.draftNo : "I'm done — hand it in";
+  renderPrevNotes();
   show('write');
   startRound(i);                       // quiz-report.js starts timing the round here
   startTick();
   setTimeout(function(){ $('essay').focus(); }, 60);
 }
 
+// Draft 2: the marking from the draft before, folded above the box so he can work through it.
+function renderPrevNotes(){
+  var prev = cur.prevId && MINE && MINE.filter(function (w){ return w.id === cur.prevId; })[0];
+  var r = prev && prev.review;
+  if (!r){ $('w-notes').innerHTML = ''; return; }
+  var list = WritingReview.ordered(r.notes);
+  $('w-notes').innerHTML = '<details class="prevnotes noprint" open><summary>What ' + (WHO[r.by] || 'Dad or Mom') +
+    ' marked on draft ' + (prev.draftNo || 1) + ' (' + list.length + ' notes)</summary>' +
+    (r.summary ? '<div class="item"><div class="summary">' + esc(r.summary) + '</div></div>' : '') +
+    list.map(noteHtml).join('') + '</details>';
+}
+
 function startTick(){
   stopTick();
   tick = setInterval(function(){
     cur.elapsed = Math.round((Date.now() - cur.startedAt) / 1000);
-    var left = LIMIT_SECS - cur.elapsed, el = $('st-time');
+    var el = $('st-time');
+    if (cur.prevId){ el.className = 'stat'; el.innerHTML = 'Time <b>' + mmss(cur.elapsed) + '</b>'; return; }   // no clock on a redraft
+    var left = LIMIT_SECS - cur.elapsed;
     el.className = 'stat' + (left < 0 ? ' over' : left < 300 ? ' warn' : '');
     el.innerHTML = left < 0 ? 'Over time <b>+' + mmss(-left) + '</b>' : 'Time left <b>' + mmss(left) + '</b>';
   }, 1000);
@@ -410,213 +486,126 @@ function onType(){
   $('st-words').innerHTML = 'Words <b>' + words(cur.text) + '</b>';
   saveDraft();
 }
-function saveDraft(){ ls(K_DRAFT, JSON.stringify(cur)); }
+function saveDraft(){ if (cur) ls(K_DRAFT, JSON.stringify(cur)); }
 function readDraft(){ try{ return JSON.parse(ls(K_DRAFT) || 'null'); }catch(e){ return null; } }
 
 function backToPick(){ stopTick(); saveDraft(); show('pick'); }
 
-/* ---------- 3. marking ---------- */
-var RUBRIC = ['Ideas & Content', 'Organization', 'Language & Style', 'Mechanics'];
-
-function sysPrompt(){
-  return [
-'You are an experienced ISEE and SSAT writing-sample reader who also tutors middle-school students.',
-'You are reading a practice writing sample by a Grade 7 boy (about 12) preparing for ISEE Middle Level and SSAT Middle Level.',
-'',
-'Judge it the way an admissions reader would, then explain it the way a good tutor would: specific, quoted, actionable.',
-'Be honest — do not inflate a score to be nice — but keep the voice warm and never discouraging. The student reads this himself.',
-'',
-'Score each dimension 1-6 for this grade level: 6 outstanding, 5 strong, 4 solid, 3 developing, 2 weak, 1 barely started.',
-'Dimensions: "Ideas & Content", "Organization", "Language & Style", "Mechanics".',
-'',
-'Hard rules:',
-'- Every strength and every weakness must quote the student\'s own words, copied exactly.',
-'- In corrections, "original" must be the student\'s exact wording, misspellings and all. Never silently fix it in the quote.',
-'- Never invent text the student did not write.',
-'- If the piece has no ending, or is clearly unfinished, say so plainly and let Organization reflect it.',
-'- The rewrite must keep his ideas, his plot and his voice. Show him a better version of HIS sentences, not yours.',
-'- 6 to 10 corrections is right. If there are more, pick the ones that repeat.',
-'',
-'Reply with JSON only — no markdown fence, no text before or after. Shape:',
-'{',
-'  "overall": <number 1-6, may be .5>,',
-'  "overall_label": "<three to six words, e.g. Strong voice, unfinished story>",',
-'  "one_line": "<one sentence a reader would write in the margin>",',
-'  "scores": [ { "key": "Ideas & Content", "score": <1-6>, "label": "<two or three words>", "note": "<one sentence>" }, ... all four in that order ],',
-'  "strengths": [ { "h": "<short title>", "quote": "<his exact words>", "why": "<why this works, 1-2 sentences>" }, ... exactly 3 ],',
-'  "improvements": [ { "h": "<short title>", "quote": "<his exact words showing the problem>", "why": "<what goes wrong, 1-2 sentences>", "fix": "<what to do instead, concrete>" }, ... 3 or 4 ],',
-'  "corrections": [ { "type": "spelling|grammar|punctuation|word choice", "original": "<exact>", "fixed": "<corrected>", "why": "<short>" }, ... ],',
-'  "rewrite": { "which": "<which part this is>", "before": "<his exact passage>", "after": "<the improved version>", "note": "<what changed and why, 1-2 sentences>" },',
-'  "next_time": [ "<one thing to do in the next piece>", ... 2 or 3 ]',
-'}'
-  ].join('\n');
-}
-
-function userPrompt(p, text, secs, pasted){
-  return [
-'PROMPT TYPE: ' + (p.kind === 'story' ? 'SSAT creative story starter — the student continues the opening line' : 'ISEE personal / expository topic'),
-'PROMPT: ' + p.t,
-'',
-'CONDITIONS: written in ' + Math.round(secs / 60) + ' minutes (the test allows 30), ' + words(text) + ' words'
-  + (pasted > 20 ? ', ' + pasted + ' characters were pasted in rather than typed' : '') + '.',
-'',
-'THE STUDENT\'S WRITING (verbatim, between the markers):',
-'<<<WRITING',
-text,
-'WRITING>>>'
-  ].join('\n');
-}
-
-function gradeNow(){
+/* ---------- 4. handing in ---------- */
+function handIn(){
   var text = $('essay').value.trim();
   if (words(text) < 25){
-    msg('writemsg', 'err', 'That is only ' + words(text) + ' words. Write a bit more before asking for marking — a reader cannot say anything useful about three lines.');
+    msg('writemsg', 'err', 'That is only ' + words(text) + ' words. Write a bit more before handing it in.');
     return;
   }
-  if (!window.KidsAI || !KidsAI.hasKey()){
-    msg('writemsg', 'err', 'No API key on this device yet. Open ⚙︎ Setup at the top and paste one in — ask Dad.');
-    togglePanel('setup');
+  if (!ME){
+    msg('writemsg', 'err', 'You are not signed in, so this can\'t reach Dad or Mom. Your writing is saved on this device — ' +
+      '<a class="back" href="../homework.html">sign in on My Homework</a>, then come back and hand it in.');
     return;
   }
   stopTick();
-  var p = PROMPTS[round], secs = cur.elapsed || 0, pasted = cur.pasted || 0;
-  $('gradebtn').disabled = true;
-  $('gradebtn').textContent = 'Reading it';
-  msg('writemsg', 'wait', '<span class="dots">Your reader is going through it</span> — this takes about half a minute. Don\'t close the page.');
-
-  KidsAI.askJSON({ system: sysPrompt(), user: userPrompt(p, text, secs, pasted), maxTokens: 4000 }).then(function (fb){
-    var rec = { at: Date.now(), pid: p.id, prompt: p.t, kind: p.kind,
-                text: text, words: words(text), secs: secs, pasted: pasted, fb: fb };
-    pushHistory(rec);
-    ls(K_DRAFT, null);
-    renderFeedback(rec);
-    show('fb');
-    solvedFirst = Math.round(Number(fb.overall) || 0);   // read by quiz-report.js
-    // The text + marking go to Firestore `writings` next to the attempt, so the parent page can
-    // read them. The rules cap text at 20000 characters (30 minutes of typing is ~4000).
-    REPORT_WRITING = { pid: p.id, prompt: p.t, promptKind: p.kind, text: text.slice(0, 20000),
-      words: rec.words, secs: secs, pasted: pasted, fb: fb, model: KidsAI.getModel(), reportVersion: 1 };
-    finish();                                            // records the attempt (+ the writing)
-    REPORT_WRITING = null;
-  }).catch(function (e){
-    $('gradebtn').disabled = false;
-    $('gradebtn').textContent = "I'm done — mark it";
-    startTick();
-    msg('writemsg', 'err', esc(e.message || String(e)));
-  });
+  var p = PROMPTS[round];
+  var w = { pid: p.id, prompt: p.t, promptKind: p.kind, text: text.slice(0, 20000),   // the rules' cap
+            words: words(text), secs: cur.elapsed || 0, pasted: cur.pasted || 0,
+            status: 'submitted', draftNo: cur.draftNo || 1, reportVersion: 2 };
+  if (cur.prevId) w.prevId = cur.prevId;
+  solvedFirst = null;                  // no mark yet — a parent adds it when marking
+  REPORT_WRITING = w;
+  finish();                            // records the attempt, then the writing
+  REPORT_WRITING = null;
+  solvedFirst = 0;
+  ls(K_DRAFT, null);
+  cur = null;
+  $('done-msg').innerHTML = (navigator.onLine === false
+      ? 'You are offline right now, so it is saved on this device and will be sent as soon as the internet is back. '
+      : '') +
+    'Dad or Mom will read it and mark it. When they do, it shows up on <b>My Homework</b> and under <b>My writing</b> here.';
+  show('done');
+  setTimeout(loadMine, 2500);
 }
 
 function msg(where, cls, html){ $(where).innerHTML = '<div class="msg ' + cls + '">' + html + '</div>'; }
 
-/* ---------- feedback rendering ---------- */
-function renderFeedback(rec){
-  var fb = rec.fb, h = '';
-  var ov = Number(fb.overall) || 0;
-
-  h += '<div class="eyebrow">' + (rec.kind === 'story' ? 'SSAT story starter' : 'ISEE topic') + ' · ' +
-       new Date(rec.at).toLocaleDateString() + '</div>';
-  h += '<h1 style="font-size:1.5rem">' + esc(fb.overall_label || 'Your writing, marked') + '</h1>';
-  h += '<div class="byline">' + esc(fb.one_line || '') + '</div>';
-
-  var BANDS = { 6:'Outstanding for Grade 7', 5:'Strong', 4:'Solid', 3:'Developing', 2:'Weak', 1:'Barely started' };
-  h += '<div class="scorebar"><div class="chip big ' + band(ov) + '"><div class="k">Overall</div>' +
-       '<div class="v">' + ov + ' <span style="font-size:.9rem;color:var(--soft);font-weight:400">/ 6</span></div>' +
-       '<div class="lbl">' + (BANDS[Math.round(ov)] || '') + '</div></div></div>';
-
-  h += '<div class="scorebar">';
-  (fb.scores || []).forEach(function (s){
-    var n = Number(s.score) || 0;
-    h += '<div class="chip ' + band(n) + '"><div class="k">' + esc(s.key) + '</div><div class="v">' + n + '</div>' +
-         '<div class="lbl">' + esc(s.label || '') + '</div><div class="note">' + esc(s.note || '') + '</div></div>';
-  });
-  h += '</div>';
-
-  h += '<div class="scorebar" style="margin-top:10px">' +
-       '<div class="stat">Words <b>' + rec.words + '</b></div>' +
-       '<div class="stat">Time <b>' + mmss(rec.secs) + '</b></div>' +
-       (rec.pasted > 20 ? '<div class="stat warn">Pasted <b>' + rec.pasted + ' chars</b></div>' : '') +
-       '</div>';
-
-  h += '<section><h2 class="sec"><span class="n">01</span> What works</h2>';
-  (fb.strengths || []).forEach(function (s){
-    h += '<div class="item good"><div class="h">✓ ' + esc(s.h) + '</div>' +
-         (s.quote ? '<div class="q">“' + esc(s.quote) + '”</div>' : '') +
-         '<div class="why">' + esc(s.why) + '</div></div>';
-  });
-  h += '</section>';
-
-  h += '<section><h2 class="sec"><span class="n">02</span> What to work on</h2>';
-  (fb.improvements || []).forEach(function (s){
-    h += '<div class="item work"><div class="h">→ ' + esc(s.h) + '</div>' +
-         (s.quote ? '<div class="q">“' + esc(s.quote) + '”</div>' : '') +
-         '<div class="why">' + esc(s.why) + '</div>' +
-         (s.fix ? '<div class="fix"><b>Try this:</b> ' + esc(s.fix) + '</div>' : '') + '</div>';
-  });
-  h += '</section>';
-
-  if ((fb.corrections || []).length){
-    h += '<section><h2 class="sec"><span class="n">03</span> Line fixes</h2>' +
-         '<table class="fixes"><tr><th>What you wrote</th><th>What it should be</th><th>Why</th><th></th></tr>';
-    fb.corrections.forEach(function (c){
-      h += '<tr><td class="was">' + esc(c.original) + '</td><td class="now">' + esc(c.fixed) + '</td>' +
-           '<td>' + esc(c.why) + '</td><td><span class="tag">' + esc(c.type || '') + '</span></td></tr>';
-    });
-    h += '</table></section>';
-  }
-
-  if (fb.rewrite && fb.rewrite.after){
-    h += '<section><h2 class="sec"><span class="n">04</span> Same idea, written tighter</h2>' +
-         '<p class="lead">' + esc(fb.rewrite.which || '') + '</p><div class="ba">' +
-         '<div class="before"><div class="k">Yours</div>' + esc(fb.rewrite.before) + '</div>' +
-         '<div class="after"><div class="k">Tightened</div>' + esc(fb.rewrite.after) + '</div></div>' +
-         (fb.rewrite.note ? '<div class="item" style="margin-top:12px"><div class="why">' + esc(fb.rewrite.note) + '</div></div>' : '') +
-         '</section>';
-  }
-
-  if ((fb.next_time || []).length){
-    h += '<section><h2 class="sec"><span class="n">05</span> Next time</h2><ol class="next">';
-    fb.next_time.forEach(function (n){ h += '<li>' + esc(n) + '</li>'; });
-    h += '</ol></section>';
-  }
-
-  h += '<section><h2 class="sec"><span class="n">06</span> What you wrote</h2>' +
-       '<div class="promptbar"><div class="k">The prompt</div><div class="v">' + esc(rec.prompt) + '</div></div>' +
-       '<div class="manuscript">' + esc(rec.text) + '</div></section>';
-
-  $('fb').innerHTML = h;
+/* ---------- 5. one piece ---------- */
+var KIND = { fix:'Fix this', good:'This works', note:'Note' };
+function noteHtml(n, k){
+  var cls = n.kind === 'good' ? 'good' : n.kind === 'fix' ? 'work' : 'cmt';
+  return '<div class="item ' + cls + '" id="note-' + k + '"><div class="h"><span class="num">' + (k + 1) + '</span>' +
+    (KIND[n.kind] || 'Note') + '</div>' +
+    (n.quote ? '<div class="q">“' + esc(n.quote) + '”</div>' : '') +
+    (n.kind === 'fix' && n.fix ? '<div class="fix"><b>Better:</b> ' + esc(n.fix) + '</div>' : '') +
+    (n.note ? '<div class="why" style="margin-top:6px">' + esc(n.note) + '</div>' : '') + '</div>';
 }
 
-function newPiece(){ show('pick'); }
+function openView(id){
+  var w = (MINE || []).filter(function (x){ return x.id === id; })[0];
+  if (!w) return;
+  var r = w.status === 'reviewed' ? w.review : null, h = '';
+  h += '<div class="eyebrow">' + (w.promptKind === 'story' ? 'SSAT story starter' : 'ISEE topic') +
+       ' · Draft ' + (w.draftNo || 1) + ' · ' + day(w.submittedAt) + ' · ' + (w.words || 0) + ' words</div>';
+  h += '<h1 style="font-size:1.5rem">' + (r ? 'Marked by ' + (WHO[r.by] || 'Dad or Mom') : 'Waiting to be marked') + '</h1>';
+  h += '<div class="promptbar" style="margin-top:14px"><div class="k">The prompt</div><div class="v">' + esc(w.prompt) + '</div></div>';
+  if (!r){
+    h += '<p class="lead">Dad or Mom hasn\'t marked this one yet. When they do, it shows up on My Homework.</p>' +
+         '<div class="manuscript">' + esc(w.text) + '</div>';
+  } else {
+    var sc = Number(r.score) || 0;
+    if (sc) h += '<div class="scorebar"><div class="chip big ' + band(sc) + '"><div class="k">Score</div>' +
+      '<div class="v">' + sc + ' <span style="font-size:.9rem;color:var(--soft);font-weight:400">/ 6</span></div>' +
+      '<div class="lbl">' + (BANDS[sc] || '') + '</div></div></div>';
+    if (r.summary) h += '<div class="item" style="margin-top:14px"><div class="h">From ' + (WHO[r.by] || 'Dad or Mom') + '</div>' +
+      '<div class="summary">' + esc(r.summary) + '</div></div>';
+    var list = WritingReview.ordered(r.notes);
+    h += '<section><h2 class="sec"><span class="n">01</span> Your writing, marked</h2>' +
+      (list.length ? '<p class="legend"><span class="wr-fix" style="background:#fbe3c8">yellow = fix this</span>' +
+        '<span style="background:#dff0e3">green = this works</span><span style="background:#e3eaf6">blue = a note</span>' +
+        ' · tap a mark to jump to its note</p>' : '') +
+      '<div class="manuscript marked" id="marked">' + WritingReview.markup(w.text, list) + '</div></section>';
+    if (list.length) h += '<section><h2 class="sec"><span class="n">02</span> Notes</h2>' + list.map(noteHtml).join('') + '</section>';
+    var next = MINE.filter(function (x){ return x.prevId === w.id; })[0];
+    h += '<div class="actions noprint" style="margin-top:24px">' + (next
+      ? '<button onclick="openView(\'' + next.id + '\')">You handed in draft ' + (next.draftNo || 2) + ' → see it</button>'
+      : '<button class="primary" onclick="reviseFrom(\'' + w.id + '\')">✏️ Write draft ' + ((w.draftNo || 1) + 1) + '</button>') + '</div>';
+  }
+  if (w.prevId) h += '<p class="lead" style="margin-top:18px"><a class="back" href="#" onclick="openView(\'' + w.prevId +
+    '\');return false">← Draft ' + ((w.draftNo || 2) - 1) + ' and its marks</a></p>';
+  $('view').innerHTML = h;
+  show('view');
+  history.replaceState(null, '', location.pathname + location.search + '#w=' + id);
+  var marked = $('marked');
+  if (marked) marked.addEventListener('click', function (e){
+    var m = e.target.closest('mark, sup'); if (!m) return;
+    var n = $('note-' + m.dataset.n.split(' ')[0]); if (!n) return;
+    n.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    n.classList.add('flash'); setTimeout(function (){ n.classList.remove('flash'); }, 1200);
+  });
+  // Tell Dad / Mom it was read. The rules let a kid change only this one field.
+  if (r && !w.seenAt && FB) FB.db.collection('writings').doc(id)
+    .update({ seenAt: firebase.firestore.FieldValue.serverTimestamp() })
+    .then(function (){ w.seenAt = true; renderMine(); }).catch(function (e){ console.warn('[writing] seenAt:', e.code || e); });
+}
 
-/* ---------- history ---------- */
-function pushHistory(rec){
-  var all = readHistory(); all.unshift(rec);
-  while (all.length > 30) all.pop();
-  try{ ls(K_HIST, JSON.stringify(all)); }
-  catch(e){ all = all.slice(0, 10); ls(K_HIST, JSON.stringify(all)); }
+function reviseFrom(id){
+  var w = MINE.filter(function (x){ return x.id === id; })[0]; if (!w) return;
+  var i = PROMPTS.map(function (p){ return p.id; }).indexOf(w.pid); if (i < 0) i = 0;
+  var d = readDraft();
+  openWrite(i, d && d.prevId === id ? d
+    : { pid: w.pid, text: w.text, startedAt: Date.now(), elapsed: 0, pasted: 0, prevId: id, draftNo: (w.draftNo || 1) + 1 });
 }
-function readHistory(){ try{ return JSON.parse(ls(K_HIST) || '[]'); }catch(e){ return []; } }
-function renderHistory(){
-  var all = readHistory();
-  if (!all.length){ $('histlist').innerHTML = '<p>Nothing marked yet. Write one and it will show up here.</p>'; return; }
-  $('histlist').innerHTML = all.map(function (r, i){
-    var ov = Number(r.fb && r.fb.overall) || 0;
-    return '<div class="hist" onclick="openHistory(' + i + ')">' +
-      '<div class="sc" style="color:var(--' + (ov >= 5 ? 'green' : ov >= 3.5 ? 'ink' : ov >= 2.5 ? 'rust' : 'red') + ')">' + ov + '</div>' +
-      '<div class="t">' + esc((r.fb && r.fb.overall_label) || r.prompt.slice(0, 60)) + '</div>' +
-      '<div class="d">' + new Date(r.at).toLocaleDateString() + ' · ' + r.words + 'w</div></div>';
-  }).join('');
-}
-function openHistory(i){
-  var r = readHistory()[i]; if (!r) return;
-  togglePanel('history'); renderFeedback(r); show('fb');
+
+// My Homework links here with #w=<id> when something was marked.
+var hashDone = false;
+function openFromHash(){
+  if (hashDone) return;
+  var m = /^#w=([\w-]+)$/.exec(location.hash);
+  if (m && MINE && MINE.some(function (w){ return w.id === m[1]; })){ hashDone = true; openView(m[1]); }
 }
 
 /* ---------- quiz-report.js hooks (see HOMEWORK-SYSTEM.md §四) ---------- */
 // Declared as plain functions so JS/quiz-report.js's `practice` adapter can wrap them:
 // startRound(r) begins timing a round, finish() ends it and records the attempt.
 function startRound(r){ round = r; }
-function finish(){ /* the score is in solvedFirst; quiz-report.js reads it after this runs */ }
+function finish(){ /* quiz-report.js reads solvedFirst + REPORT_WRITING after this runs */ }
 
 /* ---------- boot ---------- */
 (function init(){
@@ -632,8 +621,6 @@ function finish(){ /* the score is in solvedFirst; quiz-report.js reads it after
   });
   window.addEventListener('beforeunload', function (){ if (cur) saveDraft(); });
 
-  if (window.KidsAI) KidsAI.mountPanel($('setupmount'));
-
   var d = readDraft();
   if (d && d.text && d.text.trim()){
     var i = PROMPTS.map(function (p){ return p.id; }).indexOf(d.pid);
@@ -641,12 +628,22 @@ function finish(){ /* the score is in solvedFirst; quiz-report.js reads it after
       var el = document.createElement('div');
       el.className = 'msg wait noprint';
       el.style.cursor = 'pointer';
-      el.innerHTML = '📄 You have an unfinished draft (' + words(d.text) + ' words) on “' +
+      el.innerHTML = '📄 You have an unfinished ' + (d.prevId ? 'draft ' + d.draftNo : 'piece') + ' (' + words(d.text) + ' words) on “' +
         esc(PROMPTS[i].t.slice(0, 60)) + '…”. <b>Click here to keep writing it.</b>';
       el.onclick = function (){ openWrite(i, d); };
-      $('screen-pick').insertBefore(el, $('promptlist'));
+      $('screen-pick').insertBefore(el, $('minebox'));
     }
   }
+
+  // quiz-report.js loads after this script; once it has, follow the kid's sign-in and read their pieces.
+  window.addEventListener('load', function (){
+    if (!window.QuizReport || !QuizReport.ready){ renderMine(); return; }
+    QuizReport.ready.then(function (fb){
+      FB = fb;
+      fb.auth.onAuthStateChanged(function (u){ ME = u && !u.isAnonymous ? u : null; loadMine(); });
+    }).catch(function (){ renderMine(); });
+  });
+  window.addEventListener('pageshow', function (e){ if (e.persisted) loadMine(); });
 })();
 </script>
 <script src="../JS/quiz-report.js"></script>

@@ -107,6 +107,7 @@
   .card{display:flex;align-items:center;gap:16px;background:var(--paper);border:2px solid var(--line);
         border-radius:18px;padding:16px 18px;margin-top:14px}
   .card.done{border-color:#b9d7c0}
+  a.card.marked{text-decoration:none;color:inherit;border-color:var(--gold, #c9a227);background:#fffaf0;margin-bottom:14px}
   .card.low{border-color:#efc2bb}
   .card .ic{font-size:36px;line-height:1;flex:0 0 auto}
   .card .body{flex:1;min-width:0}
@@ -390,6 +391,8 @@ const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&l
 const pageUrl = href => encodeURI('Quizzes/' + href);
 
 let ME = null, ITEMS = [], ATT = [], DAYS = [], V = 'today';
+// Writing Lab pieces Dad or Mom marked that this kid hasn't opened yet (Writing-Lab.html stamps seenAt).
+let MARKED = [];
 // PET / SIB: my pet doc and the other kid's — null = not picked yet, undefined = couldn't read it.
 let PET, SIB, GAME = null, petSkipped = false;
 
@@ -408,13 +411,16 @@ function touch(force){
 /* ---------- data ---------- */
 async function load(){
   const sib = Object.values(KIDS).find(k=>k.uid!==ME.uid);
-  const [days, att, pet, sibPet] = await Promise.all([
+  const [days, att, pet, sibPet, wr] = await Promise.all([
     // All my assigned days (today's included): older days tell the subject of past attempts.
     db.collection(`assignments/${ME.uid}/days`).get(),
     // No orderBy here: kidId == x plus orderBy another field would need a composite index.
     db.collection('attempts').where('kidId','==',ME.uid).get(),
-    getPet(ME.uid), getPet(sib.uid)
+    getPet(ME.uid), getPet(sib.uid),
+    // Same no-orderBy rule as attempts. Can't read them → no reminder card, nothing else breaks.
+    db.collection('writings').where('kidId','==',ME.uid).get().catch(e=>{ console.warn('[writings]', e.code||e); return null; })
   ]);
+  MARKED = wr ? wr.docs.map(d=>Object.assign({ id:d.id }, d.data())).filter(w=>w.status==='reviewed' && !w.seenAt) : [];
   // A pet that can't be read this time keeps what we already knew.
   if(pet!==undefined || !PET) PET = pet;
   if(sibPet!==undefined || !SIB) SIB = sibPet;
@@ -448,14 +454,24 @@ function getPet(uid){
 }
 
 /* ---------- views ---------- */
+// "Dad marked your writing" — on top of Today whether or not there's homework today.
+function markedCards(){
+  const who = { dad:'Dad', mom:'Mom' };
+  return MARKED.map(w=>`<a class="card marked" href="Writing/Writing-Lab.html#w=${encodeURIComponent(w.id)}">
+    <span class="ic">📝</span>
+    <div class="body"><div class="t">${who[w.review && w.review.by] || 'Dad or Mom'} marked your writing!</div>
+      <div class="meta">${esc(String(w.prompt||'').slice(0,70))}${(w.draftNo||1)>1?' · draft '+w.draftNo:''}</div></div>
+    <span class="go">Read it →</span></a>`).join('');
+}
+
 function viewToday(){
   const day = iso(today);
   if(!ITEMS.length){
-    return `<div class="empty"><span class="e">🎉</span>No homework today!<br>Enjoy your free time.</div>`;
+    return markedCards() + `<div class="empty"><span class="e">🎉</span>No homework today!<br>Enjoy your free time.</div>`;
   }
   const doneToday = it => ATT.find(a=>a.id===it.id && a.date===day);
   const nDone = ITEMS.filter(doneToday).length;
-  let html = `<div class="progress"><div class="big">${nDone} of ${ITEMS.length} done</div>
+  let html = markedCards() + `<div class="progress"><div class="big">${nDone} of ${ITEMS.length} done</div>
     <div class="meter"><i style="width:${Math.round(100*nDone/ITEMS.length)}%"></i></div></div>`;
   if(nDone===ITEMS.length) html += `<div class="cheer">🌟 All done for today — great work, ${esc(ME.n)}!
     <div style="margin-top:12px"><button class="out" data-signout>👋 I'm done · Sign out</button></div></div>`;
@@ -783,7 +799,7 @@ function skyNow(){
 skyNow(); setInterval(skyNow, 5*60*1000);
 
 function showPick(msg){
-  ME = null; ITEMS = []; ATT = []; DAYS = []; viewEl.innerHTML = '';
+  ME = null; ITEMS = []; ATT = []; DAYS = []; MARKED = []; viewEl.innerHTML = '';
   PET = undefined; SIB = undefined; GAME = null; petSkipped = false;
   closePop(); toastEl.hidden = true;
   document.body.className = '';
