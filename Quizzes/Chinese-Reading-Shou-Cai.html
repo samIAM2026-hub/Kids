@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《收菜》 Picking Vegetables · characters + action words</title>
+<style>
+  :root{
+    --cream:#f7f4e9; --card:#fffdf6; --ink:#2f2a1e; --muted:#89806a;
+    --leaf:#4a7c3f;      /* garden green — the vegetable patch */
+    --leaf-d:#355c2d;
+    --basket:#b8874a;    /* bamboo basket */
+    --basket-d:#8a6330;
+    --red:#c0392b; --softred:#fbeae7;
+    --line:#e5dcc4;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    background:var(--cream); color:var(--ink);
+    padding:16px 12px 70px; line-height:1.65;
+  }
+  .zh{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",Georgia,serif;}
+  .wrap{max-width:900px; margin:0 auto;}
+
+  header{text-align:center; margin-bottom:14px;}
+  h1{font-size:2rem; margin:.1em 0 .05em; color:var(--leaf-d); letter-spacing:.06em;
+     font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",Georgia,serif;}
+  .en-title{font-size:1.05rem; color:var(--basket-d); margin:0 0 .3em; letter-spacing:.04em;}
+  .sub{color:var(--muted); font-size:.92rem; margin:0;}
+
+  .teacher{
+    background:#f2f7ec; border:2px solid #d3e3c8; border-left:8px solid var(--leaf);
+    border-radius:14px; padding:12px 16px; margin:14px 0 6px; font-size:.93rem; color:#4e5945;
+  }
+  .teacher b{color:var(--leaf-d);}
+  .teacher .cn{display:block; margin-top:6px; color:var(--muted); font-size:.88rem;}
+
+  /* ---- sticky tabs ---- */
+  .tabs{position:sticky; top:0; z-index:20; display:flex; gap:6px; flex-wrap:wrap; justify-content:center;
+        background:rgba(247,244,233,.96); padding:8px 4px; margin:10px -12px 18px; border-bottom:2px solid var(--line);
+        backdrop-filter:blur(4px);}
+  .tabs button{border:2px solid var(--line); background:var(--card); color:var(--muted); cursor:pointer;
+        font-family:inherit; font-size:.82rem; padding:6px 11px; border-radius:999px;}
+  .tabs button.on{background:var(--leaf); border-color:var(--leaf); color:#fff;}
+
+  section{background:var(--card); border:2px solid var(--line); border-radius:20px;
+          padding:20px 18px; margin-bottom:22px; box-shadow:0 6px 20px rgba(74,124,63,.07);}
+  h2{font-size:1.2rem; color:var(--leaf-d); margin:0 0 4px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  h2 .cnt{font-size:.78rem; color:var(--muted); font-weight:normal;}
+  .lead{color:var(--muted); font-size:.9rem; margin:0 0 16px;}
+  .lead b{color:#5e6a54;}
+
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
+  .tb{border:2px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;
+      font-family:inherit; font-size:.85rem; padding:7px 13px; border-radius:12px;}
+  .tb.on{background:var(--leaf); border-color:var(--leaf); color:#fff;}
+  .tb.warn{border-color:#e6d2ae; background:#fdf4e2;}
+  select.tb{padding:7px 8px; max-width:210px;}
+
+  .bar{height:11px; background:#eae3d0; border-radius:8px; overflow:hidden; margin:8px 0 16px;}
+  .bar > div{height:100%; width:0%; background:linear-gradient(90deg,#d9cf7a,var(--leaf)); transition:width .35s;}
+  .tally{font-size:.86rem; color:var(--muted); margin:-8px 0 12px;}
+  .hide{display:none !important;}
+
+  /* ---- 1. read the text ---- */
+  .para{display:flex; gap:10px; align-items:flex-start; padding:13px 0; border-top:1px solid var(--line);}
+  .para:first-of-type{border-top:none;}
+  .para .pbody{flex:1 1 auto;}
+  .para .ptxt{font-size:1.3rem; line-height:2.6;
+              font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif;}
+  .para .ptr{font-size:.88rem; color:var(--muted); font-style:italic; margin-top:4px; line-height:1.55;}
+  body.notr .ptr{display:none;}
+  .para .pact{flex:0 0 auto; display:flex; flex-direction:column; gap:5px; align-items:center; padding-top:8px;}
+  .pact button{border:2px solid var(--line); background:#fff; border-radius:11px; cursor:pointer;
+               font-family:inherit; font-size:.74rem; padding:5px 8px; color:var(--muted); min-width:60px;}
+  .pact button.sp{color:var(--leaf-d);}
+  .pact button.tick.on{background:var(--leaf); border-color:var(--leaf); color:#fff;}
+  ruby{ruby-position:over; cursor:pointer; border-bottom:2px dotted #cfc7ac;}
+  rt{font-size:.42em; color:var(--basket-d); font-family:Georgia,"PingFang SC",serif;
+     letter-spacing:0; font-weight:normal; visibility:hidden;}
+  body.showpy rt{visibility:visible;}
+  ruby.peek rt{visibility:visible;}
+  .keyw{color:var(--leaf-d); font-weight:bold;}
+
+  .roundbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+  .round{flex:1 1 200px; border:2px solid var(--line); border-radius:14px; padding:10px 14px; background:#fffdf6;}
+  .round.done{background:#eef5ea; border-color:var(--leaf);}
+  .round .rt2{font-size:.86rem; color:var(--muted);}
+  .round .rn{font-size:1.1rem; color:var(--basket-d);}
+  .round.done .rn{color:var(--leaf-d);}
+  .done-note{margin-top:16px; text-align:center; font-size:1rem; color:var(--leaf-d);
+             background:#eef5ea; border-radius:14px; padding:14px; display:none;}
+  .done-note.show{display:block;}
+
+  /* ---- 2. character cards ---- */
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(122px,1fr)); gap:10px;}
+  .zi{border:2px solid var(--line); border-radius:16px; background:#fffdf6; padding:10px 6px 8px;
+      text-align:center; cursor:pointer; position:relative; transition:transform .12s;}
+  .zi:active{transform:scale(.96);}
+  .zi .hz{font-size:2.3rem; line-height:1.25; color:var(--ink);
+          font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif;}
+  .zi .bits{font-size:.74rem; color:var(--basket-d); min-height:1.2em; line-height:1.3;}
+  .zi .py{font-size:.95rem; color:var(--leaf-d); font-weight:bold; min-height:1.3em; visibility:hidden;}
+  .zi .en{font-size:.74rem; color:var(--muted); min-height:1.15em; line-height:1.35; visibility:hidden;}
+  .zi .ci{font-size:.72rem; color:var(--basket-d); min-height:1.1em; line-height:1.35; visibility:hidden;}
+  .zi.open .py, .zi.open .en, .zi.open .ci{visibility:visible;}
+  .zi.know{background:#eef5ea; border-color:var(--leaf);}
+  .zi.again{background:var(--softred); border-color:#e8b3a8;}
+  .zi .mk{position:absolute; top:4px; right:7px; font-size:.8rem;}
+  .zi .row{display:flex; gap:4px; justify-content:center; margin-top:6px;}
+  .zi .row button{border:1px solid var(--line); background:#fff; border-radius:9px; cursor:pointer;
+                  font-family:inherit; font-size:.7rem; padding:3px 7px; color:var(--muted);}
+  .zi .row button.y{color:var(--leaf);} .zi .row button.n{color:var(--red);}
+
+  .fam{background:#f2f7ec; border-radius:14px; padding:13px 16px; margin-bottom:14px; font-size:.93rem; color:#4e5945;}
+  .fam h3{margin:0 0 6px; font-size:1rem; color:var(--leaf-d);}
+  .fam .big{font-family:"Kaiti SC","STKaiti","KaiTi",serif; font-size:1.35em; color:var(--leaf-d);}
+  .pairs{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:10px; margin-top:12px;}
+  .pair{border:2px solid var(--line); border-radius:14px; background:#fffdf6; padding:10px 13px; font-size:.86rem; color:var(--muted);}
+  .pair .two{font-family:"Kaiti SC","STKaiti","KaiTi",serif; font-size:1.5rem; color:var(--ink); margin-bottom:2px;}
+  .pair .two b{color:var(--leaf-d);}
+
+  /* ---- sorting game (radicals) ---- */
+  .sortq{border-top:1px solid var(--line); padding:14px 0 6px;}
+  .sortq:first-of-type{border-top:none;}
+  .sortq .big{font-family:"Kaiti SC","STKaiti","KaiTi",serif; font-size:2.6rem; color:var(--ink); line-height:1.2;}
+  .chips{display:flex; gap:7px; flex-wrap:wrap; margin-top:8px;}
+  .chip{border:2px solid var(--line); background:#fffdf6; border-radius:12px; padding:8px 13px;
+        font-family:inherit; font-size:.92rem; cursor:pointer; color:var(--ink);}
+  .chip .zh{font-size:1.25rem;}
+  .chip:hover:not(:disabled){border-color:var(--leaf);}
+  .chip.right{background:#e9f2e5; border-color:var(--leaf); color:var(--leaf-d); font-weight:bold;}
+  .chip.wrong{background:var(--softred); border-color:#e8b3a8; color:var(--red);}
+  .chip:disabled{cursor:default;}
+
+  /* ---- 3. listen & choose ---- */
+  .lq{border-top:1px solid var(--line); padding:15px 0 8px;}
+  .lq:first-of-type{border-top:none;}
+  .lq .head{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .lq .qn{font-size:.74rem; color:var(--muted); letter-spacing:.06em; text-transform:uppercase;}
+  .say{border:2px solid var(--leaf); background:#eef5ea; color:var(--leaf-d); border-radius:12px;
+       cursor:pointer; font-family:inherit; font-size:.92rem; padding:8px 15px;}
+  .opts{display:grid; grid-template-columns:repeat(auto-fit,minmax(86px,1fr)); gap:8px; margin-top:10px;}
+  .btn{border:2px solid var(--line); background:#fffdf6; border-radius:13px; padding:11px 8px;
+       font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif; font-size:1.7rem;
+       cursor:pointer; text-align:center; color:var(--ink);}
+  .btn:hover:not(:disabled){border-color:var(--leaf);}
+  .btn:disabled{cursor:default;}
+  .btn.right{background:#e9f2e5; border-color:var(--leaf); color:var(--leaf-d);}
+  .btn.wrong{background:var(--softred); border-color:#e8b3a8; color:var(--red);}
+  .why{margin-top:10px; font-size:.88rem; padding:10px 13px; border-radius:12px;
+       background:#fdf6e9; border-left:5px solid #e6d2ae; color:#6b6047;}
+  .why.ok{background:#eef5ea; border-left-color:var(--leaf);}
+
+  /* ---- 4. cloze with hint ladder ---- */
+  .cl{border-top:1px solid var(--line); padding:16px 0 8px;}
+  .cl:first-of-type{border-top:none;}
+  .cl .sent{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif; font-size:1.3rem; line-height:2.2;}
+  .blank{display:inline-block; min-width:2.4em; border-bottom:3px solid var(--basket);
+         text-align:center; color:var(--leaf-d); font-weight:bold; margin:0 .12em; padding:0 .2em;}
+  .blank.filled{border-bottom-color:var(--leaf);}
+  .blank.bad{border-bottom-color:var(--red); color:var(--red);}
+  .blank.on{background:#fdf4e2; border-bottom-width:4px;}
+  .cl .en2{font-size:.85rem; color:var(--muted); font-style:italic; margin:2px 0 8px;}
+  .wordbank{display:flex; gap:7px; flex-wrap:wrap; margin-top:8px;}
+  .wd{border:2px solid var(--line); background:#fffdf6; border-radius:12px; padding:8px 14px;
+      font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif; font-size:1.2rem; cursor:pointer; color:var(--ink);}
+  .wd:hover:not(:disabled){border-color:var(--leaf);}
+  .wd.used{opacity:.32; cursor:default;}
+  .hintbar{display:flex; gap:7px; flex-wrap:wrap; align-items:center; margin-top:10px;}
+  .hb{border:2px solid #e6d2ae; background:#fdf4e2; color:var(--basket-d); border-radius:11px;
+      cursor:pointer; font-family:inherit; font-size:.8rem; padding:6px 11px;}
+  .hb:disabled{opacity:.4; cursor:default;}
+  .hintout{font-size:.88rem; color:var(--basket-d); background:#fdf4e2; border-radius:10px;
+           padding:7px 12px; margin-top:8px; display:none;}
+  .hintout.show{display:block;}
+  .hintout .py2{font-family:Georgia,serif; letter-spacing:.06em; font-weight:bold; color:var(--leaf-d);}
+
+  /* ---- 5. doubles & 把 sentences ---- */
+  .dbl{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:6px;}
+  .dcard{border:2px solid var(--line); border-radius:14px; background:#fffdf6; padding:11px 12px; text-align:center;}
+  .dcard .w{font-family:"Kaiti SC","STKaiti","KaiTi",serif; font-size:1.7rem; color:var(--leaf-d);}
+  .dcard .ty{font-size:.74rem; color:var(--muted); letter-spacing:.08em;}
+  .dcard .mn{font-size:.8rem; color:var(--muted); margin-top:3px;}
+  .ba{border-top:1px solid var(--line); padding:15px 0 8px;}
+  .ba:first-of-type{border-top:none;}
+  .ba .from{font-family:"Kaiti SC","STKaiti","KaiTi",serif; font-size:1.15rem; color:var(--muted);}
+  .ba .slots{display:flex; gap:6px; flex-wrap:wrap; margin:10px 0; min-height:52px;
+             border:2px dashed var(--line); border-radius:13px; padding:9px;}
+  .ba .slots.ok{border-color:var(--leaf); border-style:solid; background:#eef5ea;}
+  .ba .slots.no{border-color:#e8b3a8; border-style:solid; background:var(--softred);}
+  .tok{border:2px solid var(--line); background:#fffdf6; border-radius:11px; padding:7px 12px;
+       font-family:"Kaiti SC","STKaiti","KaiTi",serif; font-size:1.15rem; cursor:pointer; color:var(--ink);}
+  .tok.used{opacity:.3; cursor:default;}
+  .tok.inslot{border-color:var(--basket); background:#fdf4e2;}
+
+  /* ---- 6. order + test ---- */
+  .ord{display:flex; flex-direction:column; gap:8px;}
+  .ostep{display:flex; gap:10px; align-items:center; border:2px solid var(--line); border-radius:14px;
+         background:#fffdf6; padding:10px 13px; cursor:pointer;}
+  .ostep .num2{flex:0 0 32px; height:32px; border-radius:50%; border:2px solid var(--line);
+               display:flex; align-items:center; justify-content:center; font-size:.9rem; color:var(--muted);}
+  .ostep.picked .num2{background:var(--basket); border-color:var(--basket); color:#fff;}
+  .ostep .tx{flex:1 1 auto; font-family:"Kaiti SC","STKaiti","KaiTi",serif; font-size:1.05rem;}
+  .ostep.right{background:#eef5ea; border-color:var(--leaf);}
+  .ostep.wrong{background:var(--softred); border-color:#e8b3a8;}
+
+  .qcard{border-top:1px solid var(--line); padding:16px 0 8px;}
+  .qcard:first-of-type{border-top:none;}
+  .qcard .n{font-size:.74rem; color:var(--muted); letter-spacing:.06em; text-transform:uppercase;}
+  .qcard .qt{font-size:1rem; margin:3px 0 10px;}
+  .qcard .qt .zh{font-size:1.2rem;}
+  .qcard .qt b.zh{color:var(--leaf-d); font-size:1.35rem;}
+  .topts{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px;}
+  .opt{border:2px solid var(--line); background:#fffdf6; border-radius:13px; padding:11px 10px;
+       font-size:1.02rem; cursor:pointer; text-align:center; color:var(--ink);}
+  .opt.zhopt{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif; font-size:1.4rem;}
+  .opt:hover{border-color:var(--leaf);}
+  .opt.pick{border-color:var(--basket); background:#fdf4e2;}
+  .opt.locked{cursor:default;}
+  .opt.right{background:#e9f2e5; border-color:var(--leaf); color:var(--leaf-d); font-weight:bold;}
+  .opt.wrong{background:var(--softred); border-color:#e8b3a8; color:var(--red);}
+  .qcard .why{display:none;}
+  .qcard .why.show{display:block;}
+  .submit{display:block; width:100%; margin-top:18px; border:none; background:var(--leaf); color:#fff;
+          border-radius:14px; padding:14px; font-family:inherit; font-size:1.05rem; cursor:pointer;}
+  .submit:hover{background:var(--leaf-d);}
+  .scorebox{display:none; margin-top:16px; border-radius:16px; padding:18px; text-align:center;
+            background:#eef5ea; border:2px solid var(--leaf);}
+  .scorebox.show{display:block;}
+  .scorebox.fail{background:var(--softred); border-color:#e8b3a8;}
+  .scorebox .pct{font-size:2.4rem; color:var(--leaf-d);}
+  .scorebox.fail .pct{color:var(--red);}
+  .scorebox .sub2{font-size:.9rem; color:var(--muted); margin-top:4px;}
+  .scorebox .verdict{font-size:1.1rem; margin-top:8px;}
+
+  a.home{display:block; text-align:center; margin-top:8px; color:var(--muted); text-decoration:none; font-size:.86rem;}
+  a.home:hover{text-decoration:underline;}
+
+  @media print{
+    .tabs,.toolbar,.pact,.zi .row,a.home,.hintbar,.submit{display:none !important;}
+    body{background:#fff;} section{break-inside:avoid; box-shadow:none;}
+    rt{visibility:visible !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>收菜</h1>
+  <p class="en-title">“Picking the vegetables” · action words &amp; new characters</p>
+  <p class="sub">Read it · sort the characters by radical · listen and choose · fill the gaps · doubles and 把 · order and test</p>
+</header>
+
+<div class="teacher">
+  <b>How this page works:</b> your teacher printed the pinyin above every new character. On this page
+  the pinyin starts <b>hidden</b> — that is the whole point. Try to read the character first; tap it if you
+  need to check. When you get stuck in the gap-fill, the hints come in three steps: the radical first,
+  then the first letter, and the full pinyin only last.
+  <span class="cn zh">课文《收菜》复习：拼音默认盖住，先自己认，认不出再点开。填空的提示分三档：偏旁 → 首字母 → 全拼音。</span>
+</div>
+
+<div class="tabs" id="tabs">
+  <button data-go="s-read" class="on">📖 1 · Read</button>
+  <button data-go="s-zi">✋ 2 · Radicals</button>
+  <button data-go="s-listen">🔊 3 · Listen</button>
+  <button data-go="s-cloze">✏️ 4 · Gap-fill</button>
+  <button data-go="s-double">🌿 5 · Doubles &amp; 把</button>
+  <button data-go="s-test">🏁 6 · Order &amp; test</button>
+</div>
+
+<!-- ============ 1. read the text ============ -->
+<section id="s-read">
+  <h2>📖 Read the text aloud — twice <span class="cnt">· 3 paragraphs</span></h2>
+  <p class="lead">The green words are the ones your teacher marked — lots of them are <b>action words</b>, and the rest are little time and linking words.
+     <b>Round 1:</b> read it through, tapping any character you are unsure of. <b>Round 2:</b> read it with
+     nothing tapped. Tick each paragraph as you finish it.</p>
+  <div class="toolbar">
+    <button class="tb" id="pyToggle">🔤 Pinyin: hidden</button>
+    <button class="tb on" id="trToggle">🇬🇧 English: showing</button>
+    <button class="tb" id="slowBtn">🐢 Slow: off</button>
+    <select class="tb" id="voiceSel" title="Reading voice"></select>
+    <button class="tb" id="readAll">▶️ Hear the whole text</button>
+    <button class="tb" id="resetRead">↺ Clear my ticks</button>
+  </div>
+  <div class="roundbar">
+    <div class="round" id="r1"><div class="rt2">Round 1 · tap what you need</div><div class="rn" id="r1n">0 / 3 paragraphs</div></div>
+    <div class="round" id="r2"><div class="rt2">Round 2 · no tapping</div><div class="rn" id="r2n">0 / 3 paragraphs</div></div>
+  </div>
+  <div id="story"></div>
+  <div class="done-note" id="doneNote">🎉 Both rounds done! Now read the last paragraph out loud to Mum or Dad —
+    and see if they can tell you what <span class="zh">能干</span> means.</div>
+</section>
+
+<!-- ============ 2. radicals ============ -->
+<section id="s-zi">
+  <h2>✋ The hand family <span class="cnt" id="ziCnt"></span></h2>
+  <p class="lead">This text is full of <b>hands</b>. Learn the radical once and a whole row of characters
+     comes with it — that works far better than learning seventeen separate pinyin spellings.</p>
+
+  <div class="fam">
+    <h3>✋ <span class="big">扌</span> — the hand radical</h3>
+    Everything you do <b>with your hands</b> gets this radical on the left:
+    <span class="big">拉</span> pull · <span class="big">摘</span> pick · <span class="big">拾</span> gather up ·
+    <span class="big">把</span> hold/grip. And <span class="big">拿</span> (to take) has a whole
+    <span class="big">手</span> — a hand — sitting underneath it. See <span class="big">扌</span> → think hand.
+    <div class="pairs">
+      <div class="pair"><div class="two"><b>拾</b> vs 给</div>
+        Look-alike shapes, different left side: <span class="zh">拾</span> is 扌 (hand) — you gather things up
+        with hands. <span class="zh">给</span> is 纟 (silk thread) — giving a gift.</div>
+      <div class="pair"><div class="two"><b>摘</b> vs 滴</div>
+        <span class="zh">摘</span> is 扌 (hand) — you pick vegetables with your hand.
+        <span class="zh">滴</span> is 氵 (water) — a drop of water.</div>
+      <div class="pair"><div class="two"><b>篮</b> vs 蓝</div>
+        <span class="zh">篮</span> has ⺮ (bamboo) on top, because baskets are woven from bamboo.
+        <span class="zh">蓝</span> has 艹 (grass) — it is the colour blue.</div>
+      <div class="pair"><div class="two"><b>跑</b></div>
+        The left side is <span class="zh">⻊</span>, a foot. Any character with a foot beside it is about
+        going somewhere: <span class="zh">跑</span> run · <span class="zh">跳</span> jump · <span class="zh">路</span> road.</div>
+    </div>
+  </div>
+
+  <p class="lead">Tap a card to check yourself, then mark it ✓ or ✗. Your marks are saved on this device.</p>
+  <div class="toolbar">
+    <button class="tb" id="showAll">👀 Show all pinyin</button>
+    <button class="tb" id="hideAll">🙈 Cover all</button>
+    <button class="tb warn" id="onlyAgain">🔁 Only “practise” ones</button>
+    <button class="tb" id="resetZi">↺ Clear my marks</button>
+  </div>
+  <div class="bar"><div id="ziBar"></div></div>
+  <div class="tally" id="ziTally"></div>
+  <div class="grid" id="ziGrid"></div>
+
+  <h2 style="margin-top:24px;">🧩 Which radical? <span class="cnt">· 10 characters</span></h2>
+  <p class="lead">No pinyin needed — just look at the shape and say what part of the character tells you
+     what it is about.</p>
+  <div id="sortGame"></div>
+  <div class="tally" id="sortTally"></div>
+</section>
+
+<!-- ============ 3. listen & choose ============ -->
+<section id="s-listen">
+  <h2>🔊 Listen, then choose the character <span class="cnt">· 10 words</span></h2>
+  <p class="lead">Press ▶ to hear the word — <b>no pinyin on the screen</b>. Your ears give you the sound,
+     and you have to find the shape that goes with it. Press ▶ as many times as you like.</p>
+  <div class="toolbar">
+    <button class="tb" id="playAllL">▶️ Hear all ten once</button>
+    <button class="tb" id="resetL">↺ Start these again</button>
+  </div>
+  <div id="listen"></div>
+  <div class="tally" id="lTally"></div>
+  <div class="why hide" id="lNoVoice">🔇 No Chinese voice on this device — each question now shows the word
+    in characters instead, so you can still practise by covering the answer with your hand.</div>
+</section>
+
+<!-- ============ 4. gap-fill ============ -->
+<section id="s-cloze">
+  <h2>✏️ Put the words back <span class="cnt">· 7 sentences · 21 gaps</span></h2>
+  <p class="lead">Tap a gap, then tap the word that belongs in it. Stuck? The <b>💡 hint</b> button gives you
+     the radical first, then the first letter, and only then the full pinyin. Try to finish a sentence
+     before you use a hint — the harder your brain works now, the better it sticks.</p>
+  <div class="toolbar">
+    <button class="tb" id="resetCloze">↺ Empty every gap</button>
+  </div>
+  <div class="tally" id="clTally"></div>
+  <div id="cloze"></div>
+</section>
+
+<!-- ============ 5. doubles & 把 ============ -->
+<section id="s-double">
+  <h2>🌿 Doubled words <span class="cnt">· 4 from the text</span></h2>
+  <p class="lead">Chinese loves saying a word twice. It makes things sound softer, livelier, or more complete.
+     These four are all in the text.</p>
+  <div class="dbl" id="dblBox"></div>
+  <p class="lead" style="margin-top:14px;">Say each one out loud, then try to make your own:
+     <span class="zh">红红的</span> (red-red), <span class="zh">高高的</span> (tall-tall),
+     <span class="zh">认认真真</span> (really carefully). Can you find one more AABB word yourself?</p>
+
+  <h2 style="margin-top:24px;">🧺 The <span class="zh">把</span> sentence <span class="cnt">· 3 to rebuild</span></h2>
+  <p class="lead">A <span class="zh">把</span> sentence tells you <b>what happened to the thing</b>.
+     The pattern is always the same: <b>who + <span class="zh">把</span> + the thing + what was done to it</b>.
+     From the text: <span class="zh">小朋友<b>把</b>小菜篮拿好。</span> · <span class="zh">大家<b>把</b>菜全部收完。</span>
+     Tap the pieces in the right order.</p>
+  <div id="baBox"></div>
+</section>
+
+<!-- ============ 6. order & test ============ -->
+<section id="s-test">
+  <h2>🏁 What happened first? <span class="cnt">· 6 steps</span></h2>
+  <p class="lead">The time words do the work here: <span class="zh">快快</span> ·
+     <span class="zh">没一会儿</span> ·
+     <span class="zh">常常</span>. Tap the steps in the order they happen in the text.</p>
+  <div class="ord" id="orderBox"></div>
+  <div class="tally" id="ordTally"></div>
+  <button class="tb" id="resetOrd" style="margin-top:10px;">↺ Try the order again</button>
+
+  <h2 style="margin-top:26px;">📝 The test <span class="cnt" id="testCnt"></span></h2>
+  <p class="lead">This part is <b>marked</b> and goes to the parent console. Answer every question, then press
+     the button at the bottom. Whatever you score, the green note under each question tells you how to
+     remember it next time.</p>
+  <div id="quiz"></div>
+  <button class="submit" id="submitBtn" onclick="finishQuiz()">Hand in the test</button>
+  <div class="scorebox" id="scorebox"></div>
+  <button class="tb" id="resetBtn" onclick="resetQuiz()" style="margin-top:12px; display:none;">↺ Start over</button>
+</section>
+
+<a class="home" href="index.html">← Back to the Quiz Hub</a>
+</div>
+
+<script>
+/* ==================================================================
+   《收菜》 — a review page for the teacher's homework sheet.
+   Pinyin is hidden by default everywhere; it is only ever a last-resort
+   hint, so the kids practise recalling the character, not reading pinyin.
+   All explanations are in English (house rule for the Chinese pages).
+   ================================================================== */
+
+/* ---- the 17 characters the teacher marked, in the order they appear ---- */
+const ZI = [
+  {hz:"奶", py:"nǎi",  bits:"女 woman + 乃",      en:"grandma",              ci:"奶奶 grandma"},
+  {hz:"拿", py:"ná",   bits:"合 + 手 hand below",  en:"to take, to hold",     ci:"拿好 hold it properly"},
+  {hz:"跑", py:"pǎo",  bits:"⻊ foot + 包",        en:"to run",               ci:"跑来 run over"},
+  {hz:"篮", py:"lán",  bits:"⺮ bamboo on top",    en:"basket",               ci:"菜篮 vegetable basket"},
+  {hz:"摘", py:"zhāi", bits:"扌 hand + 啇",        en:"to pick (fruit, veg)", ci:"摘菜 pick vegetables"},
+  {hz:"拾", py:"shí",  bits:"扌 hand + 合",        en:"to gather up (said lightly in 收拾: shōushi)", ci:"收拾 tidy up"},
+  {hz:"全", py:"quán", bits:"人 person + 王",      en:"whole, complete",      ci:"全部 all of it"},
+  {hz:"部", py:"bù",   bits:"咅 + 阝 on the right", en:"part, section",       ci:"全部 all of it"},
+  {hz:"刚", py:"gāng", bits:"冈 + 刂 knife",       en:"just now",             ci:"刚才 a moment ago"},
+  {hz:"空", py:"kōng", bits:"穴 cave + 工",        en:"empty",                ci:"空空的 bare, empty"},
+  {hz:"变", py:"biàn", bits:"亦 above + 又 hand",  en:"to change, to become", ci:"变得 became"},
+  {hz:"得", py:"de",   bits:"彳 step + 旦 + 寸",   en:"(links a verb to how it was done)", ci:"变得干净 became clean"},
+  {hz:"净", py:"jìng", bits:"冫 ice + 争",         en:"clean",                ci:"干干净净 spotless"},
+  {hz:"夸", py:"kuā",  bits:"大 big + 亏",         en:"to praise",            ci:"夸大家 praise everyone"},
+  {hz:"能", py:"néng", bits:"厶 + 月 + 匕匕",      en:"can, able to",         ci:"能干 capable, good at things"},
+  {hz:"新", py:"xīn",  bits:"亲 + 斤 axe",         en:"new",                  ci:"新鲜 fresh"},
+  {hz:"鲜", py:"xiān", bits:"鱼 fish + 羊 sheep",  en:"fresh, tasty",         ci:"新鲜 fresh"}
+];
+
+/* ---- the text: {字|pinyin} draws hidden pinyin above the character,
+        [word] marks one of the teacher's green words ---- */
+const STORY = [
+  {cn:"今天天气真好，小朋友[要]去菜园[收]菜。{奶|nǎi}{奶|nǎi}[请]小朋友[进]菜园[帮]忙[干活]。小朋友[快快]{跑|pǎo}[来]，[把]小菜{篮|lán}{拿|ná}好。",
+   en:"The weather is lovely today, and the children are going to the vegetable garden to bring in the vegetables. Grandma asks them to come into the garden and help with the work. The children come running, and take a good hold of their little baskets."},
+  {cn:"他们[拉]着小{篮|lán}子，[又]{摘|zhāi}菜、[又]收{拾|shi}。[没]一会儿，大家[就][把]菜{全|quán}{部|bù}[收完]。[{刚|gāng}才]还{空|kōng}{空|kōng}的菜地，[这回]{变|biàn}{得|de}干干{净|jìng}净。",
+   en:"They pull their little baskets along, picking vegetables and tidying as they go. In no time at all, everyone has brought in every last vegetable. The garden bed that was bare a moment ago is now spotless."},
+  {cn:"{奶|nǎi}{奶|nǎi}[常常]{夸|kuā}大家{能|néng}干，[给]乖乖的小朋友[送]了{新|xīn}{鲜|xiān}青菜！",
+   en:"Grandma often tells them how capable they are, and she gives the well-behaved children some fresh green vegetables!"}
+];
+
+/* ---- radical sorting game ---- */
+const SORT = [
+  {hz:"摘", ans:"扌", opts:["扌 hand","氵 water","艹 grass","⺮ bamboo"],
+   why:"扌 is the hand radical. You pick vegetables with your hand — 摘菜."},
+  {hz:"拾", ans:"扌", opts:["扌 hand","纟 silk","口 mouth","⻊ foot"],
+   why:"扌 again — gathering things up is hand work. Careful with 给 (to give), which takes 纟 instead."},
+  {hz:"拉", ans:"扌", opts:["扌 hand","立 stand","⻊ foot","木 wood"],
+   why:"扌 hand. You pull a basket with your hand — 拉着小篮子."},
+  {hz:"篮", ans:"⺮", opts:["⺮ bamboo","艹 grass","木 wood","皿 dish"],
+   why:"⺮ bamboo, on top. Baskets used to be woven from bamboo. 蓝 (blue) has 艹 instead."},
+  {hz:"跑", ans:"⻊", opts:["⻊ foot","扌 hand","勹 wrap","日 sun"],
+   why:"⻊ foot, on the left. Feet take you places: 跑 run, 跳 jump, 路 road."},
+  {hz:"菜", ans:"艹", opts:["艹 grass","⺮ bamboo","木 wood","米 rice"],
+   why:"艹 grass, on top. Anything that grows leafy takes it: 菜 vegetable, 花 flower, 草 grass."},
+  {hz:"奶", ans:"女", opts:["女 woman","力 strength","乃 also","子 child"],
+   why:"女 woman, on the left. Family words for women take it: 奶奶 grandma, 妈妈 mum, 姐姐 big sister."},
+  {hz:"鲜", ans:"鱼", opts:["鱼 fish","角 horn","田 field","米 rice"],
+   why:"鱼 fish sits on the left and 羊 sheep on the right — the two tastiest foods the old writers knew."},
+  {hz:"空", ans:"穴", opts:["穴 cave","工 work","八 eight","宀 roof"],
+   why:"穴 is a cave or hollow, on top. A hollow is empty inside — 空空的菜地."},
+  {hz:"请", ans:"讠", opts:["讠 speech","青 green","氵 water","日 sun"],
+   why:"讠 is the speech radical. You ask someone with words — 请 please, 说 say, 谢 thank."}
+];
+
+/* ---- listen & choose: hear the word, pick the character ---- */
+const LISTEN = [
+  {say:"菜篮，小菜篮", target:"篮", word:"菜篮", en:"vegetable basket",
+   opts:["篮","蓝","监","览"],
+   why:"篮 — the one with ⺮ bamboo on top, because a basket is woven from bamboo. 蓝 with 艹 is the colour blue."},
+  {say:"摘菜", target:"摘", word:"摘菜", en:"to pick vegetables",
+   opts:["摘","滴","敌","商"],
+   why:"摘 — 扌 hand on the left, because picking is done by hand. 滴 with 氵 is a drop of water."},
+  {say:"收拾", target:"拾", word:"收拾", en:"to tidy up",
+   opts:["拾","给","抬","合"],
+   why:"拾 — 扌 hand plus 合. 给 looks close but starts with 纟 silk and means to give."},
+  {say:"跑来，快快跑来", target:"跑", word:"跑来", en:"to come running",
+   opts:["跑","泡","抱","包"],
+   why:"跑 — ⻊ foot on the left, because running is done with feet. All four share 包 on the right."},
+  {say:"奶奶", target:"奶", word:"奶奶", en:"grandma",
+   opts:["奶","妈","姐","好"],
+   why:"奶 — 女 woman plus 乃. All four have 女, so listen for the sound: nǎi, not mā or jiě."},
+  {say:"全部", target:"部", word:"全部", en:"all of it",
+   opts:["部","陪","倍","培"],
+   why:"部 — all four share 咅, so look at the other side: 部 has 阝 on the right. 陪 has 阝 on the left, 倍 has 亻 and 培 has 土. 全部 means every last one."},
+  {say:"空空的菜地", target:"空", word:"空空", en:"bare, empty",
+   opts:["空","穿","突","究"],
+   why:"空 — 穴 cave on top of 工. All four have 穴; 工 underneath is the part that says kōng."},
+  {say:"变得干干净净", target:"变", word:"变得", en:"became",
+   opts:["变","弯","蛮","恋"],
+   why:"变 means to change. All four have the same top, so look underneath: 变 has 又, a hand. 弯 has 弓, 蛮 has 虫 and 恋 has 心."},
+  {say:"夸大家能干", target:"夸", word:"夸", en:"to praise",
+   opts:["夸","夺","夹","奇"],
+   why:"夸 — 大 big on top of 亏. 夺 (to snatch), 夹 (to squeeze) and 奇 (strange) are all built on 大 too, so check the rest: only 夸 has 亏."},
+  {say:"新鲜青菜", target:"鲜", word:"新鲜", en:"fresh",
+   opts:["鲜","解","鱼","羊"],
+   why:"鲜 — fish 鱼 next to sheep 羊. 解 is made of 角 horn, 刀 knife and 牛 ox — no 鱼 at all."}
+];
+
+/* ---- gap-fill: the text with the teacher's green words taken out ---- */
+const CLOZE = [
+  {tpl:"今天天气真好，小朋友_0_去菜园_1_菜。", parts:["要","收"],
+   en:"The weather is lovely today, and the children are going to the garden to bring in the vegetables."},
+  {tpl:"奶奶_0_小朋友_1_菜园_2__3_。", parts:["请","进","帮忙","干活"],
+   en:"Grandma asks the children to come into the garden and help with the work."},
+  {tpl:"小朋友_0_跑_1_，_2_小菜篮拿好。", parts:["快快","来","把"],
+   en:"The children come running, and take a good hold of their little baskets."},
+  {tpl:"他们_0_着小篮子，_1_摘菜、_2_收拾。", parts:["拉","又","又"],
+   en:"They pull their little baskets along, picking vegetables and tidying as they go."},
+  {tpl:"_0_一会儿，大家_1_把菜全部收_2_。", parts:["没","就","完"],
+   en:"In no time at all, everyone has brought in every last vegetable."},
+  {tpl:"_0_还空空的菜地，_1_变得干干净净。", parts:["刚才","这回"],
+   en:"The garden bed that was bare a moment ago is now spotless."},
+  {tpl:"奶奶_0_夸大家_1_，_2_乖乖的小朋友_3_了新鲜青菜！", parts:["常常","能干","给","送"],
+   en:"Grandma often tells them how capable they are, and gives the well-behaved children fresh greens."}
+];
+
+/* hint ladder for every word that can go in a gap: radical → first letter → full pinyin */
+const HINTS = {
+  "要":["The top is 覀, the bottom is 女","y…","yào — to want to, to be going to"],
+  "收":["The right side is 攵, a hand holding a stick","sh…","shōu — to bring in, to gather"],
+  "请":["讠 on the left — you do it with words","q…","qǐng — to ask someone politely"],
+  "进":["辶 underneath — it is about moving","j…","jìn — to go in, to enter"],
+  "帮忙":["忙 has 忄, the heart radical","b… m…","bāng máng — to help out"],
+  "干活":["活 has 氵 water on the left","g… h…","gàn huó — to do the work"],
+  "快快":["快 has 忄, the heart radical","k… k…","kuài kuài — quickly, in a hurry"],
+  "来":["A single character, no radical to split off","l…","lái — to come"],
+  "把":["扌 hand on the left","b…","bǎ — marks the thing something is done to"],
+  "拉":["扌 hand on the left, 立 on the right","l…","lā — to pull"],
+  "又":["Two strokes only — it is a hand shape itself","y…","yòu — and also (又…又… = both … and …)"],
+  "没":["氵 water on the left","m…","méi — not, none"],
+  "就":["京 on the left, 尤 on the right","j…","jiù — right then, straight away"],
+  "完":["宀 roof on top, 元 underneath","w…","wán — finished, done"],
+  "刚才":["刚 has 刂, a knife, on the right","g… c…","gāng cái — a moment ago"],
+  "这回":["这 has 辶 underneath","zh… h…","zhè huí — this time, now"],
+  "常常":["The top is the same as the top of 尚, the bottom is 巾 cloth","ch… ch…","cháng cháng — often"],
+  "能干":["能 has 月 at the bottom left","n… g…","néng gàn — capable, good at things"],
+  "给":["纟 silk on the left — giving a gift","g…","gěi — to give (to someone)"],
+  "送":["辶 underneath — something travels to someone","s…","sòng — to give as a present, to send"]
+};
+
+/* ---- doubled words ---- */
+const DOUBLES = [
+  {w:"快快", ty:"AA", mn:"quickly — 快 said twice makes it livelier"},
+  {w:"空空", ty:"AA", mn:"bare and empty — you can almost see the empty bed"},
+  {w:"干干净净", ty:"AABB", mn:"spotless — 干净 doubled means completely clean"},
+  {w:"乖乖", ty:"AA", mn:"well-behaved — 乖 doubled sounds affectionate"}
+];
+
+/* ---- 把 sentences to rebuild ---- */
+const BA = [
+  {from:"小朋友拿好了小菜篮。", en:"The children took hold of their little baskets.",
+   answer:["小朋友","把","小菜篮","拿好"],
+   extra:["拉着"],
+   why:"who + 把 + the thing + what was done to it. The verb goes last, and it needs something after it (拿<b>好</b>)."},
+  {from:"大家收完了菜。", en:"Everyone brought in all the vegetables.",
+   answer:["大家","把","菜","收完"],
+   extra:["摘"],
+   why:"Same pattern. 收<b>完</b> — the 完 is what tells you the job was finished."},
+  {from:"奶奶送给小朋友新鲜青菜。", en:"Grandma gave the children fresh green vegetables.",
+   answer:["奶奶","把","新鲜青菜","送给小朋友"],
+   extra:["夸"],
+   why:"The thing being moved (新鲜青菜) goes after 把, and the person it goes to rides along with the verb."}
+];
+
+/* ---- order the story ---- */
+const ORDER = [
+  {tx:"今天天气真好，小朋友要去菜园收菜。", en:"a lovely day, and there are vegetables to bring in"},
+  {tx:"奶奶请小朋友进菜园帮忙干活。",       en:"Grandma asks them in to help"},
+  {tx:"小朋友快快跑来，把小菜篮拿好。",     en:"快快 — they come running"},
+  {tx:"他们拉着小篮子，又摘菜、又收拾。",   en:"the work itself"},
+  {tx:"没一会儿，大家就把菜全部收完。",     en:"没一会儿 — it is finished"},
+  {tx:"奶奶常常夸大家能干，送了新鲜青菜。", en:"常常 — what Grandma always does afterwards"}
+];
+
+/* ---- the marked test. The answer is written at index 0 and shuffled on load. ---- */
+const QUIZ = [
+  {q:'Which radical does <b class="zh">摘</b> have, and what does it tell you?',
+   options:["扌 — it is something you do with your hand",
+            "氵 — it is something to do with water or rain",
+            "艹 — it is the name of a growing plant",
+            "⻊ — it is about going somewhere"],
+   answer:0, zhopt:false,
+   why:"扌 is the hand radical. 摘菜 is picking vegetables by hand. The lookalike 滴 has 氵 and means a drop of water."},
+
+  {q:'In the text, <b class="zh">他们拉着小篮子</b>. Which character is the basket?',
+   options:["篮","蓝","监","览"], answer:0, zhopt:true,
+   why:"篮 carries ⺮ bamboo on top, because baskets were woven from bamboo. 蓝 with 艹 on top is the colour blue."},
+
+  {q:'<b class="zh">收拾</b> and <b class="zh">送给</b> — why do 拾 and 给 look so similar but mean different things?',
+   options:["拾 starts with 扌 hand, 给 starts with 纟 silk",
+            "拾 starts with 纟 silk and 给 starts with 扌 hand",
+            "拾 starts with 亻 person, 给 with 扌 hand",
+            "They share a radical, differ on the right"],
+   answer:0, zhopt:false,
+   why:"The left-hand part is the whole difference. 拾 = 扌 hand, so it is gathering things up. 给 = 纟 silk thread, tied to gifts and giving."},
+
+  {q:'<b class="zh">小朋友快快跑来</b> — what does <b class="zh">快快</b> do to the sentence?',
+   options:["It tells you they came over in a hurry",
+            "It tells you they arrived one by one",
+            "It tells you they came over very quietly",
+            "It tells you they came back a second time"],
+   answer:0, zhopt:false,
+   why:"快 means fast, and saying it twice makes the hurry feel livelier. Doubling a word is something Chinese does a lot — 空空, 乖乖, 干干净净."},
+
+  {q:'The bed <b class="zh">变得干干净净</b>. What does doubling <b class="zh">干净</b> into <b class="zh">干干净净</b> add?',
+   options:["it makes the clean sound thorough and complete",
+            "it makes the clean sound only half finished",
+            "it means the bed got cleaned two separate times",
+            "it means two beds were cleaned, not one"],
+   answer:0, zhopt:false,
+   why:"干净 is a two-character word, and doubling both halves (AABB) makes it sound complete — spotless. 快快, 空空 and 乖乖 double a single character instead, which is the AA pattern."},
+
+  {q:'<b class="zh">大家就把菜全部收完。</b> What does the <b class="zh">把</b> tell you?',
+   options:["what was done to the vegetables",
+            "who owns the vegetables",
+            "where the vegetables came from",
+            "when the vegetables were picked"],
+   answer:0, zhopt:false,
+   why:"A 把 sentence puts the thing right after 把, then says what happened to it. Here the vegetables were 收完 — brought in, all of them."},
+
+  {q:'Rewrite <b class="zh">小朋友拿好了小菜篮。</b> as a 把 sentence.',
+   options:["小朋友把小菜篮拿好了。",
+            "小朋友把拿好了小菜篮。",
+            "把小朋友小菜篮拿好。",
+            "小菜篮把小朋友拿好了。"],
+   answer:0, zhopt:true,
+   why:"The order is: who + 把 + the thing + what was done. 把 sits in front of the thing (小菜篮), never in front of the verb or the person."},
+
+  {q:'<b class="zh">又摘菜、又收拾</b> — what is the 又…又… pattern for?',
+   options:["doing two things at the same time",
+            "doing the same thing a second time",
+            "doing one thing very slowly",
+            "choosing between two things"],
+   answer:0, zhopt:false,
+   why:"又…又… links two things happening together: picking and tidying at the same time. On its own, 又 can mean “again”, but the doubled pattern means “both … and …”."},
+
+  {q:'Put these in the order they happen in the text.',
+   options:["奶奶请小朋友 → 小朋友跑来 → 菜全部收完 → 奶奶夸大家",
+            "小朋友跑来 → 奶奶请小朋友 → 奶奶夸大家 → 菜全部收完",
+            "菜全部收完 → 奶奶请小朋友 → 小朋友跑来 → 奶奶夸大家",
+            "奶奶夸大家 → 奶奶请小朋友 → 小朋友跑来 → 菜全部收完"],
+   answer:0, zhopt:false,
+   why:"Grandma invites them, they run over, the work gets finished, and the praise comes last. The little words carry the order: 快快 → 没一会儿 → 常常."},
+
+  {q:'<b class="zh">刚才还空空的菜地，这回变得干干净净。</b> What changed?',
+   options:["it was bare earth before, and now it is tidied up",
+            "it was muddy before, and now it has been watered",
+            "it was dry before, and now it has been planted with seeds",
+            "it was small before, and now it has been made much bigger"],
+   answer:0, zhopt:false,
+   why:"刚才 means a moment ago and 这回 means this time, so the sentence compares two moments. Once the vegetables were picked the bed was 空空 — bare. After the tidying (收拾) it is 干干净净 — spotless."},
+
+  {q:'<b class="zh">奶奶常常夸大家能干。</b> What does <b class="zh">能干</b> mean here?',
+   options:["good at getting a job done well",
+            "willing to work for a long time",
+            "quick at learning something new",
+            "happy to be asked for help"],
+   answer:0, zhopt:false,
+   why:"能 means can or able, and 干 here means to do work — so 能干 describes someone who is capable. Grandma is praising how well they did the job."},
+
+  {q:'Which character is the <b class="zh">xiān</b> in <b class="zh">新鲜青菜</b>?',
+   options:["鲜","解","羊","鱼"], answer:0, zhopt:true,
+   why:"鲜 is fish 鱼 beside sheep 羊 — the two tastiest things the old writers could think of, so the character came to mean fresh. 鱼 and 羊 on their own are just the fish and the sheep."}
+];
+
+/* ================= helpers ================= */
+const $ = id => document.getElementById(id);
+function memGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function memSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function shuffled(a){ const x=a.slice();
+  for(let i=x.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]]; } return x; }
+const ZI_KEY='shoucai_zi_v1', READ_KEY='shoucai_read_v1', VOICE_KEY='shoucai_voice', SLOW_KEY='shoucai_slow';
+
+/* ================= reading voice ================= */
+let zhVoices=[], chosenVoice=null, slow = memGet(SLOW_KEY)==='1';
+const NOVELTY=/Bells|Bubbles|Jester|Organ|Trinoids|Whisper|Zarvox|Bahh|Boing|Wobble|Superstar|Cellos|Good News|Bad News/i;
+function rankVoice(v){
+  const n=v.name, l=v.lang||'';
+  if(/Google/i.test(n) && /普通话|zh-CN/i.test(n+l)) return 0;
+  if(/Ting-?ting/i.test(n)) return 1;
+  if(l==='zh-CN' && !NOVELTY.test(n)) return 2;
+  if(/^zh/i.test(l) && !NOVELTY.test(n)) return 3;
+  return 4;
+}
+function loadVoices(){
+  if(!('speechSynthesis' in window)) return;
+  const all=window.speechSynthesis.getVoices();
+  zhVoices=all.filter(v=>/^zh/i.test(v.lang)||/Chinese|普通话|中文/i.test(v.name));
+  zhVoices.sort((a,b)=>rankVoice(a)-rankVoice(b)||a.name.localeCompare(b.name));
+  const sel=$('voiceSel');
+  if(!zhVoices.length){ sel.innerHTML='<option>(no Chinese voice found)</option>'; noVoiceFallback(); return; }
+  const saved=memGet(VOICE_KEY);
+  chosenVoice=zhVoices.find(v=>v.name===saved)||zhVoices[0];
+  sel.innerHTML=zhVoices.map(v=>{
+    const r=rankVoice(v), tag=r===0?' ⭐best':(r===1?' ✅works offline':'');
+    return '<option value="'+v.name.replace(/"/g,'&quot;')+'">'+v.name+tag+'</option>';
+  }).join('');
+  sel.value=chosenVoice.name;
+}
+/* No Chinese voice on this device: section 3 would be unanswerable, so show the word instead. */
+function noVoiceFallback(){
+  $('lNoVoice').classList.remove('hide');
+  document.querySelectorAll('#listen .wordfb').forEach(e=>e.classList.remove('hide'));
+}
+if('speechSynthesis' in window){ loadVoices(); window.speechSynthesis.onvoiceschanged=loadVoices; }
+else { setTimeout(noVoiceFallback,0); }
+$('voiceSel').addEventListener('change', e=>{
+  chosenVoice=zhVoices.find(v=>v.name===e.target.value)||chosenVoice;
+  memSet(VOICE_KEY, e.target.value); speak('小朋友去菜园收菜');
+});
+function paintSlow(){ $('slowBtn').classList.toggle('on',slow); $('slowBtn').textContent = slow?'🐢 Slow: on':'🐢 Slow: off'; }
+$('slowBtn').addEventListener('click',()=>{ slow=!slow; memSet(SLOW_KEY,slow?'1':'0'); paintSlow(); speak('把小菜篮拿好'); });
+paintSlow();
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN'; u.rate = slow?0.6:0.85;
+    if(chosenVoice) u.voice=chosenVoice;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ================= 1. read the text ================= */
+/* {字|pinyin} → tappable ruby (pinyin hidden) · [word] → the teacher's green words */
+function render(p){
+  return p.replace(/\{([^|]+)\|([^}]+)\}/g,(m,hz,py)=>'<ruby>'+hz+'<rt>'+py+'</rt></ruby>')
+          .replace(/\[([^\]]+)\]/g,(m,w)=>'<span class="keyw">'+w+'</span>');
+}
+function plain(p){ return p.replace(/\{([^|]+)\|([^}]+)\}/g,'$1').replace(/\[([^\]]+)\]/g,'$1'); }
+
+let readState;
+try{ readState = JSON.parse(memGet(READ_KEY)||'null'); }catch(e){ readState=null; }
+if(!readState || !readState.r1 || readState.r1.length!==STORY.length)
+  readState = {r1:STORY.map(()=>false), r2:STORY.map(()=>false)};
+
+$('story').innerHTML = STORY.map((p,i)=>
+  '<div class="para">'
+  + '<div class="pact">'
+  +   '<button class="sp" data-say="'+i+'">🔊 hear</button>'
+  +   '<button class="tick" data-r="1" data-i="'+i+'">round 1</button>'
+  +   '<button class="tick" data-r="2" data-i="'+i+'">round 2</button>'
+  + '</div>'
+  + '<div class="pbody"><div class="ptxt">'+render(p.cn)+'</div>'
+  +   '<div class="ptr">'+p.en+'</div></div>'
+  + '</div>').join('');
+
+function paintRead(){
+  document.querySelectorAll('.tick').forEach(b=>{
+    b.classList.toggle('on', readState['r'+b.dataset.r][+b.dataset.i]);
+  });
+  const a=readState.r1.filter(Boolean).length, b=readState.r2.filter(Boolean).length;
+  $('r1n').textContent=a+' / '+STORY.length+' paragraphs';
+  $('r2n').textContent=b+' / '+STORY.length+' paragraphs';
+  $('r1').classList.toggle('done', a===STORY.length);
+  $('r2').classList.toggle('done', b===STORY.length);
+  $('doneNote').classList.toggle('show', a===STORY.length && b===STORY.length);
+  memSet(READ_KEY, JSON.stringify(readState));
+}
+$('story').addEventListener('click', ev=>{
+  const s=ev.target.closest('[data-say]');
+  if(s){ speak(plain(STORY[+s.dataset.say].cn)); return; }
+  const t=ev.target.closest('.tick');
+  if(t){ readState['r'+t.dataset.r][+t.dataset.i]=!readState['r'+t.dataset.r][+t.dataset.i]; paintRead(); return; }
+  const r=ev.target.closest('ruby');
+  if(r){ r.classList.toggle('peek'); if(r.classList.contains('peek')) speak(r.firstChild.textContent); }
+});
+$('resetRead').addEventListener('click',()=>{
+  if(!confirm('Clear all the read-aloud ticks?')) return;
+  readState={r1:STORY.map(()=>false), r2:STORY.map(()=>false)}; paintRead();
+});
+$('readAll').addEventListener('click',()=>speak(STORY.map(p=>plain(p.cn)).join('')));
+
+let showPy=false, showTr=true;
+$('pyToggle').addEventListener('click',()=>{
+  showPy=!showPy;
+  document.body.classList.toggle('showpy', showPy);
+  $('pyToggle').classList.toggle('on', showPy);
+  $('pyToggle').textContent = showPy?'🔤 Pinyin: showing':'🔤 Pinyin: hidden';
+});
+$('trToggle').addEventListener('click',()=>{
+  showTr=!showTr;
+  document.body.classList.toggle('notr', !showTr);
+  $('trToggle').classList.toggle('on', showTr);
+  $('trToggle').textContent = showTr?'🇬🇧 English: showing':'🇬🇧 English: hidden';
+});
+paintRead();
+
+/* ================= 2. character cards ================= */
+let ziState = {};
+try{ ziState = JSON.parse(memGet(ZI_KEY)||'{}'); }catch(e){ ziState={}; }
+let onlyAgain=false;
+$('ziCnt').textContent = '· '+ZI.length+' new characters';
+
+function drawZi(){
+  $('ziGrid').innerHTML = ZI.map((z,i)=>{
+    const st = ziState[z.hz]||'';
+    return '<div class="zi '+(st==='y'?'know':st==='n'?'again':'')+'" data-i="'+i+'">'
+      + '<span class="mk">'+(st==='y'?'✓':st==='n'?'✗':'')+'</span>'
+      + '<div class="hz">'+z.hz+'</div>'
+      + '<div class="bits">'+esc(z.bits)+'</div>'
+      + '<div class="py">'+z.py+'</div>'
+      + '<div class="en">'+esc(z.en)+'</div>'
+      + '<div class="ci zh">'+z.ci+'</div>'
+      + '<div class="row"><button class="y" data-mk="y" data-i="'+i+'">✓ got it</button>'
+      +   '<button class="n" data-mk="n" data-i="'+i+'">✗ practise</button></div>'
+      + '</div>';
+  }).join('');
+  applyFilter(); paintZiTally();
+}
+function applyFilter(){
+  document.querySelectorAll('#ziGrid .zi').forEach(el=>{
+    const hz = ZI[+el.dataset.i].hz;
+    el.classList.toggle('hide', onlyAgain && ziState[hz]!=='n');
+  });
+  $('onlyAgain').classList.toggle('on', onlyAgain);
+}
+function paintZiTally(){
+  const y=ZI.filter(z=>ziState[z.hz]==='y').length;
+  const n=ZI.filter(z=>ziState[z.hz]==='n').length;
+  $('ziBar').style.width=(y/ZI.length*100)+'%';
+  $('ziTally').innerHTML='✓ Got it: <b style="color:#4a7c3f">'+y+'</b> · ✗ Still practising: <b style="color:#c0392b">'+n+'</b> · Not tried yet: '+(ZI.length-y-n);
+}
+$('ziGrid').addEventListener('click', ev=>{
+  const mk = ev.target.closest('[data-mk]');
+  if(mk){
+    const z=ZI[+mk.dataset.i];
+    ziState[z.hz] = (ziState[z.hz]===mk.dataset.mk) ? '' : mk.dataset.mk;
+    memSet(ZI_KEY, JSON.stringify(ziState));
+    const card=mk.closest('.zi');
+    card.classList.toggle('know', ziState[z.hz]==='y');
+    card.classList.toggle('again', ziState[z.hz]==='n');
+    card.querySelector('.mk').textContent = ziState[z.hz]==='y'?'✓':ziState[z.hz]==='n'?'✗':'';
+    paintZiTally(); if(onlyAgain) applyFilter();
+    return;
+  }
+  const card = ev.target.closest('.zi');
+  if(card){
+    card.classList.toggle('open');
+    if(card.classList.contains('open')) speak(ZI[+card.dataset.i].hz);
+  }
+});
+$('showAll').addEventListener('click',()=>document.querySelectorAll('#ziGrid .zi').forEach(e=>e.classList.add('open')));
+$('hideAll').addEventListener('click',()=>document.querySelectorAll('#ziGrid .zi').forEach(e=>e.classList.remove('open')));
+$('onlyAgain').addEventListener('click',()=>{ onlyAgain=!onlyAgain; applyFilter(); });
+$('resetZi').addEventListener('click',()=>{
+  if(!confirm('Clear every ✓ and ✗ mark?')) return;
+  ziState={}; memSet(ZI_KEY,'{}'); onlyAgain=false; drawZi();
+});
+drawZi();
+
+/* ---- radical sorting game ---- */
+SORT.forEach(it=>{ it._opts = shuffled(it.opts); });
+let sortDone=0, sortRight=0;
+$('sortGame').innerHTML = SORT.map((it,i)=>
+  '<div class="sortq" id="sq'+i+'">'
+  + '<span class="big zh">'+it.hz+'</span>'
+  + '<div class="chips">'+it._opts.map((o,j)=>
+      '<button class="chip" data-s="'+i+'" data-o="'+j+'"><span class="zh">'+o.split(' ')[0]+'</span> '+esc(o.split(' ').slice(1).join(' '))+'</button>').join('')+'</div>'
+  + '<div class="why hide" id="sw'+i+'"></div>'
+  + '</div>').join('');
+function paintSortTally(){
+  $('sortTally').innerHTML='Answered <b>'+sortDone+'</b> of '+SORT.length+' · right first time: <b style="color:#4a7c3f">'+sortRight+'</b>';
+}
+paintSortTally();
+$('sortGame').addEventListener('click', ev=>{
+  const b=ev.target.closest('.chip'); if(!b||b.disabled) return;
+  const si=+b.dataset.s, it=SORT[si];
+  const box=$('sq'+si); box.querySelectorAll('.chip').forEach(x=>x.disabled=true);
+  const ok = it._opts[+b.dataset.o].split(' ')[0]===it.ans;
+  b.classList.add(ok?'right':'wrong');
+  if(!ok) box.querySelectorAll('.chip').forEach(x=>{
+    if(it._opts[+x.dataset.o].split(' ')[0]===it.ans) x.classList.add('right');
+  });
+  const w=$('sw'+si); w.className='why'+(ok?' ok':'');
+  w.innerHTML=(ok?'✅ ':'💡 It is <b class="zh">'+it.ans+'</b>. ')+esc(it.why);
+  speak(it.hz);
+  sortDone++; if(ok) sortRight++; paintSortTally();
+});
+
+/* ================= 3. listen & choose ================= */
+LISTEN.forEach(it=>{ it._opts = shuffled(it.opts); });
+let lDone=0, lRight=0;
+function drawListen(){
+  lDone=0; lRight=0;
+  $('listen').innerHTML = LISTEN.map((it,i)=>
+    '<div class="lq" id="lq'+i+'">'
+    + '<div class="head">'
+    +   '<span class="qn">Word '+(i+1)+'</span>'
+    +   '<button class="say" data-l="'+i+'">▶ hear it again</button>'
+    +   '<span class="qn wordfb hide"><span class="zh" style="font-size:1.3rem">'+it.word+'</span></span>'
+    + '</div>'
+    + '<div class="opts">'+it._opts.map((o,j)=>
+        '<button class="btn" data-l="'+i+'" data-o="'+j+'">'+o+'</button>').join('')+'</div>'
+    + '<div class="why hide" id="lw'+i+'"></div>'
+    + '</div>').join('');
+  if(!zhVoices.length && 'speechSynthesis' in window && window.speechSynthesis.getVoices().length) noVoiceFallback();
+  paintLTally();
+}
+function paintLTally(){
+  $('lTally').innerHTML='Answered <b>'+lDone+'</b> of '+LISTEN.length+' · right first time: <b style="color:#4a7c3f">'+lRight+'</b>';
+}
+drawListen();
+$('listen').addEventListener('click', ev=>{
+  const s=ev.target.closest('.say');
+  if(s){ speak(LISTEN[+s.dataset.l].say); return; }
+  const b=ev.target.closest('.btn'); if(!b||b.disabled) return;
+  const li=+b.dataset.l, it=LISTEN[li];
+  const box=$('lq'+li); box.querySelectorAll('.btn').forEach(x=>x.disabled=true);
+  const ok = it._opts[+b.dataset.o]===it.target;
+  b.classList.add(ok?'right':'wrong');
+  if(!ok) box.querySelectorAll('.btn').forEach(x=>{ if(it._opts[+x.dataset.o]===it.target) x.classList.add('right'); });
+  const w=$('lw'+li); w.className='why'+(ok?' ok':'');
+  w.innerHTML=(ok?'✅ ':'💡 ')+'<b class="zh">'+it.word+'</b> — '+esc(it.en)+'. '+esc(it.why);
+  speak(it.say);
+  lDone++; if(ok) lRight++; paintLTally();
+});
+$('playAllL').addEventListener('click',()=>speak(LISTEN.map(x=>x.word).join('。')));
+$('resetL').addEventListener('click',()=>{ LISTEN.forEach(it=>{ it._opts=shuffled(it.opts); }); drawListen(); });
+
+/* ================= 4. gap-fill with a hint ladder ================= */
+let clSel = null;          // {s, g} — the gap waiting for a word
+let clFill = CLOZE.map(s=>s.parts.map(()=>null));
+let clHint = CLOZE.map(s=>s.parts.map(()=>0));
+let hintsUsed = 0, clRight = 0;
+
+function clozeSentence(s, si){
+  return CLOZE[si].tpl.replace(/_(\d+)_/g,(m,gi)=>{
+    const g=+gi, v=clFill[si][g];
+    return '<span class="blank" data-s="'+si+'" data-g="'+g+'">'+(v==null?'&nbsp;&nbsp;':v)+'</span>';
+  });
+}
+function drawCloze(){
+  $('cloze').innerHTML = CLOZE.map((s,si)=>{
+    const bank = shuffled(s.parts.map((p,i)=>({p:p, i:i})));
+    return '<div class="cl" id="cl'+si+'">'
+      + '<div class="sent" id="cs'+si+'">'+clozeSentence(s,si)+'</div>'
+      + '<div class="en2">'+esc(s.en)+'</div>'
+      + '<div class="wordbank">'+bank.map(b=>
+          '<button class="wd" data-s="'+si+'" data-w="'+esc(b.p)+'" data-k="'+b.i+'">'+b.p+'</button>').join('')+'</div>'
+      + '<div class="hintbar">'
+      +   '<button class="hb" data-hint="'+si+'">💡 hint</button>'
+      +   '<button class="hb" data-say2="'+si+'">🔊 hear the sentence</button>'
+      + '</div>'
+      + '<div class="hintout" id="ho'+si+'"></div>'
+      + '</div>';
+  }).join('');
+  paintClTally();
+}
+function paintClTally(){
+  const total = CLOZE.reduce((n,s)=>n+s.parts.length,0);
+  const filled = clFill.reduce((n,r)=>n+r.filter(x=>x!=null).length,0);
+  $('clTally').innerHTML='Gaps filled: <b>'+filled+'</b> / '+total
+    + ' · right first time: <b style="color:#4a7c3f">'+clRight+'</b>'
+    + ' · hints used: <b style="color:#b8874a">'+hintsUsed+'</b>';
+}
+function repaintSentence(si){
+  $('cs'+si).innerHTML = clozeSentence(CLOZE[si], si);
+  document.querySelectorAll('#cs'+si+' .blank').forEach(el=>{
+    const g=+el.dataset.g;
+    if(clFill[si][g]!=null) el.classList.add('filled');
+    if(clSel && clSel.s===si && clSel.g===g) el.classList.add('on');
+  });
+}
+drawCloze();
+
+$('cloze').addEventListener('click', ev=>{
+  const bl=ev.target.closest('.blank');
+  if(bl){
+    const si=+bl.dataset.s, g=+bl.dataset.g;
+    if(clFill[si][g]!=null){                      // tapping a filled gap empties it again
+      const w=clFill[si][g]; clFill[si][g]=null;
+      const btn=document.querySelector('#cl'+si+' .wd.used[data-w="'+CSS.escape(w)+'"]');
+      if(btn) btn.classList.remove('used');
+    }
+    clSel={s:si,g:g}; repaintSentence(si); paintClTally(); return;
+  }
+  const wd=ev.target.closest('.wd');
+  if(wd && !wd.classList.contains('used')){
+    const si=+wd.dataset.s, word=wd.dataset.w;
+    let g = (clSel && clSel.s===si) ? clSel.g : clFill[si].findIndex(x=>x==null);
+    if(g<0 || clFill[si][g]!=null) g = clFill[si].findIndex(x=>x==null);
+    if(g<0) return;
+    const ok = CLOZE[si].parts[g]===word;
+    if(ok){
+      clFill[si][g]=word; wd.classList.add('used');
+      if(clHint[si][g]===0) clRight++;
+      clSel=null; repaintSentence(si);
+      if(clFill[si].every(x=>x!=null)) speak(CLOZE[si].tpl.replace(/_(\d+)_/g,(m,i)=>clFill[si][+i]));
+    }else{
+      repaintSentence(si);
+      const el=document.querySelector('#cs'+si+' .blank[data-g="'+g+'"]');
+      if(el){ el.classList.add('bad'); el.textContent=word; setTimeout(()=>repaintSentence(si), 700); }
+    }
+    paintClTally(); return;
+  }
+  const hb=ev.target.closest('[data-hint]');
+  if(hb){
+    const si=+hb.dataset.hint;
+    let g = (clSel && clSel.s===si) ? clSel.g : clFill[si].findIndex(x=>x==null);
+    if(g<0){ $('ho'+si).className='hintout show'; $('ho'+si).textContent='This sentence is already full — nice work.'; return; }
+    const word = CLOZE[si].parts[g];
+    const ladder = HINTS[word] || ['Look at the shape of the word','—',word];
+    const lvl = Math.min(clHint[si][g], ladder.length-1);
+    clHint[si][g] = Math.min(clHint[si][g]+1, ladder.length);
+    hintsUsed++;
+    const tag = ['① radical','② first letter','③ full pinyin'][lvl] || 'hint';
+    $('ho'+si).className='hintout show';
+    $('ho'+si).innerHTML = '<b>'+tag+' · gap '+(g+1)+':</b> '
+      + (lvl===2 ? '<span class="py2">'+esc(ladder[lvl])+'</span>' : esc(ladder[lvl]))
+      + (lvl<2 ? ' <span style="opacity:.7">— press 💡 again if you still need more.</span>' : '');
+    clSel={s:si,g:g}; repaintSentence(si); paintClTally(); return;
+  }
+  const sy=ev.target.closest('[data-say2]');
+  if(sy){
+    const si=+sy.dataset.say2;
+    speak(CLOZE[si].tpl.replace(/_(\d+)_/g,(m,i)=>clFill[si][+i] || CLOZE[si].parts[+i]));
+  }
+});
+$('resetCloze').addEventListener('click',()=>{
+  clFill=CLOZE.map(s=>s.parts.map(()=>null));
+  clHint=CLOZE.map(s=>s.parts.map(()=>0));
+  hintsUsed=0; clRight=0; clSel=null; drawCloze();
+});
+
+/* ================= 5. doubles & 把 ================= */
+$('dblBox').innerHTML = DOUBLES.map(d=>
+  '<div class="dcard"><div class="w zh">'+d.w+'</div><div class="ty">'+d.ty+'</div>'
+  + '<div class="mn">'+esc(d.mn)+'</div></div>').join('');
+$('dblBox').addEventListener('click', ev=>{
+  const c=ev.target.closest('.dcard'); if(c) speak(c.querySelector('.w').textContent);
+});
+
+let baSlots = BA.map(()=>[]);
+function drawBa(){
+  $('baBox').innerHTML = BA.map((b,i)=>{
+    const toks = shuffled(b.answer.concat(b.extra));
+    return '<div class="ba" id="ba'+i+'">'
+      + '<div class="from">Plain sentence: <span class="zh">'+b.from+'</span></div>'
+      + '<div class="en2">'+esc(b.en)+'</div>'
+      + '<div class="slots" id="bs'+i+'" data-b="'+i+'"></div>'
+      + '<div class="wordbank" id="bt'+i+'">'+toks.map((t,j)=>
+          '<button class="tok" data-b="'+i+'" data-t="'+esc(t)+'">'+t+'</button>').join('')+'</div>'
+      + '<div class="why hide" id="bw'+i+'"></div>'
+      + '</div>';
+  }).join('');
+  BA.forEach((b,i)=>paintBa(i));
+}
+function paintBa(i){
+  const slot=$('bs'+i);
+  slot.innerHTML = baSlots[i].map(t=>'<button class="tok inslot" data-b="'+i+'" data-rm="'+esc(t)+'">'+t+'</button>').join('')
+    || '<span style="color:#89806a;font-size:.85rem;align-self:center">tap the pieces below, in order</span>';
+  document.querySelectorAll('#bt'+i+' .tok').forEach(el=>{
+    const n = baSlots[i].filter(x=>x===el.dataset.t).length;
+    el.classList.toggle('used', n>0);
+  });
+  const b=BA[i], done = baSlots[i].length===b.answer.length;
+  slot.classList.remove('ok','no');
+  const w=$('bw'+i);
+  if(done){
+    const ok = baSlots[i].join('')===b.answer.join('');
+    slot.classList.add(ok?'ok':'no');
+    w.className='why'+(ok?' ok':'');
+    w.innerHTML=(ok?'✅ ':'💡 It should be <b class="zh">'+b.answer.join('')+'。</b> ')+b.why;
+    if(ok) speak(b.answer.join(''));
+  } else { w.className='why hide'; w.innerHTML=''; }
+}
+drawBa();
+$('baBox').addEventListener('click', ev=>{
+  const rm=ev.target.closest('[data-rm]');
+  if(rm){ const i=+rm.dataset.b; const k=baSlots[i].lastIndexOf(rm.dataset.rm);
+    if(k>=0) baSlots[i].splice(k,1); paintBa(i); return; }
+  const t=ev.target.closest('.tok'); if(!t||t.classList.contains('used')) return;
+  const i=+t.dataset.b;
+  if(baSlots[i].length>=BA[i].answer.length) return;
+  baSlots[i].push(t.dataset.t); paintBa(i);
+});
+
+/* ================= 6a. order the story ================= */
+let ordPick=[];
+function drawOrder(){
+  const sh = shuffled(ORDER.map((o,i)=>({o:o,i:i})));
+  $('orderBox').innerHTML = sh.map(x=>
+    '<div class="ostep" data-i="'+x.i+'">'
+    + '<div class="num2"></div>'
+    + '<div class="tx">'+x.o.tx+'<div class="en2" style="margin:2px 0 0">'+esc(x.o.en)+'</div></div>'
+    + '</div>').join('');
+  ordPick=[]; paintOrd();
+}
+function paintOrd(){
+  document.querySelectorAll('.ostep').forEach(el=>{
+    const k=ordPick.indexOf(+el.dataset.i);
+    el.classList.toggle('picked', k>=0);
+    el.querySelector('.num2').textContent = k>=0 ? (k+1) : '';
+    el.classList.remove('right','wrong');
+  });
+  if(ordPick.length===ORDER.length){
+    let n=0;
+    document.querySelectorAll('.ostep').forEach(el=>{
+      const i=+el.dataset.i, k=ordPick.indexOf(i);
+      const ok = k===i; if(ok) n++;
+      el.classList.add(ok?'right':'wrong');
+    });
+    $('ordTally').innerHTML = n===ORDER.length
+      ? '<b style="color:#4a7c3f">✅ All six in the right order.</b> The time words told you everything you needed.'
+      : '<b style="color:#c0392b">'+n+' / '+ORDER.length+' in the right place.</b> Read the text once more and look for 快快 · 没一会儿 · 常常, then try again.';
+  } else {
+    $('ordTally').textContent = ordPick.length+' / '+ORDER.length+' placed';
+  }
+}
+$('orderBox').addEventListener('click', ev=>{
+  const el=ev.target.closest('.ostep'); if(!el) return;
+  if(ordPick.length===ORDER.length) return;
+  const i=+el.dataset.i, k=ordPick.indexOf(i);
+  if(k>=0) ordPick.splice(k,1); else ordPick.push(i);
+  paintOrd();
+});
+$('resetOrd').addEventListener('click', drawOrder);
+drawOrder();
+
+/* ================= 6b. the marked test ================= */
+/* options are shuffled on load, so position never gives the answer away */
+QUIZ.forEach(function(it){
+  var correct = it.options[it.answer];
+  for (var i = it.options.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = it.options[i]; it.options[i] = it.options[j]; it.options[j] = t;
+  }
+  it.answer = it.options.indexOf(correct);
+});
+
+var picks = QUIZ.map(function(){ return -1; });
+var locked = false;
+var PASS_PCT = 75, PASS_N = Math.ceil(QUIZ.length * PASS_PCT / 100);
+$('testCnt').textContent = '· '+QUIZ.length+' questions · pass mark '+PASS_PCT+'%';
+
+$('quiz').innerHTML = QUIZ.map(function(it,i){
+  var opts = it.options.map(function(o,j){
+    return '<div class="opt'+(it.zhopt?' zhopt':'')+'" id="o'+i+'_'+j+'" onclick="pick('+i+','+j+')">'+o+'</div>';
+  }).join('');
+  return '<div class="qcard">'
+    + '<span class="n">Question '+(i+1)+'</span>'
+    + '<div class="qt">'+it.q+'</div>'
+    + '<div class="topts">'+opts+'</div>'
+    + '<div class="why" id="w'+i+'"></div>'
+    + '</div>';
+}).join('');
+
+function pick(i,j){
+  if (locked) return;
+  picks[i] = j;
+  for (var k=0;k<QUIZ[i].options.length;k++){
+    document.getElementById('o'+i+'_'+k).classList.toggle('pick', k===j);
+  }
+}
+
+function finishQuiz(){
+  if (locked) return;
+  var blank = [];
+  picks.forEach(function(p,i){ if (p < 0) blank.push(i+1); });
+  if (blank.length){
+    alert('There are still ' + blank.length + ' question(s) with no answer: ' + blank.join(', ') +
+          '.\n\nEvery blank counts as wrong, so go back and pick something first.');
+    return;
+  }
+  locked = true;
+  var score = 0;
+  QUIZ.forEach(function(it,i){
+    for (var k=0;k<it.options.length;k++){
+      var el = document.getElementById('o'+i+'_'+k);
+      el.classList.remove('pick'); el.classList.add('locked');
+      if (k === it.answer) el.classList.add('right');
+      else if (k === picks[i]) el.classList.add('wrong');
+    }
+    var w = document.getElementById('w'+i);
+    w.classList.add('show');
+    if (picks[i] === it.answer){ score++; w.innerHTML = '<strong>✅ Correct.</strong> ' + it.why; }
+    else { w.innerHTML = '<strong>❌ The right answer is the green one.</strong> ' + it.why; }
+  });
+  var pct = Math.round(score / QUIZ.length * 100);
+  var pass = pct >= PASS_PCT;
+  var box = $('scorebox');
+  box.className = 'scorebox show' + (pass ? '' : ' fail');
+  box.innerHTML = '<div class="pct">' + pct + '%</div>'
+    + '<div class="sub2">' + score + ' right out of ' + QUIZ.length + ' · the pass mark is ' + PASS_PCT + '% (' + PASS_N + ' correct)</div>'
+    + '<div class="verdict">' + (pass ? '🎉 Passed!' : 'Not passed yet — ' + (PASS_N - score) + ' more needed') + '</div>'
+    + '<div class="sub2">' + (pass
+        ? 'These characters are yours now. Read the whole text out loud once more with the pinyin hidden, and you are done.'
+        : 'That is completely fine. Go back to the hand family at the top, mark the characters you missed with ✗, and read them a few times before you press “Start over”.')
+    + '</div>';
+  $('resetBtn').style.display='block';
+  $('submitBtn').textContent = 'Test handed in';
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function resetQuiz(){
+  locked = false;
+  picks = QUIZ.map(function(){ return -1; });
+  QUIZ.forEach(function(it,i){
+    for (var k=0;k<it.options.length;k++){
+      document.getElementById('o'+i+'_'+k).className = 'opt'+(it.zhopt?' zhopt':'');
+    }
+    var w = document.getElementById('w'+i); w.className='why'; w.innerHTML='';
+  });
+  $('scorebox').className='scorebox';
+  $('resetBtn').style.display='none';
+  $('submitBtn').textContent='Hand in the test';
+  $('quiz').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+/* ================= sticky tabs ================= */
+$('tabs').addEventListener('click', ev=>{
+  const b=ev.target.closest('[data-go]'); if(!b) return;
+  document.getElementById(b.dataset.go).scrollIntoView({behavior:'smooth', block:'start'});
+});
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(!e.isIntersecting) return;
+    document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on', b.dataset.go===e.target.id));
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('section').forEach(s=>io.observe(s));
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
