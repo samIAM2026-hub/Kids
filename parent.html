@@ -1623,9 +1623,10 @@ const bar = document.getElementById('assignbar');
 // reviewDrafts/{ID}, which kids can't read, so the kid only ever sees what a parent sent.
 // A note is { s, e, quote, kind, fix, note } on characters s..e of the text (JS/writing-review.js draws them).
 const WR_MAX = 60;
-let WR = { list:null, err:'', loading:false, kid:'all', cur:'', editing:false, diff:false, setup:false,
+let WR = { list:null, drafts:{}, err:'', loading:false, kid:'all', cur:'', editing:false, diff:false, setup:false,
            ed:null, sel:null, aiBusy:false };
-const WHO_ZH = { dad:'爸爸', mom:'妈妈' };
+// by 'claude': marked from the chat window on Sam's Mac (homework-system/writing-review.mjs), no API key.
+const WHO_ZH = { dad:'爸爸', mom:'妈妈', claude:'Claude' };
 const WR_KIND = { fix:'要改', good:'写得好', note:'批注' };
 const meAs = () => auth.currentUser && auth.currentUser.email === MOM_EMAIL ? 'mom' : 'dad';
 const wrCur = () => (WR.list || []).find(w=>w.id===WR.cur);
@@ -1633,7 +1634,9 @@ const wrCur = () => (WR.list || []).find(w=>w.id===WR.cur);
 async function loadWritings(){
   WR.loading = true; WR.err = '';
   try {
-    const snap = await db.collection('writings').orderBy('submittedAt','desc').limit(WR_MAX).get();
+    const [snap, dr] = await Promise.all([db.collection('writings').orderBy('submittedAt','desc').limit(WR_MAX).get(),
+                                          db.collection('reviewDrafts').get()]);   // a handful at most: parent-only drafts
+    WR.drafts = Object.fromEntries(dr.docs.map(d=>[d.id, d.data()]));
     WR.list = snap.docs.map(d=>{ const w = d.data();
       return Object.assign({}, w, { id:d.id, kid:kidOf(w.kidId), at:tsDate(w.submittedAt) }); }).filter(w=>w.kid);
   } catch(e){ console.error(e); WR.err = '读作文失败：' + (e.code||e.message); }
@@ -1657,7 +1660,8 @@ function viewEssay(){
     <p class="seclead">孩子在 Writing Lab 里写完交上来的作文。点一篇进去批改：在原文里选中一段写批注，最后打分、写总评，点「发给他」孩子才看得到。Reading Club 那边的作文在「阅读写作」。</p>
     <details class="hguide" data-guide="essay"${guideOpen('essay')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li><b>批改</b>：在原文里<b>选中一段 → 点「＋ 批注」</b>，选「要改 / 写得好 / 批注」，写「改成」和说明。孩子那边看到的是他自己的原文，被批的地方标颜色，点一下跳到批注。</li>
-      <li><b>🤖 让 Claude 先出草稿</b>：Claude 读一遍，按 ISEE / SSAT 阅卷人的口径出一版批注、总评和分数，<b>只有你看得到</b>，删改完再发。要这台设备上存过 Claude 的 key（「⚙︎ Claude 设置」里贴一次）。</li>
+      <li><b>不用 API key 的办法</b>：在 Mac 上的 Claude 对话里说「<b>批改 Warren 的作文</b>」，Claude 批好会放到这里，那篇写着「Claude 批好了 · 等你发」，点开看一眼、点「发给」就行。</li>
+      <li><b>🤖 让 Claude 先出草稿</b>（按钮）：Claude 读一遍，按 ISEE / SSAT 阅卷人的口径出一版批注、总评和分数，<b>只有你看得到</b>，删改完再发。要这台设备上存过 Claude 的 key（「⚙︎ Claude 设置」里贴一次）。</li>
       <li><b>分数</b> 1–6：6 出色 · 5 强 · 4 扎实 · 3 在进步 · 2 弱 · 1 刚开头。可以不打。不是百分比，也不套 ${PASS}% 的达标线。</li>
       <li>批到一半的会<b>自动存成草稿</b>，爸爸妈妈看到的是同一份，换台设备接着批也行。</li>
       <li>孩子收到后可以交<b>第 2 稿</b>，第 2 稿会连着上一稿，打开时能看两稿对比。</li>
@@ -1681,7 +1685,10 @@ function viewEssay(){
 const seenText = w => w.seenAt ? `孩子 ${stamp(tsDate(w.seenAt))} 看过` : '孩子还没看';
 function essayRow(w){
   const r = w.review;
-  const st = w.status!=='reviewed' ? `<span class="chipst st-open">待批改</span>`
+  const dr = WR.drafts[w.id];
+  const st = w.status!=='reviewed'
+    ? (dr && dr.by==='claude' ? `<span class="chipst st-prac">Claude 批好了 · 等你发</span>`
+       : dr ? `<span class="chipst st-open">批了一半</span>` : `<span class="chipst st-open">待批改</span>`)
     : `<span class="chipst st-done">${WHO_ZH[r && r.by]||''}批了${r && r.score ? ' · '+r.score+'/6' : ''}</span><span class="seen">${seenText(w)}</span>`;
   return `<button class="esrow" data-wid="${esc(w.id)}"><span class="who">${KID[w.kid].av}</span>
     <span class="sm"><span class="p">${esc(w.prompt)}</span>
@@ -1906,7 +1913,7 @@ async function wrSend(){
   const b = db.batch();
   b.update(db.doc('writings/'+w.id), { status:'reviewed', review, seenAt: firebase.firestore.FieldValue.delete() });
   b.delete(db.doc('reviewDrafts/'+w.id));
-  try { await b.commit(); }
+  try { await b.commit(); delete WR.drafts[w.id]; }
   catch(e){ console.error(e); ed.dirty = true; toast('没发出去：' + (e.code||e.message) + '，批改还在草稿里', true); return; }
   // The attempt carries the score for 完成记录 / 今日作业. If that fails the marking is still sent.
   db.doc('attempts/'+w.attemptId).update({ 'practice.firstTry': ed.score, 'practice.reviewed': true })
