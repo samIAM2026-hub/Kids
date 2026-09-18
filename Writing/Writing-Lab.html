@@ -319,6 +319,7 @@ var ROUNDS = PROMPTS.map(function (p) {
 });
 var round = 0;
 var solvedFirst = 0;
+var REPORT_WRITING = null;   // set just around finish(); quiz-report.js sends it to `writings`
 
 /* ---------- small helpers ---------- */
 function $(id){ return document.getElementById(id); }
@@ -491,7 +492,12 @@ function gradeNow(){
     renderFeedback(rec);
     show('fb');
     solvedFirst = Math.round(Number(fb.overall) || 0);   // read by quiz-report.js
-    finish();                                            // records the attempt
+    // The text + marking go to Firestore `writings` next to the attempt, so the parent page can
+    // read them. The rules cap text at 20000 characters (30 minutes of typing is ~4000).
+    REPORT_WRITING = { pid: p.id, prompt: p.t, promptKind: p.kind, text: text.slice(0, 20000),
+      words: rec.words, secs: secs, pasted: pasted, fb: fb, model: KidsAI.getModel(), reportVersion: 1 };
+    finish();                                            // records the attempt (+ the writing)
+    REPORT_WRITING = null;
   }).catch(function (e){
     $('gradebtn').disabled = false;
     $('gradebtn').textContent = "I'm done — mark it";

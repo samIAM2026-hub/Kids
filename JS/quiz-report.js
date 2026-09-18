@@ -245,6 +245,8 @@
       //   startLevel(lvl) … endGame()   globals firstTryOK, total, currentLvl
       //   startTyping()   … endTyping() globals firstTryOK, total
       //   startRound(r)   … finish()    globals solvedFirst, round, ROUNDS[r].items / .name
+      // A page may also set REPORT_WRITING (the Writing Lab: the kid's text + the marking) before
+      // finish(); it goes to writings/{same ID as the attempt}, after the attempt itself.
       name: 'practice',
       pairs: [['startLevel', 'endGame'], ['startTyping', 'endTyping'], ['startRound', 'finish']],
       pair: function () {
@@ -261,9 +263,11 @@
           var first = peek('firstTryOK'), items = peek('total'), lvl = peek('currentLvl');
           if (typeof first !== 'number') first = peek('solvedFirst');
           if (typeof items !== 'number') items = r && r.items ? r.items.length : null;
+          var writing = peek('REPORT_WRITING');
           submit({
             kind: 'practice',
-            practice: { round: r ? r.name || '' : typeof lvl === 'string' ? lvl : '', firstTry: first, items: items }
+            practice: { round: r ? r.name || '' : typeof lvl === 'string' ? lvl : '', firstTry: first, items: items },
+            writing: writing && typeof writing === 'object' ? writing : null
           });
         });
       }
@@ -439,6 +443,7 @@
       adapter: adapter ? adapter.name : 'viewed', reportVersion: 2
     };
     if (result.practice) rec.practice = result.practice;
+    if (result.writing) rec.writing = result.writing;
 
     // Stamp the kid who is signed in at the moment of submitting (not when the page opened —
     // they may have switched); nobody signed in (a parent previewing) → drop it.
@@ -451,6 +456,15 @@
       console.info('[quiz-report] recorded', rec.kind, rec.pct == null ? '' : rec.pct + '%');
       flush();
     }).catch(function (e) { console.warn('[quiz-report] Firebase unavailable — not recorded', e); });
+  }
+
+  // Kids may only create. If an earlier send already landed (and the page closed before the
+  // queue was cleared), the retry is refused — check it's there, then treat it as sent.
+  function createOnce(ref, data) {
+    return ref.set(data).catch(function (e) {
+      if (e.code !== 'permission-denied') throw e;
+      return ref.get().then(function (d) { if (!d.exists) throw e; });
+    });
   }
 
   var flushing = false;
@@ -469,12 +483,18 @@
             startedAt: firebase.firestore.Timestamp.fromMillis(r.startedAtMs),
             submittedAt: firebase.firestore.Timestamp.fromMillis(r.submittedAtMs)
           });
-          delete data.localId; delete data.startedAtMs; delete data.submittedAtMs;
-          return ref.set(data).catch(function (e) {
-            // Kids may only create attempts. If an earlier send already landed (and the page closed
-            // before the queue was cleared), the retry is refused — check it's there, then drop it.
-            if (e.code !== 'permission-denied') throw e;
-            return ref.get().then(function (d) { if (!d.exists) throw e; });
+          delete data.localId; delete data.startedAtMs; delete data.submittedAtMs; delete data.writing;
+          return createOnce(ref, data).then(function () {
+            if (!r.writing) return;
+            // Rules: same ID as the attempt, and that attempt must already be this kid's.
+            return createOnce(fb.db.collection('writings').doc(r.localId), Object.assign({}, r.writing, {
+              kidId: r.kidId, itemId: r.itemId, attemptId: r.localId, submittedAt: data.submittedAt
+            })).catch(function (e) {
+              // Refused for what's in it (a shape Firestore can't store, or the rules said no): retrying
+              // can't fix that, and a stuck record would hold back every later one. The attempt is in.
+              if (e.code !== 'permission-denied' && e.code !== 'invalid-argument') throw e;
+              console.warn('[quiz-report] writing not stored:', e.code);
+            });
           }).then(function () {
             writeQueue(readQueue().filter(function (x) { return x.localId !== r.localId; }));
           });
