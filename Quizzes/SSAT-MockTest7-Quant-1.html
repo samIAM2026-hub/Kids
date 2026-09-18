@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 7 · Quantitative 1</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #2f6f5e; --accent-soft: #d5e7e0;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 7 &middot; Section 1</div>
+    <h1>Quantitative 1 (Questions 1&ndash;25)</h1>
+    <div class="meta">25 questions &middot; 30 minutes &middot; about 72 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">30:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 7 &middot; <a href="SSAT-MockTest7-Index.html">All sections</a> &middot; <a href="index.html">Quiz hub</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Quantitative 1",
+ "items": [
+  {
+   "n": 1,
+   "stem": "If <i>N</i> + 5 = 5, then <i>N</i> =",
+   "opts": [
+    "0",
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\">1</span><span style=\"display:block;padding:0 4px\">5</span></span>",
+    "1",
+    "5",
+    "10"
+   ],
+   "ans": 0,
+   "why": "Whatever you add to 5 and still end up with 5 has to be <b>nothing at all</b>. Subtract 5 from both sides: <i>N</i> = 5 &minus; 5 = <b>0</b>. The trap is (D) &mdash; 5 is a number printed in the question, not the answer to it."
+  },
+  {
+   "n": 2,
+   "stem": "If two dozen balloons are divided equally among eight children, how many balloons does each child get?",
+   "opts": [
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+   ],
+   "ans": 1,
+   "why": "A dozen is 12, so <b>two dozen is 24</b>. 24 &divide; 8 = <b>3</b>. Almost every wrong answer here comes from forgetting to turn &ldquo;two dozen&rdquo; into 24 first."
+  },
+  {
+   "type": "passage",
+   "label": "Questions 3&ndash;4",
+   "html": "<p><b>Questions 3&ndash;4</b> are based on the graph that shows the progress of a nonstop hike on a trail up to the top of a mountain that is 500 meters above sea level.</p><div style='text-align:center'><svg viewBox=\"0 0 420 262\" role=\"img\" aria-label=\"Line graph: altitude 100 m at 0 hours, 200 m from half an hour to 1 hour, 300 m at 2 hours, 400 m from 2.5 to 3.5 hours, 500 m at 4 hours.\"><line x1=\"70\" y1=\"174\" x2=\"390\" y2=\"174\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><text x=\"62\" y=\"178\" font-size=\"12\" text-anchor=\"end\" font-family=\"Georgia\">100</text><line x1=\"70\" y1=\"138\" x2=\"390\" y2=\"138\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><text x=\"62\" y=\"142\" font-size=\"12\" text-anchor=\"end\" font-family=\"Georgia\">200</text><line x1=\"70\" y1=\"102\" x2=\"390\" y2=\"102\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><text x=\"62\" y=\"106\" font-size=\"12\" text-anchor=\"end\" font-family=\"Georgia\">300</text><line x1=\"70\" y1=\"66\" x2=\"390\" y2=\"66\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><text x=\"62\" y=\"70\" font-size=\"12\" text-anchor=\"end\" font-family=\"Georgia\">400</text><line x1=\"70\" y1=\"30\" x2=\"390\" y2=\"30\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><text x=\"62\" y=\"34\" font-size=\"12\" text-anchor=\"end\" font-family=\"Georgia\">500</text><line x1=\"70\" y1=\"30\" x2=\"70\" y2=\"210\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><text x=\"70\" y=\"228\" font-size=\"13\" text-anchor=\"middle\" font-family=\"Georgia\">0</text><line x1=\"150\" y1=\"30\" x2=\"150\" y2=\"210\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><text x=\"150\" y=\"228\" font-size=\"13\" text-anchor=\"middle\" font-family=\"Georgia\">1</text><line x1=\"230\" y1=\"30\" x2=\"230\" y2=\"210\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><text x=\"230\" y=\"228\" font-size=\"13\" text-anchor=\"middle\" font-family=\"Georgia\">2</text><line x1=\"310\" y1=\"30\" x2=\"310\" y2=\"210\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><text x=\"310\" y=\"228\" font-size=\"13\" text-anchor=\"middle\" font-family=\"Georgia\">3</text><line x1=\"390\" y1=\"30\" x2=\"390\" y2=\"210\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><text x=\"390\" y=\"228\" font-size=\"13\" text-anchor=\"middle\" font-family=\"Georgia\">4</text><line x1=\"70\" y1=\"210\" x2=\"390\" y2=\"210\" stroke=\"#1c1a17\" stroke-width=\"1.8\"/><line x1=\"70\" y1=\"210\" x2=\"70\" y2=\"24\" stroke=\"#1c1a17\" stroke-width=\"1.8\"/><polyline points=\"70,174 110,138 150,138 230,102 270,66 350,66 390,30\" fill=\"none\" stroke=\"#2f6f5e\" stroke-width=\"3\"/><text x=\"24\" y=\"120\" font-size=\"12\" font-family=\"Georgia\" transform=\"rotate(-90 24 120)\" text-anchor=\"middle\">Altitude Above Sea Level (in meters)</text><text x=\"230\" y=\"250\" font-size=\"12.5\" text-anchor=\"middle\" font-family=\"Georgia\">Time Since Start of Climb (in hours)</text></svg></div>"
+  },
+  {
+   "n": 3,
+   "stem": "How many hours did the hikers take to reach the top of the mountain?",
+   "opts": [
+    "4",
+    "3",
+    "2",
+    "1",
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\">1</span><span style=\"display:block;padding:0 4px\">2</span></span>"
+   ],
+   "ans": 0,
+   "why": "The top of the mountain is <b>500 meters</b> &mdash; the question tells you so. Run your finger along the line until it reaches 500; that happens at <b>4 hours</b>. The flat parts in the middle are rests, not the finish."
+  },
+  {
+   "n": 4,
+   "stem": "The hikers&rsquo; altitude at the end of the hike up the mountain was how many meters greater than it was at the start of the hike?",
+   "opts": [
+    "100",
+    "200",
+    "300",
+    "400",
+    "500"
+   ],
+   "ans": 3,
+   "why": "The hike <i>starts</i> at 100 m, not at 0 &mdash; the trailhead is already up the mountain. End 500 &minus; start 100 = <b>400 meters</b>. Choosing (E) 500 means reading the finishing height instead of the gain."
+  },
+  {
+   "n": 5,
+   "stem": "There are 1-cent, 5-cent, 10-cent, and 25-cent coins on a table. If Edith needs exactly 36 cents, what is the least number of coins she must take?",
+   "opts": [
+    "2",
+    "3",
+    "5",
+    "6",
+    "9"
+   ],
+   "ans": 1,
+   "why": "Always start with the biggest coin: 25 leaves 11, then 10 leaves 1, then a penny. 25 + 10 + 1 = 36 &mdash; <b>3 coins</b>. There is no way to do it in two, because no two of these coins add to 36."
+  },
+  {
+   "n": 6,
+   "stem": "Which of the following numbers is divisible by 7?",
+   "opts": [
+    "742",
+    "734",
+    "730",
+    "726",
+    "722"
+   ],
+   "ans": 0,
+   "why": "700 is already 7 &times; 100, so you only have to ask which of 42, 34, 30, 26, 22 is a multiple of 7 &mdash; only <b>42</b> is. So 742 = 7 &times; 106. That shortcut saves you five long divisions."
+  },
+  {
+   "n": 7,
+   "stem": "The circle graph indicates how the average seventh-grade student spends his or her 24-hour day. Approximately how many hours does the average seventh-grade student spend on family time?",
+   "fig": "<svg viewBox=\"0 0 360 232\" role=\"img\" aria-label=\"Circle graph of a 24-hour day: 42% school, 33% sleep, 8% fun, 4% eating, and the rest family time.\"><path d=\"M 112 112 L 112.0 20.0 A 92 92 0 0 1 156.3 192.6 Z\" fill=\"#3d3a34\" stroke=\"#fffdf7\" stroke-width=\"1.5\"/><text x=\"167.2\" y=\"95.3\" font-size=\"12\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Georgia\" fill=\"#ffffff\">42%</text><text x=\"167.2\" y=\"108.3\" font-size=\"12\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Georgia\" fill=\"#ffffff\">School</text><path d=\"M 112 112 L 156.3 192.6 A 92 92 0 0 1 20.0 112.0 Z\" fill=\"#2f2c27\" stroke=\"#fffdf7\" stroke-width=\"1.5\"/><text x=\"83.0\" y=\"158.6\" font-size=\"12\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Georgia\" fill=\"#ffffff\">33%</text><text x=\"83.0\" y=\"171.6\" font-size=\"12\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Georgia\" fill=\"#ffffff\">Sleep</text><path d=\"M 112 112 L 20.0 112.0 A 92 92 0 0 1 31.4 67.7 Z\" fill=\"#cfcabb\" stroke=\"#fffdf7\" stroke-width=\"1.5\"/><path d=\"M 112 112 L 31.4 67.7 A 92 92 0 0 1 44.9 49.0 Z\" fill=\"#6f6a5e\" stroke=\"#fffdf7\" stroke-width=\"1.5\"/><path d=\"M 112 112 L 44.9 49.0 A 92 92 0 0 1 112.0 20.0 Z\" fill=\"#fffdf7\" stroke=\"#fffdf7\" stroke-width=\"1.5\"/><text x=\"89.3\" y=\"57.2\" font-size=\"12\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Georgia\" fill=\"#1c1a17\">Family</text><text x=\"89.3\" y=\"70.2\" font-size=\"12\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Georgia\" fill=\"#1c1a17\">Time</text><circle cx=\"112\" cy=\"112\" r=\"92\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.5\"/><text x=\"232\" y=\"66\" font-size=\"12\" font-family=\"Georgia\">4% Eating</text><line x1=\"228\" y1=\"62\" x2=\"150\" y2=\"42\" stroke=\"#1c1a17\" stroke-width=\"1\"/><text x=\"232\" y=\"132\" font-size=\"12\" font-family=\"Georgia\">8% Fun</text><line x1=\"228\" y1=\"128\" x2=\"40\" y2=\"118\" stroke=\"#1c1a17\" stroke-width=\"1\"/></svg>",
+   "opts": [
+    "1.3 hours",
+    "1.9 hours",
+    "2.4 hours",
+    "2.9 hours",
+    "3.1 hours"
+   ],
+   "ans": 4,
+   "why": "Family Time is the one slice with <b>no percent printed on it</b>, so find it by subtraction: 100 &minus; (42 + 33 + 8 + 4) = <b>13%</b>. Then 13% of 24 hours = 0.13 &times; 24 = 3.12 &asymp; <b>3.1 hours</b>. Answer (A) 1.3 is what you get by treating 13% as 1.3 hours and forgetting the 24."
+  },
+  {
+   "n": 8,
+   "stem": "Jules paid for a book with a $20 bill and received <i>x</i> dollars in change. Which tells how many dollars he paid for the book?",
+   "opts": [
+    "20<i>x</i>",
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\"><i>x</i></span><span style=\"display:block;padding:0 4px\">20</span></span>",
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\">20</span><span style=\"display:block;padding:0 4px\"><i>x</i></span></span>",
+    "20 + <i>x</i>",
+    "20 &minus; <i>x</i>"
+   ],
+   "ans": 4,
+   "why": "Try a number. If the change was $5, the book cost $15 &mdash; that is 20 &minus; 5. So the book costs <b>20 &minus; <i>x</i></b>. Swapping in a friendly number is the fastest way to kill an algebra-expression question."
+  },
+  {
+   "n": 9,
+   "stem": "In the addition problem above, <b>&#9632;</b> can be which of the following digits?",
+   "fig": "<div class=\"ascii\">   6 2 8\n+  4 &#9632; 7\n&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;\n1 , 1 &#9651; 5</div>",
+   "opts": [
+    "7",
+    "5",
+    "3",
+    "1",
+    "0"
+   ],
+   "ans": 0,
+   "why": "Look at the hundreds column: 6 + 4 = 10, but the answer starts <b>1,1</b>&hellip; &mdash; eleven hundreds. So the tens column must carry 1, which means 2 + &#9632; is at least 8 after its own carry: 2 + &#9632; + 1 &ge; 10, so &#9632; &ge; 7. Check it: 628 + 477 = 1,105. <b>&#9632; = 7</b> (and &#9651; = 0)."
+  },
+  {
+   "n": 10,
+   "stem": "Rose took a 3-mile walk and walked the first mile in 10 minutes. If she continued to walk at the same rate, what part of an hour did her walk take?",
+   "opts": [
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\">1</span><span style=\"display:block;padding:0 4px\">6</span></span>",
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\">1</span><span style=\"display:block;padding:0 4px\">4</span></span>",
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\">1</span><span style=\"display:block;padding:0 4px\">3</span></span>",
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\">1</span><span style=\"display:block;padding:0 4px\">2</span></span>",
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\">3</span><span style=\"display:block;padding:0 4px\">4</span></span>"
+   ],
+   "ans": 3,
+   "why": "3 miles &times; 10 minutes = <b>30 minutes</b>, and 30 out of 60 minutes is <b>&frac12; of an hour</b>. The question asks for a <i>part of an hour</i>, so the last step is always &divide; 60. Answer (A) &#8541; is the part of an hour for one mile."
+  },
+  {
+   "n": 11,
+   "stem": "A triangle has a perimeter of 57 inches. Side <i>a</i> is 3 inches shorter than twice side <i>b</i>, and side <i>c</i> is 4 inches longer than side <i>b</i>. How many inches long is side <i>a</i>?",
+   "opts": [
+    "10",
+    "14",
+    "18",
+    "24",
+    "25"
+   ],
+   "ans": 4,
+   "why": "Write everything in terms of <i>b</i>: <i>a</i> = 2<i>b</i> &minus; 3 and <i>c</i> = <i>b</i> + 4. Add them up: (2<i>b</i> &minus; 3) + <i>b</i> + (<i>b</i> + 4) = 4<i>b</i> + 1 = 57, so <i>b</i> = 14. Then <i>a</i> = 2(14) &minus; 3 = <b>25</b>. The trap is (B) &mdash; stopping at <i>b</i> and forgetting the question asked for <i>a</i>."
+  },
+  {
+   "n": 12,
+   "stem": "Joe has 80 quarters. His sister has 25 quarters, 10 nickels, and 40 dimes. How much more money does Joe have than his sister?",
+   "opts": [
+    "$4.25",
+    "$8.75",
+    "$9.25",
+    "$10.25",
+    "$13.75"
+   ],
+   "ans": 2,
+   "why": "Joe: 80 &times; $0.25 = <b>$20.00</b>. Sister: 25 &times; $0.25 = $6.25, plus 10 &times; $0.05 = $0.50, plus 40 &times; $0.10 = $4.00 &rarr; <b>$10.75</b>. $20.00 &minus; $10.75 = <b>$9.25</b>. Turn every pile into dollars before you compare &mdash; mixing coins and dollars is where this one goes wrong."
+  },
+  {
+   "n": 13,
+   "stem": "If <span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\"><i>x</i></span><span style=\"display:block;padding:0 4px\"><i>y</i></span></span> = 1 and neither <i>x</i> nor <i>y</i> equals zero, which of the following must be true?",
+   "opts": [
+    "<i>x</i> is greater than <i>y</i>",
+    "<i>y</i> is greater than <i>x</i>",
+    "<i>x</i> = <i>y</i> + 1",
+    "<i>x</i> = 1",
+    "<i>x</i> = <i>y</i>"
+   ],
+   "ans": 4,
+   "why": "A fraction equals 1 only when the top and the bottom are the <b>same number</b>: 7/7, 100/100, even (&minus;3)/(&minus;3). So <b><i>x</i> = <i>y</i></b>. Answer (D) is the trap &mdash; <i>x</i> can be anything at all, as long as <i>y</i> matches it."
+  },
+  {
+   "n": 14,
+   "stem": "At Banham School, five classes, each with 20 students, wish to form three clubs. If every student must belong to exactly one club and the membership of no club may outnumber the membership of another by more than one, what is the least possible number of students in one club?",
+   "opts": [
+    "15",
+    "20",
+    "21",
+    "33",
+    "34"
+   ],
+   "ans": 3,
+   "why": "There are 5 &times; 20 = <b>100 students</b> and 3 clubs. 100 &divide; 3 = 33 remainder 1, so the only split that keeps every club within one of the others is <b>34, 33, 33</b>. The <i>smallest</i> club therefore has <b>33</b>. Answer (E) 34 is the largest club, not the smallest."
+  },
+  {
+   "n": 15,
+   "stem": "The cost of a long-distance telephone call is <i>P</i> cents for the first three minutes and <i>Q</i> cents for each additional minute. What is the cost, in cents, of a nine-minute call?",
+   "opts": [
+    "<i>P</i> + (3 &times; <i>Q</i>)",
+    "<i>P</i> + (6 &times; <i>Q</i>)",
+    "(3 &times; <i>P</i>) + (6 &times; <i>Q</i>)",
+    "(3 &times; <i>P</i>) + (9 &times; <i>Q</i>)",
+    "9 &times; (<i>P</i> + <i>Q</i>)"
+   ],
+   "ans": 1,
+   "why": "<i>P</i> already covers the first three minutes, so only <b>9 &minus; 3 = 6</b> minutes are left to charge at <i>Q</i>: <b><i>P</i> + 6<i>Q</i></b>. Answer (A) charges for 3 extra minutes instead of 6; (C) pays <i>P</i> three times over."
+  },
+  {
+   "n": 16,
+   "stem": "Which fraction is closest to 37%?",
+   "opts": [
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\">1</span><span style=\"display:block;padding:0 4px\">4</span></span>",
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\">1</span><span style=\"display:block;padding:0 4px\">3</span></span>",
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\">3</span><span style=\"display:block;padding:0 4px\">8</span></span>",
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\">2</span><span style=\"display:block;padding:0 4px\">5</span></span>",
+    "<span style=\"display:inline-block;text-align:center;vertical-align:middle;font-size:.88em;line-height:1.15\"><span style=\"display:block;border-bottom:1.2px solid;padding:0 4px\">3</span><span style=\"display:block;padding:0 4px\">7</span></span>"
+   ],
+   "ans": 2,
+   "why": "Turn them all into decimals: &frac14; = 0.250, &#8531; = 0.333, <b>&#8540; = 0.375</b>, &#8542; = 0.400, 3/7 &asymp; 0.429. 37% is 0.37, and 0.375 misses it by only 0.005 &mdash; closer than &#8531;, which misses by 0.037. Decimals make &ldquo;closest&rdquo; questions easy; fractions make them slow."
+  },
+  {
+   "n": 17,
+   "stem": "The perimeter of a rectangle measuring 3 &times; 8 units is equal to the",
+   "opts": [
+    "area of the same rectangle in square units",
+    "perimeter of a regular pentagon with side lengths of 3 units",
+    "area of a triangle with the base length of 3 units and height of 8 units",
+    "area in square units of a rectangle measuring 2 units by 11 units",
+    "area in square units of a square measuring 22 units on a side"
+   ],
+   "ans": 3,
+   "why": "First get the target: perimeter = 2(3 + 8) = <b>22</b>. Now test each choice &mdash; area 24, pentagon perimeter 15, triangle area 12, <b>rectangle area 2 &times; 11 = 22</b>, square area 484. Only (D) lands on 22. Answer (E) is the trap: 22 is the number you want, not the side length."
+  },
+  {
+   "n": 18,
+   "stem": "Sophie is making bows for packages and uses 1.25 m of ribbon per bow. If she has 12 m and makes as many bows as possible, how much ribbon will she have left?",
+   "opts": [
+    "0.6 m",
+    "2.4 m",
+    "0.72 m",
+    "0.7 m",
+    "0.75 m"
+   ],
+   "ans": 4,
+   "why": "12 &divide; 1.25 = 9.6, and she cannot make 0.6 of a bow &mdash; so she makes <b>9 bows</b>. Those use 9 &times; 1.25 = 11.25 m, leaving 12 &minus; 11.25 = <b>0.75 m</b>. The whole question is about <i>throwing away the decimal part</i> of the answer and then finding the leftover."
+  },
+  {
+   "n": 19,
+   "stem": "What is the average of 30, &minus;30, 50, &minus;20, &minus;30, and 60?",
+   "opts": [
+    "10",
+    "60",
+    "44",
+    "12",
+    "15"
+   ],
+   "ans": 0,
+   "why": "Add them carefully: 30 &minus; 30 = 0; 0 + 50 = 50; 50 &minus; 20 = 30; 30 &minus; 30 = 0; 0 + 60 = <b>60</b>. There are <b>six</b> numbers, so 60 &divide; 6 = <b>10</b>. Answer (B) 60 is the total &mdash; the easiest thing to forget is the dividing step."
+  },
+  {
+   "n": 20,
+   "stem": "In the figure shown, if <i>ABCD</i> is a square, the length of <i>CE</i> is 3, and the length of <i>EF</i> is 5, what is the area of rectangular region <i>ABEF</i>?",
+   "fig": "<svg viewBox=\"0 0 300 200\" role=\"img\" aria-label=\"Square ABCD with rectangle CDFE attached on its right; C E measures 3 and E F measures 5.\"><rect x=\"60\" y=\"45\" width=\"100\" height=\"100\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><rect x=\"160\" y=\"45\" width=\"60\" height=\"100\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"52\" y=\"40\" font-size=\"15\" font-family=\"Georgia\" font-style=\"italic\">B</text><text x=\"154\" y=\"40\" font-size=\"15\" font-family=\"Georgia\" font-style=\"italic\">C</text><text x=\"216\" y=\"40\" font-size=\"15\" font-family=\"Georgia\" font-style=\"italic\">E</text><text x=\"52\" y=\"166\" font-size=\"15\" font-family=\"Georgia\" font-style=\"italic\">A</text><text x=\"154\" y=\"166\" font-size=\"15\" font-family=\"Georgia\" font-style=\"italic\">D</text><text x=\"216\" y=\"166\" font-size=\"15\" font-family=\"Georgia\" font-style=\"italic\">F</text><text x=\"185\" y=\"36\" font-size=\"13\" text-anchor=\"middle\" font-family=\"Georgia\">3</text><text x=\"232\" y=\"100\" font-size=\"13\" font-family=\"Georgia\">5</text></svg>",
+   "opts": [
+    "15",
+    "16",
+    "24",
+    "34",
+    "40"
+   ],
+   "ans": 4,
+   "why": "<i>EF</i> = 5 is the height of the whole rectangle, and since <i>ABCD</i> is a <b>square</b>, its side is 5 too. So the full width is <i>BC</i> + <i>CE</i> = 5 + 3 = <b>8</b>, and the area of <i>ABEF</i> is 8 &times; 5 = <b>40</b>. Answer (A) 15 is just the small piece; (C) 24 forgets the square is 5 on a side."
+  },
+  {
+   "n": 21,
+   "stem": "The value of <i>N</i> will be greatest when which of the following symbols is put in the circle above?",
+   "fig": "<div class=\"ascii\">&frac12;  &#9711;  &frac14;  =  <i>N</i></div>",
+   "opts": [
+    "+",
+    "&minus;",
+    "&times;",
+    "&divide;",
+    "The value of <i>N</i> will be the same for each of the symbols."
+   ],
+   "ans": 3,
+   "why": "Work out all four: &frac12; + &frac14; = &frac34;; &frac12; &minus; &frac14; = &frac14;; &frac12; &times; &frac14; = &#8539;; &frac12; &divide; &frac14; = &frac12; &times; 4 = <b>2</b>. Dividing wins by a mile. That is the rule worth keeping: <b>dividing by a fraction smaller than 1 makes a number bigger</b>, while multiplying by one makes it smaller."
+  },
+  {
+   "n": 22,
+   "stem": "To win the battle, Leigh Anne must give the number in <u>at most two tries</u>. Which two numbers should she give to be sure she will win?",
+   "fig": "<div style=\"display:inline-block;border:2px solid #1c1a17;border-radius:4px;padding:12px 18px;background:#fff;max-width:360px;font-family:Georgia\"><div style=\"font-variant:small-caps;letter-spacing:1px;font-size:15px;text-align:center;margin-bottom:8px\">Battle of the Math Minds</div><div style=\"font-size:14.5px\">When a number is multiplied by itself, the product is 4,096. What is the number?</div></div>",
+   "opts": [
+    "20 and 23",
+    "33 and 48",
+    "60 and 70",
+    "64 and 66",
+    "2,046 and 2,048"
+   ],
+   "ans": 3,
+   "why": "She needs the number that times itself gives 4,096 &mdash; and 64 &times; 64 = 4,096. So the winning pair has to <b>contain 64</b>, and only (D) does. You can also close in on it: 60 &times; 60 = 3,600 (too small), 70 &times; 70 = 4,900 (too big), so the answer sits between 60 and 70 &mdash; which rules out every other choice on its own."
+  },
+  {
+   "n": 23,
+   "stem": "The figure shows the dimensions of a rectangular block of wood. If the block were cut into two identical rectangular blocks, which of the following could be the dimensions, in centimeters, of each of the smaller blocks?",
+   "fig": "<svg viewBox=\"0 0 340 170\" role=\"img\" aria-label=\"A rectangular block of wood, 8 cm by 12 cm by 4 cm.\"><polygon points=\"60,110 230,110 230,140 60,140\" fill=\"#fff\" stroke=\"#1c1a17\" stroke-width=\"2\"/><polygon points=\"60,110 100,80 270,80 230,110\" fill=\"#f2efe6\" stroke=\"#1c1a17\" stroke-width=\"2\"/><polygon points=\"230,110 270,80 270,110 230,140\" fill=\"#e8e4d8\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"145\" y=\"158\" font-size=\"13\" text-anchor=\"middle\" font-family=\"Georgia\">8 cm</text><text x=\"188\" y=\"74\" font-size=\"13\" text-anchor=\"middle\" font-family=\"Georgia\">12 cm</text><text x=\"282\" y=\"102\" font-size=\"13\" font-family=\"Georgia\">4 cm</text></svg>",
+   "opts": [
+    "8 &times; 6 &times; 2",
+    "8 &times; 12 &times; 2",
+    "4 &times; 6 &times; 2",
+    "4 &times; 6 &times; 4",
+    "4 &times; 12 &times; 2"
+   ],
+   "ans": 1,
+   "why": "Cutting the block in two halves <b>exactly one</b> of its three dimensions and leaves the other two alone. From 8 &times; 12 &times; 4 the only three possibilities are 4&times;12&times;4, 8&times;6&times;4 and <b>8&times;12&times;2</b> &mdash; and only the last one is offered. The wrong answers all shrink two dimensions at once, which would throw away three-quarters of the wood."
+  },
+  {
+   "n": 24,
+   "stem": "At the end of a race, Justin finished 2 meters ahead of Alex. Bob finished ahead of Justin but behind Josh. Tom finished 5 meters ahead of Alex and 2 meters behind Bob. If they were the first five to finish the race, who finished THIRD?",
+   "opts": [
+    "Justin",
+    "Alex",
+    "Bob",
+    "Josh",
+    "Tom"
+   ],
+   "ans": 4,
+   "why": "Put Alex at 0 and measure everyone from him: Justin +2, Tom +5, Bob = Tom + 2 = +7, and Josh is ahead of Bob. Lining them up from the front: <b>Josh, Bob, Tom, Justin, Alex</b> &mdash; so third is <b>Tom</b>. Drawing the finish line and pinning one runner to zero beats trying to hold five people in your head."
+  },
+  {
+   "n": 25,
+   "stem": "Which of the following pairs of numbers does NOT have an average equal to half the average of 8 and 16?",
+   "opts": [
+    "2 and 4",
+    "4 and 8",
+    "5 and 7",
+    "6 and 6",
+    "12 and 0"
+   ],
+   "ans": 0,
+   "why": "The average of 8 and 16 is 12, and half of that is <b>6</b>. Now average each pair: <b>2 and 4 give 3</b> &mdash; not 6. Every other pair averages exactly 6. On a NOT question, work out the target number first, then hunt for the one that misses it."
+  }
+ ],
+ "count": 25
+};
+const MINUTES = 30;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

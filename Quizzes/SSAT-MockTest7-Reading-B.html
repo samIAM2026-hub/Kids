@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 7 · Reading B</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 7 &middot; Section 2, part 2</div>
+    <h1>Reading &mdash; Part B (Questions 21&ndash;40)</h1>
+    <div class="meta">4 passages &middot; 20 questions &middot; 20 minutes &middot; one minute each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">20:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 7 &middot; <a href="SSAT-MockTest7-Index.html">All sections</a> &middot; <a href="index.html">Quiz hub</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading B",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 5 &middot; Questions 21&ndash;25",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Some &ldquo;scientists&rdquo; peering through microscopes thought they saw strange things</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">which escaped their colleagues&rsquo; notice. In 1836, Andrew Crosse actually believed he saw</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">microscopic insects appearing as a by-product of his research. He had wanted to create</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">minerals artificially by sending an electrical current through certain chemicals. Crosse</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span style=\"\">recorded what he observed through his microscope&mdash;small, white projections growing</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">from an electrified stone. He observed that, after he had electrified the stone, each</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">projection became &ldquo;a perfect insect, standing erect on a few bristles which formed its</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">tail.&rdquo; Crosse reported that the smaller insects had six legs and the larger ones, eight. He</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">guessed them to be a previously unobserved specimen genus <i>Arcurus</i>, and said they flew</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span style=\"\">about the laboratory, hiding in dark spots as though avoiding light.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">In 1872, Bastian, a noted English biologist, also claimed to have witnessed</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">spontaneous development of life in his experiments. But when colleagues repeated</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">his experiments, taking precautions against bacteria in the air, the results were</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">disappointing. In 1906, Burke, using radium, thought he had developed half-living,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span style=\"\">half-crystalline forms which he called &ldquo;radiobes.&rdquo; Other scientists, however, failed to</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">confirm Burke&rsquo;s findings.</span></div></div>"
+  },
+  {
+   "n": 21,
+   "stem": "When Andrew Crosse began his experiments, he was trying to",
+   "opts": [
+    "test the reactions of the genus <i>Arcurus</i> to light",
+    "determine the number of legs characteristic of the genus <i>Arcurus</i>",
+    "prove that microscopic insects grow from electrified minerals",
+    "study certain minerals to determine their ability to conduct electrical current",
+    "produce artificial minerals through the application of electrical current to chemicals"
+   ],
+   "ans": 4,
+   "why": "The word <i>began</i> matters: what he set out to do, not what he thought he found. Line 3&ndash;4: &ldquo;He had wanted to <b>create minerals artificially</b> by sending an electrical current through certain chemicals.&rdquo; The insects were the surprise afterwards, which is why (C) is the trap."
+  },
+  {
+   "n": 22,
+   "stem": "According to the passage, Burke classified a &ldquo;radiobe&rdquo; (line 15) as which of the following?",
+   "opts": [
+    "a vegetable",
+    "an animal",
+    "a mineral",
+    "part living and part non-living",
+    "part vegetable and part animal"
+   ],
+   "ans": 3,
+   "why": "Burke&rsquo;s own words are &ldquo;<b>half-living, half-crystalline</b>&rdquo; &mdash; crystalline means mineral, and a mineral is not alive. So: part living, part not. The question is really just asking you to translate one printed phrase."
+  },
+  {
+   "n": 23,
+   "stem": "It can be inferred that the living forms that Bastian observed with his microscope were actually",
+   "opts": [
+    "radiobe specimens",
+    "members of the genus <i>Arcurus</i>",
+    "multiplying bacteria in the air",
+    "insects capable of standing on their tails",
+    "projections from the electrified stone"
+   ],
+   "ans": 2,
+   "why": "Follow what happened when others checked: colleagues repeated the experiment &ldquo;taking <b>precautions against bacteria in the air</b>&rdquo; and got nothing. If removing the airborne bacteria removes the &ldquo;life,&rdquo; then the bacteria were the life all along. That is the inference the passage sets up."
+  },
+  {
+   "n": 24,
+   "stem": "Which of the following would the author probably believe best establishes the truth or falsehood of a scientist&rsquo;s claims?",
+   "opts": [
+    "reading the scientist&rsquo;s notes",
+    "repeating the scientist&rsquo;s original experiment",
+    "checking the scientist&rsquo;s background and qualifications",
+    "examining the scientist&rsquo;s equipment for defects",
+    "studying the previous scientific investigation in the field"
+   ],
+   "ans": 1,
+   "why": "Both claims in the passage are settled the same way: colleagues <b>repeated the experiments</b>, and both times the claim collapsed. Notice (C) &mdash; Bastian was &ldquo;a noted English biologist,&rdquo; so good credentials did not save him. The author trusts the redone experiment, not the reputation."
+  },
+  {
+   "n": 25,
+   "stem": "The passage is primarily concerned with",
+   "opts": [
+    "proving that life cannot develop out of mineral matter",
+    "describing how experiments can be carefully controlled",
+    "showing how some scientists misunderstand what they see",
+    "demonstrating that amateur scientists often are more successful than professionals",
+    "criticizing scientists for failure to confirm the findings of Crosse, Bastian, and Burke"
+   ],
+   "ans": 2,
+   "why": "Three stories, one shape: a scientist looks down a microscope, believes something remarkable, and is wrong. The opening sentence is the giveaway &mdash; &ldquo;<b>thought</b> they saw strange things.&rdquo; The passage is about <b>misreading what you see</b>, not about proving a scientific fact."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 6 &middot; Questions 26&ndash;30",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Women play an important part in the Hopi society. Although Hopi political</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">leaders and warriors are traditionally men, both genders take part in storytelling, music</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">and artwork, and traditional medicine. The fields, the crops, the pueblos, belong to</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">women. Descent is traced through the women; a child belongs to its mother&rsquo;s clan.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span style=\"\">If a marriage is broken, women typically retain property rights.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Each clan is divided into &ldquo;lineages&rdquo; whose members are all descended from a</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">common ancestor. The clan organizations extend across all the villages. Children are</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">named by the women of the father&rsquo;s clan. On the twentieth day of a baby&rsquo;s life, the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">women of the paternal clan gather, and each woman brings a name and a gift for the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span style=\"\">child. The parents select the name that will be used.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Hopi children learn all domestic skills from their mother. Boys learn to weave,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">while girls care for the infants, learn to grind corn, weave baskets, and make pottery.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">Each clan is in charge of certain religious ceremonies throughout the year. The spirits of</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">natural elements, animals, or deceased ancestors, known as kachinas, are welcomed to</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span style=\"\">the village each spring to dance and sing, bring rain for the harvest, and give gifts to the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">children.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Prior to each kachina ceremony, the men spend days carefully carving masked</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">dolls in the likeness of the kachina represented in that particular ceremony. Following</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">the ceremony, the dolls are hung on the walls of the pueblo and are studied in order to</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20</span><span style=\"\">learn the characteristics of that certain kachina. The revered dolls are then passed on to</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">the daughters of the village to give visual understanding to the spirits.</span></div></div>"
+  },
+  {
+   "n": 26,
+   "stem": "According to the passage, a woman is usually",
+   "opts": [
+    "the main storyteller",
+    "subjected to rule by men",
+    "the model for the kachina dolls",
+    "responsible for political leadership",
+    "considered the main property owner"
+   ],
+   "ans": 4,
+   "why": "&ldquo;The fields, the crops, the pueblos, belong to women,&rdquo; and women keep property rights even if a marriage breaks. That is <b>ownership</b>. (A) and (D) are the near-misses: storytelling is shared by &ldquo;both genders,&rdquo; and political leaders are &ldquo;traditionally men.&rdquo;"
+  },
+  {
+   "n": 27,
+   "stem": "If a Hopi marriage fails, the couple&rsquo;s fields are probably",
+   "opts": [
+    "confiscated by the clan",
+    "held in trust for the children",
+    "turned over to the entire tribe",
+    "kept in the wife&rsquo;s possession",
+    "reverted to the husband&rsquo;s family"
+   ],
+   "ans": 3,
+   "why": "Two facts stack up: the fields belong to women, and &ldquo;if a marriage is broken, women typically <b>retain</b> property rights.&rdquo; Retain means keep. The fields were hers before and stay hers after."
+  },
+  {
+   "n": 28,
+   "stem": "A carved kachina doll is most like",
+   "opts": [
+    "a spiritual aide",
+    "a casual toy",
+    "a wall hanging",
+    "a member of the clan",
+    "the head of a ceremony"
+   ],
+   "ans": 0,
+   "why": "Ask what the doll is <b>for</b>: it is studied &ldquo;in order to learn the characteristics of that certain kachina&rdquo; and passed on &ldquo;to give visual understanding to the spirits.&rdquo; It is a revered teaching object about the spirits &mdash; a <b>spiritual aide</b>. (C) is the literal-reading trap: the dolls hang on walls, but that is where they are kept, not what they are."
+  },
+  {
+   "n": 29,
+   "stem": "We can infer from the passage that kachinas are",
+   "opts": [
+    "feared by the children",
+    "deceased clan members",
+    "valued for their ability to dance",
+    "sacred spirits treasured by the tribe",
+    "chosen for their influence on the hunt"
+   ],
+   "ans": 3,
+   "why": "The passage calls them &ldquo;the <b>spirits</b> of natural elements, animals, or deceased ancestors,&rdquo; welcomed each spring, honoured with ceremonies, their dolls &ldquo;revered.&rdquo; (B) takes one third of the definition &mdash; deceased ancestors &mdash; and treats it as the whole thing. And the kachinas give gifts to the children, so (A) has it backwards."
+  },
+  {
+   "n": 30,
+   "stem": "Which of the following best expresses the main idea of the passage?",
+   "opts": [
+    "The Hopis are governed by men.",
+    "Hopi men bring about the kachina ceremony.",
+    "Among the Hopi, women are of great importance.",
+    "Hopi children learn weaving from their mothers.",
+    "Hopi women are responsible for naming children."
+   ],
+   "ans": 2,
+   "why": "The first sentence states the main idea and the rest of the passage backs it up: property, descent, naming, teaching. (B), (D) and (E) are all true details &mdash; but a <b>main idea</b> has to cover the whole passage, not one paragraph of it."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 7 &middot; Questions 31&ndash;35",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">In the dark the old man could feel the morning coming and as he rowed he heard</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">the trembling sound as flying fish left the water and the hissing that their stiff set wings</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">made as they soared away in the darkness. He was very fond of flying fish as they were his</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">principal friends on the ocean. He was sorry for the birds, especially the small delicate dark</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span style=\"\">terns that were always flying and looking and almost never finding, and he thought, the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">birds have a harder life than we do except for the robber birds and the heavy strong ones.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">Why did they make birds so delicate and fine as those sea swallows when the ocean can be</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">so cruel? She is kind and very beautiful. But she can be so cruel and it comes so suddenly</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">and such birds that fly, dipping and hunting, with their small sad voices are made too</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span style=\"\">delicately for the sea.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">He always thought of the sea as <i>la mar</i> which is what people call her in Spanish</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">when they love her. Sometimes those who love her say bad things of her but they are</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">always said as though she were a woman. Some of the younger fishermen, those who</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">used buoys as floats for their lines and had motorboats, bought when the shark livers had</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span style=\"\">brought much money, spoke of her as <i>el mar</i> which is masculine. They spoke of her as a</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">contestant or a place or even an enemy. But the old man always thought of her as feminine</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">and as something that gave or withheld great favours, and if she did wild or wicked things</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">it was because she could not help them.</span></div></div>"
+  },
+  {
+   "n": 31,
+   "stem": "The old man believes most birds have a harder life than people because they",
+   "opts": [
+    "are so delicate and fine",
+    "live far from the smell of land",
+    "fly, dipping and hunting, with sad voices",
+    "have difficulty finding food on the open sea",
+    "have stiff set wings that make a hissing sound as they soar away"
+   ],
+   "ans": 0,
+   "why": "Notice the exception he makes: the birds have it harder &ldquo;<i>except for the robber birds and the heavy strong ones</i>.&rdquo; What the strong birds have that the others lack is toughness &mdash; so the hard life belongs to the ones that are <b>delicate and fine</b>, which is exactly the complaint in his next sentence: why make birds so delicate when the ocean is so cruel?",
+   "flag": "Judgement call: (D) is arguable &mdash; the terns are &ldquo;always flying and looking and almost never finding.&rdquo; The &ldquo;except the strong ones&rdquo; clause is what tips it to (A), since robber birds must find food too."
+  },
+  {
+   "n": 32,
+   "stem": "According to the passage, when the shark livers brought much money, some fishermen spoke of the sea as",
+   "opts": [
+    "an enemy",
+    "an equal",
+    "a female",
+    "<i>la mar</i>",
+    "a friend"
+   ],
+   "ans": 0,
+   "why": "The younger fishermen with the motorboats called the sea <i>el mar</i> and &ldquo;spoke of her as a contestant or a place or even <b>an enemy</b>.&rdquo; (C) and (D) belong to the old man, who is the one that calls her <i>la mar</i>, feminine &mdash; the question is about the <i>other</i> fishermen."
+  },
+  {
+   "n": 33,
+   "stem": "It can be inferred that the old man",
+   "opts": [
+    "is much too tired to row",
+    "is ready to give up being a fisherman",
+    "shares much in common with the younger fishermen",
+    "is eager to have a younger fisherman join him in his boat",
+    "sees the sea differently from some of the younger fishermen"
+   ],
+   "ans": 4,
+   "why": "The whole second paragraph is built on the contrast: <i>la mar</i> (loved, feminine, giving) against <i>el mar</i> (a contestant, a place, an enemy). The sentence even begins &ldquo;<b>But</b> the old man always thought of her as feminine.&rdquo; That &ldquo;but&rdquo; is the answer."
+  },
+  {
+   "n": 34,
+   "stem": "The tone of the passage is one of",
+   "opts": [
+    "remembrance",
+    "worry",
+    "anticipation",
+    "frustration",
+    "information"
+   ],
+   "ans": 0,
+   "why": "The old man is not doing anything in this passage &mdash; he is rowing and <b>thinking back</b>: what he has always thought, what people used to call the sea, how the younger men came to talk differently. That reflective, looking-back feeling is <b>remembrance</b>. (E) information is the trap for a passage that happens to contain facts."
+  },
+  {
+   "n": 35,
+   "stem": "What is the main idea of the passage?",
+   "opts": [
+    "people think differently about the sea",
+    "the man respects and is one with the sea",
+    "you are never alone when you are on the sea",
+    "fishing in the early morning yields more fish",
+    "the sea is complex with all of its animal life"
+   ],
+   "ans": 1,
+   "why": "Both halves point the same way: he is fond of the flying fish, sorry for the terns, and thinks of the sea as something beautiful that gives or withholds favours and cannot help her own cruelty. That is a man who <b>belongs to the sea and respects it</b>. (A) describes the contrast in the second paragraph only, and the contrast is there to show us <i>his</i> view.",
+   "flag": "Judgement call: (A) is a reasonable reading of the second paragraph. It loses because it leaves the whole first paragraph &mdash; the birds, the flying fish &mdash; unaccounted for."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 8 &middot; Questions 36&ndash;40",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Melanie&rsquo;s purse was pink suede, and the purple patches on it were beautiful, but</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">Alex was very tired of it. A colorful, braided yarn bracelet finished off the handle and</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">marked it as special; the bracelet greeted Alex whenever Melanie hung her bag on the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">back of her chair. It was there now. Thoughtfully, he took the bracelet&rsquo;s strand between</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span style=\"\">his fingers and, without disturbing Melanie, uncapped his black marker and doodled</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">on it. He marked it with black lines and laid it out on his desk; though, a moment</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">later when Melanie leaned forward, the bracelet moved off Alex&rsquo;s desk and its still-wet</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"\">markings were able to add some picturesque touches to Melanie&rsquo;s suede purse.</span></div></div>"
+  },
+  {
+   "n": 36,
+   "stem": "According to the passage, which of the following statements is true?",
+   "opts": [
+    "Alex&rsquo;s markings were on nothing but Melanie&rsquo;s bracelet.",
+    "Alex drew on Melanie&rsquo;s bracelet just as she told him not to.",
+    "Alex drew on Melanie&rsquo;s bracelet with marker and ripped her purse.",
+    "Alex did not mean to draw on Melanie&rsquo;s bracelet with marker.",
+    "Alex did not tell Melanie that he was drawing on her bracelet."
+   ],
+   "ans": 4,
+   "why": "&ldquo;Without disturbing Melanie&rdquo; is the phrase to hang this on &mdash; she never knew. Check the others against the text: the wet ink also marked the purse, so (A) fails; she never speaks, so (B) fails; nothing is ripped, so (C) fails; and he deliberately uncapped the marker, so (D) fails."
+  },
+  {
+   "n": 37,
+   "stem": "Melanie sits",
+   "opts": [
+    "next to Alex",
+    "behind Alex",
+    "in front of Alex",
+    "two seats away from Alex",
+    "across the room from Alex"
+   ],
+   "ans": 2,
+   "why": "Her bag hangs on the <b>back of her chair</b>, and from there the bracelet &ldquo;greeted Alex&rdquo; and he could reach it from his own desk. The back of her chair faces him, so she sits <b>in front of him</b>. Reading questions often hide a little piece of geometry like this."
+  },
+  {
+   "n": 38,
+   "stem": "Alex found the sight of Melanie&rsquo;s purse",
+   "opts": [
+    "tiresome",
+    "beautiful",
+    "terrifying",
+    "refreshing",
+    "ridiculous"
+   ],
+   "ans": 0,
+   "why": "Line 1&ndash;2: the purse was beautiful, &ldquo;<b>but Alex was very tired of it</b>.&rdquo; Tired of &rarr; <b>tiresome</b>. (B) is the trap set by the word <i>beautiful</i>, which is the narrator&rsquo;s description of the purse, not Alex&rsquo;s opinion of it."
+  },
+  {
+   "n": 39,
+   "stem": "At the time Alex doodled on her bracelet, Melanie was",
+   "opts": [
+    "facing Alex",
+    "standing up",
+    "leaning back in her seat",
+    "leaning forward over a book",
+    "leaning over to pick up a pencil"
+   ],
+   "ans": 2,
+   "why": "Work backwards from what changes: &ldquo;a moment <b>later</b>&hellip; Melanie leaned forward&rdquo; and only then did the bracelet slide off his desk. If leaning forward is the new thing, she must have been <b>leaning back</b> against the bag until then &mdash; which is also what let the strand reach Alex&rsquo;s desk in the first place."
+  },
+  {
+   "n": 40,
+   "stem": "Alex is best described as",
+   "opts": [
+    "worried",
+    "studious",
+    "confused",
+    "considerate",
+    "mischievous"
+   ],
+   "ans": 4,
+   "why": "He quietly draws on someone else&rsquo;s bracelet without telling her, and the tone is light rather than cruel &mdash; that is <b>mischievous</b>. (D) considerate is the word-trap: &ldquo;thoughtfully&rdquo; in line 4 means he did it carefully and deliberately, not that he was being kind."
+  }
+ ],
+ "count": 20
+};
+const MINUTES = 20;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
