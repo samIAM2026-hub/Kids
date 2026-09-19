@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 8 · Reading A</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 8 &middot; Section 2, part 1</div>
+    <h1>Reading Comprehension &mdash; Part A (Questions 1&ndash;22)</h1>
+    <div class="meta">22 questions &middot; 22 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">22:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 8 &middot; <a href="SSAT-MockTest8-Index.html">All sections</a> &middot; <a href="index.html">Quiz hub</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading A",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 1 &middot; Questions 1&ndash;5",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Ever wonder why we have wisdom teeth? If you&rsquo;re like most people,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>you&rsquo;ll have your wisdom teeth removed before they even start to surface.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>How can we just throw away teeth without their absence having some</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>impact on the state of our mouths? The science of dentistry studies</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>questions like this.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Although it dates back to 3700 <span style=\"font-variant:small-caps\">b.c.</span> in Egypt, dentistry as we know it</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>did not emerge until the 19th century, when people began to study</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>systematically the mouth, gums, jaw, and teeth. Modern dentistry is an</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>intrinsic part of our lives. Nowadays, we cannot go a day without</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>hearing something about teeth care, if only through our television sets.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>If we have gingivitis, we can use mouthwash. If we have cavities, we can</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>get fillings in a variety of colors and material types. If we have yellow</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>teeth, we can make them white again in seven short days.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">And, if we have crooked teeth, we can get braces. In fact, people</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span>routinely get braces, so much so that we consider it an oddity if someone</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>goes through their entire childhood without the experience of going to the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>orthodontist every month. Chances are that if someone does not get</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>braces, they lack money or time, not interest in having work done.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">The evolution of dentistry shows how medical science is changing the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20</span><span>human being. Because of increasingly good dental care, we don&rsquo;t lose</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>our teeth and rely on our wisdom teeth coming in to give us a new set.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>To answer the question with which we began: We simply don&rsquo;t need</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>those teeth anymore. Indeed, nowadays we have to pay to get our</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>redundant teeth taken out.</span></div></div>"
+  },
+  {
+   "n": 1,
+   "stem": "The article says that we pull our wisdom teeth because ______.",
+   "opts": [
+    "we have gingivitis",
+    "they cause crooked teeth",
+    "we don&rsquo;t need them anymore",
+    "we listen to information about teeth care daily on the TV",
+    "they make our teeth yellow"
+   ],
+   "ans": 2,
+   "why": "The last paragraph answers it in so many words: &ldquo;To answer the question with which we began: We simply don&rsquo;t need those teeth anymore&rdquo; (lines 22&ndash;23). The reason is given just before it &mdash; good dental care means we keep the teeth we already have, so the spare set is surplus. (A), (B) and (E) are all real problems the passage mentions, but it never links any of them to wisdom teeth; they are there to catch a reader who is matching words instead of following the argument. When a passage ends by saying &ldquo;to answer the question with which we began,&rdquo; that sentence is almost always an answer to something."
+  },
+  {
+   "n": 2,
+   "stem": "Which of the following statements is true based on the reading?",
+   "opts": [
+    "Braces are a common solution to yellowing teeth.",
+    "Egyptian dentists conducted dentistry much as we do today.",
+    "If we have gingivitis, we can treat it with fillings.",
+    "We don&rsquo;t expect to lose our teeth because we have been taught how to care for them.",
+    "Braces are a rare experience while growing up."
+   ],
+   "ans": 3,
+   "why": "Lines 19&ndash;21 give it directly: &ldquo;Because of increasingly good dental care, we don&rsquo;t lose our teeth,&rdquo; and lines 9&ndash;10 say we cannot go a day without hearing about teeth care. (A) and (C) swap the treatments around &mdash; braces are for crooked teeth, mouthwash for gingivitis, fillings for cavities &mdash; and that list is the trap the question is built on. (B) is contradicted by &ldquo;dentistry as we know it did not emerge until the 19th century,&rdquo; and (E) is the opposite of &ldquo;people routinely get braces.&rdquo; On a <i>which is true</i> question, find the line, do not rely on memory."
+  },
+  {
+   "n": 3,
+   "stem": "When did dentists pull the first tooth?",
+   "opts": [
+    "3700 <span style=\"font-variant:small-caps\">b.c.</span>",
+    "17th century",
+    "18th century",
+    "19th century",
+    "The article does not say."
+   ],
+   "ans": 4,
+   "why": "The passage gives two dates &mdash; dentistry &ldquo;dates back to 3700 <span style=\"font-variant:small-caps\">b.c.</span> in Egypt&rdquo; and dentistry as we know it emerged in the 19th century &mdash; but neither of them is about pulling a tooth. Nowhere does it say when the first tooth came out, so the honest answer is <b>the article does not say</b>. This is a deliberate trap: (A) and (D) are lifted straight off the page, which makes them feel safe. The habit that protects you: before you pick a date, check that it is attached to the <b>event the question named</b>, not just to the topic."
+  },
+  {
+   "n": 4,
+   "stem": "The writer&rsquo;s main purpose is apparently ______.",
+   "opts": [
+    "to answer frequently asked questions about teeth",
+    "to talk a little about the history of dentistry",
+    "to explain dreams about teeth",
+    "to write the section on dentistry for a medical school text",
+    "to encourage people to cut down on sweets"
+   ],
+   "ans": 1,
+   "why": "Look at what the bulk of the passage actually does: Egypt in 3700 <span style=\"font-variant:small-caps\">b.c.</span>, the 19th century, modern treatments, and then &ldquo;the evolution of dentistry.&rdquo; That is a short, light history &mdash; and the word <b>a little</b> in the answer matches how brief and chatty it is. (D) is the same subject pitched far too seriously for this writing. (C) and (E) are about things the passage never mentions. (A) is the near-miss: the article opens with a question, but only one, and answering a single question is not the same as covering frequently asked ones. On purpose questions, pick the choice whose <b>scope and tone</b> match the passage, not just its topic.",
+   "flag": "A judgement call between (B) and (A). The piece is framed around a single opening question, which makes (A) tempting; (B) wins because the history is what fills the middle three paragraphs and because &ldquo;a little&rdquo; fits a piece this short."
+  },
+  {
+   "n": 5,
+   "stem": "All but which of the following problems, according to the article, can dentists fix?",
+   "opts": [
+    "bad breath",
+    "yellowing teeth",
+    "crooked teeth",
+    "root canals",
+    "cavities"
+   ],
+   "ans": 3,
+   "why": "The article names four fixes in a row: mouthwash, fillings for cavities, whitening for yellow teeth, braces for crooked teeth (lines 11&ndash;14). Yellowing, crooked and cavities are therefore all covered, and mouthwash is the everyday answer to bad breath. <b>Root canals</b> appear nowhere &mdash; and notice that a root canal is not even a problem, it is a treatment, which is the second reason it cannot belong on a list of things dentists fix. On an EXCEPT question, tick off the choices you can find on the page; the one left over is the answer.",
+   "flag": "A judgement call between (D) and (A). Strictly, neither <i>root canals</i> nor <i>bad breath</i> is named in the passage. (D) is set as the answer because the passage does name mouthwash, the usual remedy for bad breath, and because a root canal is a procedure rather than a problem. If the printed key says (A), change the page."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 2 &middot; Questions 6&ndash;10",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">It&rsquo;s easy, nowadays, to blame others for bad things that happen to us.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>We complain that we don&rsquo;t have enough money because the government</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>takes our taxes. We blame carbohydrates for our fat count. We blame</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>society for our embarrassingly low educational scores.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span style=\"text-indent:26px;display:inline-block\">Well, I disagree. I say we could save money by skipping McDonald&rsquo;s</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>and buying the non-name-brand food items at the grocery. I say we&rsquo;re</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>fat because we don&rsquo;t exercise. I say we&rsquo;re stupid because we watch too</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>much TV and never read anything more difficult than sixth grade</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>reading material.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span style=\"text-indent:26px;display:inline-block\">I say that it&rsquo;s in our own hands if we are operating at less than our</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>potential.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">So, sometime, when you&rsquo;re at a loss for something to do, change your</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>life for the better. Crack open the dictionary at a random page and see</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>what&rsquo;s inside.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span style=\"text-indent:26px;display:inline-block\"><u>Seriously</u>.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Chances are you&rsquo;ll find something interesting you didn&rsquo;t know before.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Reading the dictionary is like reading a thousand mininovels, for each</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>word has a story.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">For example, we often hear someone referred to as a &ldquo;spinster.&rdquo; Most</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20</span><span>of us know that we use this term to describe an old, unmarried woman,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>but few of us know that the name originally had more meaning. The</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>reason that &ldquo;spinster&rdquo; came to refer to all old, unmarried women is</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>because in earlier times old, unmarried women had to spin to earn their</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>livings; old, unmarried women who could not spin nevertheless got</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25</span><span><u>lumped in</u> with the rest. Consider, also, the word &ldquo;whirling dervish.&rdquo;</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>We know that this word is used to refer to dancers or tornadoes.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Originally, however, the word referred to Muslim priests who wandered</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>the land as beggars; in addition to whirling dervishes, there existed also</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>howling and dancing dervishes, too.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">30</span><span style=\"text-indent:26px;display:inline-block\">So, take five minutes and read the dictionary next time you&rsquo;re bored.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Seriously.</span></div></div>"
+  },
+  {
+   "n": 6,
+   "stem": "What is the best title for this passage?",
+   "opts": [
+    "Unexpected Discoveries",
+    "Through the Eye of a Needle",
+    "A Thousand and One Words",
+    "Boring Facts and Trivia",
+    "On the Origin of the Word &ldquo;Dervish&rdquo;"
+   ],
+   "ans": 0,
+   "why": "The writer&rsquo;s whole pitch is in line 16: &ldquo;Chances are you&rsquo;ll find something interesting you didn&rsquo;t know before,&rdquo; and the two word-stories that follow are the proof. <b>Unexpected Discoveries</b> covers both the advice and the examples. (E) names only the last example, so it is far too narrow. (D) says the opposite of what the writer thinks. (B) has nothing to do with the passage. A good title has to be <b>broad enough to cover the whole piece and narrow enough to exclude other pieces</b>.",
+   "flag": "A judgement call between (A) and (C). &ldquo;A Thousand and One Words&rdquo; plays on line 17&rsquo;s &ldquo;a thousand mininovels&rdquo;, but it is a pun on one image rather than a description of the passage, so (A) is set as the answer."
+  },
+  {
+   "n": 7,
+   "stem": "How would you describe the author&rsquo;s tone in this piece?",
+   "opts": [
+    "humorous and trivial",
+    "adamant and angry",
+    "friendly yet tired",
+    "amusing yet serious",
+    "sulky and sullen"
+   ],
+   "ans": 3,
+   "why": "Both halves have to fit, and here they do. The writing is funny &mdash; the one-word paragraph &ldquo;Seriously.&rdquo;, the dig at McDonald&rsquo;s, the joke about sixth grade reading material. But the point underneath it is a real one: &ldquo;it&rsquo;s in our own hands if we are operating at less than our potential.&rdquo; So <b>amusing yet serious</b>. (A) fails on its second word &mdash; the writer is not being trivial. (B) is too hot and (E) is too gloomy for someone making jokes. On a two-word tone answer, <b>test each word separately</b>; most wrong choices fail on one of the two."
+  },
+  {
+   "n": 8,
+   "stem": "Who does the author say is responsible for the state of our lives?",
+   "opts": [
+    "the government",
+    "McDonald&rsquo;s",
+    "television",
+    "educators",
+    "We, ourselves"
+   ],
+   "ans": 4,
+   "why": "Lines 10&ndash;11 state it: &ldquo;I say that it&rsquo;s in our own hands if we are operating at less than our potential.&rdquo; The first paragraph does list the government, carbohydrates, and society &mdash; but it lists them as the excuses the writer is about to reject, and line 5 turns on that rejection: &ldquo;Well, I disagree.&rdquo; (A) through (D) all come from that opening list. <b>Watch for the turn.</b> When a passage opens with a view and then says <i>but</i>, <i>however</i> or <i>I disagree</i>, everything before the turn belongs to somebody else."
+  },
+  {
+   "n": 9,
+   "stem": "Why does the author give the word <i>seriously</i> in line 12 its own paragraph?",
+   "opts": [
+    "The author thinks the reader will take his/her advice seriously; therefore s/he uses <i>seriously</i> to indicate s/he has made a joke.",
+    "The author must include nine paragraphs in the article and is cheating.",
+    "The author wishes the reader to look up the word <i>seriously</i> in a dictionary.",
+    "The author anticipates that the reader will scoff at the author&rsquo;s advice; the author wishes to convey serious intent of his/her advice.",
+    "The author desires to confuse the reader at all costs."
+   ],
+   "ans": 3,
+   "why": "&ldquo;Crack open the dictionary at a random page&rdquo; is exactly the kind of advice a reader rolls their eyes at, and the writer knows it &mdash; so the word lands alone on its own line, like someone stopping mid-conversation to say <i>no, really</i>. That is <b>(D)</b>. The proof is the ending: the whole piece closes on the same word, used the same way. (A) says the reverse of itself and (B) and (E) are jokes rather than answers. A one-word paragraph is always a <b>deliberate emphasis</b>; ask what the writer wants you to stop and take seriously. <i>(The printed question says line 12; in the passage as set out here the single-word paragraph is line 15. The wording has been left as printed.)</i>"
+  },
+  {
+   "n": 10,
+   "stem": "Which of the following words best defines the phrase <i>lumped in</i>?",
+   "opts": [
+    "left out",
+    "copied",
+    "combined with",
+    "evolved",
+    "destroyed"
+   ],
+   "ans": 2,
+   "why": "Read the whole sentence: women who could not spin &ldquo;nevertheless got <u>lumped in</u> with the rest&rdquo; &mdash; they were counted along with everyone else even though the label did not really fit them. That is <b>combined with</b>. (A) <i>left out</i> is the exact opposite, and it is the trap, because being lumped in does feel dismissive. The words that settle it are <b>nevertheless</b> and <b>with the rest</b>: both point to being included, not excluded. For any vocabulary-in-context question, read the sentence before and the sentence after, not just the phrase."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 3 &middot; Questions 11&ndash;17",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Pieter Brueghel, 16th century Flemish painter, has left for us a series</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>of great paintings. One of his best works depicts the Greek myth of</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Icarus.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">To understand Brueghel&rsquo;s treatment of the piece, you must first recall</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>the facts of the Icarus story. Icarus was the son of Deadalus, the most</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>brilliant thinker of his time. Deadalus had aided Ariadne in saving</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Theseus from the Minotaur. The king, angered by Deadalus&rsquo; action,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>swiftly imprisoned Deadalus and his son in a lonely tower on a deserted</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>shore, visited only by birds. Eager to escape, however, Deadalus used the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>feathers and wax to create two sets of wings, and he and his son made</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>plans to fly to freedom. Unfortunately, Icarus, <u>exhilarated</u> by the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>freedom he felt while flying, flew too close to the sun, despite his</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>father&rsquo;s warnings. The sun&rsquo;s heat melted the wax on his wings, and he</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span><u>plummeted</u> into the ocean and drowned. Deadalus, heartbroken,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span>nevertheless, made it to safety.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Brueghel&rsquo;s work depicts a huge, glorious scene of people working the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>land along a beautiful shoreline. Animals frolic; men work. Ships laden</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>with goods plow through the waves. Amidst all the action captured in</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>the scene, one is hard pressed to locate Icarus. Finally, after some</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20</span><span>searching, we see him. He is located in the lower, right-hand side of the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>painting. Even so, his depiction is small. Indeed, all we see are two pale</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>legs, kicking <u>frantically</u> in the surf.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Brueghel&rsquo;s work sends a clear message, one that underscores the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>largeness of the world and the relative insignificance of the individual</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25</span><span>therein.</span></div></div>"
+  },
+  {
+   "n": 11,
+   "stem": "What will the author most likely discuss next?",
+   "opts": [
+    "artist Vincent van Gogh and how he cut off his ear",
+    "another artwork by Brueghel",
+    "an explanation of Brueghel&rsquo;s message regarding the insignificance in the world",
+    "an expanded discussion of the crime that landed Dedalus in jail",
+    "nothing, the article is complete"
+   ],
+   "ans": 2,
+   "why": "The passage stops on its biggest claim: the work &ldquo;sends a clear message, one that underscores the largeness of the world and the relative insignificance of the individual&rdquo; (lines 23&ndash;25). A claim that large, stated in the final sentence, is an opening rather than a conclusion &mdash; so what comes next is the <b>explanation of it</b>. (E) would be right only if the last line tied things off. (D) is already covered earlier and is not where the passage is heading. The rule for &ldquo;what comes next&rdquo;: read the <b>last sentence</b> and ask what it leaves unfinished."
+  },
+  {
+   "n": 12,
+   "stem": "The author&rsquo;s purpose can best be described by which of the following statements?",
+   "opts": [
+    "to avoid discussing anything important",
+    "to advocate the talents of Brueghel",
+    "to relate the tale of Dedalus and Icarus",
+    "to argue that Brueghel is an untalented artist",
+    "to show how art can convey social comment"
+   ],
+   "ans": 4,
+   "why": "Follow the shape of the piece: the myth is told (paragraph 2), the painting is described (paragraph 3), and then the point arrives &mdash; the painting <i>says</i> something about how small a person is against the world. That is art carrying a <b>comment</b>. (C) is the near-miss and the one most people pick: the myth takes up a whole paragraph, but it is there as background, not as the destination. (D) contradicts &ldquo;great paintings&rdquo; and &ldquo;one of his best works.&rdquo; (B) is true of a sentence, not of the passage. <b>The purpose is where the passage ends up, not where it spends the most time.</b>"
+  },
+  {
+   "n": 13,
+   "stem": "Which of the following words can be substituted for the word <i>exhilarated</i> in line 11 without changing the meaning of the sentence?",
+   "opts": [
+    "saddened",
+    "angered",
+    "joyous",
+    "frightened",
+    "advised"
+   ],
+   "ans": 2,
+   "why": "Icarus is &ldquo;<u>exhilarated</u> by the freedom he felt while flying&rdquo; &mdash; thrilled by it, which is why he forgets his father&rsquo;s warning and climbs. <b>Joyous</b> is the only choice with any pleasure in it. (A), (B) and (D) are all negative, and they are tempting only because the story ends badly &mdash; but the word describes how he felt <b>at that moment</b>, not how the story turns out. Do not let the ending of a passage colour a word in the middle of it."
+  },
+  {
+   "n": 14,
+   "stem": "What is the tone of this piece?",
+   "opts": [
+    "solemn",
+    "understanding",
+    "sarcastic",
+    "joyous",
+    "unintelligent"
+   ],
+   "ans": 0,
+   "why": "Nothing here is played for laughs: a boy drowns, a father is heartbroken, and the painting is read as a statement about human insignificance. The writing is measured, formal and grave throughout &mdash; <b>solemn</b>. (C) needs the writer to mean the opposite of what is said, and nothing in the passage does that. (D) is contradicted by the drowning and (E) by the careful argument. Tone questions are usually settled by the <b>subject matter plus the register</b>: a serious subject handled in plain, unhurried sentences is solemn."
+  },
+  {
+   "n": 15,
+   "stem": "All but which of the following words have the same meaning as <i>plummeted</i> in line 14?",
+   "opts": [
+    "fell",
+    "hung",
+    "dropped",
+    "sank",
+    "plunged"
+   ],
+   "ans": 1,
+   "why": "<b>Plummeted</b> means dropped fast and straight down. <i>Fell</i>, <i>dropped</i>, <i>sank</i> and <i>plunged</i> all carry that downward movement; <b>hung</b> is the odd one out, because hanging is staying still in the air &mdash; the opposite of falling. With an EXCEPT question, the fastest route is to group the four that clearly belong together and let the stranger reveal itself. Here four words move down and one does not move at all."
+  },
+  {
+   "n": 16,
+   "stem": "Which of the following words has a meaning most nearly opposite to the word <i>frantically</i> in line 22?",
+   "opts": [
+    "feebly",
+    "wildly",
+    "enthusiastically",
+    "vigorously",
+    "angrily"
+   ],
+   "ans": 0,
+   "why": "Icarus&rsquo; legs kick <u>frantically</u> &mdash; wildly and with desperate energy. The <b>opposite</b> of that energy is <b>feebly</b>, weakly, with hardly any force. (B) <i>wildly</i> is a straight synonym and (D) <i>vigorously</i> is close to one; both are there for anyone who reads the question as &ldquo;which means the same.&rdquo; <b>Underline the word <i>opposite</i> in the question before you look at the choices</b> &mdash; on a test this is the single most commonly misread instruction."
+  },
+  {
+   "n": 17,
+   "stem": "What caused Icarus&rsquo; wings to melt?",
+   "opts": [
+    "the cold ocean spray",
+    "the swooping, swirling seagulls",
+    "the dampness of the water",
+    "the heat of Dedalus&rsquo; wrath",
+    "the warmth of the sun"
+   ],
+   "ans": 4,
+   "why": "Line 13 says it outright: &ldquo;The sun&rsquo;s heat melted the wax on his wings.&rdquo; So <b>the warmth of the sun</b>. Every other choice takes something that really is in the passage &mdash; the ocean, the birds, the angry king &mdash; and puts it in the wrong job. That is the standard design of a detail question, and it is why the answer to one is worth finding on the page rather than reconstructing from what you remember of the story."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 4 &middot; Questions 18&ndash;22",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">History documents the bloody habits of Vlad <u>Tepes</u> (or Vlad the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Impaler), an infamous general who lived in Transylvania from 1431 to</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>1476. Stories about Vlad Tepes seem gruesome even by today&rsquo;s</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>standards. Consider this story about a group of generals whom Vlad</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>Tepes was entertaining. Prior to their arrival, Vlad had punished several</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>people by impaling them on long spikes surrounding the banquet area.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>One of the visiting generals complained of the smell; after all, he had</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>been invited to a dinner. Vlad apologized and then had the general</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>impaled on an even longer spike. His reason? So that the general, being</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>suspended above the other rotting bodies, would not have to smell what</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>offended him.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Other vampire tales come to us from this period, but they are</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>clinical, historical accounts. The vampire legend grew popular only after</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>the publication of Bram Stoker&rsquo;s <i>Dracula</i> in 1897. In his novel, Stoker</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span>creates a frightening combination of man and monster. His Dracula is</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>striking in appearance, ruthless, calculating, and quite intelligent. Since</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>then, vampire stories have grown in popularity over the years, inspiring</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>both serious and tongue-in-cheek treatments.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">The serious vampire offerings have grown increasingly enraptured by</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20</span><span>the idea of being undead. Take for example, the work of Anne Rice.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Rice&rsquo;s books modernize the old vampire story. While Stoker&rsquo;s novel tells</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>about the exploits of a single vampire, Rice&rsquo;s novels explore an entire</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>vampiric underworld that coexists with&mdash;and preys upon&mdash;the human</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>world. Rice&rsquo;s stories allow the old vampire lore to evolve into an entire</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25</span><span>world view; they work out in great detail the logistical and philosophical</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>problems that come into play, if vampires really exist en masse. More</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>importantly, however, Rice&rsquo;s stories humanize the vampire. Many of her</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>characters are guilt-stricken to the point of madness because they must</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>drink human blood to survive; some rail against their undead state, for</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">30</span><span>they are frozen in time, unable to transition from one stage of human</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>maturity to the next.</span></div></div>"
+  },
+  {
+   "n": 18,
+   "stem": "What does the word <i>Tepes</i> mean?",
+   "opts": [
+    "innocent",
+    "Dracula",
+    "impaler",
+    "bloody",
+    "ruler"
+   ],
+   "ans": 2,
+   "why": "The first sentence supplies its own translation: &ldquo;Vlad <u>Tepes</u> (or Vlad the Impaler).&rdquo; The bracket <i>is</i> the definition, so the answer is <b>impaler</b>. (B) <i>Dracula</i> is the association most readers arrive with, and the passage does discuss Dracula &mdash; but that is Stoker&rsquo;s novel, published four centuries later. When a passage puts a name in brackets or after &ldquo;or,&rdquo; it is handing you a meaning; take it rather than your own background knowledge."
+  },
+  {
+   "n": 19,
+   "stem": "Which statement gives an accurate description of Vlad Tepes&rsquo; character?",
+   "opts": [
+    "He is a wise and caring ruler.",
+    "He is a brilliant military strategist.",
+    "He was poor, despite his great power.",
+    "He was popular with women.",
+    "His sense of justice is very unconventional."
+   ],
+   "ans": 4,
+   "why": "Take the story the passage actually tells: a guest complains about the smell of rotting bodies, and Vlad&rsquo;s response is to impale him on a <i>longer</i> spike so he is above the smell. He treats that as an apology. Calling that sense of justice <b>unconventional</b> is putting it mildly, and it is the only choice the passage supports. (A) is contradicted by everything in the paragraph; (B), (C) and (D) are simply never mentioned, however plausible they sound for a general. <b>An answer has to be supported, not merely unrefuted.</b>"
+  },
+  {
+   "n": 20,
+   "stem": "Which is the best title for this passage?",
+   "opts": [
+    "An American Werewolf in London",
+    "Witches, Warlocks, and Other Halloween Nasties",
+    "The Vlad Dynasty: A Family Tree",
+    "The Enduring Zombie",
+    "Still Hungry After All These Years"
+   ],
+   "ans": 4,
+   "why": "Track what the passage covers: Vlad in the 1400s, Stoker in 1897, Anne Rice in our own time &mdash; five centuries of the vampire refusing to go away. <b>Still Hungry After All These Years</b> catches both the subject (vampires) and the span (they are still with us). (C) names only the first section, (A), (B) and (D) name creatures the passage never discusses. Notice that the right title is a <b>pun</b> here; a playful title is still a title, provided it fits the whole passage and nothing else."
+  },
+  {
+   "n": 21,
+   "stem": "Which date approximates the time period when Anne Rice wrote?",
+   "opts": [
+    "1431",
+    "1476",
+    "1789",
+    "1897",
+    "1990"
+   ],
+   "ans": 4,
+   "why": "The passage gives you a timeline and expects you to place Rice on it. 1431 and 1476 are Vlad&rsquo;s dates; 1897 is <i>Dracula</i>; and Rice comes after Stoker &mdash; her books &ldquo;modernize the old vampire story&rdquo; (line 21). The only date later than 1897 on the list is <b>1990</b>. 1789 is not attached to anything in the passage at all. When a question asks you to date something the passage never dates, <b>order</b> the events it does date and see which slot is left."
+  },
+  {
+   "n": 22,
+   "stem": "The statement &ldquo;Other vampire tales come to us from this period, but they are clinical, historical accounts&rdquo; implies that ______.",
+   "opts": [
+    "vampire tales that come from this period are even more exciting than the Tepes story",
+    "interest in vampire lore died out altogether during this period",
+    "vampire stories that were written from this period were boring",
+    "stories about female vampires were especially popular during this period",
+    "Anne Rice was popular even during this period"
+   ],
+   "ans": 2,
+   "why": "The word doing the work is <b>but</b>: those other tales exist, <i>but</i> they are clinical and historical &mdash; dry records rather than stories. Put beside the lurid tale of Vlad that has just been told, that is a polite way of saying <b>boring</b>. (A) reverses the contrast the sentence sets up. (B) overshoots: tales did come to us, so interest did not die out. (E) is impossible &mdash; Rice writes centuries later. The habit: on an <i>implies</i> question, find the <b>contrast word</b> and ask which side of it the sentence puts the subject on."
+  }
+ ],
+ "count": 22
+};
+const MINUTES = 22;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

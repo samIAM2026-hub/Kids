@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 8 · Reading B</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 8 &middot; Section 2, part 2</div>
+    <h1>Reading Comprehension &mdash; Part B (Questions 23&ndash;40)</h1>
+    <div class="meta">18 questions &middot; 18 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">18:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 8 &middot; <a href="SSAT-MockTest8-Index.html">All sections</a> &middot; <a href="index.html">Quiz hub</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading B",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 5 &middot; Questions 23&ndash;27",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Existentialism is a philosophy that focuses only on the actions that</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>we humans make in the physical world that surrounds us. Because it</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>admits no afterlife of any sort, Existentialism takes the world very</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>seriously; every decision forces the Existentialist to ponder deeply the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>consequences. She only gets one shot at life, so everything depends on</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>her getting it right the first time. According to its <u>tenets</u>, life is absurd</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>and filled with actions that seem pointless, futile, and ceaselessly endless.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Camus illustrates Existentialism using the example of Sisyphus from</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Greek mythology. Sisyphus vastly enjoyed life but held little respect for</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>the gods. Upon his deathbed, Sisyphus instructed his wife to leave his</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>body unburied as a gesture of anger and resentment at dying. She</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>agreed to do as he said, but when he died, she reneged on her word.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Upon waking in Hades, Sisyphus knew immediately that his wife had</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>betrayed him, and he asked permission from King Hades to go revenge</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span>himself upon her. Hades agreed on condition that Sisyphus return to</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>the underworld immediately after getting his revenge. However, as soon</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>as Sisyphus reached the earth&rsquo;s surface, he chose to give up his revenge</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>and refused to return to the underworld. Only after great efforts did</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>King Hades recapture his prisoner.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20</span><span style=\"text-indent:26px;display:inline-block\">As punishment for his <u>hubris</u> or conceitedness, King Hades created a</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>special task for Sisyphus. He now spends eternity rolling an enormous</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>rock up a great hill, only to have it come crashing down immediately</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>upon reaching the hill&rsquo;s summit. Sisyphus&rsquo; task illustrates clearly the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>tenets of Existentialism outlined here. Let&rsquo;s see how.</span></div></div>"
+  },
+  {
+   "n": 23,
+   "stem": "According to the article, the story of Sisyphus comes from ______.",
+   "opts": [
+    "old wives&rsquo; tales",
+    "Japanese tradition",
+    "Indian lore",
+    "Roman history",
+    "Greek myth"
+   ],
+   "ans": 4,
+   "why": "Line 8&ndash;9 names it: &ldquo;Camus illustrates Existentialism using the example of Sisyphus from Greek mythology.&rdquo; So <b>Greek myth</b>. (D) <i>Roman history</i> is the trap &mdash; Hades appears in the story, and people mix the Greek and Roman gods up constantly &mdash; but the passage says Greek, and a myth is not history. When the passage names a source in one line, that line beats anything you half-remember."
+  },
+  {
+   "n": 24,
+   "stem": "What does Sisyphus initially want to do when he returns to earth?",
+   "opts": [
+    "Stay alive.",
+    "Get revenge on his brother.",
+    "Punish his wife.",
+    "See his family.",
+    "Negotiate a treaty."
+   ],
+   "ans": 2,
+   "why": "His wife broke her promise to leave his body unburied, so &ldquo;he asked permission from King Hades to go revenge himself upon <b>her</b>&rdquo; (lines 14&ndash;15). That is <b>punish his wife</b>. (B) puts the right action on the wrong person &mdash; there is no brother in this passage &mdash; and swapping one relative for another is a favourite way to build a wrong choice. The word <i>initially</i> matters too: he later abandons the revenge and simply refuses to go back, but that is what he wants <b>next</b>, not first."
+  },
+  {
+   "n": 25,
+   "stem": "Which of the following most nearly means <i>tenets</i> as used in line 6?",
+   "opts": [
+    "beliefs",
+    "rules",
+    "portable buildings",
+    "woven strands of rope to catch fish",
+    "numbers"
+   ],
+   "ans": 0,
+   "why": "&ldquo;According to its <u>tenets</u>, life is absurd&rdquo; &mdash; what follows is a claim a philosophy <i>holds</i>, so tenets are its <b>beliefs</b>. (C) is going after <i>tents</i> and (D) after <i>nets</i>; both are pure sound-alikes and both are wrong for the same reason. (B) <i>rules</i> is the real near-miss: a philosophy has principles, but &ldquo;life is absurd&rdquo; is something you believe, not something you obey. <b>Test your candidate by putting it back into the sentence</b> &mdash; &ldquo;according to its rules, life is absurd&rdquo; does not quite work."
+  },
+  {
+   "n": 26,
+   "stem": "What will probably come after paragraph three?",
+   "opts": [
+    "background information about Camus",
+    "more information about Sisyphus&rsquo; escapades",
+    "nothing; the author has made his/her point",
+    "a discussion of how Sisyphus&rsquo; story illustrates the tenets of Existentialism",
+    "an opinion from a philosophy professor at the University of Kentucky"
+   ],
+   "ans": 3,
+   "why": "The last two sentences announce what is coming: &ldquo;Sisyphus&rsquo; task illustrates clearly the tenets of Existentialism outlined here. <b>Let&rsquo;s see how.</b>&rdquo; That is a promise, and (D) is the promise kept. (C) is ruled out by those three words &mdash; nobody writes &ldquo;let&rsquo;s see how&rdquo; and stops. This is the same technique as the Brueghel question in Part A: <b>the final sentence tells you what the next paragraph owes the reader</b>."
+  },
+  {
+   "n": 27,
+   "stem": "Which of the following words best represents an antonym for <i>hubris</i>?",
+   "opts": [
+    "daring",
+    "fearful",
+    "piety",
+    "miserable",
+    "perturbed"
+   ],
+   "ans": 2,
+   "why": "The passage defines the word for you &mdash; &ldquo;his <u>hubris</u> or conceitedness&rdquo; (line 20) &mdash; so you need the opposite of overweening pride toward the gods. <b>Piety</b> is exactly that: humble reverence, which is precisely what Sisyphus lacked (&ldquo;held little respect for the gods&rdquo;). (A) <i>daring</i> is closer to a synonym. (B), (D) and (E) are unpleasant feelings, but being fearful or miserable is not the opposite of being conceited. Two steps on an antonym question: <b>pin the meaning down first</b>, then flip it."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 6 &middot; Questions 28&ndash;36",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Have you ever wondered why you aren&rsquo;t supposed to wear white after</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Labor Day? It is a long-standing tradition, one that those of us from the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>South have had beaten into our heads from our very earliest memories.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>But from where does this rule come?</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span style=\"text-indent:26px;display:inline-block\">People dispute the origin of this custom. Some say that the rule</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>developed from practicality. After all, everyone knows that wearing</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>white in the summer is wise because the white reflects heat and helps</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>the wearer keep cool; wearing dark colors is wise in the winter because</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>the dark material absorbs heat and keeps the wearer warm. The rule of</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>thumb, they say, merely <u>solidifies</u> what was already well known, widely</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>accepted common knowledge.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Others say that the custom developed out of practical concerns, but</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>for cleanliness reasons not for warmth purposes. They argue that the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>rule of white applies only to shoes, and that out of attempts to keep</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span>them clean grew the rule of wearing white only in the warm months.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Still others say that the rule grew out of a class struggle that took</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>place in the late 1800s. With the rise of manufacturing in America, a</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>new class of wealthy people grew up, one that conflicted with the old</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>money class that had existed since the founding of the colonies in the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20</span><span>18th century. The <u><i>nouveau riche</i></u> class wanted desperately to be accepted</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>by the old money folk, but the old money people did not want to</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>accept them. Therefore, the old money folk used knowledge that they</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>had created for use among themselves, unwritten customs and accepted</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>ways of doing things unknown to the <i>nouveau riche</i>, to keep the new</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25</span><span>money folk away.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Whatever the reason, however, the rule remains in use today.</span></div></div>"
+  },
+  {
+   "n": 28,
+   "stem": "Which of the following words can be substituted for the word <i>solidifies</i> without changing the meaning of the sentence?",
+   "opts": [
+    "confirms",
+    "thickens",
+    "rebuilds",
+    "reconstitutes",
+    "goes against"
+   ],
+   "ans": 0,
+   "why": "The rule of thumb &ldquo;merely <u>solidifies</u> what was already well known, widely accepted common knowledge&rdquo; &mdash; it makes firm something that was already there, so it <b>confirms</b> it. (B) <i>thickens</i> is the literal meaning of solidify, which is exactly why it is the trap: here the word is being used figuratively, about knowledge rather than about a substance. (E) reverses the sense. <b>A familiar word in an unfamiliar place is usually being used figuratively</b> &mdash; ask what it is doing in <i>this</i> sentence."
+  },
+  {
+   "n": 29,
+   "stem": "This passage deals with all but which of the following topics?",
+   "opts": [
+    "social customs",
+    "historical data",
+    "human behavior",
+    "psychology",
+    "data analysis"
+   ],
+   "ans": 4,
+   "why": "Check them off against the passage. Social customs &mdash; the whole subject. Historical data &mdash; the late 1800s, the 18th century colonies. Human behavior &mdash; one class snubbing another. Psychology &mdash; wanting desperately to be accepted. <b>Data analysis</b> is the one thing missing: the passage contains no figures, no measurements, nothing counted. On an EXCEPT question, the safest answer is the one you can rule out by a <b>whole category</b> rather than by a shade of meaning."
+  },
+  {
+   "n": 30,
+   "stem": "Which of the following statements is supported by the information in the passage?",
+   "opts": [
+    "Customs became a weapon used by those with new money to force those with old money to let them become part of society.",
+    "Customs became a weapon used by those with old money to snub those with new money.",
+    "Customs regarding fashion quickly became out of date.",
+    "Customs regarding when to wear white changed to allow people to wear white year-round.",
+    "Customs always grow out of practical responses to issues of daily life."
+   ],
+   "ans": 1,
+   "why": "Lines 22&ndash;25 describe it exactly: the old money folk used &ldquo;unwritten customs and accepted ways of doing things unknown to the <i>nouveau riche</i>, to keep the new money folk away.&rdquo; That is <b>(B)</b>. (A) is the same sentence with the two groups swapped &mdash; always check <i>who is doing what to whom</i>. (D) is contradicted by the last line, the rule &ldquo;remains in use today.&rdquo; (E) fails on one word: <b>always</b>. The passage offers three competing origins and settles on none, so a choice claiming a universal rule cannot be supported."
+  },
+  {
+   "n": 31,
+   "stem": "Which of the following statements is not true according to the article?",
+   "opts": [
+    "The issue over when to wear white may have originated in the 1800s.",
+    "The <i>nouveau riche</i> had a hard time getting respect.",
+    "People should wear dark clothes in the winter.",
+    "Wearing white originally applied to shoes rather than clothes.",
+    "Concerns over keeping clean were never a concern when the rules for wearing white were developed."
+   ],
+   "ans": 4,
+   "why": "The third paragraph is built entirely on cleanliness: the custom &ldquo;developed out of practical concerns, but for <b>cleanliness</b> reasons,&rdquo; and the rule about shoes &ldquo;grew out of attempts to keep them clean.&rdquo; So (E), which says cleanliness was <i>never</i> a concern, is flatly contradicted &mdash; and it is the answer, because the question asks for what is <b>not</b> true. The other four all appear on the page. Two warnings worth carrying: absolute words like <b>never</b> and <b>always</b> are usually where a false statement hides, and a <i>not true</i> question inverts everything, so mark it before you start."
+  },
+  {
+   "n": 32,
+   "stem": "All but which of the following inferences may be made about the author?",
+   "opts": [
+    "The author is willing to do research to find answers to interesting questions.",
+    "The author has studied some history.",
+    "The author is knowledgeable about fashion.",
+    "The author is female.",
+    "The author is from the South."
+   ],
+   "ans": 3,
+   "why": "(E) is stated outright &mdash; &ldquo;those of us from the South&rdquo; (line 2&ndash;3). (A) and (B) follow from three researched origin stories with dates in them, and (C) from writing confidently about a dress rule. Nothing anywhere indicates the writer&rsquo;s sex, so <b>(D) is the inference that cannot be made</b>. An inference has to <i>rest on something in the text</i>; the fact that a statement could be true is not evidence for it. It is also worth noticing the quiet assumption behind (D) &mdash; that writing about clothes means the writer is a woman."
+  },
+  {
+   "n": 33,
+   "stem": "What will come next in this discussion?",
+   "opts": [
+    "nothing; the author has finished the article",
+    "a discussion of other instances in which the new money and old money clashed",
+    "an account of some famous Southern women who defied the &ldquo;no-white-after-Labor-Day&rdquo; rule",
+    "a complete list of instances in which one can break the rule",
+    "a handy mnemonic device to help us remember when to wear black"
+   ],
+   "ans": 0,
+   "why": "The last line is a closing line: &ldquo;Whatever the reason, however, the rule remains in use today.&rdquo; It sweeps up all three theories and reaches a verdict, and the question the article opened with &mdash; where does this rule come from? &mdash; has been answered three times over. So <b>nothing follows</b>. Compare this with question 26, where the passage ended on &ldquo;Let&rsquo;s see how&rdquo; and there was clearly more to come. Same question, opposite answer, and the <b>last sentence</b> is what decides it every time."
+  },
+  {
+   "n": 34,
+   "stem": "Based on your reading of the article, what does <i>nouveau riche</i> mean?",
+   "opts": [
+    "newly married",
+    "newly wealthy",
+    "newly graduated",
+    "newly born",
+    "newly bankrupted"
+   ],
+   "ans": 1,
+   "why": "The phrase is introduced right after &ldquo;a new class of wealthy people grew up&rdquo; (lines 17&ndash;18) and is used throughout as the opposite of &ldquo;old money&rdquo; &mdash; so it means <b>newly wealthy</b>. Notice that every choice begins with <i>newly</i>: the test is handing you half the phrase and checking whether you can get the other half from context. The word <i>riche</i> helps, but you do not need any French &mdash; the surrounding sentences do the whole job."
+  },
+  {
+   "n": 35,
+   "stem": "This article sets out to ______.",
+   "opts": [
+    "set the record straight on old money in the South",
+    "supply interesting, but trivial, information",
+    "support new money people in the North",
+    "explain the cause of the Civil War",
+    "convince people to wear white after Labor Day"
+   ],
+   "ans": 1,
+   "why": "The subject is a minor dress custom, the writer offers three theories and refuses to choose between them, and the tone is curious rather than urgent. That is <b>interesting but trivial information</b> &mdash; and the answer&rsquo;s own hedge, &ldquo;but trivial,&rdquo; is what makes it fit. (A) and (E) both claim the article is trying to settle something, and it explicitly does not (&ldquo;Whatever the reason&hellip;&rdquo;). (D) is a subject the passage never touches. When the choices differ mainly in <b>how strong a purpose they claim</b>, match the strength to the writing."
+  },
+  {
+   "n": 36,
+   "stem": "In which of the following publications would you most likely find this information?",
+   "opts": [
+    "the sports section of your local newspaper",
+    "the world news section of a weekly newsmagazine",
+    "the arts and leisure section of the Sunday paper",
+    "the science news section of a television news program",
+    "the comics page online"
+   ],
+   "ans": 2,
+   "why": "Match the piece to its natural home. It is a light, well-read essay about fashion and social history &mdash; exactly the <b>arts and leisure</b> material a Sunday paper runs. (B) is for hard news and this is not news; (D) is for science and there is none; (A) and (E) are the wrong subject entirely. A question like this is really a tone-and-subject question wearing a disguise: ask <b>who would read this for pleasure</b>, and the section names itself."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 7 &middot; Questions 37&ndash;40",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Most, if not all, Americans are familiar with the concept of <i>kamikaze</i>,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>special Japanese pilots who fought in World War II. These men were</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>unique because they enlisted in the war effort knowing that they would</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>be fighting to the death. They trained to be suicide pilots, who</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>purposely drove their planes headlong into their targets, exploding</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>themselves along with their planes and their targets.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Few of us, however, have heard of the <i>kaiten</i>. The <i>kaiten</i> were small</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>vessels, carried on submarines; they weighed eight tons and were loaded</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>with explosive warheads. They had limited range (traveling a distance</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>ranging from 12 miles at top speed and 30 miles at low speed) and</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>silent movement. But like the <i>kamikaze</i> planes, these <i>kaiten</i> were</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span><u>unrecoverable</u>; if they reached their target, they exploded, captain and</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>all, and if they didn&rsquo;t, they sank, carrying their captains with them.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Both of these military strategies depended heavily on the concept of</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span>honor. Honorable death, especially by suicide for the sake of the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Emperor during battle, brought nobility to the soldier and his family.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>These fighters were idolized by their countrymen; they represented the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>highest ideals of the nation&mdash;that of total sacrifice on behalf of</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>their ruler.</span></div></div>"
+  },
+  {
+   "n": 37,
+   "stem": "Based on the article, which of the following actions would be seen as honorable by Japanese warriors in World War II?",
+   "opts": [
+    "becoming a <i>kamikaze</i> pilot but pulling out of the final dive at the last minute",
+    "refusing to man the <i>kaiten</i> on which he had trained",
+    "defending Hiroshima as the atom bomb dropped",
+    "spying for the Americans",
+    "emigrating to Canada just after the war started"
+   ],
+   "ans": 2,
+   "why": "The passage gives you the standard in its last paragraph: honor meant &ldquo;total sacrifice on behalf of their ruler&rdquo; &mdash; staying to the end, whatever the cost. Only <b>(C)</b> does that: defending the city while the bomb falls is certain death accepted rather than avoided. (A) and (B) are men who trained for the sacrifice and then stepped back from it; (D) and (E) are leaving the effort altogether. <b>When a passage supplies a value, judge each choice against that value</b>, not against what you would think yourself. <i>(The choices are printed in the order A, B, C, E, D in the original book; they are given here with their printed letters.)</i>"
+  },
+  {
+   "n": 38,
+   "stem": "Which of the following words best describes the <i>kaiten</i>?",
+   "opts": [
+    "luxury liners",
+    "floating coffins",
+    "bamboo tubes",
+    "warrior flutes",
+    "underwater kayaks"
+   ],
+   "ans": 1,
+   "why": "Read what the passage says they did: &ldquo;if they reached their target, they exploded, captain and all, and if they didn&rsquo;t, they sank, carrying their captains with them&rdquo; (lines 12&ndash;13). A vessel a man cannot come back from is a <b>floating coffin</b>, and no other choice carries that. (E) <i>underwater kayaks</i> gets the size and the water right but misses the only thing that matters about them. (A) is the opposite in every way. On a &ldquo;best describes&rdquo; question, look for the choice that captures the <b>point the passage is making</b>, not just the physical facts."
+  },
+  {
+   "n": 39,
+   "stem": "What kind of ruler did Japan have during World War II, according to this article?",
+   "opts": [
+    "emperor",
+    "king",
+    "prince",
+    "president",
+    "chancellor"
+   ],
+   "ans": 0,
+   "why": "Line 15&ndash;16: honorable death &ldquo;especially by suicide for the sake of the <b>Emperor</b> during battle.&rdquo; The question adds &ldquo;according to this article&rdquo; precisely because it wants you to find the word rather than recall a history lesson &mdash; and the article supplies it. The other four are all real titles for a head of state, which makes them plausible to anyone guessing. <b>When a question says &ldquo;according to the article,&rdquo; the answer is a word on the page.</b>"
+  },
+  {
+   "n": 40,
+   "stem": "Which of the following gives an example of something that is <i>unrecoverable</i>?",
+   "opts": [
+    "a penny at the bottom of a wading pool",
+    "the moon when it is full",
+    "your shoe when it falls over a cliff",
+    "your book you left at your grandmother&rsquo;s house",
+    "a sand dune at high tide"
+   ],
+   "ans": 2,
+   "why": "The passage uses <u>unrecoverable</u> for the <i>kaiten</i>: once launched, it never comes back, whatever happens. So you want the thing that <b>cannot be got back</b>. A penny in a wading pool can be fished out; a book at your grandmother&rsquo;s can be collected next visit; the full moon was never yours to recover. A <b>shoe that goes over a cliff</b> is gone. (E) is the thoughtful near-miss &mdash; a dune at high tide is covered, not destroyed, and it is still there when the tide goes out. The method: take the meaning you worked out from the passage and test every choice against it."
+  }
+ ],
+ "count": 18
+};
+const MINUTES = 18;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
