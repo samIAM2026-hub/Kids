@@ -312,6 +312,11 @@
   .tries .arr{color:var(--gold2);margin-right:4px}
   .pfoot{display:flex;gap:6px 10px;align-items:center;flex-wrap:wrap;margin-top:4px;font-size:11px;color:var(--mute)}
   .st-prac{background:rgba(91,143,199,.16);color:var(--blue)}
+  details.wk7>summary{cursor:pointer;list-style:none;display:block}
+  details.wk7>summary::-webkit-details-marker{display:none}
+  details.wk7>summary::before{content:'▸ ';color:var(--gold2)}
+  details.wk7[open]>summary::before{content:'▾ '}
+  details.wk7>summary:hover{color:var(--cream)}
   .dayrow{display:flex;gap:10px;align-items:baseline;width:100%;font:inherit;font-size:12px;color:var(--cream);
           text-align:left;background:none;border:none;border-bottom:1px dashed var(--line);padding:7px 6px;cursor:pointer}
   .dayrow:hover{background:rgba(42,59,88,.35)}
@@ -776,6 +781,7 @@ function guideOpen(k){
   return v==='1' ? ' open' : '';
 }
 // Kid cards fold the same way, remembered per tab per kid.
+const WK7 = {};   // kid → 「最近 7 天」 unfolded this session
 function kidOpen(v, k){
   let x = null;
   try { x = localStorage.getItem('parent.kid.'+v+'.'+k); } catch(e){}
@@ -1248,7 +1254,9 @@ function viewHist(){
     }
     // A week around the day shown (up to 3 days after it, never past today), one line a day.
     const end = shiftDay(day,3) < iso(today) ? shiftDay(day,3) : iso(today);
-    html += `<div class="subhd">最近 7 天 · 点一天换过去</div>`;
+    // Folded by default — seven lines under every card is clutter. Opened, it stays open while you
+    // hop between days (in memory only; a reload folds it again).
+    html += `<details class="wk7" data-wk7="${k}"${WK7[k]?' open':''}><summary class="subhd">最近 7 天 · 点一天换过去</summary>`;
     for(let i=0; i<7; i++){
       const d = shiftDay(end,-i), P = dayPapers(k, d), s = dayStats(P), n = s.scored.length;
       const txt = !P.length ? '没交卷' : [`${P.length} 份`, n?`第一遍达标 ${s.firstOk.length}/${n}`:'',
@@ -1257,7 +1265,7 @@ function viewHist(){
       html += `<button class="dayrow${d===day?' on':''}${P.length?'':' quiet'}" data-hday="${d}">
         <span class="d">${d.slice(5)} 周${wdOf(d)}</span><span class="s">${txt}</span></button>`;
     }
-    html += `</details>`;
+    html += `</details></details>`;
   });
   return html + `</div>`;
 }
@@ -2073,6 +2081,7 @@ function render(){
       const [k, id] = b.dataset.movego.split('|'); moveItem(k, id, viewEl.querySelector('.movedate').value, b); }));
   }
   if(V==='hist'){
+    viewEl.querySelectorAll('details.wk7').forEach(d=>d.addEventListener('toggle',()=>{ WK7[d.dataset.wk7] = d.open; }));
     const goHist = d=>{ if(!d) return; HD = d > iso(today) ? iso(today) : d; render(); };
     // The day docs of the day shown hold the kid reports; read them once, then draw again.
     if(['grace','warren'].some(k=>NOTES[k+'|'+HD]===undefined) && notesLoading!==HD){
