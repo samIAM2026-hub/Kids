@@ -63,8 +63,30 @@
        color:var(--mute);padding:9px 15px;border-bottom:2.5px solid transparent;transition:color .12s}
   .tab:hover{color:var(--cream)}
   .tab.on{color:var(--gold);border-bottom-color:var(--gold)}
-  .tab .pill{background:var(--line);color:var(--cream);border-radius:999px;
-             font-size:10.5px;padding:1px 7px;margin-left:6px}
+  .tabs{align-items:flex-end}
+  .tab{font-size:14px}
+  .pill{background:var(--line);color:var(--cream);border-radius:999px;font-size:10.5px;padding:1px 7px;margin-left:6px}
+  .pill.hot{background:var(--amber);color:var(--ink)}   /* only on things waiting for a parent */
+  /* 题库: a quiet door on the right, not a peer of the kids */
+  .bankbtn{margin:0 0 7px auto;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;
+           background:none;border:1px solid var(--line);border-radius:8px;color:var(--mute);padding:5px 11px}
+  .bankbtn:hover{color:var(--cream);border-color:var(--gold2)}
+  .bankbtn.on{color:var(--gold);border-color:var(--gold2)}
+  .bankbtn #bankn{font-weight:500;opacity:.75;margin-left:2px}
+  .subtabs{display:flex;gap:6px;padding:10px 0 11px;border-top:1px solid var(--line);align-items:center}
+  .subtabs[hidden]{display:none}
+  .stab{font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:999px;white-space:nowrap;
+        padding:5px 13px;border:1px solid var(--line);background:transparent;color:var(--mute)}
+  .stab:hover{color:var(--cream);border-color:var(--gold2)}
+  .stab.on{background:var(--card);color:var(--cream);border-color:var(--gold2)}
+  .stab.assign{margin-left:auto;border-color:transparent;color:var(--gold)}
+  .stab.assign:hover{border-color:var(--gold2)}
+  /* 今天: what is waiting on a parent, above the two kids */
+  .todo{display:flex;gap:8px 14px;align-items:center;flex-wrap:wrap;margin:14px 0 0;padding:9px 14px;
+        background:rgba(224,163,62,.09);border:1px solid rgba(224,163,62,.45);border-radius:10px;font-size:12.5px}
+  .todo .lbl{color:var(--amber);font-weight:600}
+  .todo button{font:inherit;font-weight:600;color:var(--cream);background:none;border:none;padding:2px 0;cursor:pointer}
+  .todo button:hover{color:var(--gold)}
 
   /* ---------- generic card ---------- */
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
@@ -477,8 +499,12 @@
     .hrow .btn{padding:7px 10px;font-size:12px;white-space:nowrap}
     .tabs{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
     .tabs::-webkit-scrollbar{display:none}
-    .tab{white-space:nowrap;padding:9px 7px;font-size:12.5px;flex:0 0 auto}   /* all five fit at 390px; narrower phones swipe */
+    .tab{white-space:nowrap;padding:9px 9px;font-size:13.5px;flex:0 0 auto}
     .tab .pill{margin-left:4px}
+    .bankbtn{flex:0 0 auto;padding:5px 9px}
+    .subtabs{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:8px 0 9px}
+    .subtabs::-webkit-scrollbar{display:none}
+    .stab{flex:0 0 auto;padding:5px 11px}
 
     /* bank: each row becomes a small card — title on its own line, the facts on a line under it */
     details.subj>summary{padding:12px 14px;font-size:16px}
@@ -571,14 +597,21 @@
       <button class="btn ghost" id="reload">刷新</button>
       <button class="btn ghost" id="lock">退出登录</button>
     </div>
+    <!-- Two levels (Sam 2026-09-19): 今天 · one page per kid · 题库 as a side door.
+         The kid pages share the views below; KV says whose data they show. -->
     <nav class="tabs">
-      <button class="tab on" data-v="today">今日作业</button>
-      <button class="tab" data-v="bank">题库 <span class="pill" id="bankn"></span></button>
-      <button class="tab" data-v="hist">完成记录</button>
-      <button class="tab" data-v="skills">知识点</button>
-      <button class="tab" data-v="focus">专注情况</button>
-      <button class="tab" data-v="reading">阅读写作</button>
-      <button class="tab" data-v="essay">作文 <span class="pill" id="essayn" hidden></span></button>
+      <button class="tab on" data-top="today">今天</button>
+      <button class="tab" data-top="grace">👧 Grace <span class="pill hot" data-kpill="grace" hidden></span></button>
+      <button class="tab" data-top="warren">👦 Warren <span class="pill hot" data-kpill="warren" hidden></span></button>
+      <button class="bankbtn" data-top="bank" title="全部卷子，勾选后派给孩子">📚 题库 <span id="bankn"></span></button>
+    </nav>
+    <nav class="subtabs" id="subtabs" hidden>
+      <button class="stab" data-v="hist">完成记录</button>
+      <button class="stab" data-v="skills">知识点</button>
+      <button class="stab" data-v="focus">专注情况</button>
+      <button class="stab" data-v="reading">阅读写作</button>
+      <button class="stab" data-v="essay">作文 <span class="pill hot" id="essayn" hidden></span></button>
+      <button class="stab assign" id="kidassign">＋ 派题</button>
     </nav>
   </div>
 </header>
@@ -790,8 +823,9 @@ function kidOpen(v, k){
 // The opening tag of one kid card. `when` sits at the right of the name (unchanged); `sum` is the
 // line of numbers shown ONLY while the card is folded — open, the KPI grid below says the same thing.
 // Caller closes it with `</details>`, not `</div>`.
+// On a kid's own page there is one card, so it is always open.
 function kidCard(v, k, when, sum){
-  return `<details class="card kc" data-kc="${v}.${k}"${kidOpen(v,k)}><summary>
+  return `<details class="card kc" data-kc="${v}.${k}"${KV ? ' open' : kidOpen(v,k)}><summary>
     <div class="kidhead"><span class="av">${KID[k].av}</span><h3>${KID[k].n}</h3>
       <span class="when">${when}</span><span class="fold">▸</span></div>
     ${sum ? `<div class="kcsum">${sum}</div>` : ''}</summary>`;
@@ -847,9 +881,18 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeTip(); });
 addEventListener('scroll', closeTip, true);
 addEventListener('resize', closeTip);
 
+// 今天's strip of what is waiting on a parent. Empty → no strip at all.
+function todoStrip(){
+  const items = ['grace','warren'].map(k=>{
+    const n = essaysTodo(k);
+    return n ? `<button data-gokid="${k}" data-gov="essay">${KID[k].av} ${KID[k].n} 作文 ${n} 篇待批改 ›</button>` : '';
+  }).filter(Boolean);
+  return items.length ? `<div class="todo"><span class="lbl">待你处理</span>${items.join('')}</div>` : '';
+}
+
 function viewToday(){
   const day = TD, isToday = day===iso(today);
-  let html = `<h2 class="sec">${isToday?'今天':'作业'} · ${day} 周${wdOf(day)}${qm(`孩子登录后只看得到这里派的内容，看不到题库本身。
+  let html = todoStrip() + `<h2 class="sec">${isToday?'今天':'作业'} · ${day} 周${wdOf(day)}${qm(`孩子登录后只看得到这里派的内容，看不到题库本身。
       派错了、要换：<b>撤回</b>从孩子这天的作业里拿掉；没做完：<b>改日期</b>挪到另一天。做过的成绩都会保留。`)}</h2>
     <div class="daynav">
       <button class="fchip" data-day="${shiftDay(day,-1)}">‹ ${dayName(shiftDay(day,-1), '前一天')}</button>
@@ -1122,7 +1165,7 @@ const where = p => p.book || (p.subj||'').replace(/^[^\p{L}\p{N}《]+/u, '');
 // The day in plain sentences: what was done, what passed on the first try, what only passed on a retry.
 function histSummary(k, papers, S){
   const n = KID[k].n;
-  if(!papers.length) return `${n} 这天没有交卷记录。派了作业却没做的话，到「今日作业」翻到这一天看。`;
+  if(!papers.length) return `${n} 这天没有交卷记录。派了作业却没做的话，到「今天」翻到这一天看。`;
   const books = [...new Set(papers.map(where).filter(Boolean))];
   const out = [`${n} 这天做了 <b>${papers.length} 份</b>（交卷 ${S.nAtt} 次），一共用了 <b>${dur(S.secs)}</b>` +
     (books.length ? `，内容是 ${books.slice(0,3).map(esc).join('、')}${books.length>3?' 等':''}` : '') + '。'];
@@ -1209,7 +1252,7 @@ function noteBlock(k, d){
 
 function viewHist(){
   const day = HD, rel = dayName(day, ''), isToday = day===iso(today);
-  let html = `<h2 class="sec">完成记录 · ${rel?rel+' · ':''}${day} 周${wdOf(day)}${qm('一天一页：两个孩子这一天交的每一份卷子，加一段文字总结。用 ‹ › 或日期框换一天，每张卡片最下面也能点最近 7 天。')}</h2>
+  let html = `<h2 class="sec">完成记录 · ${rel?rel+' · ':''}${day} 周${wdOf(day)}${qm('一天一页：这一天交的每一份卷子，加一段文字总结。用 ‹ › 或日期框换一天，每张卡片最下面也能点最近 7 天。')}</h2>
     <div class="daynav">
       <button class="fchip" data-hday="${shiftDay(day,-1)}">‹ ${dayName(shiftDay(day,-1), '前一天')}</button>
       <input type="date" id="hdpick" value="${day}" max="${iso(today)}">
@@ -1227,7 +1270,7 @@ function viewHist(){
       <li>日期按<b>交卷那一刻</b>算；「14:31 交」是交卷的钟点。点卷子标题可以打开看题（家长预览，不记成绩）。</li>
     </ul></details><div class="grid2">`;
 
-  ['grace','warren'].forEach(k=>{
+  kidsShown().forEach(k=>{
     const papers = dayPapers(k, day), S = dayStats(papers), sc = S.scored.length;
     html += kidCard('hist', k, papers.length?`${papers.length} 份 · 交卷 ${S.nAtt} 次`:'这天没交卷',
       papers.length ? [sc?`第一遍达标 <b>${S.firstOk.length}/${sc}</b>`:'',
@@ -1374,7 +1417,7 @@ function skRow(r){
 }
 
 function viewSkills(){
-  let html = `<h2 class="sec">知识点 · 该复习哪几条${qm(`把两个孩子的错题按<b>知识点</b>聚到一起 —— 同一条在不同卷子、不同日子上反复错，才算弱点。
+  let html = `<h2 class="sec">知识点 · 该复习哪几条${qm(`把错题按<b>知识点</b>聚到一起 —— 同一条在不同卷子、不同日子上反复错，才算弱点。
       这是一份复习清单，不是仪表盘。`)}</h2>
     <details class="hguide" data-guide="skills"${guideOpen('skills')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li><b>亮红</b>要三个条件<b>同时</b>满足：这条知识点累计做过 <b>≥ ${SK_MIN_Q} 题</b>、正确率 <b>&lt; ${SK_MAX_PCT}%</b>、
@@ -1388,7 +1431,7 @@ function viewSkills(){
       <li>点知识点里的「看是哪几题」能展开原题的日期和卷子；点卷子名在新标签页打开（家长预览，不记成绩）。</li>
     </ul></details><div class="grid2">`;
 
-  ['grace','warren'].forEach(k=>{
+  kidsShown().forEach(k=>{
     const S = skStats(k);
     html += kidCard('skills', k,
       S.nTagged ? `打过标签的 ${S.nTagged} 题 · ${S.rows.length} 条知识点` : '还没有打过标签的题',
@@ -1494,7 +1537,7 @@ function viewFocus(){
     </ul></details>
     <div class="grid2">`;
 
-  ['grace','warren'].forEach(k=>{
+  kidsShown().forEach(k=>{
     const mine = ATT.filter(a=>a.kid===k && a.date>=sinceIso).map(a=>Object.assign({ f:readFocus(a) }, a));
     const T = mine.reduce((s,a)=>({ secs:s.secs+a.f.secs, active:s.active+a.f.active, away:s.away+a.f.awaySecs,
                                     n:s.n+a.f.awayCount, max:Math.max(s.max,a.f.maxAway) }),
@@ -1616,7 +1659,9 @@ function viewReading(){
   const F = RD.data;
   if(!F) return html + `<p class="empty">正在从 Reading Club 取数据…</p></div>`;
   if(!F.kids.length) return html + `<p class="empty">Reading Club 里这个账号名下没有孩子。</p></div>`;
-  return html + F.kids.map(kid=>readingKid(kid, F)).join('') + `</div>`;
+  const kids = F.kids.filter(kid=>!KV || String(kid.name).toLowerCase()===KID[KV].n.toLowerCase());
+  if(!kids.length) return html + `<p class="empty">Reading Club 里没有 ${KID[KV].n} 的记录。</p></div>`;
+  return html + kids.map(kid=>readingKid(kid, F)).join('') + `</div>`;
 }
 
 function readingKid(kid, F){
@@ -1714,7 +1759,12 @@ function readingDetail(d, id, open, F){
 }
 
 /* ===================== wiring ===================== */
-let V = 'today';
+// V = which view is drawn. KV = whose page it is on: null on 今天 and 题库 (both kids),
+// 'grace' / 'warren' on a kid's page, where 完成记录 … 作文 show that kid only.
+let V = 'today', KV = null;
+let KSUB = 'hist';   // the kid page's last sub-tab, kept when switching Grace ↔ Warren
+const kidsShown = () => KV ? [KV] : ['grace','warren'];
+const essaysTodo = k => ATT.filter(a=>a.kid===k && a.wl && ess(a).todo).length;
 const viewEl = document.getElementById('view');
 const bar = document.getElementById('assignbar');
 
@@ -1750,9 +1800,9 @@ function goEssay(id){
   wrFlush();
   WR.cur = id; WR.editing = false; WR.diff = false; WR.ed = null;
   if(WR.list && !WR.list.some(w=>w.id===id)) WR.list = null;
-  V = 'essay';
-  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on', x.dataset.v==='essay'));
-  render(); window.scrollTo({ top:0 });
+  // Its kid's page: the attempt says whose it is (完成记录 is already on that kid's page).
+  const a = ATT.find(x=>x.aid===id);
+  go('essay', a ? a.kid : KV);
 }
 
 function viewEssay(){
@@ -1771,10 +1821,13 @@ function viewEssay(){
     <p style="text-align:center"><button class="btn" data-wrretry>重试</button></p>`;
   if(!WR.list) return html + `<p class="empty">正在读作文…</p>`;
   if(!WR.list.length) return html + `<p class="empty">还没有作文。孩子在 Writing Lab 写完点「hand it in」就会出现在这里。</p>`;
+  // On a kid's page the list is that kid's; the 全部 / per-kid chips only show without one.
   const kids = ['grace','warren'].filter(k=>WR.list.some(w=>w.kid===k));
-  if(kids.length > 1) html += `<div style="margin-top:12px">${[['all','全部'], ...kids.map(k=>[k, KID[k].av+' '+KID[k].n])]
+  if(!KV && kids.length > 1) html += `<div style="margin-top:12px">${[['all','全部'], ...kids.map(k=>[k, KID[k].av+' '+KID[k].n])]
     .map(([v,l])=>`<button class="fchip${WR.kid===v?' on':''}" data-wk="${v}">${l}</button>`).join(' ')}</div>`;
-  const list = WR.list.filter(w=>WR.kid==='all' || w.kid===WR.kid);
+  const wk = KV || WR.kid;
+  const list = WR.list.filter(w=>wk==='all' || w.kid===wk);
+  if(KV && !list.length) return html + `<p class="empty">${KID[KV].n} 还没有作文。在 Writing Lab 写完点「hand it in」就会出现在这里。</p>`;
   const todo = list.filter(w=>w.status!=='reviewed'), done = list.filter(w=>w.status==='reviewed');
   html += `<div class="subhd">待批改 · ${todo.length} 篇</div>` + (todo.length ? todo.map(essayRow).join('') : `<p class="empty">都批完了。</p>`);
   if(done.length) html += `<div class="subhd">已批改 · ${done.length} 篇</div>` + done.map(essayRow).join('');
@@ -2070,6 +2123,7 @@ function render(){
       try { await loadDay(d); } catch(e){ console.error(e); toast('读取这天的作业失败：' + (e.code||e.message), true); }
       if(V==='today' && TD===d) render();
     };
+    viewEl.querySelectorAll('[data-gokid]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.gov, b.dataset.gokid)));
     viewEl.querySelectorAll('.fchip[data-day]').forEach(b=>b.addEventListener('click',()=>goDay(b.dataset.day)));
     document.getElementById('tdpick').addEventListener('change', e=>goDay(e.target.value));
     viewEl.querySelectorAll('[data-pull]').forEach(b=>b.addEventListener('click',()=>{
@@ -2120,7 +2174,10 @@ function render(){
     try { localStorage.setItem('parent.kid.'+d.dataset.kc, d.open?'1':'0'); } catch(e){}
   }));
   document.getElementById('bankn').textContent = BANK.length;
-  const nTodo = ATT.filter(a=>a.wl && ess(a).todo).length, en = document.getElementById('essayn');
+  // Essays waiting to be marked: on each kid's name, and on 作文 inside that kid's page.
+  document.querySelectorAll('[data-kpill]').forEach(p=>{ const n = essaysTodo(p.dataset.kpill);
+    p.textContent = n; p.hidden = !n; p.title = n ? `${n} 篇作文待批改` : ''; });
+  const nTodo = KV ? essaysTodo(KV) : 0, en = document.getElementById('essayn');
   en.textContent = nTodo; en.hidden = !nTodo;
   const nDemo = ATT.filter(a=>a.demo).length;
   document.getElementById('demobar').hidden = !nDemo;
@@ -2174,10 +2231,34 @@ function render(){
       d.open?OPEN.add(d.dataset.subj):OPEN.delete(d.dataset.subj); }));
   }
 }
-document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
-  wrFlush();   // an unsaved bit of marking in 作文 goes to its draft before the tab changes
-  V = t.dataset.v; render(); window.scrollTo({top:0}); }));
+// Every move between views goes through here. v = the view; kid = whose page (ignored for 今天 / 题库).
+function go(v, kid){
+  wrFlush();   // an unsaved bit of marking in 作文 goes to its draft before the view changes
+  KV = v==='today' || v==='bank' ? null : kid || KV || 'grace';
+  if(KV) KSUB = v;
+  // An essay left open on one kid's page must not show up on the other kid's.
+  const w = wrCur();
+  if(w && w.kid!==KV){ WR.cur = ''; WR.editing = false; WR.diff = false; WR.ed = null; }
+  V = v;
+  navSync(); render(); window.scrollTo({ top:0 });
+}
+function navSync(){
+  const top = KV || V;   // 'today' | 'bank' | a kid
+  document.querySelectorAll('[data-top]').forEach(x=>x.classList.toggle('on', x.dataset.top===top));
+  document.getElementById('subtabs').hidden = !KV;
+  document.querySelectorAll('.stab[data-v]').forEach(x=>x.classList.toggle('on', x.dataset.v===V));
+  if(KV) document.getElementById('kidassign').textContent = `＋ 给 ${KID[KV].n} 派题`;
+}
+document.querySelectorAll('[data-top]').forEach(t=>t.addEventListener('click',()=>{
+  const top = t.dataset.top;
+  top==='today' || top==='bank' ? go(top) : go(KSUB, top); }));
+document.querySelectorAll('.stab[data-v]').forEach(t=>t.addEventListener('click',()=>go(t.dataset.v, KV)));
+// 派题 from a kid's page: the bank opens on that kid's list, and 派给 is already set to them.
+document.getElementById('kidassign').addEventListener('click',()=>{
+  const k = KV;
+  F.kid = k; document.getElementById('asskid').value = k;
+  go('bank');
+});
 
 function toast(msg, bad){
   const t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : '');
