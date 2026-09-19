@@ -68,7 +68,8 @@
 
   /* ---------- generic card ---------- */
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
-  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(330px,100%),1fr));gap:14px;margin-top:16px}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(330px,100%),1fr));gap:14px;margin-top:16px;
+         align-items:start}   /* not stretch: a kid with nothing that day must not become a tall empty column */
   h2.sec{font-size:19px;margin:26px 0 2px}
   .seclead{color:var(--mute);font-size:12.5px;margin-bottom:12px}
 
@@ -77,6 +78,15 @@
   .kidhead .av{font-size:24px}
   .kidhead h3{font-size:19px}
   .kidhead .when{margin-left:auto;font-size:11px;color:var(--mute)}
+  /* Kid cards fold, and start folded (kidCard / kidOpen). Folded, the summary still carries that
+     kid's numbers — folding may hide the detail, never what the tab is for. */
+  details.kc>summary{cursor:pointer;list-style:none;display:block}
+  details.kc>summary::-webkit-details-marker{display:none}
+  .kidhead .fold{color:var(--gold2);font-size:11px;margin-left:9px;display:inline-block;transition:transform .12s}
+  details.kc[open] .kidhead .fold{transform:rotate(90deg)}
+  .kcsum{font-size:12px;color:var(--mute);line-height:1.7;margin-top:2px}
+  .kcsum b{color:var(--cream);font-weight:600}
+  details.kc[open]>summary .kcsum{display:none}
   .metrics{display:flex;gap:18px;margin:12px 0 14px;padding:11px 0;
            border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
   .metric .v{font-size:21px;font-weight:600;font-family:'Playfair Display',serif}
@@ -241,18 +251,19 @@
   /* ---------- history (完成记录): one day at a time, every number with a note ---------- */
   .bar{height:7px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:7px}
   .bar i{display:block;height:100%;border-radius:99px}
-  .hguide{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-top:12px;
-          font-size:12px;color:var(--mute);line-height:1.8}
-  .hguide ul{margin:2px 0 0 18px}
+  /* The guides fold and ALL of them start folded (guideOpen) — a tab opens on data, not on prose.
+     Folded, a guide is one quiet ⓘ line, the same shape Reading Club's 这些数字怎么读 already had.
+     No card, no border: the box itself was half of what made the first screen look busy. */
+  .hguide{font-size:12px;color:var(--mute);line-height:1.8;margin:10px 0 2px}
+  .hguide ul{margin:6px 0 0 18px;max-width:920px}
   .hguide b{color:var(--cream);font-weight:600}
   .hguide .chipst{font-size:10px;padding:1px 7px}
-  /* The guides fold: open on a computer, folded on a phone; the parent's own tap is remembered (guideOpen). */
-  details.hguide>summary{cursor:pointer;list-style:none}
+  details.hguide>summary{cursor:pointer;list-style:none;display:inline-block;color:var(--gold2);font-size:12px}
   details.hguide>summary::-webkit-details-marker{display:none}
-  details.hguide>summary::before{content:'▸';color:var(--gold2);margin-right:7px;display:inline-block;transition:transform .12s}
-  details.hguide[open]>summary::before{transform:rotate(90deg)}
-  details.hguide>summary .tap{color:var(--mute);font-size:11px;margin-left:8px}
-  details.hguide[open]>summary .tap{display:none}
+  details.hguide>summary::before{content:'ⓘ';margin-right:5px}
+  details.hguide>summary b{color:var(--gold2);font-weight:400}
+  details.hguide[open]>summary{margin-bottom:3px}
+  details.hguide>summary .tap{display:none}
   .fgroup{display:contents}   /* bank filters: one row per group on a phone, flowing together on a computer */
   .flbl{display:none}
   .seg{display:contents}      /* segmented control on a phone */
@@ -745,10 +756,27 @@ const attFor = id => ATT.filter(a => a.id===id);   // ATT is already newest-firs
 // Same line as the CSS phone layout (≤ 700px) — by screen width, not by what device it is.
 const PHONE = matchMedia('(max-width:700px)');
 // 「这一页怎么看」 guides: open on a computer, folded on a phone, unless the parent tapped it on this device.
+// Every guide starts folded, on a computer too — only a tap the parent made themselves reopens one.
+// Key bumped to parent.g2.* so the old "open on a computer" default doesn't linger in localStorage.
 function guideOpen(k){
   let v = null;
-  try { v = localStorage.getItem('parent.guide.'+k); } catch(e){}
-  return (v==null ? !PHONE.matches : v==='1') ? ' open' : '';
+  try { v = localStorage.getItem('parent.g2.'+k); } catch(e){}
+  return v==='1' ? ' open' : '';
+}
+// Kid cards fold the same way, remembered per tab per kid.
+function kidOpen(v, k){
+  let x = null;
+  try { x = localStorage.getItem('parent.kid.'+v+'.'+k); } catch(e){}
+  return x==='1' ? ' open' : '';
+}
+// The opening tag of one kid card. `when` sits at the right of the name (unchanged); `sum` is the
+// line of numbers shown ONLY while the card is folded — open, the KPI grid below says the same thing.
+// Caller closes it with `</details>`, not `</div>`.
+function kidCard(v, k, when, sum){
+  return `<details class="card kc" data-kc="${v}.${k}"${kidOpen(v,k)}><summary>
+    <div class="kidhead"><span class="av">${KID[k].av}</span><h3>${KID[k].n}</h3>
+      <span class="when">${when}</span><span class="fold">▸</span></div>
+    ${sum ? `<div class="kcsum">${sum}</div>` : ''}</summary>`;
 }
 
 // A paper's first and last score from its tries on one day (oldest first); viewed pages have none.
@@ -808,12 +836,15 @@ function viewToday(){
     const quizzes = list.filter(it=>it.type==='quiz');
     const scored = done.filter(r=>r.scored);
     const avg = scored.length ? Math.round(scored.reduce((s,r)=>s+r.last.pct,0)/scored.length) : null;
-    html += `<div class="card"><div class="kidhead"><span class="av">${KID[k].av}</span>
-      <h3>${KID[k].n}</h3><span class="when">${list.length?'已派 '+list.length+' 份':isToday?'今天还没派':'这天没派'}</span></div>
+    const nq = quizzes.reduce((s,it)=>s+(it.n||0),0);
+    html += kidCard('today', k, list.length?'已派 '+list.length+' 份':isToday?'今天还没派':'这天没派',
+      list.length ? `完成 <b>${done.length}/${list.length}</b> · 题目 ${nq} 道 · 平均 <b style="color:${
+          avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</b>`
+        : `到「题库」勾选几份，再派给 ${KID[k].n}`) + `
       <div class="hmet">
         <div><div class="v">${done.length}/${list.length}</div><div class="k">完成</div>
           <div class="x">派的 ${list.length} 份里，这天交过卷的份数</div></div>
-        <div><div class="v">${quizzes.reduce((s,it)=>s+(it.n||0),0)}</div><div class="k">题目数</div>
+        <div><div class="v">${nq}</div><div class="k">题目数</div>
           <div class="x">${quizzes.length} 份打分卷子加起来一共几道题</div></div>
         <div><div class="v">${list.length-quizzes.length}</div><div class="k">练习/参考</div>
           <div class="x">不是选择题卷子的份数：闯关练习按「一次就对」算分，参考打开看过就算完成</div></div>
@@ -850,7 +881,7 @@ function viewToday(){
     }
     if(PULLED[k].length) html += `<div class="pulled">这天撤回了 ${PULLED[k].length} 份：${PULLED[k].map(p=>{
       const w = tsDate(p.withdrawnAt); return esc(p.t) + (w ? `（${stamp(w)}）` : ''); }).join('、')}</div>`;
-    html += `</div>`;
+    html += `</details>`;
   });
   return html + `</div>`;
 }
@@ -1166,8 +1197,12 @@ function viewHist(){
 
   ['grace','warren'].forEach(k=>{
     const papers = dayPapers(k, day), S = dayStats(papers), sc = S.scored.length;
-    html += `<div class="card"><div class="kidhead"><span class="av">${KID[k].av}</span><h3>${KID[k].n}</h3>
-        <span class="when">${papers.length?`${papers.length} 份 · 交卷 ${S.nAtt} 次`:'这天没交卷'}</span></div>
+    html += kidCard('hist', k, papers.length?`${papers.length} 份 · 交卷 ${S.nAtt} 次`:'这天没交卷',
+      papers.length ? [sc?`第一遍达标 <b>${S.firstOk.length}/${sc}</b>`:'',
+                       sc?`最后达标 <b>${S.lastOk.length}/${sc}</b>`:'',
+                       S.plain.length?`不打分 ${S.plain.length} 份`:'',
+                       `用时 ${dur(S.secs)}`].filter(Boolean).join(' · ')
+        : '这天没有交卷记录') + `
       <div class="dsum"><span class="lbl">${rel||'这天'}的总结</span>${histSummary(k, papers, S)}</div>${noteBlock(k, day)}`;
     if(papers.length){
       const met = (v, name, note, col) => `<div><div class="v" style="color:${col||'var(--cream)'}">${v}</div>
@@ -1196,7 +1231,7 @@ function viewHist(){
       html += `<button class="dayrow${d===day?' on':''}${P.length?'':' quiet'}" data-hday="${d}">
         <span class="d">${d.slice(5)} 周${wdOf(d)}</span><span class="s">${txt}</span></button>`;
     }
-    html += `</div>`;
+    html += `</details>`;
   });
   return html + `</div>`;
 }
@@ -1322,8 +1357,11 @@ function viewSkills(){
 
   ['grace','warren'].forEach(k=>{
     const S = skStats(k);
-    html += `<div class="card"><div class="kidhead"><span class="av">${KID[k].av}</span><h3>${KID[k].n}</h3>
-      <span class="when">${S.nTagged ? `打过标签的 ${S.nTagged} 题 · ${S.rows.length} 条知识点` : '还没有打过标签的题'}</span></div>`;
+    html += kidCard('skills', k,
+      S.nTagged ? `打过标签的 ${S.nTagged} 题 · ${S.rows.length} 条知识点` : '还没有打过标签的题',
+      !S.rows.length ? '还没有打过标签的卷子进这张表'
+        : S.red.length ? `<b style="color:var(--red)">该复习 ${S.red.length} 条</b> · ${S.red.map(r=>esc(skName(r.sk))).join('、')}`
+        : `没有该复习的 · ${S.thin.length} 条都还没到亮红的门槛`);
     if(!S.rows.length){
       html += `<div class="dsum"><span class="lbl">还没数据</span>
         知识点标签是 2026-09-17 才开始打的，只有打了标签的卷子进这张表。
@@ -1351,7 +1389,7 @@ function viewSkills(){
             [...new Set(g.qs)].sort((x,y)=>x-y).join('、')} 题</li>`).join('')}</ul>
         ${more ? `<div class="sknot">只列了最近 ${SK_PLAIN_MAX} 份，更早的还有 ${more} 份 —— 去「完成记录」一天一天翻。</div>` : ''}</div>`;
     }
-    html += `</div>`;
+    html += `</details>`;
   });
   return html + `</div>`;
 }
@@ -1431,8 +1469,10 @@ function viewFocus(){
                           { secs:0, active:0, away:0, n:0, max:0 });
     const share = T.secs ? Math.round(100*T.active/T.secs) : null;
     const shareCol = share==null ? 'var(--mute)' : share>=90 ? 'var(--green)' : share>=75 ? 'var(--amber)' : 'var(--red)';
-    html += `<div class="card"><div class="kidhead"><span class="av">${KID[k].av}</span><h3>${KID[k].n}</h3>
-        <span class="when">交卷 ${mine.length} 次</span></div>
+    html += kidCard('focus', k, `交卷 ${mine.length} 次`,
+      mine.length ? `学习时长 <b>${dur(T.secs)}</b> · 在页面上 <b style="color:${shareCol}">${
+          share==null?'—':share+'%'}</b> · 离开 ${T.n} 次`
+        : '这段时间没有做题记录') + `
       <div class="hmet">
         <div><div class="v">${dur(T.secs)}</div><div class="k">学习时长</div>
           <div class="x">${mine.length} 次交卷，每次从打开到交卷加起来</div></div>
@@ -1443,7 +1483,7 @@ function viewFocus(){
         <div><div class="v">${T.max?dur(T.max):'—'}</div><div class="k">最长离开</div>
           <div class="x">单独一次离开最久的时长</div></div>
       </div>`;
-    if(!mine.length){ html += `<p class="empty">这段时间没有做题记录。</p></div>`; return; }
+    if(!mine.length){ html += `<p class="empty">这段时间没有做题记录。</p></details>`; return; }
 
     html += `<div class="stack"><i class="on" style="width:${share}%"></i><i class="off" style="width:${100-share}%"></i></div>
       <div class="stacklbl">在页面上 ${dur(T.active)} · 不在页面 ${dur(T.away)}</div>`;
@@ -1470,7 +1510,7 @@ function viewFocus(){
           : `<div class="fmeta" style="opacity:.7">练习 / 参考类，没有逐题记录</div>`}
       </div>`;
     });
-    html += `</div>`;
+    html += `</details>`;
   });
 
   return html + `</div>
@@ -2048,7 +2088,10 @@ function render(){
     if(!RD.data && !RD.err && !RD.loading) loadReading();
   }
   viewEl.querySelectorAll('details.hguide').forEach(d=>d.addEventListener('toggle',()=>{
-    try { localStorage.setItem('parent.guide.'+d.dataset.guide, d.open?'1':'0'); } catch(e){}
+    try { localStorage.setItem('parent.g2.'+d.dataset.guide, d.open?'1':'0'); } catch(e){}
+  }));
+  viewEl.querySelectorAll('details.kc').forEach(d=>d.addEventListener('toggle',()=>{
+    try { localStorage.setItem('parent.kid.'+d.dataset.kc, d.open?'1':'0'); } catch(e){}
   }));
   document.getElementById('bankn').textContent = BANK.length;
   const nTodo = ATT.filter(a=>a.wl && ess(a).todo).length, en = document.getElementById('essayn');
