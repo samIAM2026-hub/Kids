@@ -262,6 +262,15 @@
         padding:9px 12px;font-size:12.5px;line-height:1.8;margin:12px 0 4px}
   .dsum .lbl{display:block;font-size:10.5px;letter-spacing:1.2px;color:var(--gold2)}
   .dsum b{color:var(--cream);font-weight:600}
+  .dnote{border-left:3px solid var(--green);background:rgba(75,182,122,.07);border-radius:0 8px 8px 0;
+         padding:9px 12px;font-size:13px;line-height:1.7;margin:8px 0 4px}
+  .dnote .lbl{display:block;font-size:10.5px;letter-spacing:1.2px;color:var(--green)}
+  .dnote.quiet{border-left-color:var(--line);background:none;color:var(--mute);font-size:12px}
+  .dnote.quiet .lbl{color:var(--mute)}
+  .dnote>summary{cursor:pointer;list-style:none;color:var(--cream)}
+  .dnote>summary::-webkit-details-marker{display:none}
+  .dnote .h{font-weight:600;color:var(--cream);margin-top:8px}
+  .dnote ul{padding-left:20px}
   .hmet{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px 16px;margin:12px 0 4px;
         padding:11px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
   .hmet .v{font-size:21px;font-weight:600;font-family:'Playfair Display',serif;line-height:1.3}
@@ -652,6 +661,9 @@ let BANK = [], BANK_BY_ID = {}, ATT = [];
 let TD = iso(today), ASSIGN = { grace:[], warren:[] }, PULLED = { grace:[], warren:[] };
 // Today's items whatever day 今日作业 is showing: the bank marks these "Assigned".
 let TODAY_ITEMS = { grace:[], warren:[] };
+// The kid-facing daily report (HOMEWORK-SYSTEM.md 「每日总结」): `summary` on the day doc, written by
+// homework-system/daily-summary.mjs. "kid|date" → the summary, or null once read and there is none.
+let NOTES = {}, notesLoading = '';
 
 const dayRef = (k, d) => db.doc(`assignments/${KID[k].uid}/days/${d}`);
 // Mom signs in with a 4-digit PIN instead of Google (password = 'family-' + PIN; Firebase wants 6+).
@@ -697,6 +709,7 @@ async function loadDay(d){
     // TD may have moved on while this was loading; then only today's copy (if it's today) is still wanted.
     if(d === TD){ ASSIGN[k] = x.items || []; PULLED[k] = x.withdrawn || []; }
     if(d === iso(today)) TODAY_ITEMS[k] = x.items || [];
+    NOTES[k+'|'+d] = x.summary || null;
   });
 }
 
@@ -1108,6 +1121,16 @@ function histPaper(p){
   </div>`;
 }
 
+// What the kid reads under 「My day」 for that day — shown here so the parent sees exactly the same words.
+function noteBlock(k, d){
+  const s = NOTES[k+'|'+d];
+  if(s===undefined) return `<div class="dnote quiet"><span class="lbl">给孩子的总结</span>正在读…</div>`;
+  if(!s) return `<div class="dnote quiet"><span class="lbl">给孩子的总结</span>这天还没写。要写就在 Claude 对话里说「总结一下 ${KID[k].n} ${Number(d.slice(5,7))} 月 ${Number(d.slice(8))} 号的作业」。</div>`;
+  const list = (h, xs) => xs && xs.length ? `<div class="h">${h}</div><ul>${xs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : '';
+  return `<details class="dnote" open><summary><span class="lbl">给孩子的总结 · ${s.by==='mom'?'妈妈':'爸爸'}的口吻 · ${KID[k].n} 在孩子页「My day」里看到的就是这段</span>${esc(s.headline)}</summary>
+    ${list('🌟 What went well', s.good)}${list('🎯 What to work on', s.work)}${list('➡️ Next time', s.next)}</details>`;
+}
+
 function viewHist(){
   const day = HD, rel = dayName(day, ''), isToday = day===iso(today);
   let html = `<h2 class="sec">完成记录 · ${rel?rel+' · ':''}${day} 周${wdOf(day)}</h2>
@@ -1133,7 +1156,7 @@ function viewHist(){
     const papers = dayPapers(k, day), S = dayStats(papers), sc = S.scored.length;
     html += `<div class="card"><div class="kidhead"><span class="av">${KID[k].av}</span><h3>${KID[k].n}</h3>
         <span class="when">${papers.length?`${papers.length} 份 · 交卷 ${S.nAtt} 次`:'这天没交卷'}</span></div>
-      <div class="dsum"><span class="lbl">${rel||'这天'}的总结</span>${histSummary(k, papers, S)}</div>`;
+      <div class="dsum"><span class="lbl">${rel||'这天'}的总结</span>${histSummary(k, papers, S)}</div>${noteBlock(k, day)}`;
     if(papers.length){
       const met = (v, name, note, col) => `<div><div class="v" style="color:${col||'var(--cream)'}">${v}</div>
         <div class="k">${name}</div><div class="x">${note}</div></div>`;
@@ -1982,6 +2005,12 @@ function render(){
   }
   if(V==='hist'){
     const goHist = d=>{ if(!d) return; HD = d > iso(today) ? iso(today) : d; render(); };
+    // The day docs of the day shown hold the kid reports; read them once, then draw again.
+    if(['grace','warren'].some(k=>NOTES[k+'|'+HD]===undefined) && notesLoading!==HD){
+      const d = notesLoading = HD;
+      loadDay(d).catch(e=>{ console.warn('[notes]', e.code||e); ['grace','warren'].forEach(k=>{ NOTES[k+'|'+d] = null; }); })
+        .then(()=>{ notesLoading = ''; if(V==='hist' && HD===d) render(); });
+    }
     viewEl.querySelectorAll('[data-hday]').forEach(b=>b.addEventListener('click',()=>goHist(b.dataset.hday)));
     document.getElementById('hdpick').addEventListener('change', e=>goHist(e.target.value));
     viewEl.querySelectorAll('[data-essay]').forEach(b=>b.addEventListener('click',()=>goEssay(b.dataset.essay)));
