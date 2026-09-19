@@ -72,6 +72,16 @@
          align-items:start}   /* not stretch: a kid with nothing that day must not become a tall empty column */
   h2.sec{font-size:19px;margin:26px 0 2px}
   .seclead{color:var(--mute);font-size:12.5px;margin-bottom:12px}
+  /* 「?」: every explanation line sits behind one of these (Sam 2026-09-19: 说明太多，做成问号，要看再点) */
+  .qm{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:5px;padding:0;
+      border:1px solid var(--line);border-radius:50%;background:none;color:var(--mute);font:600 10px/1 system-ui,sans-serif;
+      vertical-align:2px;cursor:pointer;letter-spacing:0;text-transform:none}
+  .qm:hover,.qm.on{border-color:var(--gold2);color:var(--gold2)}
+  h2.sec .qm{width:18px;height:18px;font-size:11px;vertical-align:3px}
+  #qtip{position:fixed;z-index:60;max-width:min(300px,calc(100vw - 24px));padding:9px 12px;border-radius:9px;
+        background:var(--card);border:1px solid var(--gold2);box-shadow:0 6px 24px rgba(0,0,0,.45);
+        color:var(--cream);font-size:12.5px;font-weight:400;line-height:1.65;letter-spacing:0;text-transform:none}
+  #qtip p+p{margin-top:6px}
 
   /* ---------- today ---------- */
   .kidhead{display:flex;align-items:center;gap:10px;margin-bottom:3px}
@@ -664,6 +674,8 @@ const today = new Date(); today.setHours(0,0,0,0);
 // Local date, not toISOString(): that's UTC, which turns into "tomorrow" on a Pacific evening.
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// 「?」 button: the explanation is HTML (our own text), stored escaped and shown in #qtip on click.
+const qm = html => `<button type="button" class="qm" aria-label="说明" data-tip="${esc(html)}">?</button>`;
 const pctColor = p => p==null || p>=80 ? 'var(--green)' : 'var(--red)';
 const pctText = p => p==null ? '✓' : p+'%';
 const shiftDay = (d, n) => { const x = new Date(d+'T12:00:00'); x.setDate(x.getDate()+n); return iso(x); };
@@ -808,11 +820,31 @@ let MOVING = '';   // "kid|itemId" whose move-to box is open
 // ‹ › buttons say where they really go: 昨天 / 今天 / 明天 when the target is one of those, else 前一天 / 后一天.
 const dayName = (d, other) => ({ [shiftDay(iso(today),-1)]:'昨天', [iso(today)]:'今天', [shiftDay(iso(today),1)]:'明天' })[d] || other;
 
+// One popover for every 「?」: click opens / closes it, a click anywhere else, Esc or scrolling closes it.
+const qtip = Object.assign(document.createElement('div'), { id:'qtip', hidden:true });
+document.body.appendChild(qtip);
+let qtipFor = null;
+function closeTip(){ qtip.hidden = true; if(qtipFor) qtipFor.classList.remove('on'); qtipFor = null; }
+document.addEventListener('click', e=>{
+  const b = e.target.closest('.qm');
+  if(!b){ if(!qtip.contains(e.target)) closeTip(); return; }
+  e.preventDefault(); e.stopPropagation();   // a 「?」 inside a <summary> must not fold the card
+  if(qtipFor===b){ closeTip(); return; }
+  closeTip();
+  qtip.innerHTML = b.dataset.tip; qtip.hidden = false; qtipFor = b; b.classList.add('on');
+  const r = b.getBoundingClientRect(), w = qtip.offsetWidth, h = qtip.offsetHeight;
+  const left = Math.max(12, Math.min(r.left + r.width/2 - w/2, innerWidth - w - 12));
+  const top = r.bottom + 6 + h > innerHeight - 8 ? r.top - 6 - h : r.bottom + 6;
+  qtip.style.left = left+'px'; qtip.style.top = Math.max(8, top)+'px';
+}, true);
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeTip(); });
+addEventListener('scroll', closeTip, true);
+addEventListener('resize', closeTip);
+
 function viewToday(){
   const day = TD, isToday = day===iso(today);
-  let html = `<h2 class="sec">${isToday?'今天':'作业'} · ${day} 周${wdOf(day)}</h2>
-    <p class="seclead">孩子登录后只看得到这里派的内容，看不到题库本身。
-      派错了、要换：<b>撤回</b>从孩子这天的作业里拿掉；没做完：<b>改日期</b>挪到另一天。做过的成绩都会保留。</p>
+  let html = `<h2 class="sec">${isToday?'今天':'作业'} · ${day} 周${wdOf(day)}${qm(`孩子登录后只看得到这里派的内容，看不到题库本身。
+      派错了、要换：<b>撤回</b>从孩子这天的作业里拿掉；没做完：<b>改日期</b>挪到另一天。做过的成绩都会保留。`)}</h2>
     <div class="daynav">
       <button class="fchip" data-day="${shiftDay(day,-1)}">‹ ${dayName(shiftDay(day,-1), '前一天')}</button>
       <input type="date" id="tdpick" value="${day}">
@@ -842,14 +874,10 @@ function viewToday(){
           avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</b>`
         : `到「题库」勾选几份，再派给 ${KID[k].n}`) + `
       <div class="hmet">
-        <div><div class="v">${done.length}/${list.length}</div><div class="k">完成</div>
-          <div class="x">派的 ${list.length} 份里，这天交过卷的份数</div></div>
-        <div><div class="v">${nq}</div><div class="k">题目数</div>
-          <div class="x">${quizzes.length} 份打分卷子加起来一共几道题</div></div>
-        <div><div class="v">${list.length-quizzes.length}</div><div class="k">练习/参考</div>
-          <div class="x">不是选择题卷子的份数：闯关练习按「一次就对」算分，参考打开看过就算完成</div></div>
-        <div><div class="v" style="color:${avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</div><div class="k">平均分</div>
-          <div class="x">${scored.length?`做完的 ${scored.length} 份有分数的（含闯关练习），每份取这天最后一遍的分数再平均`:'这天还没有打分的成绩'}</div></div>
+        <div><div class="v">${done.length}/${list.length}</div><div class="k">完成${qm(`派的 ${list.length} 份里，这天交过卷的份数`)}</div></div>
+        <div><div class="v">${nq}</div><div class="k">题目数${qm(`${quizzes.length} 份打分卷子加起来一共几道题`)}</div></div>
+        <div><div class="v">${list.length-quizzes.length}</div><div class="k">练习/参考${qm(`不是选择题卷子的份数：闯关练习按「一次就对」算分，参考打开看过就算完成`)}</div></div>
+        <div><div class="v" style="color:${avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</div><div class="k">平均分${qm(scored.length?`做完的 ${scored.length} 份有分数的（含闯关练习），每份取这天最后一遍的分数再平均`:'这天还没有打分的成绩')}</div></div>
       </div>`;
     if(!list.length){
       html += `<p class="empty">到「题库」勾选几份，再派给 ${KID[k].n}。</p>`;
@@ -980,12 +1008,13 @@ function viewBank(){
   const rows = bankRows();
   const nAct = BANK.filter(b=>!b.archived).length;
   const latest = BANK.map(touched).sort().pop();
-  let html = `<h2 class="sec">题库 · 在用 ${nAct} · 已归档 ${BANK.length-nAct}</h2>
-    <p class="seclead">全部 ${BANK.length} 份都在这里，只有这个页面看得到${latest?`，最近一次上传 / 更新是 <b>${ymd(latest)}</b>`:''}。<b>点标题</b>在新标签页打开看题（家长预览，不记成绩）；勾选后在底部派给孩子。
-      今天已经派出去的标着 <span class="badge b-assigned" style="cursor:default">✓ Assigned</span>（后面是派给了谁）。<br>
+  let html = `<h2 class="sec">题库 · 在用 ${nAct} · 已归档 ${BANK.length-nAct}${qm(`<p>全部 ${BANK.length} 份都在这里，只有这个页面看得到${latest?`，最近一次上传 / 更新是 <b>${ymd(latest)}</b>`:''}。<b>点标题</b>在新标签页打开看题（家长预览，不记成绩）；勾选后在底部派给孩子。
+      今天已经派出去的标着 <span class="badge b-assigned" style="cursor:default">✓ Assigned</span>（后面是派给了谁）。</p><p>
       <b style="color:var(--blue)">可判分</b> 做完自动出分 ·
       <b style="color:var(--gold)">练习</b> 闯关式，按「一次就对」算分 ·
       <b style="color:var(--mute)">参考</b> 只记看过没看过</p>
+      <p>归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。
+      每行类型下面有 <b>归档</b> 按钮，点一下就收起来；要一次收一批，就勾选后用底部那条的 <b>归档</b>。归档过的按 <b>放回</b> 回到在用列表。</p>`)}</h2>
     <div class="filters bankf">
       <input type="search" id="bq" placeholder="搜书名、章节、科目、文件名…" value="${esc(F.q)}">
       ${[['kid','孩子',[['all','全部'],['grace','👧 Grace'],['warren','👦 Warren']]],
@@ -998,9 +1027,7 @@ function viewBank(){
     <div class="seclead groupbar">${rows.length} 条${F.q?` 匹配「${esc(F.q)}」`:''}
       <span class="spacer"></span>
       ${F.sort==='time'?'':`<button class="fchip icon" data-act="expand" title="全部展开" aria-label="全部展开"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg><span class="txt">全部展开</span></button>
-      <button class="fchip icon" data-act="collapse" title="全部收起" aria-label="全部收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg><span class="txt">全部收起</span></button>`}</div>
-    <p class="archnote">归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。
-      每行类型下面有 <b>归档</b> 按钮，点一下就收起来；要一次收一批，就勾选后用底部那条的 <b>归档</b>。归档过的按 <b>放回</b> 回到在用列表。</p>`;
+      <button class="fchip icon" data-act="collapse" title="全部收起" aria-label="全部收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg><span class="txt">全部收起</span></button>`}</div>`;
   if(!rows.length) return html + `<p class="empty">没有匹配的内容。</p>`;
 
   if(F.sort==='time'){
@@ -1176,8 +1203,7 @@ function noteBlock(k, d){
 
 function viewHist(){
   const day = HD, rel = dayName(day, ''), isToday = day===iso(today);
-  let html = `<h2 class="sec">完成记录 · ${rel?rel+' · ':''}${day} 周${wdOf(day)}</h2>
-    <p class="seclead">一天一页：两个孩子这一天交的每一份卷子，加一段文字总结。用 ‹ › 或日期框换一天，每张卡片最下面也能点最近 7 天。</p>
+  let html = `<h2 class="sec">完成记录 · ${rel?rel+' · ':''}${day} 周${wdOf(day)}${qm('一天一页：两个孩子这一天交的每一份卷子，加一段文字总结。用 ‹ › 或日期框换一天，每张卡片最下面也能点最近 7 天。')}</h2>
     <div class="daynav">
       <button class="fchip" data-hday="${shiftDay(day,-1)}">‹ ${dayName(shiftDay(day,-1), '前一天')}</button>
       <input type="date" id="hdpick" value="${day}" max="${iso(today)}">
@@ -1206,7 +1232,7 @@ function viewHist(){
       <div class="dsum"><span class="lbl">${rel||'这天'}的总结</span>${histSummary(k, papers, S)}</div>${noteBlock(k, day)}`;
     if(papers.length){
       const met = (v, name, note, col) => `<div><div class="v" style="color:${col||'var(--cream)'}">${v}</div>
-        <div class="k">${name}</div><div class="x">${note}</div></div>`;
+        <div class="k">${name}${qm(note)}</div></div>`;
       const none = '这天没有打分的卷子';
       html += `<div class="hmet">
         ${met(papers.length+' 份', '做了几份', `交卷 ${S.nAtt} 次：同一份做几遍就交几次`)}
@@ -1340,9 +1366,8 @@ function skRow(r){
 }
 
 function viewSkills(){
-  let html = `<h2 class="sec">知识点 · 该复习哪几条</h2>
-    <p class="seclead">把两个孩子的错题按<b>知识点</b>聚到一起 —— 同一条在不同卷子、不同日子上反复错，才算弱点。
-      这是一份复习清单，不是仪表盘。</p>
+  let html = `<h2 class="sec">知识点 · 该复习哪几条${qm(`把两个孩子的错题按<b>知识点</b>聚到一起 —— 同一条在不同卷子、不同日子上反复错，才算弱点。
+      这是一份复习清单，不是仪表盘。`)}</h2>
     <details class="hguide" data-guide="skills"${guideOpen('skills')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li><b>亮红</b>要三个条件<b>同时</b>满足：这条知识点累计做过 <b>≥ ${SK_MIN_Q} 题</b>、正确率 <b>&lt; ${SK_MAX_PCT}%</b>、
         而且错在 <b>≥ ${SK_MIN_DAYS} 个不同日期</b>。三条缺一条就还是灰的。</li>
@@ -1443,11 +1468,10 @@ function readFocus(a){
 function viewFocus(){
   const since = new Date(today); since.setDate(since.getDate()-(FR-1));
   const sinceIso = iso(since);
-  let html = `<h2 class="sec">专注情况</h2>
-    <p class="seclead">做题时页面在不在前台、一共用了多久、每道题停留多久。<br>
+  let html = `<h2 class="sec">专注情况${qm(`<p>做题时页面在不在前台、一共用了多久、每道题停留多久。</p><p>
       ⚠️ 网页只知道<b>页面离开了前台</b>（切到别的 APP、别的标签页或锁屏），<b>不知道切去了哪个 APP</b>。
       离开可能是去查字典或被叫去吃饭，页面开着也不代表人在做题 —— 这是参考，不是判决书。
-      要限制 APP，用 iPad 的「屏幕使用时间」或「引导式访问」。</p>
+      要限制 APP，用 iPad 的「屏幕使用时间」或「引导式访问」。</p>`)}</h2>
     <div class="filters">${[[1,'今天'],[7,'近 7 天'],[21,'近 21 天']].map(([v,l])=>
       `<button class="fchip${FR===v?' on':''}" data-fr="${v}">${l}</button>`).join('')}</div>
     <details class="hguide" data-guide="focus"${guideOpen('focus')}><summary><b>这些数字怎么读</b><span class="tap">点开</span></summary><ul>
@@ -1474,14 +1498,10 @@ function viewFocus(){
           share==null?'—':share+'%'}</b> · 离开 ${T.n} 次`
         : '这段时间没有做题记录') + `
       <div class="hmet">
-        <div><div class="v">${dur(T.secs)}</div><div class="k">学习时长</div>
-          <div class="x">${mine.length} 次交卷，每次从打开到交卷加起来</div></div>
-        <div><div class="v" style="color:${shareCol}">${share==null?'—':share+'%'}</div><div class="k">在页面上</div>
-          <div class="x">${share==null?'这段时间没有记录':`页面在前台 ${dur(T.active)}，占学习时长的比例`}</div></div>
-        <div><div class="v" style="color:${T.n?'var(--amber)':'var(--cream)'}">${T.n}</div><div class="k">离开次数</div>
-          <div class="x">页面离开前台的次数${T.away?`，一共离开 ${dur(T.away)}`:''}</div></div>
-        <div><div class="v">${T.max?dur(T.max):'—'}</div><div class="k">最长离开</div>
-          <div class="x">单独一次离开最久的时长</div></div>
+        <div><div class="v">${dur(T.secs)}</div><div class="k">学习时长${qm(`${mine.length} 次交卷，每次从打开到交卷加起来`)}</div></div>
+        <div><div class="v" style="color:${shareCol}">${share==null?'—':share+'%'}</div><div class="k">在页面上${qm(share==null?'这段时间没有记录':`页面在前台 ${dur(T.active)}，占学习时长的比例`)}</div></div>
+        <div><div class="v" style="color:${T.n?'var(--amber)':'var(--cream)'}">${T.n}</div><div class="k">离开次数${qm(`页面离开前台的次数${T.away?`，一共离开 ${dur(T.away)}`:''}`)}</div></div>
+        <div><div class="v">${T.max?dur(T.max):'—'}</div><div class="k">最长离开${qm('单独一次离开最久的时长')}</div></div>
       </div>`;
     if(!mine.length){ html += `<p class="empty">这段时间没有做题记录。</p></details>`; return; }
 
@@ -1489,14 +1509,12 @@ function viewFocus(){
       <div class="stacklbl">在页面上 ${dur(T.active)} · 不在页面 ${dur(T.away)}</div>`;
 
     const flagged = mine.filter(a=>a.f.attention);
-    html += `<div class="subhd">需要留意 · ${flagged.length} 份</div>
-      <p class="hnote">满足上面「需要留意」任一条的卷子。标签写的是它为什么被列进来；这是参考，不是判决。</p>`;
+    html += `<div class="subhd">需要留意 · ${flagged.length} 份${qm('满足「这些数字怎么读」里「需要留意」任一条的卷子。标签写的是它为什么被列进来；这是参考，不是判决。')}</div>`;
     html += flagged.length ? flagged.map(a=>`<div class="flagrow"><span class="when">${a.date.slice(5)}</span>
         <span class="nm">${esc(a.t)}<div class="flags">${a.f.flags.map(x=>`<span>${esc(x)}</span>`).join('')}</div></span></div>`).join('')
       : `<p class="empty" style="padding:8px 0">都挺专心，没有要特别留意的。</p>`;
 
-    html += `<div class="subhd">每份用时 · 每题停留</div>
-      <p class="hnote">右边大数字 = 这份从打开到交卷的时间。下面一排小条，一根是一道题，越高停得越久；颜色的意思在页面最下面。</p>`;
+    html += `<div class="subhd">每份用时 · 每题停留${qm('右边大数字 = 这份从打开到交卷的时间。下面一排小条，一根是一道题，越高停得越久；颜色的意思在页面最下面。')}</div>`;
     mine.forEach(a=>{
       const f = a.f, maxQ = Math.max(1, ...f.qs.map(q=>q.active));
       const slowest = f.qs.reduce((m,q)=>!m||q.active>m.active?q:m, null);
@@ -1613,8 +1631,8 @@ function readingKid(kid, F){
 
   let h = `<section class="rkid">
     <div class="rhead"><span class="av">${key?KID[key].av:'🧒'}</span><div><h3>${esc(kid.name)}</h3>
-      <div class="sub">${reading?`在读《${esc(reading.title)}》· `:''}${unit?`最近在做 ${unit.book&&reading&&unit.book.title===reading.title?`第 ${unit.unitNo} 章`:unitOf(unit)}`:'这段时间没有打卡'}</div>
-      ${paused.map(p=>`<div class="sub">《${esc(p.title)}》暂停中 · 做到第 ${p.unitNo} 章 / 共 ${p.totalUnits} 章 · 回来接着做</div>`).join('')}</div>
+      <div class="sub">${reading?`在读《${esc(reading.title)}》· `:''}${unit?`最近在做 ${unit.book&&reading&&unit.book.title===reading.title?`第 ${unit.unitNo} 章`:unitOf(unit)}`:RD.days===1?'今天没有打卡':'这段时间没有打卡'}${
+        paused.length?` · 暂停 ${paused.length} 本${qm(paused.map(p=>`<p>《${esc(p.title)}》做到第 ${p.unitNo} 章 / 共 ${p.totalUnits} 章，回来接着做</p>`).join(''))}`:''}</div></div>
       <a class="link" href="${READING}/family" target="_blank" rel="noopener">作文和批改 → Reading Club</a></div>
     <div class="kpis">
       <div class="kpi"><div class="v"><span style="white-space:nowrap">${full}<small>/ ${days.length} 天</small></span><small>· 打开 ${opened} 天</small></div><div class="k">三件全做完</div></div>
@@ -1731,8 +1749,7 @@ function goEssay(id){
 
 function viewEssay(){
   if(WR.cur && WR.list) return viewEssayOne();
-  let html = `<h2 class="sec">作文 · Writing Lab</h2>
-    <p class="seclead">孩子在 Writing Lab 里写完交上来的作文。点一篇进去批改：在原文里选中一段写批注，最后打分、写总评，点「发给他」孩子才看得到。Reading Club 那边的作文在「阅读写作」。</p>
+  let html = `<h2 class="sec">作文 · Writing Lab${qm('孩子在 Writing Lab 里写完交上来的作文。点一篇进去批改：在原文里选中一段写批注，最后打分、写总评，点「发给他」孩子才看得到。Reading Club 那边的作文在「阅读写作」。')}</h2>
     <details class="hguide" data-guide="essay"${guideOpen('essay')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li><b>批改</b>：在原文里<b>选中一段 → 点「＋ 批注」</b>，选「要改 / 写得好 / 批注」，写「改成」和说明。孩子那边看到的是他自己的原文，被批的地方标颜色，点一下跳到批注。</li>
       <li><b>不用 API key 的办法</b>：在 Mac 上的 Claude 对话里说「<b>批改 Warren 的作文</b>」，Claude 批好会放到这里，那篇写着「Claude 批好了 · 等你发」，点开看一眼、点「发给」就行。</li>
