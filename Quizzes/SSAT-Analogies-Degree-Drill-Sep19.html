@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Analogies &mdash; Degree Drill</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #f0f2fb 55%, #e3e6f6 100%);
+    min-height: 100vh; color: #1f2233; padding: 22px 14px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header { background: #3d4a9c; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f3f4ff; box-shadow: 0 8px 0 #28316e; margin-bottom: 14px; position: relative; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+
+  .nav { position: sticky; top: 0; z-index: 30; background: rgba(255,253,247,.95); backdrop-filter: blur(4px); border-radius: 12px; padding: 8px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(13,68,63,.12); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav a { text-decoration: none; font-size: 13.5px; font-weight: bold; color: #28316e; background: #e3e6f6; border-radius: 99px; padding: 6px 13px; }
+
+  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 6px 0 #d5d9ef; margin-bottom: 16px; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16px; line-height: 1.55; }
+  .intro p + p { margin-top: 10px; }
+  .hidden { display: none !important; }
+  .center { text-align: center; }
+
+  h2.sect { font-size: 20px; color: #28316e; margin: 30px 0 12px; text-align: center; scroll-margin-top: 70px; }
+  h2.sect span { background: #e3e6f6; border-radius: 99px; padding: 5px 16px; display: inline-block; }
+  p.body { font-size: 15.5px; line-height: 1.65; color: #454b6e; }
+  p.body + p.body { margin-top: 9px; }
+
+  .badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .badge { font-size: 13px; font-weight: bold; color: #8a8fb0; background: #eef0fa; border: 2px dashed #c6cbe8; border-radius: 99px; padding: 6px 13px; }
+  .badge.on { color: #23572c; background: #d7f0d3; border: 2px solid #3a7d44; border-style: solid; }
+  .badge .bi { margin-right: 5px; }
+
+  .arrowbox { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 20px; font-weight: bold; color: #28316e; margin: 14px 0; }
+  .arrowbox .w { background: #eef0fa; border-radius: 10px; padding: 8px 14px; }
+  .arrowbox .w.big { background: #3d4a9c; color: #fff; }
+  .arrowbox .ar { font-size: 26px; color: #6b77c7; }
+
+  .gbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .round { font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; color: #8a8fb0; }
+  .stars { font-size: 17px; letter-spacing: 1px; }
+
+  .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .choice { font: inherit; font-size: 16px; text-align: left; background: #f3f4fc; border: 2px solid #ccd2ee; border-radius: 12px; padding: 11px 14px; cursor: pointer; color: #1f2233; }
+  .choice:hover:not(:disabled) { background: #e6e9f8; }
+  .choice:disabled { cursor: default; opacity: .75; }
+  .choice.good { background: #d7f0d3; border-color: #3a7d44; color: #23572c; font-weight: bold; }
+  .choice.bad { background: #fbeaea; border-color: #c0392b; color: #7d2b21; }
+  .choice .k { font-weight: bold; color: #6b77c7; margin-right: 8px; }
+
+  .yn { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+  .btn { font: inherit; font-size: 16px; font-weight: bold; border: none; border-radius: 12px; padding: 11px 20px; cursor: pointer; background: #3d4a9c; color: #fff; box-shadow: 0 4px 0 #28316e; }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #28316e; }
+  .btn.green { background: #3a7d44; box-shadow: 0 4px 0 #2b5e33; }
+  .btn.amber { background: #c9761d; box-shadow: 0 4px 0 #9c5a13; }
+  .btn.ghost { background: #e3e6f6; color: #28316e; box-shadow: 0 4px 0 #c6cbe8; }
+  .btn.sm { font-size: 14px; padding: 8px 15px; }
+
+  .fb { font-size: 15.5px; line-height: 1.6; margin-top: 11px; border-radius: 10px; padding: 0; }
+  .fb.ok { background: #d7f0d3; border-left: 5px solid #3a7d44; color: #23572c; padding: 11px 13px; }
+  .fb.no { background: #fbeaea; border-left: 5px solid #c0392b; color: #7d2b21; padding: 11px 13px; }
+
+  .won { display: none; background: #d7f0d3; border: 3px solid #3a7d44; border-radius: 12px; padding: 13px 15px; margin-top: 13px; font-size: 15.5px; line-height: 1.6; color: #23572c; }
+  .won.show { display: block; }
+  .won .lbl { display: block; font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: .6px; margin-bottom: 5px; }
+
+  .qbar { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; font-weight: bold; color: #28316e; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+  .time { font-family: 'Courier New', monospace; font-size: 16px; background: #e3e6f6; border-radius: 99px; padding: 3px 11px; }
+  .time.low { background: #fbeaea; color: #c0392b; }
+  .time.pause { background: #fff8ec; color: #a06a1e; }
+  .progress { height: 8px; background: #e3e6f6; border-radius: 99px; overflow: hidden; margin-bottom: 14px; }
+  .progress i { display: block; height: 100%; background: #6b77c7; width: 0; transition: width .25s; }
+  .qtext { font-size: 19px; margin: 6px 0 12px; line-height: 1.45; font-weight: bold; color: #1f2233; }
+  .qtag { display: inline-block; font-size: 12px; font-weight: bold; letter-spacing: .5px; text-transform: uppercase; color: #6b77c7; background: #eef0fa; border-radius: 99px; padding: 4px 12px; margin-bottom: 10px; }
+
+  .trap { background: #fbeaea; border: 3px solid #e2a49c; border-radius: 12px; padding: 13px 15px; font-size: 15.5px; line-height: 1.6; margin-top: 12px; color: #7d2b21; }
+  .trap .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; color: #a5352a; margin-bottom: 5px; }
+  .how { background: #f3f4fc; border-left: 5px solid #6b77c7; border-radius: 8px; padding: 11px 14px; margin-top: 10px; font-size: 15.5px; line-height: 1.6; color: #28316e; }
+
+  .res-top { text-align: center; }
+  .res-top .stars { font-size: 34px; }
+  .res-top .pct { font-size: 46px; font-weight: bold; color: #28316e; }
+  .res-top .sub { font-size: 15px; color: #5d6384; margin-top: 4px; }
+  .verdict { display: inline-block; margin-top: 12px; font-size: 17px; font-weight: bold; border-radius: 99px; padding: 8px 20px; }
+  .verdict.pass { background: #d7f0d3; color: #23572c; }
+  .verdict.fail { background: #fff8ec; color: #a06a1e; }
+  h3.rv { font-size: 17px; color: #28316e; margin: 22px 0 10px; }
+  .miss { background: #fffdf7; border: 2px solid #e3e6f6; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+  .miss .mh { font-size: 15.5px; font-weight: bold; margin-bottom: 8px; line-height: 1.5; }
+  .miss .you { color: #c0392b; } .miss .right { color: #23572c; }
+
+  .sound { position: absolute; top: 14px; right: 14px; background: rgba(255,255,255,.2); border: none; border-radius: 50%; width: 38px; height: 38px; font-size: 19px; cursor: pointer; color: #fff; }
+  .conf { position: fixed; top: -12px; width: 9px; height: 15px; z-index: 60; pointer-events: none; }
+  .foot { text-align: center; font-size: 13.5px; color: #7c8199; margin-top: 26px; }
+  .foot a { color: #3d4a9c; }
+  @media (max-width: 620px) {
+    .qtext { font-size: 17px; } .choice { font-size: 15px; } .arrowbox { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <button class="sound" id="soundBtn" onclick="toggleSound()" aria-label="Sound on or off">🔊</button>
+  <div class="ic">🏹</div>
+  <h1>Degree Analogies &mdash; Which Way Does the Arrow Point?</h1>
+  <p>SSAT Middle Level &middot; Verbal &middot; built from Mock Test 8 questions 35, 47 and 55</p>
+</header>
+
+<nav class="nav">
+  <a href="#arrow">🏹 The arrow</a><a href="#trap">🔁 The reversed trap</a><a href="#drill">🏆 Timed drill</a>
+</nav>
+
+<div class="card intro">
+  <p><b>Degree pairs are not about meaning. They are about direction.</b> <i>Funny</i> and <i>hilarious</i> are the same idea &mdash;
+  one is just bigger. The test always offers you the same relationship pointing the <b>wrong way</b>.</p>
+  <p><b>The move:</b> draw the arrow and put the <b>bigger word on the arrowhead</b>. Then the flipped choice looks obviously
+  wrong instead of vaguely right. <span style="color:#7c8199">(Method Lab card 8 &middot; Playbook card 17 &middot; Trap 9)</span></p>
+  <div class="badges">
+    <div class="badge" id="b1"><span class="bi">🏹</span>Arrow check</div>
+    <div class="badge" id="b2"><span class="bi">🔁</span>Trap beaten</div>
+    <div class="badge" id="b3"><span class="bi">🏆</span>Drill passed</div>
+  </div>
+</div>
+
+<!-- ============ 1 · THE ARROW ============ -->
+<h2 class="sect" id="arrow"><span>🏹 1 · Which way does the arrow point?</span></h2>
+<div class="card">
+  <p class="body">For each pair, say whether it runs <b>mild → strong</b> or <b>strong → mild</b>. Ten of them. Go fast — this is a five-second decision.</p>
+  <div class="gbar"><span class="round" id="aRound"></span><span class="stars" id="aStars"></span></div>
+  <div class="arrowbox" id="aPair"></div>
+  <div class="yn">
+    <button class="btn green" onclick="AR.answer('up')">📈 mild → strong</button>
+    <button class="btn amber" onclick="AR.answer('down')">📉 strong → mild</button>
+  </div>
+  <div class="fb" id="aFb"></div>
+  <div class="center" id="aNext" style="margin-top:12px"></div>
+  <div class="won" id="aWon"><span class="lbl">✅ Arrow check</span>
+    You can feel the direction now. On the real test, say it out loud in your head before you read a single choice:
+    <b>&ldquo;small word, arrow, big word.&rdquo;</b></div>
+</div>
+
+<!-- ============ 2 · THE REVERSED TRAP ============ -->
+<h2 class="sect" id="trap"><span>🔁 2 · The reversed trap</span></h2>
+<div class="card">
+  <p class="body">Both choices below have the <b>right relationship</b>. Only one points the <b>right way</b>. This is the exact
+  trap that cost you questions 35, 47 and 55.</p>
+  <div class="gbar"><span class="round" id="tRound"></span><span class="stars" id="tStars"></span></div>
+  <div id="tBody"></div>
+  <div class="fb" id="tFb"></div>
+  <div class="center" id="tNext" style="margin-top:12px"></div>
+  <div class="won" id="tWon"><span class="lbl">✅ Trap beaten</span>
+    When two choices are both the right kind of pair, you are looking at a direction question &mdash; nothing else.
+    Put the arrowhead on the bigger word in the stem, then do the same to each choice.</div>
+</div>
+
+<!-- ============ 3 · TIMED DRILL ============ -->
+<h2 class="sect" id="drill"><span>🏆 3 · Timed drill — 20 analogies</span></h2>
+<div class="card center" id="gate">
+  <p class="body"><b>20 questions</b> &middot; <b>30 seconds each</b> (10 minutes in all) &middot; pass mark <b>80%</b> (16 right).</p>
+  <p class="body">Not all of them are degree pairs &mdash; some are other bridges. Name the bridge <i>first</i>, every time.</p>
+  <p class="body"><b>The clock pauses</b> while you read an explanation, so a wrong answer costs you nothing but pride.
+  Anything you leave unanswered when time runs out is marked wrong.</p>
+  <p style="margin-top:12px"><button class="btn amber" onclick="startQuiz()">▶ Start the drill</button></p>
+</div>
+<div class="card hidden" id="quiz">
+  <div class="qbar"><span id="qNum"></span><span id="qScore"></span><span class="time" id="qTime"></span></div>
+  <div class="progress"><i id="qProg"></i></div>
+  <div id="qBody"></div>
+</div>
+<div class="card hidden" id="result"></div>
+
+<div class="foot">SSAT Middle Level &middot; Verbal Method Lab card 8 &middot; Advanced Playbook cards 17 &amp; 22 &middot;
+  <a href="../homework.html">← My homework</a></div>
+</div>
+
+<script>
+/* ================= shared helpers ================= */
+function $(id) { return document.getElementById(id); }
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+var soundOn = true, AC = null;
+try { soundOn = localStorage.getItem('kidsSound') !== 'off'; } catch (e) {}
+function paintSound() { $('soundBtn').textContent = soundOn ? '🔊' : '🔇'; }
+function toggleSound() { soundOn = !soundOn; try { localStorage.setItem('kidsSound', soundOn ? 'on' : 'off'); } catch (e) {} paintSound(); }
+function tone(f, t0, dur, type, vol) {
+  if (!soundOn) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    var o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(vol || .05, AC.currentTime + t0);
+    g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + t0 + dur);
+    o.connect(g); g.connect(AC.destination); o.start(AC.currentTime + t0); o.stop(AC.currentTime + t0 + dur);
+  } catch (e) {}
+}
+function sfxOk() { tone(660, 0, .12); tone(880, .1, .18); }
+function sfxNo() { tone(220, 0, .22, 'square', .07); }
+function sfxWin() { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * .11, .25); }); }
+function confetti(n) {
+  var cols = ['#3d4a9c', '#6b77c7', '#e8c489', '#3a7d44', '#c9761d'];
+  for (var i = 0; i < (n || 60); i++) {
+    var s = document.createElement('div');
+    s.className = 'conf';
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.background = cols[i % cols.length];
+    s.style.transform = 'rotate(' + (Math.random() * 360) + 'deg)';
+    s.animate([{ transform: 'translateY(0) rotate(0)' }, { transform: 'translateY(105vh) rotate(720deg)' }],
+      { duration: 2600 + Math.random() * 1400, easing: 'cubic-bezier(.3,.7,.5,1)' });
+    document.body.appendChild(s);
+    setTimeout(function (el) { el.remove(); }.bind(null, s), 3800);
+  }
+}
+function badge(id) { var b = $(id); if (b) b.classList.add('on'); }
+function say(el, msg, ok) { var e = $(el); e.innerHTML = msg; e.className = 'fb ' + (ok ? 'ok' : 'no'); ok ? sfxOk() : sfxNo(); }
+</script>
+
+<script>
+/* ================= 1 · THE ARROW ================= */
+var AR = {
+  i: 0, first: true, stars: [],
+  items: [
+    { a: 'whisper', b: 'shout',    dir: 'up',   note: 'A shout is a whisper turned all the way up.' },
+    { a: 'glance',  b: 'stare',    dir: 'up',   note: 'A glance is a flick of the eyes; a stare holds. This is Mock Test 8 question 55.' },
+    { a: 'drenched', b: 'damp',    dir: 'down', note: 'Drenched is soaked through; damp is barely wet.' },
+    { a: 'warm',    b: 'scorching', dir: 'up',  note: 'Scorching is heat at full volume.' },
+    { a: 'ecstatic', b: 'happy',   dir: 'down', note: 'Ecstatic is happy at its loudest, so this one runs downhill.' },
+    { a: 'sip',     b: 'gulp',     dir: 'up',   note: 'A sip is small, a gulp is the whole mouthful.' },
+    { a: 'roar',    b: 'chuckle',  dir: 'down', note: 'A roar is a chuckle at full blast — so roar → chuckle goes down.' },
+    { a: 'funny',   b: 'hilarious', dir: 'up',  note: 'This is Mock Test 8 question 47. Hilarious is the bigger word.' },
+    { a: 'epic',    b: 'haiku',    dir: 'down', note: 'This is Mock Test 8 question 35. An epic is enormous, a haiku is three lines.' },
+    { a: 'comatose', b: 'drowsy',  dir: 'down', note: 'Comatose is as far past drowsy as you can get.' }
+  ],
+  draw: function () {
+    var it = this.items[this.i];
+    $('aRound').textContent = 'PAIR ' + (this.i + 1) + ' OF ' + this.items.length;
+    $('aStars').textContent = this.stars.join('');
+    var bigFirst = it.dir === 'down';
+    $('aPair').innerHTML = '<span class="w' + (bigFirst ? ' big' : '') + '">' + it.a + '</span>' +
+      '<span class="ar">is to</span><span class="w' + (bigFirst ? '' : ' big') + '">' + it.b + '</span>';
+    $('aFb').textContent = ''; $('aFb').className = 'fb'; $('aNext').innerHTML = '';
+  },
+  answer: function (d) {
+    var it = this.items[this.i];
+    if (d !== it.dir) {
+      this.first = false;
+      say('aFb', 'Not that way. Which of the two is the <b>bigger</b> word? Put the arrowhead on that one.', false);
+      return;
+    }
+    say('aFb', '✓ ' + (it.dir === 'up' ? it.a + ' —grows into→ <b>' + it.b + '</b>' : it.b + ' —grows into→ <b>' + it.a + '</b>') + '. ' + it.note, true);
+    this.stars.push(this.first ? '⭐' : '✔️');
+    $('aStars').textContent = this.stars.join('');
+    if (this.i < this.items.length - 1) {
+      $('aNext').innerHTML = '<button class="btn" onclick="AR.i++;AR.first=true;AR.draw()">Next →</button>';
+    } else { $('aWon').classList.add('show'); badge('b1'); sfxWin(); confetti(40); }
+  }
+};
+AR.draw();
+
+/* ================= 2 · THE REVERSED TRAP ================= */
+var TR = {
+  i: 0, first: true, stars: [],
+  items: [
+    { stem: ['funny', 'hilarious'], up: true, right: ['hot', 'sweltering'], wrong: ['terrifying', 'scary'],
+      src: 'Mock Test 8 · question 47',
+      why: 'funny —grows into→ hilarious runs <b>mild → strong</b>. <i>terrifying is to scary</i> is the same relationship pointing backwards.' },
+    { stem: ['epic', 'haiku'], up: false, right: ['symphony', 'song'], wrong: ['song', 'symphony'],
+      src: 'Mock Test 8 · question 35',
+      why: 'epic → haiku runs <b>huge → small</b>, so you need symphony → song, not song → symphony.' },
+    { stem: ['whisper', 'shout'], up: true, right: ['glance', 'stare'], wrong: ['gulp', 'sip'],
+      src: 'Playbook card 17',
+      why: 'whisper → shout is <b>quiet → loud</b>. gulp → sip runs the other way.' },
+    { stem: ['drenched', 'damp'], up: false, right: ['exhausted', 'tired'], wrong: ['tired', 'exhausted'],
+      src: 'Method Lab card 8',
+      why: 'drenched → damp is <b>strong → mild</b>. Both choices are the same idea; only one runs downhill.' },
+    { stem: ['period', 'exclamation point'], up: true, right: ['glance', 'stare'], wrong: ['stare', 'glance'],
+      src: 'Mock Test 8 · question 55',
+      why: 'A period is flat; an exclamation point is the loud version. That is <b>calm → intense</b>, so glance → stare.' },
+    { stem: ['gale', 'breeze'], up: false, right: ['downpour', 'drizzle'], wrong: ['drizzle', 'downpour'],
+      src: 'Playbook card 17',
+      why: 'gale → breeze is <b>strong → mild</b>, so the weather pair has to fall the same way.' }
+  ],
+  draw: function () {
+    var it = this.items[this.i];
+    $('tRound').textContent = 'ROUND ' + (this.i + 1) + ' OF ' + this.items.length;
+    $('tStars').textContent = this.stars.join('');
+    var opts = shuffle([{ p: it.right, ok: true }, { p: it.wrong, ok: false }]);
+    $('tBody').innerHTML = '<div class="center"><span class="qtag">' + it.src + '</span></div>' +
+      '<div class="qtext">' + it.stem[0] + ' is to ' + it.stem[1] + ' as ______.</div>' +
+      '<p class="body">The stem runs <b>' + (it.up ? 'mild → strong' : 'strong → mild') + '</b>. Which choice does the same?</p>' +
+      '<div class="choices">' + opts.map(function (o, k) {
+        return '<button class="choice" data-ok="' + o.ok + '" onclick="TR.answer(this)"><span class="k">' +
+          'ABCDE'[k] + '</span>' + o.p[0] + ' is to ' + o.p[1] + '</button>';
+      }).join('') + '</div>';
+    $('tFb').textContent = ''; $('tFb').className = 'fb'; $('tNext').innerHTML = '';
+  },
+  answer: function (btn) {
+    var it = this.items[this.i];
+    if (btn.dataset.ok !== 'true') {
+      this.first = false; btn.classList.add('bad');
+      say('tFb', 'That is the <b>reversed</b> one. ' + it.why, false);
+      return;
+    }
+    btn.classList.add('good');
+    document.querySelectorAll('#tBody .choice').forEach(function (b) { b.disabled = true; });
+    say('tFb', '✓ ' + it.why, true);
+    this.stars.push(this.first ? '⭐' : '✔️');
+    $('tStars').textContent = this.stars.join('');
+    if (this.i < this.items.length - 1) {
+      $('tNext').innerHTML = '<button class="btn" onclick="TR.i++;TR.first=true;TR.draw()">Next →</button>';
+    } else { $('tWon').classList.add('show'); badge('b2'); sfxWin(); confetti(40); }
+  }
+};
+TR.draw();
+</script>
+
+<script>
+/* ================= 3 · TIMED DRILL ================= */
+/* One question per screen; the clock pauses while an explanation is open.
+   Globals below are the `stepper` contract in JS/quiz-report.js. */
+var questions = [
+  { stem: 'Warm is to scorching as ______.', sk: 'ssat.a.degree',
+    opts: ['damp is to drenched', 'frozen is to cool', 'loud is to noise', 'bright is to lamp', 'heavy is to light'], ans: 0,
+    why: 'warm —grows into→ scorching is <b>mild → strong</b>, and damp —grows into→ drenched matches it. <i>frozen is to cool</i> is the same idea running backwards; <i>heavy is to light</i> is an opposite, not a degree.' },
+  { stem: 'Glance is to stare as ______.', sk: 'ssat.a.degree',
+    opts: ['sip is to gulp', 'sprint is to jog', 'shout is to whisper', 'walk is to path', 'look is to eye'], ans: 0,
+    why: 'A glance is brief, a stare holds — <b>small → big</b>. sip → gulp does the same. <i>sprint is to jog</i> and <i>shout is to whisper</i> are both reversed.' },
+  { stem: 'Ecstatic is to pleased as ______.', sk: 'ssat.a.degree',
+    opts: ['furious is to annoyed', 'tired is to exhausted', 'calm is to peaceful', 'anger is to temper', 'sad is to weep'], ans: 0,
+    why: 'ecstatic → pleased runs <b>strong → mild</b>, so you need furious → annoyed. <i>tired is to exhausted</i> is the flipped version; <i>calm is to peaceful</i> is a plain synonym with no change in size.' },
+  { stem: 'Downpour is to drizzle as ______.', sk: 'ssat.a.degree',
+    opts: ['gale is to breeze', 'shower is to storm', 'cloud is to rain', 'flood is to river', 'drought is to desert'], ans: 0,
+    why: 'Heavy rain → light rain is <b>strong → mild</b>, and gale → breeze falls the same way. <i>shower is to storm</i> climbs instead of falling.' },
+  { stem: 'Symphony is to song as ______.', sk: 'ssat.a.degree',
+    opts: ['novel is to novella', 'poem is to epic', 'chapter is to book', 'painter is to mural', 'stage is to play'], ans: 0,
+    why: 'A symphony is the grand version of a song — <b>big → small</b>. A novel is the long version of a novella. <i>poem is to epic</i> and <i>chapter is to book</i> both point upward.' },
+  { stem: 'Chuckle is to roar as ______.', sk: 'ssat.a.degree',
+    opts: ['whimper is to wail', 'grin is to smirk', 'bellow is to murmur', 'laugh is to joke', 'silence is to noise'], ans: 0,
+    why: 'A roar is a chuckle at full volume — <b>quiet → loud</b>. whimper → wail climbs the same way. <i>bellow is to murmur</i> is the reverse; <i>grin is to smirk</i> changes the meaning, not the size.' },
+  { stem: 'Nibble is to devour as ______.', sk: 'ssat.a.degree',
+    opts: ['jog is to sprint', 'gorge is to snack', 'starve is to feast', 'swallow is to throat', 'taste is to chef'], ans: 0,
+    why: 'Eating a little → eating everything is <b>mild → strong</b>; jog → sprint matches. <i>gorge is to snack</i> is reversed, and <i>starve is to feast</i> is an opposite, not a degree.' },
+  { stem: 'Tremor is to earthquake as ______.', sk: 'ssat.a.degree',
+    opts: ['spark is to blaze', 'blizzard is to flurry', 'thunder is to lightning', 'crack is to wall', 'tide is to ocean'], ans: 0,
+    why: 'A tremor is a small earthquake, a spark is a small blaze — <b>small → big</b>. <i>blizzard is to flurry</i> is the same relationship pointing down.' },
+  { stem: 'Drowsy is to comatose as ______.', sk: 'ssat.a.degree',
+    opts: ['chilly is to frigid', 'alert is to awake', 'ancient is to old', 'sleepy is to bed', 'dim is to bulb'], ans: 0,
+    why: 'Drowsy is a little sleepy, comatose is as far as it goes — <b>mild → extreme</b>. chilly → frigid climbs the same way. <i>ancient is to old</i> falls instead.' },
+  { stem: 'Mist is to fog as ______.', sk: 'ssat.a.degree',
+    opts: ['hill is to mountain', 'river is to stream', 'valley is to peak', 'sand is to beach', 'tornado is to wind'], ans: 0,
+    why: 'Fog is thick mist — <b>light → heavy</b>. hill → mountain grows the same way. <i>river is to stream</i> shrinks; <i>valley is to peak</i> is an opposite.' },
+  { stem: 'Annoyed is to livid as ______.', sk: 'ssat.a.degree',
+    opts: ['fond is to devoted', 'huge is to large', 'mad is to rage', 'upset is to tears', 'proud is to trophy'], ans: 0,
+    why: 'Livid is anger at its peak — <b>mild → strong</b>, and fond → devoted climbs the same way. <i>huge is to large</i> runs downhill, and <i>mad is to rage</i> swaps an adjective for a noun.' },
+  { stem: 'Brook is to river as ______.', sk: 'ssat.a.degree',
+    opts: ['pebble is to boulder', 'ocean is to lake', 'bank is to water', 'canoe is to paddle', 'delta is to mouth'], ans: 0,
+    why: 'A brook is a small river; a pebble is a small boulder — <b>small → large</b>. <i>ocean is to lake</i> is the reversed one.' },
+  { stem: 'Cardinal is to bird as ______.', sk: 'ssat.a.type',
+    opts: ['oak is to tree', 'wing is to sparrow', 'nest is to twig', 'robin is to worm', 'flock is to goose'], ans: 0,
+    why: 'Not a degree pair — a cardinal is a <b>kind of</b> bird, exactly as an oak is a kind of tree. This was Mock Test 8 question 37: check the bridge before you reach for intensity.' },
+  { stem: 'Jewel is to rock as ______.', sk: 'ssat.a.type',
+    opts: ['silk is to cloth', 'gold is to mine', 'crown is to king', 'marble is to statue', 'glass is to sand'], ans: 0,
+    why: 'A jewel is a <b>precious kind of</b> rock, and silk is a precious kind of cloth. This was Mock Test 8 question 56. <i>glass is to sand</i> is made-from, a different bridge.' },
+  { stem: 'Kennel is to dog as ______.', sk: 'ssat.a.place',
+    opts: ['barn is to horse', 'saddle is to rider', 'cage is to key', 'farmer is to field', 'leash is to collar'], ans: 0,
+    why: 'Place and what is kept there. A kennel houses a dog; a barn houses a horse. Nothing here is about size.' },
+  { stem: 'Prologue is to epilogue as ______.', sk: 'ssat.a.ant',
+    opts: ['dawn is to dusk', 'preface is to index', 'chapter is to verse', 'author is to reader', 'title is to book'], ans: 0,
+    why: 'What opens and what closes — opposite in <b>sequence</b>, not in size. dawn → dusk is the same axis.' },
+  { stem: 'Thermometer is to temperature as ______.', sk: 'ssat.a.use',
+    opts: ['scale is to weight', 'clock is to wall', 'ruler is to wood', 'compass is to hiker', 'map is to journey'], ans: 0,
+    why: 'An instrument and what it measures. A scale measures weight. <i>ruler is to wood</i> names a thing you might measure, not the quantity.' },
+  { stem: 'Miser is to generosity as ______.', sk: 'ssat.a.trait',
+    opts: ['coward is to courage', 'hero is to medal', 'athlete is to strength', 'scholar is to book', 'tyrant is to power'], ans: 0,
+    why: 'A person defined by what they <b>lack</b>. A miser has no generosity; a coward has no courage. <i>athlete is to strength</i> is the opposite shape — having, not lacking.' },
+  { stem: 'Petal is to flower as ______.', sk: 'ssat.a.part',
+    opts: ['rung is to ladder', 'forest is to tree', 'seed is to soil', 'bouquet is to vase', 'garden is to fence'], ans: 0,
+    why: 'Part to whole, in that order. A rung is part of a ladder. <i>forest is to tree</i> is whole to part — the same bridge backwards.' },
+  { stem: 'Futile is to pointless as ______.', sk: 'ssat.a.syn',
+    opts: ['candid is to frank', 'clever is to genius', 'rapid is to slow', 'loyal is to friend', 'ancient is to ruin'], ans: 0,
+    why: 'Plain synonyms — same meaning, <b>same size</b>. candid and frank match exactly. <i>clever is to genius</i> is the trap: it is a degree pair, and the stem is not.' }
+];
+var SECS_PER_Q = 30;
+var QUIZ_SECS = questions.length * SECS_PER_Q;
+var PASS_PCT = 80, PASS_N = Math.ceil(questions.length * PASS_PCT / 100);
+var current = 0, score = 0, answered = false;
+var given = [], order = [], quizOn = false, timerId = null, secsLeft = 0, paused = false;
+
+function fmtTime(s) { s = Math.max(0, s); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+function paintClock() {
+  $('qTime').textContent = (paused ? '⏸ ' : '⏱ ') + fmtTime(secsLeft);
+  $('qTime').className = 'time' + (paused ? ' pause' : secsLeft <= 60 ? ' low' : '');
+}
+function tick() {
+  if (paused) return;
+  secsLeft--; paintClock();
+  if (secsLeft <= 0) { clearInterval(timerId); timerId = null; if (quizOn) showResult(); }
+}
+function startQuiz() {
+  $('gate').classList.add('hidden'); $('result').classList.add('hidden'); $('quiz').classList.remove('hidden');
+  current = 0; score = 0; answered = false; given = []; quizOn = true; paused = false;
+  secsLeft = QUIZ_SECS; paintClock();
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(tick, 1000);
+  try { var s = window.QuizReport && QuizReport.session(); if (s) s.lastMark = Date.now(); } catch (e) {}
+  render();
+  $('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function render() {
+  var q = questions[current];
+  answered = false; paused = false; paintClock();
+  order[current] = shuffle(q.opts.map(function (_, i) { return i; }));
+  $('qNum').textContent = 'Question ' + (current + 1) + ' of ' + questions.length;
+  $('qScore').textContent = '✓ ' + score;
+  $('qProg').style.width = (100 * current / questions.length) + '%';
+  $('qBody').innerHTML = '<div class="qtext">' + q.stem + '</div><div class="choices">' +
+    order[current].map(function (oi, k) {
+      return '<button class="choice" data-o="' + oi + '" onclick="choose(this)"><span class="k">' +
+        'ABCDE'[k] + '</span>' + q.opts[oi] + '</button>';
+    }).join('') + '</div><div class="fb" id="qFb"></div><div id="qExp"></div><div class="center" id="qNext"></div>';
+}
+function choose(btn) {
+  if (answered || !quizOn) return;
+  var q = questions[current], oi = +btn.dataset.o;
+  given[current] = oi; answered = true; paused = true; paintClock();
+  var ok = oi === q.ans;
+  document.querySelectorAll('#qBody .choice').forEach(function (b) {
+    b.disabled = true;
+    if (+b.dataset.o === q.ans) b.classList.add('good');
+  });
+  if (ok) { score++; sfxOk(); say('qFb', '✓ Correct.', true); }
+  else {
+    btn.classList.add('bad'); sfxNo();
+    say('qFb', '✗ The answer is <b>' + q.opts[q.ans] + '</b>.', false);
+  }
+  $('qExp').innerHTML = '<div class="how">' + q.why + '</div>';
+  $('qScore').textContent = '✓ ' + score;
+  var last = current === questions.length - 1;
+  $('qNext').innerHTML = '<button class="btn" style="margin-top:12px" onclick="nextQ()">' +
+    (last ? 'See my score →' : 'Next → (the clock restarts)') + '</button>';
+}
+function nextQ() {
+  if (!quizOn) return;
+  if (current < questions.length - 1) { current++; render(); } else showResult();
+}
+function showResult() {
+  if (!quizOn) return;
+  quizOn = false; paused = false;
+  if (timerId) { clearInterval(timerId); timerId = null; }
+  var used = QUIZ_SECS - Math.max(0, secsLeft), pct = Math.round(100 * score / questions.length), pass = pct >= PASS_PCT;
+  var stars = pct === 100 ? '⭐⭐⭐' : pct >= PASS_PCT ? '⭐⭐' : pct >= 50 ? '⭐' : '';
+  var missed = [];
+  questions.forEach(function (q, i) { if (given[i] !== q.ans) missed.push(i); });
+  var deg = questions.filter(function (q, i) { return q.sk === 'ssat.a.degree' && given[i] === q.ans; }).length;
+  var degTotal = questions.filter(function (q) { return q.sk === 'ssat.a.degree'; }).length;
+  var html = '<div class="res-top"><div class="stars">' + (stars || '💪') + '</div><div class="pct">' + pct + '%</div>' +
+    '<div class="sub">' + score + ' right out of ' + questions.length + ' · the pass mark is ' + PASS_PCT + '% (' + PASS_N + ' correct)</div>' +
+    '<div class="sub">Degree pairs: ' + deg + ' out of ' + degTotal + '</div>' +
+    '<div class="sub">Time: ' + Math.floor(used / 60) + ' min ' + (used % 60) + ' s' + (secsLeft <= 0 ? ' — time ran out' : '') + '</div>' +
+    '<div class="verdict ' + (pass ? 'pass' : 'fail') + '">' + (pass ? '🎉 You passed!' : 'Not passed yet — ' + (PASS_N - score) + ' more needed') + '</div></div>';
+  if (missed.length) {
+    html += '<h3 class="rv">The ' + (missed.length === 1 ? 'one' : missed.length) + ' you missed</h3>';
+    missed.forEach(function (i) {
+      var q = questions[i], g = given[i];
+      html += '<div class="miss"><div class="mh">' + q.stem + '<br>' +
+        (g === undefined ? '<span class="you">Not answered</span>' : 'You chose <span class="you">' + q.opts[g] + '</span>') +
+        ' · Answer: <span class="right">' + q.opts[q.ans] + '</span></div><div class="how">' + q.why + '</div></div>';
+    });
+    html += '<div class="center" style="margin-top:16px"><button class="btn ghost" onclick="restart()">Take the drill again</button></div>';
+  } else {
+    html += '<p class="body center" style="margin-top:14px">Twenty out of twenty. The arrow is yours. 🏹</p>' +
+      '<div class="center"><button class="btn ghost" onclick="restart()">Take the drill again</button></div>';
+  }
+  $('quiz').classList.add('hidden');
+  var r = $('result'); r.innerHTML = html; r.classList.remove('hidden');
+  r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (pass) { badge('b3'); sfxWin(); confetti(); }
+}
+function restart() { startQuiz(); }
+paintSound();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

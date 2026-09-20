@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3A &mdash; Carrying a Full Ten, and What a Digit is Worth</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #f3effa 55%, #e6def5 100%);
+    min-height: 100vh; color: #1f1a2e; padding: 22px 14px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header { background: #5b3f99; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f7f3ff; box-shadow: 0 8px 0 #3d2a6b; margin-bottom: 14px; position: relative; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+  .sound { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.35);
+    color: #fff; border-radius: 99px; width: 40px; height: 40px; font-size: 18px; cursor: pointer; }
+
+  .nav { position: sticky; top: 0; z-index: 30; background: rgba(255,253,247,.95); backdrop-filter: blur(4px); border-radius: 12px; padding: 8px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(61,42,107,.12); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav a { text-decoration: none; font-size: 13.5px; font-weight: bold; color: #3d2a6b; background: #ece6f7; border-radius: 99px; padding: 6px 13px; }
+
+  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 6px 0 #d9d0ec; margin-bottom: 16px; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16.5px; line-height: 1.6; }
+  .intro p + p { margin-top: 8px; }
+  .hidden { display: none !important; }
+
+  .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .badge { background: #f3f1f6; border: 3px dashed #cfc6e0; border-radius: 14px; padding: 8px 12px; text-align: center;
+    font-size: 13px; font-weight: bold; color: #a39bb5; min-width: 98px; transition: .25s; }
+  .badge .bi { display: block; font-size: 24px; filter: grayscale(1); opacity: .45; }
+  .badge.on { background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; transform: scale(1.04); }
+  .badge.on .bi { filter: none; opacity: 1; }
+
+  h2.sect { font-size: 20px; color: #3d2a6b; margin: 30px 0 12px; text-align: center; scroll-margin-top: 70px; }
+  h2.sect span { background: #ece6f7; border-radius: 99px; padding: 5px 16px; display: inline-block; }
+  p.body { font-size: 16.5px; line-height: 1.6; color: #3a3350; }
+  p.body + p.body { margin-top: 8px; }
+
+  .btn { background: #5b3f99; color: #fff; border: none; border-radius: 12px; padding: 11px 20px; font-size: 15.5px; font-family: inherit; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #3d2a6b; margin: 4px; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #3d2a6b; }
+  .btn.amber { background: #c9761d; box-shadow: 0 5px 0 #8f5211; }
+  .btn.green { background: #3a7d44; box-shadow: 0 5px 0 #23572c; }
+  .btn.ghost { background: #fff; color: #5d5670; box-shadow: 0 4px 0 #e2dcef; border: 2px solid #e2dcef; }
+  .btn.sm { padding: 8px 14px; font-size: 14px; }
+  .center { text-align: center; }
+
+  .fb { text-align: center; font-size: 16px; font-weight: bold; min-height: 26px; margin-top: 10px; line-height: 1.55; color: #5d5670; }
+  .fb.ok { color: #3a7d44; }
+  .fb.no { color: #c0392b; }
+  .won { display: none; background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; border-radius: 12px; padding: 13px 15px; margin-top: 12px; font-size: 16px; line-height: 1.6; }
+  .won.show { display: block; }
+  .won .lbl, .trap .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; margin-bottom: 4px; }
+  .trap { background: #fbeaea; border: 3px solid #e2a49c; border-radius: 12px; padding: 12px 14px; font-size: 15.5px; line-height: 1.6; margin-top: 10px; color: #7d2b21; }
+  .trap .lbl { color: #a5352a; }
+
+  .gbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .gbar .round { font-size: 13px; font-weight: bold; color: #5d5670; font-family: 'Courier New', monospace; letter-spacing: .5px; }
+  .gbar .stars { font-size: 18px; letter-spacing: 2px; }
+  .target { background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 11px 14px; text-align: center; font-size: 17px; line-height: 1.5; }
+
+  /* ---------- column addition ---------- */
+  .colbox { display: flex; justify-content: center; margin: 14px 0 6px; }
+  .colw { display: inline-grid; gap: 4px 5px; font-family: 'Courier New', monospace; font-weight: bold; font-size: 27px; color: #1f1a2e; align-items: center; justify-items: center; }
+  .colw .c { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+  .colw .cs { height: 32px; }
+  .colw .op { color: #5b3f99; }
+  .colw .line { grid-column: 1 / -1; width: 100%; border-top: 3px solid #1f1a2e; height: 0; }
+  .colw .hi { background: #fff1c9; }
+  .colw .claim { color: #7d2b21; }
+  .colw .cc { font-size: 17px; color: #c9761d; }
+  .colw input { font-family: inherit; font-weight: bold; text-align: center; border-radius: 8px; outline: none; color: #1f1a2e; background: #fbfaff; }
+  .colw input.dg { width: 44px; height: 48px; font-size: 26px; border: 3px solid #cbbfe6; }
+  .colw input.cy { width: 30px; height: 30px; font-size: 16px; border: 2px dashed #e0b064; color: #c9761d; background: #fffaf0; }
+  .colw input:focus { border-color: #5b3f99; box-shadow: 0 0 0 3px #e3dbf6; }
+  .colw input.good { border-color: #3a7d44; background: #e8f5e6; border-style: solid; }
+  .colw input.bad { border-color: #c0392b; background: #fbeaea; border-style: solid; }
+  .colhint { text-align: center; font-size: 13px; color: #8a829c; margin-top: 2px; }
+  .peek { background: #fff; color: #5d5670; border: 2px solid #e2dcef; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-family: inherit; font-weight: bold; cursor: pointer; margin-top: 10px; }
+  .how { background: #f6f3fc; border-left: 5px solid #8f78c9; border-radius: 8px; padding: 10px 13px; margin-top: 8px; font-size: 15.5px; line-height: 1.7; }
+
+  /* ---------- place-value chart ---------- */
+  .watch { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; align-items: flex-start; margin-top: 12px; }
+  table.pv { border-collapse: collapse; font-size: 13px; }
+  table.pv th { padding: 4px 6px; font-size: 12px; color: #fff; }
+  table.pv th.t { background: #2a9d8f; } table.pv th.h { background: #8f78c9; } table.pv th.te { background: #e67e22; } table.pv th.o { background: #e8508a; }
+  table.pv td { border: 2px solid #e2dcef; width: 74px; height: 58px; vertical-align: middle; text-align: center; padding: 3px; }
+  table.pv td.lab { width: auto; border: none; font-family: 'Courier New', monospace; font-weight: bold; font-size: 15px; padding-right: 8px; text-align: right; }
+  table.pv tr.sum td { background: #fbfaff; border-top: 3px solid #1f1a2e; }
+  table.pv td.hi { background: #fff1c9; }
+  .chips { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; }
+  .chip { width: 17px; height: 17px; border-radius: 50%; display: inline-block; }
+  .chip.t { background: #2a9d8f; } .chip.h { background: #8f78c9; } .chip.te { background: #e67e22; } .chip.o { background: #e8508a; }
+  .chip.new { outline: 3px dashed #c9761d; outline-offset: 1px; }
+  .prompt { background: #f6f3fc; border-radius: 12px; padding: 14px; margin-top: 14px; text-align: center; font-size: 17px; line-height: 1.9; }
+  .prompt input, .ansrow input { width: 78px; height: 42px; font-size: 22px; font-family: 'Courier New', monospace; font-weight: bold; text-align: center; border: 3px solid #cbbfe6; border-radius: 10px; margin: 0 4px; }
+  .prompt input.sm { width: 50px; }
+
+  /* ---------- spot the mistake ---------- */
+  .notebook { background: #fffdf2; border: 2px solid #eadfb8; border-radius: 12px; padding: 10px 14px; text-align: center; margin-top: 10px; }
+  .notebook .who { font-size: 16px; line-height: 1.5; }
+  .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .choice { background: #f6f3fc; border: 3px solid #e2dcef; border-radius: 12px; padding: 11px 14px; font-size: 16px; font-family: inherit; text-align: left; cursor: pointer; color: #1f1a2e; }
+  .choice:hover { border-color: #8f78c9; }
+  .choice.good { background: #e8f5e6; border-color: #3a7d44; }
+  .choice.bad { background: #fbeaea; border-color: #c0392b; }
+  .yn { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+
+  /* ---------- test ---------- */
+  .qbar { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: bold; font-size: 15px; color: #3d2a6b; }
+  .qbar .time { font-family: 'Courier New', monospace; font-size: 18px; }
+  .qbar .time.low { color: #c0392b; }
+  .progress { height: 10px; background: #ece6f7; border-radius: 99px; margin: 10px 0 16px; overflow: hidden; }
+  .progress i { display: block; height: 100%; background: #8f78c9; width: 0; transition: width .3s; }
+  .qtext { font-size: 19px; line-height: 1.5; text-align: center; font-weight: bold; }
+  .qtag { display: inline-block; background: #5b3f99; color: #fff; font-size: 12px; font-weight: bold; border-radius: 99px; padding: 3px 12px; margin-bottom: 8px; }
+  .ansrow { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; flex-wrap: wrap; }
+  .ansrow input { width: 130px; height: 50px; font-size: 26px; }
+  .ansrow input.good { border-color: #3a7d44; background: #e8f5e6; }
+  .ansrow input.bad { border-color: #c0392b; background: #fbeaea; }
+  .explain { margin-top: 12px; }
+  .res-top { text-align: center; }
+  .res-top .stars { font-size: 34px; letter-spacing: 4px; }
+  .res-top .pct { font-size: 48px; font-weight: bold; color: #3d2a6b; }
+  .res-top .sub { color: #5d5670; font-size: 15px; margin-top: 4px; }
+  .res-top .verdict { font-size: 22px; font-weight: bold; margin-top: 8px; }
+  .verdict.pass { color: #3a7d44; } .verdict.fail { color: #c0392b; }
+  .miss { border: 3px solid #f0d2cc; border-radius: 12px; padding: 12px 14px; margin-top: 12px; background: #fffafa; }
+  .miss .mh { font-weight: bold; font-size: 16px; }
+  .miss .mh .you { color: #c0392b; } .miss .mh .right { color: #3a7d44; }
+  h3.rv { color: #3d2a6b; margin-top: 22px; text-align: center; font-size: 18px; }
+
+  .confetti { position: fixed; top: -12px; width: 9px; height: 14px; z-index: 99; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(105vh) rotate(720deg); } }
+  .pop { animation: popin .3s ease-out; }
+  @keyframes popin { 0% { transform: scale(.7) } 60% { transform: scale(1.12) } 100% { transform: scale(1) } }
+
+  .foot { text-align: center; margin-top: 26px; font-size: 13px; color: #8a829c; }
+  .foot a { color: #5b3f99; }
+  @media (max-width: 480px) {
+    .colw { font-size: 22px; }
+    .colw .c, .colw input.dg { width: 38px; }
+    table.pv td { width: 56px; }
+  }
+  table.pv td .none { font-size: 13px; color: #8a829c; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <button class="sound" id="soundBtn" onclick="toggleSound()" aria-label="Sound on or off">🔊</button>
+  <div class="ic">🔟</div>
+  <h1>When a Column Makes Exactly 10</h1>
+  <p>My Pals Are Here! Maths 3A · Chapter 2 carrying &middot; Chapter 1 place values</p>
+</header>
+
+<nav class="nav">
+  <a href="#watch">👀 Watch it</a><a href="#try">✏️ Your turn</a><a href="#spot">🔍 Spot the mistake</a><a href="#test">🏆 Test</a>
+</nav>
+
+<div class="card intro">
+  <p><b>A column that makes exactly 10 still gets carried. Write <span style="color:#c9761d">0</span> in that column and carry the 1.</b></p>
+  <p>The 0 is the easy one to miss. Watch one, try 6 yourself, catch the mistakes — then a 24-question test (1 minute each · pass = 80%).</p>
+  <div class="badges">
+    <div class="badge" id="b1"><span class="bi">👀</span>Watch it</div>
+    <div class="badge" id="b2"><span class="bi">✏️</span>Your turn</div>
+    <div class="badge" id="b3"><span class="bi">🔍</span>Mistake finder</div>
+    <div class="badge" id="b4"><span class="bi">🏆</span>Test passed</div>
+  </div>
+</div>
+
+<!-- ===================== 1 · WATCH IT ===================== -->
+<h2 class="sect" id="watch"><span>👀 1 · Watch it — Homework page 21</span></h2>
+<div class="card">
+  <p class="body">This one is from your last test: <b>1342 + 2358</b>. It has <b>two</b> columns that make exactly 10.</p>
+  <div class="watch">
+    <div id="pv"></div>
+    <div id="wcol"></div>
+  </div>
+  <div class="prompt" id="wPrompt"></div>
+  <div class="fb" id="wFb"></div>
+  <div class="won" id="wWon"><span class="lbl">✅ You did it</span>
+    1342 + 2358 = <b>3700</b>.<br>
+    <b>The rule:</b> 10 ones is one whole ten with <b>nothing left over</b> → write <b>0</b> and carry <b>1</b>.
+    Ten of anything works the same way: 10 tens = 1 hundred, write 0 and carry 1.</div>
+</div>
+
+<!-- ===================== 2 · YOUR TURN ===================== -->
+<h2 class="sect" id="try"><span>✏️ 2 · Your turn — Homework page 21</span></h2>
+<div class="card">
+  <p class="body">All six of these have a column that lands on exactly 10. Use the small boxes on top for the carried 1s.</p>
+  <div class="gbar"><span class="round" id="tRound"></span><span class="stars" id="tStars"></span></div>
+  <div class="target" id="tAsk"></div>
+  <div id="tHost"></div>
+  <div class="fb" id="tFb"></div>
+  <div class="center" id="tNext"></div>
+  <div class="won" id="tWon"><span class="lbl">✅ All 6 done</span>
+    Every one of those had a <b>0</b> in the answer that came from a full 10. When you see a column make 10, say it out loud:
+    <b>&ldquo;zero down, one over.&rdquo;</b></div>
+</div>
+
+<!-- ===================== 3 · SPOT THE MISTAKE ===================== -->
+<h2 class="sect" id="spot"><span>🔍 3 · Spot the mistake</span></h2>
+<div class="card">
+  <div class="gbar"><span class="round" id="sRound"></span><span class="stars" id="sStars"></span></div>
+  <div id="sBody"></div>
+  <div class="fb" id="sFb"></div>
+  <div class="center" id="sNext"></div>
+  <div class="won" id="sWon"><span class="lbl">✅ Mistake finder</span>
+    The three traps: <b>forgetting the carried 1</b>, <b>writing the whole 10 inside one column</b>, and <b>carrying when nothing needed carrying</b>.
+    To check an addition, subtract: the answer &minus; one number should give the other number.</div>
+</div>
+
+<!-- ===================== 4 · TEST ===================== -->
+<h2 class="sect" id="test"><span>🏆 4 · The test — Homework pages 23–24 and 5–6</span></h2>
+<div class="card center" id="gate">
+  <p class="body"><b>24 questions</b> — 14 adding (Homework p23–24) then 10 about place value (Homework p5–6) ·
+    <b>1 minute each</b> (24 minutes in all) · pass mark <b>80%</b> (20 right).</p>
+  <p class="body">Type your answer and press <b>Check</b>. You get one try per question — if it's wrong, you'll see why straight away.</p>
+  <p style="margin-top:12px"><button class="btn amber" onclick="startQuiz()">▶ Start the test</button></p>
+</div>
+<div class="card hidden" id="quiz">
+  <div class="qbar"><span id="qNum"></span><span id="qScore"></span><span class="time" id="qTime"></span></div>
+  <div class="progress"><i id="qProg"></i></div>
+  <div id="qBody"></div>
+</div>
+<div class="card hidden" id="result"></div>
+
+<div class="foot">My Pals Are Here! Maths 3A · Homework p5–6, p21, p23–24 ·
+  <a href="../homework.html">← My homework</a></div>
+</div>
+
+<script>
+/* ================= shared helpers (keep in this first script) ================= */
+var PLACE = ['ones', 'tens', 'hundreds', 'thousands', 'ten thousands'];
+function $(id) { return document.getElementById(id); }
+function digitsOf(x, n) {            // index 0 = ones; null past the number's length
+  var s = String(x), out = [];
+  for (var i = 0; i < n; i++) out.push(i < s.length ? +s[s.length - 1 - i] : null);
+  return out;
+}
+function plan(a, b) {                 // the column-by-column working of a + b
+  var n = String(a + b).length, da = digitsOf(a, n), db = digitsOf(b, n), cin = [0], cols = [];
+  for (var i = 0; i < n; i++) {
+    var s = (da[i] || 0) + (db[i] || 0) + cin[i];
+    cols.push({ a: da[i], b: db[i], cin: cin[i], sum: s, digit: s % 10, cout: s >= 10 ? 1 : 0 });
+    cin.push(s >= 10 ? 1 : 0);
+  }
+  return { n: n, da: da, db: db, cols: cols };
+}
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function explainAdd(a, b) {
+  var p = plan(a, b), lines = [];
+  p.cols.forEach(function (c, i) {
+    var terms = [];
+    if (c.a !== null) terms.push(c.a);
+    if (c.b !== null) terms.push(c.b);
+    if (c.cin) terms.push('<span style="color:#c9761d">1 (carried)</span>');
+    var lhs = terms.join(' + ');
+    var rhs = terms.length > 1 ? ' = ' + c.sum : '';
+    var tail = c.cout ? ' → write <b>' + c.digit + '</b>, carry <b>1</b> to the ' + PLACE[i + 1] + '.' : ' → write <b>' + c.digit + '</b>.';
+    lines.push('<b>' + cap(PLACE[i]) + ':</b> ' + lhs + rhs + tail);
+  });
+  lines.push('So <b>' + a + ' + ' + b + ' = ' + (a + b) + '</b>.');
+  return lines.join('<br>');
+}
+function noCarry(a, b) {
+  var p = plan(a, b), s = '';
+  for (var i = p.n - 1; i >= 0; i--) s += ((p.da[i] || 0) + (p.db[i] || 0)) % 10;
+  return +s;
+}
+function wholeSums(a, b) {            // wrote "14" in a column instead of carrying
+  var n = Math.max(String(a).length, String(b).length), da = digitsOf(a, n), db = digitsOf(b, n), s = '';
+  for (var i = n - 1; i >= 0; i--) s += String((da[i] || 0) + (db[i] || 0));
+  return +s;
+}
+function diagnoseAdd(a, b, v) {
+  var ans = a + b;
+  if (v === noCarry(a, b) && v !== ans) {
+    var p0 = plan(a, b), ten = -1;
+    for (var t = 0; t < p0.cols.length; t++) if (p0.cols[t].sum === 10) { ten = t; break; }
+    if (ten >= 0) return 'The ' + PLACE[ten] + ' column made <b>exactly 10</b>. That still carries: write <b>0</b> in the ' + PLACE[ten] + ' and take <b>1</b> over to the ' + PLACE[ten + 1] + '.';
+    return 'You forgot to carry. When a column makes 10 or more, a 1 goes over to the next column — and it has to be added there.';
+  }
+  if (v === wholeSums(a, b) && v !== ans) return 'You wrote a whole two-digit sum inside one column. Only the ones digit stays there — the 1 is carried to the next column.';
+  for (var k = 1; k <= 3; k++) {
+    var m = Math.pow(10, k);
+    if (v === a * m + b || v === a + b * m) return 'The numbers weren\'t lined up. Always put ones under ones, tens under tens — line them up from the <b>right</b>.';
+  }
+  if (v === Math.abs(a - b)) return 'You subtracted. "Sum" and "add" mean put them together.';
+  for (var j = 1; j <= 3; j++) {
+    var d = Math.pow(10, j);
+    if (v === ans - d) return 'Your ' + PLACE[j] + ' digit is 1 too small — a carried 1 was left out of the ' + PLACE[j] + '.';
+    if (v === ans + d) return 'Your ' + PLACE[j] + ' digit is 1 too big — a 1 was carried into the ' + PLACE[j] + ' when nothing needed carrying.';
+  }
+  return 'Go column by column, starting at the ones, and watch every carry.';
+}
+
+/* ---- sound (WebAudio, no files) ---- */
+var soundOn = true, AC = null;
+try { soundOn = localStorage.getItem('kidsSound') !== 'off'; } catch (e) {}
+function paintSound() { $('soundBtn').textContent = soundOn ? '🔊' : '🔇'; }
+function toggleSound() { soundOn = !soundOn; try { localStorage.setItem('kidsSound', soundOn ? 'on' : 'off'); } catch (e) {} paintSound(); }
+function tone(f, t0, dur, type, vol) {
+  if (!soundOn) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    var o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + t0;
+    o.type = type || 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(vol || .16, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+function sfxOk() { tone(660, 0, .12); tone(880, .1, .18); }
+function sfxNo() { tone(220, 0, .22, 'square', .07); }
+function sfxWin() { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * .11, .25); }); }
+
+/* ---- confetti (pure CSS) ---- */
+function confetti(n) {
+  var colors = ['#5b3f99', '#e8508a', '#e67e22', '#2a9d8f', '#f1c40f', '#3a7d44'];
+  for (var i = 0; i < (n || 70); i++) {
+    var s = document.createElement('span');
+    s.className = 'confetti';
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.background = colors[i % colors.length];
+    s.style.animationDuration = (1.6 + Math.random() * 1.6) + 's';
+    s.style.animationDelay = (Math.random() * .4) + 's';
+    document.body.appendChild(s);
+    setTimeout(function (el) { el.remove(); }.bind(null, s), 3800);
+  }
+}
+function badge(id) { var b = $(id); if (b && !b.classList.contains('on')) { b.classList.add('on', 'pop'); } }
+
+/* ---- static column display: rows are right-aligned strings ---- */
+function colGrid(n, rows) {           // rows: [{op, cells:[...n], cls}] or 'line'
+  var html = '<div class="colw" style="grid-template-columns:30px repeat(' + n + ',auto)">';
+  rows.forEach(function (r) {
+    if (r === 'line') { html += '<div class="line"></div>'; return; }
+    html += '<div class="c ' + (r.small ? 'cs' : '') + ' op">' + (r.op || '') + '</div>';
+    r.cells.forEach(function (x, p) {
+      var extra = (r.cls && r.cls[p]) || '';
+      html += '<div class="c ' + (r.small ? 'cs cc ' : '') + extra + '">' + (x === null || x === undefined ? '' : x) + '</div>';
+    });
+  });
+  return html + '</div>';
+}
+function padCells(str, n, shift) {    // right-align str into n cells, optionally shifted left by `shift`
+  var cells = [], s = String(str) + ' '.repeat(shift || 0);
+  for (var p = 0; p < n; p++) { var k = s.length - n + p; var ch = k >= 0 ? s[k] : ''; cells.push(ch === ' ' ? '' : ch); }
+  return cells;
+}
+
+/* ---- the interactive column adder (lesson + practice) ---- */
+function ColAdd(host, a, b, onDone) {
+  var P = plan(a, b), n = P.n, self = this, tries = {}, failed = false;
+  var html = '<div class="colbox"><div class="colw" style="grid-template-columns:30px repeat(' + n + ',auto)">';
+  html += '<div class="c cs"></div>';
+  for (var p = 0; p < n; p++) { var i = n - 1 - p; html += '<div class="c cs">' + (i > 0 ? '<input class="cy" data-c="' + i + '" inputmode="numeric" maxlength="1" aria-label="carry into the ' + PLACE[i] + '">' : '') + '</div>'; }
+  html += '<div class="c"></div>';
+  for (p = 0; p < n; p++) html += '<div class="c">' + (P.da[n - 1 - p] === null ? '' : P.da[n - 1 - p]) + '</div>';
+  html += '<div class="c op">+</div>';
+  for (p = 0; p < n; p++) html += '<div class="c">' + (P.db[n - 1 - p] === null ? '' : P.db[n - 1 - p]) + '</div>';
+  html += '<div class="line"></div><div class="c"></div>';
+  for (p = 0; p < n; p++) html += '<div class="c"><input class="dg" data-a="' + (n - 1 - p) + '" inputmode="numeric" maxlength="1" aria-label="' + PLACE[n - 1 - p] + ' digit of the answer"></div>';
+  html += '</div></div><div class="colhint">Start at the ones (right). Small boxes on top are for carried 1s.</div>' +
+    '<div class="center"><button class="btn green sm" data-go>Check</button> <button class="peek" data-how>👀 Show me how</button></div>' +
+    '<div class="how hidden" data-howbox>' + explainAdd(a, b) + '</div>';
+  host.innerHTML = html;
+  var ans = [], cy = [];
+  host.querySelectorAll('input.dg').forEach(function (el) { ans[+el.dataset.a] = el; });
+  host.querySelectorAll('input.cy').forEach(function (el) { cy[+el.dataset.c] = el; });
+  host.querySelectorAll('input').forEach(function (el) {
+    el.addEventListener('input', function () {
+      el.value = el.value.replace(/\D/g, '').slice(-1);
+      el.classList.remove('bad', 'good');
+      if (el.dataset.a !== undefined && el.value) { var nx = ans[+el.dataset.a + 1]; if (nx) nx.focus(); }
+    });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter') self.check(); });
+  });
+  host.querySelector('[data-go]').onclick = function () { self.check(); };
+  host.querySelector('[data-how]').onclick = function () { host.querySelector('[data-howbox]').classList.toggle('hidden'); };
+  this.fb = null; this.done = false;
+  function say(msg, ok) { if (self.fb) { self.fb.innerHTML = msg; self.fb.className = 'fb ' + (ok ? 'ok' : 'no'); } }
+  function fail(el, key, msg1, msg2) {
+    failed = true; tries[key] = (tries[key] || 0) + 1;
+    el.classList.add('bad'); el.focus(); el.select && el.select();
+    say(tries[key] === 1 ? msg1 : msg2, false); sfxNo();
+  }
+  this.check = function () {
+    if (self.done) return;
+    for (var i = 0; i < n; i++) {
+      var c = P.cols[i], el = ans[i], v = el.value;
+      var terms = [c.a, c.b].filter(function (x) { return x !== null; }).join(' + ') + (c.cin ? ' + 1 (carried)' : '');
+      if (v === '' || +v !== c.digit) {
+        var first = v === '' ? 'Fill in the ' + PLACE[i] + ' box.'
+          : (c.cin && +v === ((c.a || 0) + (c.b || 0)) % 10) ? 'Did you forget the small 1 you carried into the ' + PLACE[i] + '?'
+          : 'Look at the ' + PLACE[i] + ' column. Add ' + terms + '.';
+        var second = terms + ' = ' + c.sum + '. ' + (c.cout ? 'That\'s 10 or more — write <b>' + c.digit + '</b> here and carry 1 to the ' + PLACE[i + 1] + '.' : 'Write <b>' + c.digit + '</b> here.');
+        fail(el, 'a' + i, first, second); return;
+      }
+      el.classList.add('good');
+      if (i + 1 < n) {
+        var box = cy[i + 1], got = box.value === '' ? 0 : +box.value;
+        if (got !== c.cout) {
+          var m = c.cout
+            ? 'The ' + PLACE[i] + ' made ' + c.sum + ' — that\'s 10 or more! Put a small <b>1</b> on top of the ' + PLACE[i + 1] + '.'
+            : got > 1 ? 'You can only ever carry 1 here.'
+            : 'The ' + PLACE[i] + ' only made ' + c.sum + ', less than 10 — nothing to carry. Clear the box on top of the ' + PLACE[i + 1] + '.';
+          fail(box, 'c' + i, m, m); return;
+        }
+        if (c.cout) box.classList.add('good');
+      }
+    }
+    self.done = true; sfxOk();
+    say('✓ ' + a + ' + ' + b + ' = ' + (a + b) + (failed ? '' : ' — first try! ⭐'), true);
+    host.querySelectorAll('input').forEach(function (x) { x.disabled = true; });
+    host.querySelector('[data-go]').classList.add('hidden');
+    if (onDone) onDone(!failed);
+  };
+  // Focus only after the kid has clicked something (Next), never on page load — that would pop the iPad keyboard.
+  var start = ans[0], ae = document.activeElement;
+  if (start && ae && ae !== document.body) setTimeout(function () { try { start.focus({ preventScroll: true }); } catch (e) {} }, 50);
+}
+</script>
+
+<script>
+/* ================= 1 · WATCH IT (Homework p21, question 7(a)) ================= */
+var W = { a: 1342, b: 2358, step: 0, res: {}, carry: {}, newTen: false, tries: 0 };
+var W_STEPS = [
+  { hi: 0, ask: '<b>Step 1 · Add the ones.</b><br>2 + 8 = {i}', ans: [10],
+    hints: ['Count the pink ones counters: 2 on top and 8 below.', '2 + 8 = 10. Type 10.'],
+    ok: 'Yes — exactly 10 ones!' },
+  { hi: 0, ask: '10 ones is <b>one whole ten</b>, with nothing left over.<br>10 ones = {i} ten and {i} ones', ans: [1, 0],
+    wrong: { 10: 'Careful — the first box is how many <b>tens</b> you can make out of 10 ones.' },
+    hints: ['10 ones make 1 ten exactly. How many ones are left over after that?', '10 = 10 + 0, so it is 1 ten and 0 ones.'],
+    ok: 'Write <b>0</b> in the ones — nothing is left over. The 1 ten is carried on top of the tens.',
+    apply: function () { W.res[0] = 0; W.carry[1] = 1; W.newTen = true; } },
+  { hi: 1, ask: '<b>Step 2 · Add the tens.</b><br>4 + 5 + the 1 you carried = {i}', ans: [10],
+    wrong: { 9: 'Don\'t forget the small 1 on top — the ten you carried across!' },
+    hints: ['Count the orange tens: 4 on top, 5 below, plus the carried one.', '4 + 5 + 1 = 10.'],
+    ok: 'Exactly 10 tens — it happens again!' },
+  { hi: 1, ask: '10 tens is <b>one whole hundred</b>, with nothing left over.<br>10 tens = {i} hundred and {i} tens', ans: [1, 0],
+    wrong: { 10: 'The first box is how many <b>hundreds</b> you can make out of 10 tens.' },
+    hints: ['10 tens make 1 hundred exactly. How many tens are left?', '1 hundred and 0 tens.'],
+    ok: 'Write <b>0</b> in the tens, carry <b>1</b> to the hundreds. That is the second 0 in the answer.',
+    apply: function () { W.res[1] = 0; W.carry[2] = 1; } },
+  { hi: 2, ask: '<b>Step 3 · Add the hundreds.</b><br>3 + 3 + the 1 you carried = {i}', ans: [7],
+    wrong: { 6: 'The carried 1 from the tens has to be added in here too.' },
+    hints: ['3 purple hundreds on top, 3 below, and 1 carried.', '3 + 3 + 1 = 7.'],
+    ok: '7 hundreds — under 10, so nothing is carried this time.', apply: function () { W.res[2] = 7; } },
+  { hi: 3, ask: '<b>Step 4 · Add the thousands.</b><br>1 + 2 = {i}', ans: [3],
+    hints: ['1 teal thousand on top, 2 below.', '1 + 2 = 3.'], ok: '3 thousands.', apply: function () { W.res[3] = 3; } }
+];
+function chips(n, cls, extraNew) {
+  var s = '<div class="chips">';
+  for (var i = 0; i < n; i++) s += '<span class="chip ' + cls + (extraNew && i === n - 1 ? ' new' : '') + '"></span>';
+  return s + '</div>';
+}
+function drawWatch() {
+  var hi = W.step < W_STEPS.length ? W_STEPS[W.step].hi : -1;
+  var cls = ['o', 'te', 'h', 't'], da = digitsOf(W.a, 4), db = digitsOf(W.b, 4);
+  var head = '<tr><td class="lab"></td><th class="t">Th</th><th class="h">H</th><th class="te">T</th><th class="o">O</th></tr>';
+  function row(label, ds, isSum) {
+    var r = '<tr class="' + (isSum ? 'sum' : '') + '"><td class="lab">' + label + '</td>';
+    for (var p = 3; p >= 0; p--) {
+      var cell = '';
+      if (isSum) { if (W.res[p] !== undefined) cell = W.res[p] === 0 ? '<span class="none">none</span>' : chips(W.res[p], cls[p], p === 1 && W.newTen); }
+      else cell = chips(ds[p], cls[p]);
+      r += '<td class="' + (p === hi ? 'hi' : '') + '">' + cell + '</td>';
+    }
+    return r + '</tr>';
+  }
+  var sumLabel = [3, 2, 1, 0].map(function (p) { return W.res[p] === undefined ? '?' : W.res[p]; }).join('');
+  $('pv').innerHTML = '<table class="pv">' + head + row(W.a, da) + row(W.b, db) + row(sumLabel, null, true) + '</table>';
+  var hic = [3, 2, 1, 0].map(function (i) { return i === hi ? 'hi' : ''; });
+  $('wcol').innerHTML = colGrid(4, [
+    { small: true, cells: [3, 2, 1, 0].map(function (i) { return W.carry[i] || ''; }) },
+    { cells: padCells(W.a, 4), cls: hic },
+    { op: '+', cells: padCells(W.b, 4), cls: hic },
+    'line',
+    { cells: [3, 2, 1, 0].map(function (i) { return W.res[i] === undefined ? '' : W.res[i]; }), cls: hic }
+  ]);
+}
+function drawWatchPrompt() {
+  if (W.step >= W_STEPS.length) {
+    $('wPrompt').classList.add('hidden'); $('wWon').classList.add('show'); badge('b1'); sfxWin(); return;
+  }
+  var st = W_STEPS[W.step], k = 0;
+  $('wPrompt').innerHTML = st.ask.replace(/\{i\}/g, function () {
+    return '<input class="' + (st.ans.length > 1 ? 'sm' : '') + '" data-k="' + (k++) + '" inputmode="numeric" maxlength="3">';
+  }) + '<div style="margin-top:8px"><button class="btn green sm" onclick="checkWatch()">Check</button></div>';
+  $('wPrompt').querySelectorAll('input').forEach(function (el) {
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter') checkWatch(); });
+  });
+  W.tries = 0;
+}
+function checkWatch() {
+  var st = W_STEPS[W.step], ins = $('wPrompt').querySelectorAll('input'), ok = true, vals = [];
+  ins.forEach(function (el, i) { vals.push(el.value.trim()); if (+el.value !== st.ans[i] || el.value.trim() === '') ok = false; });
+  var fb = $('wFb');
+  if (vals.some(function (v) { return v === ''; })) { fb.className = 'fb no'; fb.textContent = 'Type a number in each box.'; return; }
+  if (!ok) {
+    sfxNo(); W.tries++;
+    fb.className = 'fb no';
+    fb.innerHTML = (st.wrong && st.wrong[vals[0]]) || st.hints[Math.min(W.tries, st.hints.length) - 1];
+    return;
+  }
+  sfxOk(); fb.className = 'fb ok'; fb.innerHTML = '✓ ' + st.ok;
+  if (st.apply) st.apply();
+  W.step++; drawWatch(); drawWatchPrompt();
+}
+drawWatch(); drawWatchPrompt();
+
+/* ================= 2 · YOUR TURN (Homework p21, question 7) ================= */
+var T_ITEMS = [
+  { a: 3075, b: 3627, ask: '7(b) · Add. Watch the tens column.' },
+  { a: 6014, b: 1396, ask: '7(h) · Add.' },
+  { a: 2037, b: 1763, ask: '7(c) · Add. This one has two full tens in it.' },
+  { a: 3526, b: 1284, ask: '7(g) · Add.' },
+  { a: 5049, b: 1357, ask: '7(e) · Add.' },
+  { a: 1348, b: 4458, ask: '7(l) · Add.' }
+];
+var T = { i: 0, stars: [] };
+function drawTry() {
+  var it = T_ITEMS[T.i];
+  $('tRound').textContent = 'QUESTION ' + (T.i + 1) + ' OF ' + T_ITEMS.length;
+  $('tStars').textContent = T.stars.join('');
+  $('tAsk').innerHTML = it.ask;
+  $('tFb').textContent = ''; $('tFb').className = 'fb'; $('tNext').innerHTML = '';
+  var w = new ColAdd($('tHost'), it.a, it.b, function (first) {
+    T.stars.push(first ? '⭐' : '✔️'); $('tStars').textContent = T.stars.join('');
+    if (T.i < T_ITEMS.length - 1) $('tNext').innerHTML = '<button class="btn" onclick="T.i++;drawTry()">Next →</button>';
+    else { $('tWon').classList.add('show'); badge('b2'); sfxWin(); confetti(40); }
+  });
+  w.fb = $('tFb');
+}
+drawTry();
+
+/* ================= 3 · SPOT THE MISTAKE ================= */
+var REASONS = {
+  forgot: 'Forgot to add the 1 that was carried',
+  wrote10: 'Wrote the whole 10 inside one column',
+  extra: 'Carried a 1 when nothing needed carrying',
+  align: 'Lined the numbers up the wrong way'
+};
+var S_ITEMS = [
+  { who: 'Nurul', a: 3752, b: 3568, said: 7310, reason: 'forgot', src: 'Homework page 23',
+    why: { forgot: 'Yes! Ones: 2 + 8 = 10, so a 1 goes over to the tens. Tens: 5 + 6 + <b>1</b> = 12 — Nurul used 5 + 6 = 11 and wrote 1.',
+           wrote10: 'No — the answer still has four digits, nothing spilled over. Look at the tens column.',
+           extra: 'The opposite happened. There <i>was</i> a 1 to carry out of the ones. Did it get added in?',
+           align: 'Ones are under ones, so the lining up is fine. Look at the tens column.' } },
+  { who: 'Mei Ling', a: 4276, b: 4789, said: 9065, ok: true, src: 'Homework page 23' },
+  { who: 'Ali', a: 2037, b: 1763, said: 37910, n: 5, reason: 'wrote10', src: 'Homework page 21',
+    why: { wrote10: 'Yes! Ones: 7 + 3 = 10, and Ali wrote the whole <b>10</b> in the ones column. Only the 0 stays there — the 1 is carried.',
+           forgot: 'Close — but look how long the answer is. A whole 10 was written inside one column instead of being split up.',
+           extra: 'Nothing extra was carried. Count the digits in the answer: there are five.',
+           align: 'The two numbers line up fine. Look at the ones column of the answer.' } },
+  { who: 'Farah', a: 3526, b: 1284, said: 5810, reason: 'extra', src: 'Homework page 21',
+    why: { extra: 'Yes! Hundreds: 5 + 2 + 1 = 8 — under 10, so nothing goes to the thousands. Thousands: 3 + 1 = 4, not 5.',
+           forgot: 'Both carries were done: ones 6 + 4 = 10, tens 2 + 8 + 1 = 11. Look at the thousands.',
+           wrote10: 'The answer has four digits, so nothing spilled. Look at the thousands.',
+           align: 'Ones are under ones — the lining up is fine. Look at the thousands.' } }
+];
+var SP = { i: 0, stage: 0, first: true, stars: [] };
+function spotWork(it) {
+  var n = it.n || 4, bcells = padCells(it.b, n, it.shift || 0), cl = [];
+  for (var i = 0; i < n; i++) cl.push('claim');
+  return '<div class="colbox">' + colGrid(n, [
+    { cells: padCells(it.a, n) }, { op: '+', cells: bcells }, 'line',
+    { cells: padCells(it.said, n), cls: cl }
+  ]) + '</div>';
+}
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function drawSpot() {
+  var it = S_ITEMS[SP.i];
+  $('sRound').textContent = 'MISTAKE HUNT ' + (SP.i + 1) + ' OF ' + S_ITEMS.length;
+  $('sStars').textContent = SP.stars.join('');
+  $('sFb').textContent = ''; $('sFb').className = 'fb'; $('sNext').innerHTML = '';
+  var head = '<div class="notebook"><div class="who">📝 <b>' + it.who + '</b> worked out ' + it.a + ' + ' + it.b +
+    ' and got <b>' + it.said + '</b>. <span style="color:#8a829c;font-size:13px">(' + it.src + ')</span></div>' + spotWork(it) + '</div>';
+  var body = '';
+  if (SP.stage === 0) {
+    body = '<p class="body center" style="margin-top:12px"><b>Is ' + it.who + ' correct?</b></p>' +
+      '<div class="yn"><button class="btn green" onclick="spotYN(true)">✓ Yes</button><button class="btn amber" onclick="spotYN(false)">✗ No</button></div>';
+  } else if (SP.stage === 1) {
+    var keys = shuffle(Object.keys(REASONS));
+    body = '<p class="body center" style="margin-top:12px"><b>What went wrong?</b></p><div class="choices">' +
+      keys.map(function (k) { return '<button class="choice" data-k="' + k + '" onclick="spotWhy(this)">' + REASONS[k] + '</button>'; }).join('') + '</div>';
+  } else if (SP.stage === 2) {
+    body = '<div class="prompt">' + (it.ok ? 'Check it the book\'s way — subtract:<br>' + it.said + ' − ' + it.b + ' = {i}' : 'Now fix it:<br>' + it.a + ' + ' + it.b + ' = {i}')
+      .replace('{i}', '<input id="sIn" inputmode="numeric" maxlength="5" style="width:110px">') +
+      '<div style="margin-top:8px"><button class="btn green sm" onclick="spotFix()">Check</button></div></div>';
+  }
+  $('sBody').innerHTML = head + body;
+  var inp = $('sIn'); if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') spotFix(); });
+}
+function spotSay(msg, ok) { $('sFb').innerHTML = msg; $('sFb').className = 'fb ' + (ok ? 'ok' : 'no'); ok ? sfxOk() : sfxNo(); }
+function spotYN(yes) {
+  var it = S_ITEMS[SP.i];
+  if (yes === !!it.ok) {
+    spotSay(it.ok ? '✓ Right — ' + it.who + ' is correct. Let\'s prove it.' : '✓ Right — something\'s wrong. Let\'s find it.', true);
+    SP.stage = it.ok ? 2 : 1; setTimeout(drawSpot, 700);
+  } else {
+    SP.first = false;
+    spotSay(it.ok ? 'Check again, column by column. Ones: 6 + 9 = 15 → write 5, carry 1. Tens: 7 + 8 + 1 = 16 …' : 'Check it column by column, starting at the ones.', false);
+  }
+}
+function spotWhy(btn) {
+  var it = S_ITEMS[SP.i], k = btn.dataset.k;
+  if (k === it.reason) {
+    btn.classList.add('good'); spotSay('✓ ' + it.why[k], true);
+    $('sNext').innerHTML = '<button class="btn" onclick="SP.stage=2;drawSpot()">Fix it →</button>';
+    document.querySelectorAll('.choice').forEach(function (b) { b.disabled = true; });
+  } else { SP.first = false; btn.classList.add('bad'); spotSay(it.why[k], false); }
+}
+function spotFix() {
+  var it = S_ITEMS[SP.i], el = $('sIn'), v = el.value.trim();
+  if (v === '') return;
+  var want = it.ok ? it.a : it.a + it.b;
+  if (+v === want) {
+    el.style.borderColor = '#3a7d44';
+    spotSay(it.ok ? '✓ ' + it.said + ' − ' + it.b + ' = ' + it.a + ' — the number we started with, so the answer was right!' : '✓ ' + it.a + ' + ' + it.b + ' = ' + want + '.', true);
+    SP.stars.push(SP.first ? '⭐' : '✔️'); $('sStars').textContent = SP.stars.join('');
+    if (SP.i < S_ITEMS.length - 1) $('sNext').innerHTML = '<button class="btn" onclick="SP.i++;SP.stage=0;SP.first=true;drawSpot()">Next →</button>';
+    else { $('sNext').innerHTML = ''; $('sWon').classList.add('show'); badge('b3'); sfxWin(); confetti(40); }
+  } else {
+    SP.first = false; el.style.borderColor = '#c0392b';
+    spotSay(it.ok ? 'Not quite. Line the subtraction up and go column by column.' : diagnoseAdd(it.a, it.b, +v), false);
+  }
+}
+drawSpot();
+</script>
+
+<script>
+/* ================= 4 · THE TEST ================= */
+var SK_ADD = 'm3a.02.addregroup', SK_PV = 'm3a.01.placevalue';
+var TBL2698 = 'Thousands <b>2</b> &middot; Hundreds <b>6</b> &middot; Tens <b>9</b> &middot; Ones <b>8</b>';
+var questions = [
+  /* --- Homework p23, Practice 3 question 1 (twelve sums, in book order) --- */
+  { id: '1 · box 1',  src: 23, a: 738,  b: 695,  ans: 1433, vert: true, sk: SK_ADD },
+  { id: '1 · box 2',  src: 23, a: 867,  b: 367,  ans: 1234, vert: true, sk: SK_ADD },
+  { id: '1 · box 3',  src: 23, a: 679,  b: 846,  ans: 1525, vert: true, sk: SK_ADD },
+  { id: '1 · box 4',  src: 23, a: 567,  b: 948,  ans: 1515, vert: true, sk: SK_ADD },
+  { id: '1 · box 5',  src: 23, a: 2946, b: 3688, ans: 6634, vert: true, sk: SK_ADD },
+  { id: '1 · box 6',  src: 23, a: 3752, b: 3568, ans: 7320, vert: true, sk: SK_ADD },
+  { id: '1 · box 7',  src: 23, a: 4276, b: 4789, ans: 9065, vert: true, sk: SK_ADD },
+  { id: '1 · box 8',  src: 23, a: 1819, b: 6399, ans: 8218, vert: true, sk: SK_ADD },
+  { id: '1 · box 9',  src: 23, a: 6485, b: 2688, ans: 9173, vert: true, sk: SK_ADD },
+  { id: '1 · box 10', src: 23, a: 5246, b: 3978, ans: 9224, vert: true, sk: SK_ADD },
+  { id: '1 · box 11', src: 23, a: 3729, b: 2684, ans: 6413, vert: true, sk: SK_ADD },
+  { id: '1 · box 12', src: 23, a: 4253, b: 1959, ans: 6212, vert: true, sk: SK_ADD },
+  /* --- Homework p24, word problems --- */
+  { id: '2', src: 24, a: 2486, b: 3787, ans: 6273, sk: SK_ADD,
+    text: 'The Boy Scouts Association collected <b>2486</b> gifts for a children\'s home.<br>The Girl Guides Association collected <b>3787</b> gifts for an old folks\' home.<br>Find the total number of gifts collected.' },
+  { id: '3', src: 24, a: 1464, b: 1867, ans: 3331, sk: SK_ADD,
+    text: 'Baker Rosnah and Baker Siti baked <b>1464</b> cookies on Saturday.<br>They baked <b>1867</b> more cookies on Sunday than on Saturday.<br>How many cookies did they bake on Sunday?' },
+  /* --- Homework p5-6, Practice 2 · Place Values --- */
+  { id: '1(b)', src: 5, ans: 300,  sk: SK_PV, pv: { k: 'value', num: 8349, digit: 3 },
+    text: 'In <b>8349</b>, the digit <b>3</b> stands for ______.' },
+  { id: '1(b)', src: 5, ans: 8000, sk: SK_PV, pv: { k: 'value', num: 8349, digit: 8 },
+    text: 'In <b>8349</b>, the digit <b>8</b> stands for ______.' },
+  { id: '2(a)', src: 5, ans: 90,   sk: SK_PV, pv: { k: 'value', num: 2698, digit: 9 },
+    text: TBL2698 + '<br>The value of the digit <b>9</b> is ______.' },
+  { id: '2(b)', src: 5, ans: 6,    sk: SK_PV, pv: { k: 'which', num: 2698, value: 600 },
+    text: TBL2698 + '<br>The digit ______ stands for 600.' },
+  { id: '2(d)', src: 5, ans: 8,    sk: SK_PV, pv: { k: 'value', num: 2698, digit: 8 },
+    text: TBL2698 + '<br>The digit <b>8</b> stands for ______.' },
+  { id: '3(a)', src: 6, ans: 500,  sk: SK_PV, pv: { k: 'expand', num: 6538, place: 2 },
+    text: '6538 = 6000 + ______ + 30 + 8' },
+  { id: '3(b)', src: 6, ans: 20,   sk: SK_PV, pv: { k: 'expand', num: 7029, place: 1 },
+    text: '7029 = 7000 + ______ + 9' },
+  { id: '3(d)', src: 6, ans: 3192, sk: SK_PV, pv: { k: 'build', parts: [3000, 100, 90, 2] },
+    text: '______ = 3000 + 100 + 90 + 2' },
+  { id: '4', src: 6, ans: 3700, sk: SK_PV, pv: { k: 'compose', parts: [[35, 'hundreds', 100], [20, 'tens', 10]] },
+    text: 'What is <b>35 hundreds and 20 tens</b>?' },
+  { id: '5', src: 6, ans: 4846, sk: SK_PV, pv: { k: 'compose', parts: [[48, 'hundreds', 100], [3, 'tens', 10], [16, 'ones', 1]] },
+    text: 'What is <b>48 hundreds 3 tens and 16 ones</b>?' }
+];
+var SECS_PER_Q = 60;
+var QUIZ_SECS = questions.length * SECS_PER_Q;
+var PASS_PCT = 80, PASS_N = Math.ceil(questions.length * PASS_PCT / 100);
+var current = 0, score = 0, answered = false;
+var given = [], quizOn = false, timerId = null, secsLeft = 0;
+
+/* ---- place-value helpers ---- */
+function placeIndexOf(num, digit) {
+  var s = String(num);
+  for (var i = 0; i < s.length; i++) if (+s[i] === digit) return s.length - 1 - i;
+  return -1;
+}
+function pvTable(num, hi) {
+  var d = digitsOf(num, 4);
+  var h = '<tr><td class="lab"></td><th class="t">Th</th><th class="h">H</th><th class="te">T</th><th class="o">O</th></tr>';
+  var r = '<tr><td class="lab">' + num + '</td>';
+  for (var p = 3; p >= 0; p--) r += '<td class="' + (p === hi ? 'hi' : '') + '" style="font-size:24px;font-weight:700">' + (d[p] === null ? '' : d[p]) + '</td>';
+  return '<table class="pv">' + h + r + '</tr></table>';
+}
+function worth(place) { return Math.pow(10, place); }
+function explainPV(q) {
+  var v = q.pv;
+  if (v.k === 'value') {
+    var i = placeIndexOf(v.num, v.digit);
+    return 'In ' + v.num + ' the <b>' + v.digit + '</b> sits in the <b>' + PLACE[i] + '</b> column.<br>' +
+      v.digit + ' ' + PLACE[i] + ' = <b>' + (v.digit * worth(i)) + '</b>.' +
+      (i === 0 ? '<br>In the ones column a digit is just worth itself.' : '');
+  }
+  if (v.k === 'which') {
+    var j = String(v.value).length - 1;
+    return v.value + ' is ' + String(v.value)[0] + ' ' + PLACE[j] + '.<br>Look in the <b>' + PLACE[j] + '</b> column of ' + v.num + ' — the digit there is <b>' + q.ans + '</b>.';
+  }
+  if (v.k === 'expand') {
+    var d = digitsOf(v.num, 4), parts = [];
+    for (var p = 3; p >= 0; p--) if (d[p]) parts.push(d[p] * worth(p));
+    return v.num + ' = ' + parts.join(' + ') + '.<br>The missing piece is the <b>' + PLACE[v.place] + '</b>: ' +
+      d[v.place] + ' ' + PLACE[v.place] + ' = <b>' + q.ans + '</b>.';
+  }
+  if (v.k === 'build') return v.parts.join(' + ') + ' = <b>' + q.ans + '</b>.';
+  if (v.k === 'compose') {
+    var lines = v.parts.map(function (p) { return p[0] + ' ' + p[1] + ' = ' + p[0] + ' × ' + p[2] + ' = <b>' + (p[0] * p[2]) + '</b>'; });
+    return lines.join('<br>') + '<br>' + v.parts.map(function (p) { return p[0] * p[2]; }).join(' + ') + ' = <b>' + q.ans + '</b>.';
+  }
+  return '';
+}
+function diagnosePV(q, x) {
+  var v = q.pv;
+  if (v.k === 'value') {
+    var i = placeIndexOf(v.num, v.digit);
+    if (x === v.digit && i !== 0) return 'You wrote the digit itself. The question asks what it is <b>worth</b> — and that depends on which column it sits in.';
+    for (var p = 0; p <= 3; p++) if (x === v.digit * worth(p)) return 'Right digit, wrong column. Count the columns from the right: ones, tens, hundreds, thousands.';
+    return 'Find the column the digit is in first, then say what it is worth.';
+  }
+  if (v.k === 'which') {
+    if (x === v.value) return 'That is the <b>value</b>. The question asks which single <b>digit</b> stands for it.';
+    return 'Which column does ' + v.value + ' belong to? Then read the digit in that column.';
+  }
+  if (v.k === 'expand') {
+    var d = digitsOf(v.num, 4);
+    if (x === d[v.place]) return 'You wrote the digit. In an expanded sum each piece is what the digit is <b>worth</b>.';
+    return 'Split ' + v.num + ' into thousands + hundreds + tens + ones, then see which piece is missing.';
+  }
+  if (v.k === 'build') return 'Line the pieces up by column and add them: ' + v.parts.join(' + ') + '.';
+  if (v.k === 'compose') {
+    var plain = v.parts.reduce(function (s, p) { return s + p[0]; }, 0);
+    if (x === plain) return 'You added the numbers just as they are. But "' + v.parts[0][0] + ' ' + v.parts[0][1] + '" means ' + v.parts[0][0] + ' × ' + v.parts[0][2] + '.';
+    return 'Work out what each piece is worth first, then add them.';
+  }
+  return 'Have another look at the columns.';
+}
+
+function fmtTime(s) { s = Math.max(0, s); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+function tick() {
+  secsLeft--;
+  $('qTime').textContent = '⏱ ' + fmtTime(secsLeft);
+  $('qTime').classList.toggle('low', secsLeft <= 60);
+  if (secsLeft <= 0) { clearInterval(timerId); timerId = null; if (quizOn) showResult(); }
+}
+function startQuiz() {
+  $('gate').classList.add('hidden'); $('result').classList.add('hidden'); $('quiz').classList.remove('hidden');
+  current = 0; score = 0; answered = false; given = []; quizOn = true;
+  secsLeft = QUIZ_SECS; $('qTime').textContent = '⏱ ' + fmtTime(secsLeft); $('qTime').classList.remove('low');
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(tick, 1000);
+  try { var s = window.QuizReport && QuizReport.session(); if (s) s.lastMark = Date.now(); } catch (e) {}
+  render();
+  $('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function qHTML(q) {
+  if (q.vert) return '<div class="qtext">Add.</div><div class="colbox">' + colGrid(4, [{ cells: padCells(q.a, 4) }, { op: '+', cells: padCells(q.b, 4) }, 'line']) + '</div>';
+  return '<div class="qtext">' + q.text + '</div>';
+}
+function render() {
+  var q = questions[current];
+  answered = false;
+  $('qNum').textContent = 'Question ' + (current + 1) + ' of ' + questions.length;
+  $('qScore').textContent = '✓ ' + score;
+  $('qProg').style.width = (100 * current / questions.length) + '%';
+  $('qBody').innerHTML = '<div class="center"><span class="qtag">Homework p' + q.src + ' · Question ' + q.id + '</span></div>' + qHTML(q) +
+    '<div class="ansrow"><input id="qIn" inputmode="numeric" autocomplete="off" maxlength="6" aria-label="your answer">' +
+    '<button class="btn green" id="qGo" onclick="check()">Check</button></div>' +
+    '<div class="fb" id="qFb"></div><div class="explain" id="qExp"></div><div class="center" id="qNext"></div>';
+  var inp = $('qIn');
+  inp.addEventListener('input', function () { inp.value = inp.value.replace(/\D/g, ''); });
+  inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { if (!answered) check(); else nextQ(); } });
+  setTimeout(function () { try { inp.focus({ preventScroll: true }); } catch (e) {} }, 60);
+}
+function explainQ(q) { return q.pv ? explainPV(q) : explainAdd(q.a, q.b); }
+function diagnoseQ(q, v) { return q.pv ? diagnosePV(q, v) : diagnoseAdd(q.a, q.b, v); }
+function check() {
+  if (answered || !quizOn) return;
+  var q = questions[current], el = $('qIn'), raw = el.value.trim();
+  if (raw === '') { $('qFb').className = 'fb no'; $('qFb').textContent = 'Type your answer first.'; return; }
+  var v = +raw; given[current] = v; answered = true;
+  el.disabled = true; $('qGo').classList.add('hidden');
+  var ok = v === q.ans;
+  if (ok) {
+    score++; el.classList.add('good'); sfxOk();
+    $('qFb').className = 'fb ok'; $('qFb').textContent = '✓ Correct!';
+  } else {
+    el.classList.add('bad'); sfxNo();
+    $('qFb').className = 'fb no'; $('qFb').innerHTML = '✗ Not quite — the answer is <b>' + q.ans + '</b>.';
+    $('qExp').innerHTML = '<div class="trap"><span class="lbl">What happened</span>' + diagnoseQ(q, v) + '</div><div class="how">' + explainQ(q) + '</div>';
+  }
+  $('qScore').textContent = '✓ ' + score;
+  var last = current === questions.length - 1;
+  $('qNext').innerHTML = '<button class="btn" style="margin-top:12px" onclick="nextQ()">' + (last ? 'See my score →' : 'Next →') + '</button>';
+}
+function nextQ() {
+  if (!quizOn) return;
+  if (current < questions.length - 1) { current++; render(); } else showResult();
+}
+function showResult() {
+  if (!quizOn) return;
+  quizOn = false;
+  if (timerId) { clearInterval(timerId); timerId = null; }
+  var used = QUIZ_SECS - Math.max(0, secsLeft), pct = Math.round(100 * score / questions.length), pass = pct >= PASS_PCT;
+  var stars = pct === 100 ? '⭐⭐⭐' : pct >= PASS_PCT ? '⭐⭐' : pct >= 50 ? '⭐' : '';
+  var missed = [];
+  questions.forEach(function (q, i) { if (given[i] !== q.ans) missed.push(i); });
+  var html = '<div class="res-top"><div class="stars">' + (stars || '💪') + '</div><div class="pct">' + pct + '%</div>' +
+    '<div class="sub">' + score + ' right out of ' + questions.length + ' · the pass mark is ' + PASS_PCT + '% (' + PASS_N + ' correct)</div>' +
+    '<div class="sub">Time: ' + Math.floor(used / 60) + ' min ' + (used % 60) + ' s' + (secsLeft <= 0 ? ' — time ran out' : '') + '</div>' +
+    '<div class="verdict ' + (pass ? 'pass' : 'fail') + '">' + (pass ? '🎉 You passed!' : 'Not passed yet — ' + (PASS_N - score) + ' more needed') + '</div></div>';
+  if (missed.length) {
+    html += '<h3 class="rv">Let\'s look at the ' + (missed.length === 1 ? 'one' : missed.length) + ' you missed</h3>';
+    missed.forEach(function (i) {
+      var q = questions[i], g = given[i];
+      var sum = q.vert ? q.a + ' + ' + q.b : q.text;
+      html += '<div class="miss"><div class="mh">Question ' + q.id + ': ' + sum + '<br>' +
+        (g === undefined ? '<span class="you">Not answered</span>' : 'You wrote <span class="you">' + g + '</span>') +
+        ' · Answer: <span class="right">' + q.ans + '</span></div>' +
+        (g === undefined ? '' : '<div class="trap"><span class="lbl">What happened</span>' + diagnoseQ(q, g) + '</div>') +
+        '<div class="how">' + explainQ(q) + '</div></div>';
+    });
+    html += '<div class="center" style="margin-top:16px"><button class="btn amber" onclick="startRedo()">🔁 Practise the ones I missed</button>' +
+      '<button class="btn ghost" onclick="restart()">Take the whole test again</button></div><div id="redo"></div>';
+  } else {
+    html += '<p class="body center" style="margin-top:14px">Every single one right. Amazing! 🌟</p>' +
+      '<div class="center"><button class="btn ghost" onclick="restart()">Take the test again</button></div>';
+  }
+  $('quiz').classList.add('hidden');
+  var r = $('result'); r.innerHTML = html; r.classList.remove('hidden');
+  r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (pass) { badge('b4'); sfxWin(); confetti(); }
+}
+function restart() { startQuiz(); }
+
+/* ---- practise the missed ones (not scored, hints allowed) ---- */
+var RD = { list: [], i: 0, col: null };
+function startRedo() {
+  RD.list = questions.map(function (q, i) { return i; }).filter(function (i) { return given[i] !== questions[i].ans; });
+  RD.i = 0; RD.col = null; drawRedo();
+  $('redo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function redoNextBtn() { return '<button class="btn" onclick="RD.i++;RD.col=null;drawRedo()">Next →</button>'; }
+function drawRedo() {
+  var box = $('redo');
+  if (RD.i >= RD.list.length) {
+    box.innerHTML = '<div class="won show"><span class="lbl">✅ All fixed</span>You worked through every one you missed. Try the whole test again when you\'re ready!</div>';
+    sfxWin(); confetti(40); return;
+  }
+  var q = questions[RD.list[RD.i]];
+  var head = '<div class="card" style="margin-top:14px;border:3px solid #e8c489"><div class="gbar"><span class="round">PRACTICE ' + (RD.i + 1) + ' OF ' + RD.list.length +
+    ' · QUESTION ' + q.id + ' · not scored</span></div>';
+  if (q.pv) { box.innerHTML = head + redoPVBody(q) + '</div>'; wireRedoPV(q); return; }
+  var ask = q.text ? q.text : 'Add.';
+  box.innerHTML = head + '<div class="target">' + ask + '</div><div id="rHost"></div><div class="fb" id="rFb"></div><div class="center" id="rNext"></div></div>';
+  var w = new ColAdd($('rHost'), q.a, q.b, function () { $('rNext').innerHTML = redoNextBtn(); });
+  w.fb = $('rFb');
+}
+var COLNAMES = ['ones', 'tens', 'hundreds', 'thousands'];
+function redoPVBody(q) {
+  var v = q.pv;
+  if (v.k === 'value' || v.k === 'which' || v.k === 'expand') {
+    var num = v.num;
+    return '<div class="target">' + q.text + '</div>' + pvTable(num, -1) +
+      '<p class="body center" style="margin-top:10px"><b>Step 1 · which column?</b></p><div class="choices">' +
+      COLNAMES.map(function (c, i) { return '<button class="choice" data-c="' + i + '" onclick="redoCol(this)">' + c + '</button>'; }).join('') +
+      '</div><div id="rStep2"></div><div class="fb" id="rFb"></div><div class="center" id="rNext"></div>';
+  }
+  if (v.k === 'compose') {
+    var rows = v.parts.map(function (p, i) {
+      return '<div class="prompt">' + p[0] + ' ' + p[1] + ' = <input id="rp' + i + '" inputmode="numeric" style="width:100px"></div>';
+    }).join('');
+    return '<div class="target">' + q.text + '</div>' + rows +
+      '<div class="prompt">Add them all up = <input id="rpT" inputmode="numeric" style="width:110px"></div>' +
+      '<div class="center"><button class="btn green sm" onclick="redoCompose()">Check</button></div><div class="fb" id="rFb"></div><div class="center" id="rNext"></div>';
+  }
+  return '<div class="target">' + q.text + '</div>' +
+    '<div class="prompt">' + v.parts.join(' + ') + ' = <input id="rpT" inputmode="numeric" style="width:110px"></div>' +
+    '<div class="center"><button class="btn green sm" onclick="redoBuild()">Check</button></div><div class="fb" id="rFb"></div><div class="center" id="rNext"></div>';
+}
+function wireRedoPV(q) { RD.col = null; }
+function redoSay(msg, ok) { $('rFb').innerHTML = msg; $('rFb').className = 'fb ' + (ok ? 'ok' : 'no'); ok ? sfxOk() : sfxNo(); }
+function redoCol(btn) {
+  var q = questions[RD.list[RD.i]], v = q.pv, want;
+  if (v.k === 'value') want = placeIndexOf(v.num, v.digit);
+  else if (v.k === 'which') want = String(v.value).length - 1;
+  else want = v.place;
+  var got = +btn.dataset.c;
+  if (got !== want) { redoSay('Not that one. Count the columns from the <b>right</b>: ones, tens, hundreds, thousands.', false); return; }
+  btn.classList.add('good');
+  document.querySelectorAll('#redo .choice').forEach(function (b) { b.disabled = true; });
+  redoSay('✓ The ' + COLNAMES[want] + ' column.', true);
+  $('rStep2').innerHTML = '<p class="body center" style="margin-top:10px"><b>Step 2 · so the answer is</b></p>' +
+    '<div class="prompt">' + (v.k === 'which' ? 'the digit in that column = ' : 'what it is worth = ') +
+    '<input id="rpT" inputmode="numeric" style="width:110px"></div>' +
+    '<div class="center"><button class="btn green sm" onclick="redoBuild()">Check</button></div>';
+}
+function redoBuild() {
+  var q = questions[RD.list[RD.i]], el = $('rpT');
+  if (!el || el.value.trim() === '') { redoSay('Type a number first.', false); return; }
+  if (+el.value !== q.ans) { redoSay(diagnosePV(q, +el.value), false); return; }
+  redoSay('✓ ' + explainPV(q), true); $('rNext').innerHTML = redoNextBtn();
+}
+function redoCompose() {
+  var q = questions[RD.list[RD.i]], v = q.pv;
+  for (var i = 0; i < v.parts.length; i++) {
+    var el = $('rp' + i);
+    if (el.value.trim() === '') { redoSay('Fill in every box.', false); return; }
+    if (+el.value !== v.parts[i][0] * v.parts[i][2]) {
+      redoSay(v.parts[i][0] + ' ' + v.parts[i][1] + ' means ' + v.parts[i][0] + ' × ' + v.parts[i][2] + '.', false); return;
+    }
+  }
+  redoBuild();
+}
+paintSound();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

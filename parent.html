@@ -133,6 +133,32 @@
   .st-done{background:rgba(75,182,122,.16);color:var(--green)}
   .st-low{background:rgba(217,83,79,.16);color:var(--red)}
   .st-open{background:rgba(224,163,62,.16);color:var(--amber)}
+
+  /* ---------- 派发记录: every item ever assigned, with the score it got that day ---------- */
+  .dp{width:100%;border-collapse:collapse;font-size:12.5px}
+  .dp th{text-align:left;font-weight:600;color:var(--mute);font-size:11px;letter-spacing:.4px;
+         padding:0 10px 7px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+  .dp td{padding:9px 10px 9px 0;border-bottom:1px dashed var(--line);vertical-align:top}
+  .dp tr.newday td{border-top:2px solid var(--line)}
+  .dp .dday{white-space:nowrap;color:var(--mute)}
+  .dp .dday b{color:var(--cream);font-size:13px}
+  .dp .dt b{font-weight:600}
+  .dp .dt span{display:block;color:var(--mute);font-size:11px;margin-top:2px}
+  .dp .dwhen{white-space:nowrap;color:var(--mute);font-size:11.5px}
+  .dp td.dsc{white-space:nowrap}
+  .dp tr.miss td.dsc .chipst{background:rgba(217,83,79,.16);color:var(--red)}
+  .dp .dflag{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:999px;
+             background:rgba(255,255,255,.07);color:var(--mute);margin-left:6px;white-space:nowrap}
+  @media (max-width:760px){
+    .dp thead{display:none}
+    .dp tr{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:10px;row-gap:3px;padding:9px 0;
+           border-bottom:1px dashed var(--line)}
+    .dp td{border:0;padding:0}
+    .dp .dt{flex:1 1 100%;order:2}
+    .dp .dday{order:1;flex:0 0 auto}
+    .dp td.dsc{order:1;margin-left:auto}
+    .dp .dwhen{order:3;flex:1 1 100%}
+  }
   .empty{color:var(--mute);font-size:12.5px;padding:14px 0;text-align:center}
   .daynav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 0}
   .daynav input[type=date],.moverow input[type=date]{font-family:inherit;font-size:13px;background:var(--card);
@@ -607,6 +633,7 @@
     </nav>
     <nav class="subtabs" id="subtabs" hidden>
       <button class="stab" data-v="hist">完成记录</button>
+      <button class="stab" data-v="dispatch">派发记录</button>
       <button class="stab" data-v="skills">知识点</button>
       <button class="stab" data-v="focus">专注情况</button>
       <button class="stab" data-v="reading">阅读写作</button>
@@ -786,13 +813,29 @@ async function loadDay(d){
   });
 }
 
+// Every day ever assigned, per kid — 派发记录 joins these against ATT. The parent may read the whole
+// subcollection (firestore.rules: assignments/{kidId}/days allow read if isParent()), and a family
+// assigns a handful a day, so fetch them all, the same call ATT already makes.
+let DAYS = { grace: [], warren: [] };
+async function loadDays(){
+  const got = await Promise.all(['grace','warren'].map(k =>
+    db.collection(`assignments/${KID[k].uid}/days`).get()));
+  ['grace','warren'].forEach((k, i)=>{
+    DAYS[k] = got[i].docs
+      .map(d => ({ date: d.id, items: d.data().items || [], withdrawn: d.data().withdrawn || [] }))
+      .filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x.date))
+      .sort((a, b) => b.date.localeCompare(a.date));   // newest day first
+  });
+}
+
 async function loadAll(){
   const [bankSnap, attSnap] = await Promise.all([
     db.collection('bank').get(),
     // A family writes a handful a day, so fetch them all: "最近一次" needs more than three weeks.
     db.collection('attempts').orderBy('submittedAt','desc').get(),
     loadDay(TD),
-    TD === iso(today) ? null : loadDay(iso(today))
+    TD === iso(today) ? null : loadDay(iso(today)),
+    loadDays()
   ]);
   const col = new Intl.Collator('zh', { numeric:true });
   BANK = bankSnap.docs.map(d => Object.assign({ docId:d.id }, d.data()))
@@ -961,6 +1004,84 @@ function viewToday(){
     html += `</details>`;
   });
   return html + `</div>`;
+}
+
+/* ===================== 派发记录 (dispatch record) =====================
+   Sam 2026-09-19: 「所有派发的作业都要有派发记录，并且要有当时判的分数」.
+   完成记录 is built from attempts, so a paper that was assigned and never opened is invisible there.
+   This view is built from the assignment days instead — every item ever pushed out, in one list,
+   each with the score it got ON THE DAY IT WAS ASSIGNED (dayResult), so a later redo of the same
+   page cannot quietly rewrite the record of that day. Nothing new is stored: it is DAYS × ATT. */
+let DP = { days: 30, missOnly: false };
+const DP_RANGES = [[7,'最近 7 天'],[30,'最近 30 天'],[90,'最近 90 天'],[0,'全部']];
+
+// One row per assigned item: what it was, when it went out, and how it was marked that day.
+function dispatchRows(k){
+  const from = DP.days ? shiftDay(iso(today), -DP.days + 1) : '';
+  const out = [];
+  DAYS[k].filter(d => !from || d.date >= from).forEach(d=>{
+    const pulled = new Map(d.withdrawn.map(p => [p.id, p]));
+    d.items.forEach(it=>{
+      const r = dayResult(k, it.id, d.date);
+      out.push({ date: d.date, it, r, pulled: pulled.get(it.id) || null,
+                 done: !!r, pct: r && r.scored ? r.last.pct : null });
+    });
+    // Withdrawn items are no longer in items[] — they still belong in a record of what went out.
+    d.withdrawn.forEach(p=>{
+      if(d.items.some(it => it.id === p.id)) return;
+      const r = dayResult(k, p.id, d.date);
+      out.push({ date: d.date, it: p, r, pulled: p, done: !!r, pct: r && r.scored ? r.last.pct : null });
+    });
+  });
+  return out;
+}
+
+function viewDispatch(){
+  let html = '';
+  kidsShown().forEach(k=>{
+    const all = dispatchRows(k);
+    // A withdrawn item was taken back, so it is not counted as homework that went undone.
+    const live = all.filter(r => !r.pulled);
+    const done = live.filter(r => r.done), miss = live.filter(r => !r.done);
+    const scored = done.filter(r => r.pct != null);
+    const avg = scored.length ? Math.round(scored.reduce((n,r)=>n+r.pct,0)/scored.length) : null;
+    const rows = DP.missOnly ? all.filter(r => !r.done && !r.pulled) : all;
+    html += `<h2 class="sec">${KID[k].av} ${KID[k].n} · 派发记录${qm(`派出去的每一份都在这里，按派发的那天排，最新的在上面。
+      分数是<b>派发那天</b>判的分 —— 同一份以后又做了一遍，这一行不会跟着变，去「完成记录」看那天的。
+      <b>没做</b>＝派了但那天没有交卷记录。撤回的那几份不算在「没做」里。`)}</h2>
+      <div class="hmet">
+        <div><div class="v">${live.length}</div><div class="k">派了${qm('这段时间里派给他的份数，撤回的不算')}</div></div>
+        <div><div class="v">${done.length}</div><div class="k">做了${qm('派发那天有交卷记录的份数')}</div></div>
+        <div><div class="v" style="color:${miss.length?'var(--red)':'var(--green)'}">${miss.length}</div><div class="k">没做${qm('派了、那天没交卷，也没有撤回')}</div></div>
+        <div><div class="v" style="color:${avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</div><div class="k">平均分${qm(scored.length?`有分数的 ${scored.length} 份，每份取那天最后一遍的分数再平均`:'这段时间没有打分的成绩')}</div></div>
+      </div>
+      <div class="filters"><span class="groupbar">${DP_RANGES.map(([n,l])=>
+        `<button class="fchip${DP.days===n?' on':''}" data-dp="${n}">${l}</button>`).join('')}</span>
+        <span class="groupbar"><button class="fchip${DP.missOnly?' on':''}" data-dpmiss="1">只看没做的</button></span></div>`;
+    if(!rows.length){
+      html += `<p class="empty">${DP.missOnly ? '这段时间派出去的都做了。' : '这段时间没有派过作业。'}</p>`;
+      return;
+    }
+    let last = '';
+    html += `<table class="dp"><thead><tr><th>派发日</th><th>作业</th><th>派发时间</th><th>当时的分数</th></tr></thead><tbody>`;
+    rows.forEach(r=>{
+      const at = tsDate(r.it.at), n = r.r ? r.r.tries.length : 0;
+      const newday = r.date !== last; last = r.date;
+      const st = r.pulled ? `<span class="chipst st-open">已撤回</span>`
+        : !r.done ? `<span class="chipst st-open">没做</span>`
+        : `<span class="chipst ${r.pct==null||r.pct>=PASS?'st-done':'st-low'}">${r.pct==null?'✓ 完成':r.pct+'%'}</span>`;
+      const extra = n>1 && r.r.first.pct!=null && r.r.first.pct!==r.pct ? `<span class="dflag">这天 ${n} 遍 · 第一遍 ${r.r.first.pct}%</span>` : '';
+      const flags = (r.it.movedFrom ? `<span class="dflag">从 ${ymd(r.it.movedFrom)} 挪来</span>` : '') + extra;
+      html += `<tr class="${newday?'newday ':''}${!r.done&&!r.pulled?'miss':''}">
+        <td class="dday">${newday?`<b>${ymd(r.date)}</b> 周${wdOf(r.date)}`:''}</td>
+        <td class="dt"><b>${openLink(r.it.href, esc(r.it.t))}</b>${flags}
+          <span>${esc(r.it.subj||'')}${r.it.book?' · '+esc(r.it.book):''}${r.it.n?' · '+r.it.n+(r.it.type==='quiz'?' 题':' 项'):''}</span></td>
+        <td class="dwhen">${at?stamp(at):'—'}${r.pulled&&tsDate(r.pulled.withdrawnAt)?` · 撤回 ${stamp(tsDate(r.pulled.withdrawnAt))}`:''}</td>
+        <td class="dsc">${st}${r.done&&r.r.end?` <span class="dflag">${hm(r.r.end)} 交</span>`:''}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+  });
+  return html;
 }
 
 /* ===================== BANK ===================== */
@@ -2115,6 +2236,7 @@ function wireEssay(){
 
 function render(){
   viewEl.innerHTML = V==='today'?viewToday() : V==='bank'?viewBank() : V==='hist'?viewHist()
+                   : V==='dispatch'?viewDispatch()
                    : V==='skills'?viewSkills() : V==='reading'?viewReading() : V==='essay'?viewEssay() : viewFocus();
   if(V==='today'){
     const goDay = async d=>{
@@ -2146,6 +2268,12 @@ function render(){
     viewEl.querySelectorAll('[data-hday]').forEach(b=>b.addEventListener('click',()=>goHist(b.dataset.hday)));
     document.getElementById('hdpick').addEventListener('change', e=>goHist(e.target.value));
     viewEl.querySelectorAll('[data-essay]').forEach(b=>b.addEventListener('click',()=>goEssay(b.dataset.essay)));
+  }
+  if(V==='dispatch'){
+    viewEl.querySelectorAll('.fchip[data-dp]').forEach(c=>c.addEventListener('click',()=>{
+      DP.days = Number(c.dataset.dp); render(); }));
+    viewEl.querySelectorAll('.fchip[data-dpmiss]').forEach(c=>c.addEventListener('click',()=>{
+      DP.missOnly = !DP.missOnly; render(); }));
   }
   if(V==='essay') wireEssay();
   if(V==='focus'){
