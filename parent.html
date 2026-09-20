@@ -211,6 +211,24 @@
   .fchip.on{background:var(--gold2);border-color:var(--gold2);color:var(--ink)}
   .groupbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .groupbar .spacer{margin-left:auto}
+  /* 题库第一层是人（Sam 2026-09-20：先按孩子分，再按科目）。共用的在两个孩子下面各出现一次。 */
+  .kidtabs{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;
+           margin:16px 0 0;border-bottom:1px solid var(--line)}
+  .kidtab{font-family:'Playfair Display',Georgia,serif;font-size:17px;font-weight:700;cursor:pointer;
+          background:none;border:none;border-bottom:2.5px solid transparent;color:var(--mute);padding:9px 14px}
+  .kidtab .av{font-size:19px}
+  .kidtab:hover{color:var(--cream)}
+  .kidtab.on{color:var(--gold);border-bottom-color:var(--gold)}
+  .kidtab .pill{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;font-weight:500}
+  .kidtab .sh{opacity:.7}
+  .kidtab .zero{opacity:.5}
+  /* 科目下面的第二层：书架按性质分段，「资料 · 答案 · 成绩单」自然沉到最后 */
+  .kindband{display:flex;align-items:center;gap:10px;padding:9px 18px 4px;
+            border-top:1px solid var(--line);background:rgba(42,59,88,.22)}
+  .kindlbl{font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold2)}
+  .kindband+.shelf{border-top:none}
+  .b-both{background:rgba(91,143,199,.14);color:var(--blue);border:1px solid rgba(91,143,199,.4);
+          margin-left:5px;vertical-align:1px;cursor:help}
   details.subj{background:var(--card);border:1px solid var(--line);border-radius:12px;
                margin-bottom:10px;overflow:hidden}
   details.subj>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;
@@ -350,6 +368,10 @@
   .fgroup{display:contents}   /* bank filters: one row per group on a phone, flowing together on a computer */
   .flbl{display:none}
   .seg{display:contents}      /* segmented control on a phone */
+  /* 题库那一行：条数 · 在用/归档 · 按科目分组/按时间 ……… 全部展开 收起（Sam 2026-09-20 要求瘦身） */
+  .groupbar.slim{margin:14px 0 12px;gap:6px}
+  .groupbar.slim .seg{display:inline-flex;gap:6px}
+  .groupbar.slim .sep{color:var(--line);margin:0 2px}
   .fchip.icon svg{display:none}   /* 全部展开 / 收起: words on a computer, icons on a phone */
   .hnote{font-size:11px;color:var(--mute);margin:0 0 4px;line-height:1.6}
   .dsum{background:rgba(201,162,39,.08);border-left:3px solid var(--gold2);border-radius:0 8px 8px 0;
@@ -572,16 +594,14 @@
     .shelfhead .shelftog{flex:1 1 0;min-width:0}
     .shelfhead .scount{flex-basis:100%;padding-left:30px}
     .shelfhead .hint{display:none}
-    /* bank filters: search on its own line, then one labelled segmented control per group, all the same width */
-    .filters.bankf{flex-direction:column;align-items:stretch;gap:8px}
-    .filters.bankf input[type=search]{min-width:0}
-    .filters.bankf .fgroup{display:flex;align-items:center;gap:10px}
-    .filters.bankf .flbl{display:block;flex:0 0 28px;font-size:11px;color:var(--mute)}
-    .filters.bankf .seg{display:flex;flex:1;min-width:0;gap:2px;padding:3px;
+    /* 题库那一行在手机上：两组做成分段控件，跟展开 / 收起两个图标挤在同一行 */
+    .groupbar.slim .sep{display:none}
+    .groupbar.slim .seg{display:flex;flex:1 1 104px;min-width:0;gap:2px;padding:3px;
                         background:var(--ink2);border:1px solid var(--line);border-radius:9px}
-    .filters.bankf .seg .fchip{flex:1 1 0;min-width:0;border:none;border-radius:6px;padding:7px 2px;font-size:12px;
+    .groupbar.slim .seg .fchip{flex:1 1 0;min-width:0;border:none;border-radius:6px;padding:7px 2px;font-size:12px;
                                white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .filters.bankf .seg .fchip.on{background:var(--gold2);color:var(--ink)}
+    .groupbar.slim .seg .fchip.on{background:var(--gold2);color:var(--ink)}
+    .groupbar.slim .spacer{margin:0}
     .groupbar .fchip.icon{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center}
     .groupbar .fchip.icon svg{display:block;width:17px;height:17px}
     .groupbar .fchip.icon .txt{display:none}
@@ -1139,7 +1159,9 @@ function viewDispatch(){
 }
 
 /* ===================== BANK ===================== */
-let F = { q:'', kid:'all', type:'all', arch:'active', sort:'group' }, SEL = new Set();
+// Sam 2026-09-20：搜索框、类型（可判分/练习/参考）、「含已归档」都去掉了 —— 他从来不用，白占地方。
+// 剩下的就四个圆点：在用 / 归档 · 按科目分组 / 按时间，跟条数、展开收起挤在同一行。
+let F = { kid:'warren', arch:'active', sort:'group' }, SEL = new Set();
 // 上传 = `added` (when the item joined the bank); 更新 = `updated` (last real change to the page,
 // written by homework-system/bank-dates.mjs). Dates within the last 7 days show in gold.
 const RECENT = shiftDay(iso(today), -6);
@@ -1155,6 +1177,25 @@ const SUBJ_ORDER = ['📖 Reading','📝 SSAT','🔤 Vocabulary','🧮 Math','�
 const OPEN = new Set();   // subjects the parent has expanded; everything starts folded
 const OPEN_SHELF = new Set();   // "subject|book" shelves the parent has expanded; shelves start folded too
 
+// 书架的性质，科目底下永远按这个顺序排（Sam 2026-09-20）。最后一类平时不派作业，沉在最下面。
+const KINDS = [['textbook','📘 教材 · 单元'],['paper','⏱️ 试卷'],['reader','📖 读物'],
+               ['redo','🩹 回炉 · 错题'],['tool','🧰 工具'],['doc','📎 资料 · 答案 · 成绩单']];
+const KIND_LBL = Object.fromEntries(KINDS);
+const KIND_RANK = Object.fromEntries(KINDS.map(([k],i)=>[k,i]));
+// kind 是 homework-system/bank-kind.mjs 写进 Firestore 的。线上万一有份老文档还没这个字段，
+// 就按同一套规则现算一个，页面不会因为少一个字段就乱套（规则跟那个脚本里的 shelfOf 一致）。
+function kindOf(b){
+  if(b.kind) return b.kind;
+  const book = b.book || '';
+  if(!book) return 'loose';
+  if(/Mock Test|BASA/i.test(book)) return 'paper';
+  if(/Answer Keys|Graded Papers/i.test(book)) return 'doc';
+  if(/Retry & Learn|错题补练/.test(book)) return 'redo';
+  if(/Method & Word Tools|常用工具/i.test(book)) return 'tool';
+  if(/Math \d[AB]|中文阅读|中文打字|地理迷你|Geography|Class Vocab|SSAT Unit|SSAT Words|Wordly Wise/i.test(book)) return 'textbook';
+  return 'reader';
+}
+
 // Same address homework.html builds (hrefs are relative to Quizzes/), plus ?preview=1:
 // quiz-report.js records nothing on a preview, even if a kid is signed in on this device.
 const previewUrl = href => encodeURI('Quizzes/' + href) + '?preview=1';
@@ -1162,17 +1203,18 @@ const openLink = (href, inner) => href
   ? `<a class="open" href="${esc(previewUrl(href))}" target="_blank" rel="noopener" title="新标签页打开看题 · 家长预览，不记成绩">${inner} <span class="ext">↗</span></a>`
   : inner;
 
-function bankRows(){
-  const q = F.q.trim().toLowerCase();
+function bankRows(kid){
+  const who = kid || F.kid;
   return BANK.filter(b=>{
-    if(F.kid!=='all' && b.kid!==F.kid && b.kid!=='both') return false;
-    if(F.type!=='all' && b.type!==F.type) return false;
+    if(who!=='all' && b.kid!==who && b.kid!=='both') return false;
     if(F.arch==='active' && b.archived) return false;
     if(F.arch==='archived' && !b.archived) return false;
-    if(q && !(b.t+' '+b.d+' '+b.subj+' '+b.book+' '+b.href).toLowerCase().includes(q)) return false;
     return true;
   });
 }
+// 共用的（两个孩子下面各出现一次）在孩子页里标一下；「全部」页有「是谁的」那一列，就不用标了。
+const bothBadge = b => b.kid==='both' && F.kid!=='all'
+  ? `<span class="badge b-both" title="共用：Grace 和 Warren 都能派">${KID.both.av} 共用</span> ` : '';
 // Which kids have this item on today's homework.
 const assignedTo = id => ['grace','warren'].filter(k => TODAY_ITEMS[k].some(it => it.id===id));
 function assignedBadge(id){
@@ -1219,13 +1261,27 @@ function bankRow(b, withPlace){
   const kid = KID[b.kid] || KID.both;
   return `<tr class="${SEL.has(b.docId)?'sel':''}${b.archived?' arch':''}${assignedTo(b.docId).length?' assigned':''}">
     <td class="c" style="width:34px"><input type="checkbox" class="pick" ${SEL.has(b.docId)?'checked':''} data-id="${esc(b.docId)}"></td>
-    <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)} ${assignedBadge(b.docId)}</div><div class="d">${esc(b.d)}</div>
+    <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)} ${bothBadge(b)}${assignedBadge(b.docId)}</div><div class="d">${esc(b.d)}</div>
       ${withPlace?`<div class="crumb">${esc(b.subj)}${b.book?' · '+esc(b.book):''}</div>`:''}${bankDates(b)}</td>
-    <td class="crumb" style="width:92px">${kid.av} ${kid.n}</td>
+    ${F.kid==='all'?`<td class="crumb" style="width:92px">${kid.av} ${kid.n}</td>`:''}
     <td class="c crumb" style="width:64px">${b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '—'}</td>
     <td class="c" style="width:124px"><span class="badge b-${esc(b.type)}">${LABEL[b.type]||esc(b.type)}</span>
         <div class="archline">${archCell(b)}</div></td>
     <td class="c" style="width:90px">${last}</td></tr>`;
+}
+
+// 题库第一层是谁的（Sam 2026-09-20）。共用的（kid:'both'）在两个孩子下面各出现一次，行里挂个「共用」小标：
+// 点开谁的页就是他今天能派的全部，不用再想哪些是两人都能用的。代价是两边份数加起来比总数多 ——
+// 多出来的正是那几份共用的同一批东西，所以标签上写「49 · 含共用 6」。
+function kidTabs(){
+  const tab = (v, av, name) => {
+    const list = bankRows(v);
+    const shared = v==='all' ? 0 : list.filter(b=>b.kid==='both').length;
+    return `<button class="kidtab${F.kid===v?' on':''}" data-f="kid" data-v="${esc(v)}" title="${esc(name)}的题库">
+      <span class="av">${av}</span> ${esc(name)}
+      <span class="pill${list.length?'':' zero'}">${list.length}${shared?`<span class="sh"> 含共用 ${shared}</span>`:''}</span></button>`;
+  };
+  return `<div class="kidtabs">${tab('warren',KID.warren.av,'Warren')}${tab('grace',KID.grace.av,'Grace')}${tab('all','📚','全部')}</div>`;
 }
 
 function viewBank(){
@@ -1233,22 +1289,21 @@ function viewBank(){
   const nAct = BANK.filter(b=>!b.archived).length;
   const latest = BANK.map(touched).sort().pop();
   let html = `<h2 class="sec">题库 · 在用 ${nAct} · 已归档 ${BANK.length-nAct}${qm(`<p>全部 ${BANK.length} 份都在这里，只有这个页面看得到${latest?`，最近一次上传 / 更新是 <b>${ymd(latest)}</b>`:''}。<b>点标题</b>在新标签页打开看题（家长预览，不记成绩）；勾选后在底部派给孩子。
-      今天已经派出去的标着 <span class="badge b-assigned" style="cursor:default">✓ Assigned</span>（后面是派给了谁）。</p><p>
+      今天已经派出去的标着 <span class="badge b-assigned" style="cursor:default">✓ Assigned</span>（后面是派给了谁）。</p>
+      <p>先按<b>孩子</b>分，再按科目、再按书架（教材 · 试卷 · 读物 · 回炉 · 工具 · 资料）。
+      两个孩子都能用的那几份，在他们各自的页里<b>各出现一次</b>，标着 <span class="badge b-both" style="cursor:default">🧒 共用</span>，
+      所以两页的份数加起来比总数多 —— 多出来的就是这几份。</p><p>
       <b style="color:var(--blue)">可判分</b> 做完自动出分 ·
       <b style="color:var(--gold)">练习</b> 闯关式，按「一次就对」算分 ·
       <b style="color:var(--mute)">参考</b> 只记看过没看过</p>
       <p>归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。
       每行类型下面有 <b>归档</b> 按钮，点一下就收起来；要一次收一批，就勾选后用底部那条的 <b>归档</b>。归档过的按 <b>放回</b> 回到在用列表。</p>`)}</h2>
-    <div class="filters bankf">
-      <input type="search" id="bq" placeholder="搜书名、章节、科目、文件名…" value="${esc(F.q)}">
-      ${[['kid','孩子',[['all','全部'],['grace','👧 Grace'],['warren','👦 Warren']]],
-         ['type','类型',[['all','不限'],['quiz','可判分'],['practice','练习'],['ref','参考']]],
-         ['arch','归档',[['active','在用'],['all','含已归档'],['archived','只看归档']]],
-         ['sort','排列',[['group','按科目分组'],['time','按时间 · 最新在前']]]].map(([f,name,opts])=>
-        `<div class="fgroup"><span class="flbl">${name}</span><span class="seg">${opts.map(([v,l])=>
-          `<button class="fchip${F[f]===v?' on':''}" data-f="${f}" data-v="${v}">${l}</button>`).join('')}</span></div>`).join('')}
-    </div>
-    <div class="seclead groupbar">${rows.length} 条${F.q?` 匹配「${esc(F.q)}」`:''}
+    ${kidTabs()}
+    <div class="seclead groupbar slim">${rows.length} 条<span class="sep">·</span>
+      ${[['arch',[['active','在用'],['archived','归档']]],
+         ['sort',[['group','按科目分组'],['time','按时间']]]].map(([f,opts])=>
+        `<span class="seg">${opts.map(([v,l])=>
+          `<button class="fchip${F[f]===v?' on':''}" data-f="${f}" data-v="${v}">${l}</button>`).join('')}</span>`).join('<span class="sep">·</span>')}
       <span class="spacer"></span>
       ${F.sort==='time'?'':`<button class="fchip icon" data-act="expand" title="全部展开" aria-label="全部展开"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg><span class="txt">全部展开</span></button>
       <button class="fchip icon" data-act="collapse" title="全部收起" aria-label="全部收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg><span class="txt">全部收起</span></button>`}</div>`;
@@ -1262,41 +1317,52 @@ function viewBank(){
       <div class="shelf"><table><tbody>${list.map(b=>bankRow(b, true)).join('')}</tbody></table></div></details>`;
   }
 
-  // subject → book shelf → items. rows are already sorted by subject, book, title, so Map
-  // insertion order puts loose items (no book) first, then the shelves A→Z.
+  // 科目 → 书架性质 → 书架 → 单份。rows 已经按科目、book、标题排过，Map 的插入顺序就把同一个
+  // 书架的排在一起；性质之间的先后用 KIND_RANK 定，「资料 · 答案 · 成绩单」永远沉在最下面。
   const bySubj = new Map();
   rows.forEach(b=>{
     if(!bySubj.has(b.subj)) bySubj.set(b.subj, new Map());
-    const shelves = bySubj.get(b.subj), key = b.book || '';
+    const byKind = bySubj.get(b.subj), k = kindOf(b);
+    if(!byKind.has(k)) byKind.set(k, new Map());
+    const shelves = byKind.get(k), key = b.book || '';
     if(!shelves.has(key)) shelves.set(key, []);
     shelves.get(key).push(b);
   });
   const rank = s => { const i = SUBJ_ORDER.indexOf(s); return i < 0 ? 99 : i; };
-  const searching = F.q.trim() !== '';
 
   [...bySubj.keys()].sort((a,b)=>rank(a)-rank(b)).forEach(subj=>{
-    const shelves = bySubj.get(subj);
-    const items = [...shelves.values()].flat();
+    const byKind = bySubj.get(subj);
+    const items = [...byKind.values()].flatMap(m=>[...m.values()].flat());
     const nSel = items.filter(b=>SEL.has(b.docId)).length;
     const nAsg = items.filter(b=>assignedTo(b.docId).length).length;
-    html += `<details class="subj" data-subj="${esc(subj)}"${searching||OPEN.has(subj)?' open':''}>
+    html += `<details class="subj" data-subj="${esc(subj)}"${OPEN.has(subj)?' open':''}>
       <summary><span class="sname">${esc(subj)}</span><span class="scount">${items.length} 份</span>
         ${nAsg?`<span class="sasg">今天已派 ${nAsg}</span>`:''}
         ${nSel?`<span class="ssel">已选 ${nSel}</span>`:''}</summary>`;
-    shelves.forEach((list, book)=>{
-      html += `<div class="shelf">`;
-      // A shelf (a book, a mock test) folds to one line; loose items with no book are always shown.
-      const key = subj + '|' + book, shut = !!book && !searching && !OPEN_SHELF.has(key);
-      if(book){
+
+    // 没归进任何书架的单份排最前，一直摊开（就几份，折起来反而找不着）
+    const loose = byKind.get('loose');
+    if(loose) html += `<div class="shelf"><table><tbody>${
+      [...loose.values()].flat().map(b=>bankRow(b, false)).join('')}</tbody></table></div>`;
+
+    [...byKind.keys()].filter(k=>k!=='loose')
+      .sort((a,b)=>(KIND_RANK[a]??99)-(KIND_RANK[b]??99)).forEach(kind=>{
+      const shelves = byKind.get(kind);
+      const n = [...shelves.values()].flat().length;
+      html += `<div class="kindband"><span class="kindlbl">${esc(KIND_LBL[kind]||kind)}</span>
+        <span class="scount">${n} 份</span></div>`;
+      shelves.forEach((list, book)=>{
+        // A shelf (a book, a mock test) folds to one line.
+        const key = subj + '|' + book, shut = !OPEN_SHELF.has(key);
         const all = list.every(b=>SEL.has(b.docId)), nSel = list.filter(b=>SEL.has(b.docId)).length;
         const nAsg = list.filter(b=>assignedTo(b.docId).length).length;
-        html += `<div class="shelfhead"><input type="checkbox" class="selall"${all?' checked':''} title="整组选"
+        html += `<div class="shelf"><div class="shelfhead"><input type="checkbox" class="selall"${all?' checked':''} title="整组选"
             data-ids="${esc(list.map(b=>b.docId).join(' '))}">
           <button class="shelftog${shut?'':' open'}" data-shelf="${esc(key)}">${esc(book)}</button>
           <span class="scount">${list.length} 份${nAsg?` · <span class="sasg">今天已派 ${nAsg}</span>`:''}${nSel?` · <span class="ssel">已选 ${nSel}</span>`:''} · 最近 ${(v=>`<span class="${v>=RECENT?'recent':''}">${ymd(v)}</span>`)(list.map(touched).sort().pop())}<span class="hint"> · 勾方框整组选</span></span></div>`;
-      }
-      if(!shut) html += `<table><tbody>${list.map(b=>bankRow(b, false)).join('')}</tbody></table>`;
-      html += `</div>`;
+        if(!shut) html += `<table><tbody>${list.map(b=>bankRow(b, false)).join('')}</tbody></table>`;
+        html += `</div>`;
+      });
     });
     html += `</details>`;
   });
@@ -2522,17 +2588,14 @@ function render(){
   ag.textContent = allArch ? '放回在用' : '归档';
   ag.dataset.to = allArch ? '0' : '1';
   if(V==='bank'){
-    const bq = document.getElementById('bq');
-    bq.addEventListener('input', ()=>{ F.q=bq.value; const p=bq.selectionStart; render();
-      const n=document.getElementById('bq'); n.focus(); n.setSelectionRange(p,p); });
-    viewEl.querySelectorAll('.fchip[data-f]').forEach(c=>c.addEventListener('click',()=>{
+    viewEl.querySelectorAll('[data-f]').forEach(c=>c.addEventListener('click',()=>{
       F[c.dataset.f]=c.dataset.v;
       // Looking at one kid's list means assigning to that kid: 派给 follows. 全部 leaves it as it was.
       if(c.dataset.f==='kid' && (c.dataset.v==='grace' || c.dataset.v==='warren'))
         document.getElementById('asskid').value = c.dataset.v;
       render(); }));
     viewEl.querySelectorAll('.fchip[data-act]').forEach(c=>c.addEventListener('click',()=>{
-      if(c.dataset.act==='expand') BANK.forEach(b=>{ OPEN.add(b.subj); if(b.book) OPEN_SHELF.add(b.subj+'|'+b.book); });
+      if(c.dataset.act==='expand') BANK.forEach(b=>{ OPEN.add(b.subj); if(b.book) OPEN_SHELF.add(b.subj+'|'+b.book); });   // 书架 key 仍是 科目|book
       else { OPEN.clear(); OPEN_SHELF.clear(); }
       render(); }));
     // Re-render on every pick so the subject's "已选 N" and the shelf's select-all stay in step.
@@ -2552,12 +2615,9 @@ function render(){
     }));
     viewEl.querySelectorAll('input.selall').forEach(cb=>cb.addEventListener('change',()=>{
       cb.dataset.ids.split(' ').forEach(id=>cb.checked?SEL.add(id):SEL.delete(id)); render(); }));
-    // While searching every shelf is open (the matches must show), so the toggle only counts without a search.
     viewEl.querySelectorAll('.shelftog').forEach(b=>b.addEventListener('click',()=>{
-      if(F.q.trim()) return;
       const k = b.dataset.shelf; OPEN_SHELF.has(k)?OPEN_SHELF.delete(k):OPEN_SHELF.add(k); render(); }));
     viewEl.querySelectorAll('details.subj').forEach(d=>d.addEventListener('toggle',()=>{
-      if(F.q.trim()) return;   // search opens every group; don't remember that as the parent's choice
       d.open?OPEN.add(d.dataset.subj):OPEN.delete(d.dataset.subj); }));
   }
 }
