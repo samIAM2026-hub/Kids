@@ -2209,16 +2209,42 @@ function viewEssay(){
 const seenText = w => w.seenAt ? `孩子 ${stamp(tsDate(w.seenAt))} 看过` : '孩子还没看';
 
 // 这篇作文是哪一页交的。Writing Lab 的 SSAT 故事是 promptKind:'story'，ISEE 题目和
-// Summer Story Studio 的申请文书都是 'essay'，所以先看 pid 再看 promptKind。
+// 文书页的申请文书都是 'essay'，所以先看 pid 再看 promptKind。
+//
+// 文书页 Writing/Summer-Story-Studio.html 2026-09-20 改版，pid 也跟着换了：
+//   'app-essay'              改版后：一篇写完整的真事，没有盒子也没有 why
+//   'story-cps' / 'story-res' 改版前交的，正文后面还跟着准备材料
+// 两种都是申请文书，批的口径一样（不是 ISEE/SSAT 那套），所以都得认出来。
 const SSS_PID = { 'story-cps':'creative problem solver', 'story-res':'resilience' };
-const promptLabel = w => SSS_PID[w.pid]
-  ? `申请文书 · ${SSS_PID[w.pid]}`
-  : (w.promptKind==='story' ? 'SSAT 故事开头' : 'ISEE 题目');
-const promptTypeEN = w => SSS_PID[w.pid]
-  ? 'Private-school application essay — a true personal story from the student\'s own summer, chosen to show '
-    + SSS_PID[w.pid] + '. The handed-in text is the draft first, then the student\'s planning boxes, then their '
-    + 'three "why" answers said out loud. Mark the draft; the notes after it are only context.'
-  : (w.promptKind==='story' ? 'SSAT creative story starter — the student continues the opening line' : 'ISEE personal / expository topic');
+const isAppEssay = w => w.pid==='app-essay' || !!SSS_PID[w.pid];
+const promptLabel = w => w.pid==='app-essay'
+  ? '申请文书'
+  : SSS_PID[w.pid]
+    ? `申请文书 · ${SSS_PID[w.pid]}`
+    : (w.promptKind==='story' ? 'SSAT 故事开头' : 'ISEE 题目');
+
+// 申请文书不按 ISEE/SSAT 的判分口径走：招生官两分钟读完，看的是这孩子像不像个真人，
+// 不是语法。页面上写给孩子的五条标准（RUBRIC）就是下面这段。
+const APP_ESSAY_EN =
+  'Private-school application essay — ONE complete true personal story, 250–350 words, on a topic the '
+  + 'student chose themselves. This is NOT an ISEE/SSAT timed writing sample: there is no time limit and no '
+  + 'set prompt to answer. Mark it the way an admissions officer would — they read a few hundred of these a '
+  + 'season, most in under two minutes, and they are deciding one thing: can they picture this student in '
+  + 'their classroom. The five things that count: (1) it is true and only this student could have written it; '
+  + '(2) real sensory detail instead of adjectives — something the reader can see, hear or feel; (3) a quality '
+  + 'comes through without being named — no "I learned to never give up"; (4) a real thought at the end, in a '
+  + '12-year-old\'s size, not a slogan; (5) their own voice all the way through — flag any sentence that sounds '
+  + 'like an adult wrote it. Spelling and grammar get a LIGHT pass only: mention them once if they get in the '
+  + 'way, but spend your fix notes on the storytelling and the voice. A clean essay that says nothing scores '
+  + 'LOWER here than a rough one that says something real.';
+
+const promptTypeEN = w => w.pid==='app-essay'
+  ? APP_ESSAY_EN
+  : SSS_PID[w.pid]
+    ? APP_ESSAY_EN + ' This one was written on the older version of the page, to show '
+      + SSS_PID[w.pid] + ': the handed-in text is the draft first, then the student\'s planning boxes, then '
+      + 'their three "why" answers said out loud. Mark the draft; the notes after it are only context.'
+    : (w.promptKind==='story' ? 'SSAT creative story starter — the student continues the opening line' : 'ISEE personal / expository topic');
 function essayRow(w){
   const r = w.review;
   const dr = WR.drafts[w.id];
@@ -2409,7 +2435,8 @@ async function aiDraft(){
   const user = [
     'PROMPT TYPE: ' + promptTypeEN(w),
     'PROMPT: ' + w.prompt, '',
-    'CONDITIONS: ' + ((w.draftNo||1) > 1 ? `draft ${w.draftNo}, rewritten after marking` : `written in ${Math.round((w.secs||0)/60)} minutes (the test allows 30)`) +
+    // 申请文书是在家慢慢写的，没有 30 分钟这回事，别让 Claude 拿考试的时间标准去评。
+    'CONDITIONS: ' + ((w.draftNo||1) > 1 ? `draft ${w.draftNo}, rewritten after marking` : isAppEssay(w) ? `written in ${Math.round((w.secs||0)/60)} minutes, untimed` : `written in ${Math.round((w.secs||0)/60)} minutes (the test allows 30)`) +
       `, ${w.words||0} words` + (w.pasted > 20 ? `, ${w.pasted} characters were pasted in rather than typed` : '') + '.',
     ...(prev && prev.review ? ['', 'WHAT WAS MARKED ON THE DRAFT BEFORE:',
       ...WritingReview.ordered(prev.review.notes).map(n=>`- [${n.kind}] "${n.quote}"${n.fix?' -> '+n.fix:''}${n.note?' ('+n.note+')':''}`)] : []),
