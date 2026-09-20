@@ -130,14 +130,15 @@
     </div>
 
     <div class="bar">
-      <span>🎙️ Takes saved</span>
+      <span>🎙️ Takes saved today</span>
       <span class="track"><span class="fill" id="fill"></span></span>
       <b id="count">0 / 3</b>
     </div>
 
     <div id="allgood" class="allgood" hidden>
       <span class="big">🌟</span>
-      All three takes are saved. Your parents can listen to them on their page.
+      That's all three readings for <b>today</b>. Your parents can listen to them on their page.
+      Come back tomorrow and read it three more times.
     </div>
 
     <div id="takes"></div>
@@ -146,6 +147,8 @@
       <b>How it works.</b> Each take is saved on its own, right after you stop.
       Read the <b>whole poem</b> every time — take 1, take 2 and take 3 are three separate readings,
       not one long one. If a take goes wrong, just record it again; the new one is the one that counts.
+      The three counted here are <b>today's</b>: this is a read-it-every-day homework, so tomorrow it starts
+      at 0 / 3 again. Yesterday's takes are still saved — they move down to "earlier days".
     </div>
   </div>
 
@@ -206,6 +209,11 @@ const two = n => String(n).padStart(2,'0');
 const mmss = s => `${Math.floor(s/60)}:${two(Math.floor(s%60))}`;
 const ymd = d => `${d.getFullYear()}-${two(d.getMonth()+1)}-${two(d.getDate())}`;
 const when = t => new Date(t).toLocaleString('en-US',{ month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
+/* The poem is read out loud EVERY day, so the 3 takes are counted per day: a row
+   belongs to today only if its `day` says so. Rows written before 2026-09-21 may
+   have no `day` — fall back to the date `createdAt` was stamped in. */
+const todayYmd = () => ymd(new Date());
+const dayOf = r => r.day || (r.createdAt ? ymd(new Date(r.createdAt)) : '');
 
 let ME = null;          // { key, n, av, uid }
 let POEM = null;        // the poem being recorded
@@ -265,9 +273,16 @@ function paint(){
       </div>`;
       if(s.url) body += `<audio controls preload="metadata" src="${s.url}"></audio>`;
       if(s.err) body += `<div class="hist" style="color:#c0392b">${esc(s.err)}</div>`;
-      const older = MINE.filter(r=>r.take===n);
-      if(older.length) body += `<div class="hist">${older.length} saved earlier${older[0].createdAt?` · newest ${esc(when(older[0].createdAt))}`:''}
-        ${!s.url ? `<button data-play="${n}">listen</button>` : ''}</div>`;
+      const td = todayYmd();
+      const mine = MINE.filter(r=>r.take===n);
+      const todays = mine.filter(r=>dayOf(r) === td), past = mine.filter(r=>dayOf(r) !== td);
+      if(mine.length){
+        const bits = [];
+        if(todays.length) bits.push(`${todays.length} saved today${todays[0].createdAt?` · newest ${esc(when(todays[0].createdAt))}`:''}`);
+        if(past.length) bits.push(`${past.length} from earlier days`);
+        body += `<div class="hist">${bits.join(' · ')}
+          ${!s.url ? `<button data-play="${n}">listen</button>` : ''}</div>`;
+      }
     }
     return `<div class="take${cls}"><div class="top"><span class="n">${n}</span>
       <span class="lbl">Take ${n}</span>${stat}</div>${body}</div>`;
@@ -386,7 +401,8 @@ async function save(n){
     batch.set(db.collection('recordingAudio').doc(id), { kidId: ME.uid, audio });
     await batch.commit();
     s.state = 'saved';
-    MINE.unshift({ id, take:n, secs:s.secs, poemId:POEM.id, mime:s.blob.type || 'audio/webm', createdAt:Date.now() });
+    MINE.unshift({ id, take:n, secs:s.secs, poemId:POEM.id, mime:s.blob.type || 'audio/webm',
+                   createdAt:Date.now(), day:ymd(new Date()) });
   } catch(e){
     console.error(e);
     s.state = 'failed';
@@ -409,7 +425,9 @@ function download(n){
 /* Listening to one already in the database: the audio document is fetched only
    when asked — that's the whole reason it lives apart from the row. */
 async function playSaved(n){
-  const r = MINE.filter(x=>x.take===n)[0];
+  const mine = MINE.filter(x=>x.take===n);
+  const td = todayYmd();
+  const r = mine.find(x=>dayOf(x) === td) || mine[0];   // today's first, else the newest there is
   if(!r) return;
   const s = SLOT[n-1];
   s.err = ''; s.state = 'saved'; paint();
@@ -437,8 +455,11 @@ async function loadMine(){
       .filter(r=>r.poemId === POEM.id)
       .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
   } catch(e){ console.warn('[recordings]', e.code||e); }
-  // A take already in the database counts as done for today's 3 — she can still record over it.
-  MINE.forEach(r=>{ const s = SLOT[r.take-1]; if(s && s.state==='empty'){ s.state = 'saved'; s.secs = r.secs||0; } });
+  // Only a take saved TODAY fills in today's 3 — she can still record over it.
+  // Earlier days stay in MINE so she (and the parent page) can still play them back.
+  const td = todayYmd();
+  MINE.forEach(r=>{ if(dayOf(r) !== td) return;
+    const s = SLOT[r.take-1]; if(s && s.state==='empty'){ s.state = 'saved'; s.secs = r.secs||0; } });
 }
 
 function choosePoem(p){

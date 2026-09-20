@@ -177,6 +177,14 @@
   .recrow .btn2.del:hover{color:var(--red);border-color:var(--red)}
   .recold{margin:2px 0 2px 52px}
   .recold summary{font-size:11.5px;color:var(--gold2);cursor:pointer}
+  .recday{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin:12px 0 0;padding-top:9px;
+          border-top:1px solid var(--line)}
+  .recday .d{font:600 12.5px 'IBM Plex Mono',monospace;color:var(--cream)}
+  .recday .n{font-size:11.5px;color:var(--mute)}
+  .recday .n.ok{color:var(--green)}
+  .recday + .recrow{border-top:0}
+  .recdays{margin:6px 0 0}
+  .recdays summary{font-size:11.5px;color:var(--gold2);cursor:pointer;padding-top:8px}
   .daynav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 0}
   .daynav input[type=date],.moverow input[type=date]{font-family:inherit;font-size:13px;background:var(--card);
          border:1.5px solid var(--line);border-radius:7px;color:var(--cream);padding:6px 9px;outline:none}
@@ -1979,7 +1987,9 @@ function goEssay(id){
    孩子在 Writing/BASA-Read-Aloud-Studio.html 里把一首诗读三遍，每一遍单独存。
    recordings/{id} 是轻行（谁、哪首诗、第几遍、多长、什么时候），音频是 base64，单独放在
    recordingAudio/{同一个 id} 里 —— 所以这个列表永远不下载音频，点「▶」才去取那一条。
-   重录不会覆盖：同一遍的旧录音还在，折在「以前录的」里。 */
+   Sam 2026-09-20：这首诗是「每天读」，所以这里按天分组 —— 一天一次作业，当天有几个不同的
+   take 就是那天读了几遍，读满三遍标 ✓，不拿别的日子凑数（孩子那页的 0/3 同样只算当天）。
+   重录不会覆盖：同一天同一遍的旧录音还在，折在「当天重录前的」里。 */
 const REC_MAX = 150;
 let RC = { list:null, err:'', loading:false, src:{}, busy:'', open:{} };
 
@@ -2023,6 +2033,9 @@ async function delRec(id){
   RC.busy = ''; render();
 }
 
+const REC_TAKES = 3;                 // 一天读三遍
+// 一条录音算哪一天：写的时候就存了 `day`；2026-09-21 之前的老行没有，退回按录的时刻算。
+const recDay = r => r.day || (r.createdAt ? iso(new Date(r.createdAt)) : '');
 const recLen = s => s ? `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}` : '—';
 const recFmt = m => /mp4|aac|m4a/.test(m||'') ? 'm4a' : /webm|opus/.test(m||'') ? 'webm' : (m||'');
 
@@ -2030,7 +2043,7 @@ function recRow(r, old){
   const playing = !!RC.src[r.id], busy = RC.busy===r.id;
   return `<div class="recrow${old?' old':''}">
     <span class="tk">第 ${r.take} 遍</span>
-    <span class="meta">${r.createdAt?esc(stamp(new Date(r.createdAt))):''} · ${recLen(r.secs)}${old?' · 之前录的':''}
+    <span class="meta">${r.createdAt?esc(hm(new Date(r.createdAt))):''} · ${recLen(r.secs)}${old?' · 重录前的':''}
       ${recFmt(r.mime)==='webm'?`<span class="chipst st-open" title="Chrome 录的，Safari 放不了；用 Chrome 打开这一页">webm</span>`:''}</span>
     ${playing ? `<audio controls preload="none" src="${RC.src[r.id]}"></audio>`
               : `<button class="btn2" data-play="${esc(r.id)}"${busy?' disabled':''}>${busy?'读取中…':'▶ 播放'}</button>`}
@@ -2039,10 +2052,13 @@ function recRow(r, old){
 }
 
 function viewAudio(){
-  let html = `<h2 class="sec">朗读录音${qm('孩子在「朗读录音棚」里把一首诗整首读一遍，一遍一条，三遍就是三条。点▶才会去取那一条的声音，列表本身不下载音频。重录不会盖掉旧的：同一遍的旧录音折在「以前录的」里。')}</h2>
+  let html = `<h2 class="sec">朗读录音${qm('孩子在「朗读录音棚」里把一首诗整首读一遍，一遍一条，三遍就是三条。这是每天都要读的作业，所以按天分组：哪天读满三遍，那天就标 ✓。点▶才会去取那一条的声音，列表本身不下载音频。重录不会盖掉旧的：同一天同一遍的旧录音折在「当天重录前的」里。')}</h2>
     <details class="hguide" data-guide="audio"${guideOpen('audio')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li><b>一遍一条</b>：每按一次停止就单独存一条，三遍是三条独立的录音，不是一整条。</li>
-      <li><b>最上面那条是最新的</b>。同一遍录过好几次的，旧的在「以前录的」里，没删过就都还在。</li>
+      <li><b>按天看</b>：这首诗要天天读，所以一天算一次作业。每天一行小标题，写着那天读了几遍，
+          读满三遍标 ✓。最近三天摊开，再往前的折在「更早的 N 天」里。</li>
+      <li><b>最上面那天是最近的</b>。同一天同一遍录过好几次的，只有最新那条算数，旧的折在
+          「当天重录前的」里，没删过就都还在。</li>
       <li><b>webm 的那几条</b>是在 Chrome / 安卓上录的，Safari 放不出声 —— 用 Chrome 打开家长台就行。iPad 上录的是 m4a，哪儿都能放。</li>
       <li>录音存在 Firestore 里（一条约半兆），不占 Storage。删掉是连声音一起删，找不回来。</li>
       <li>孩子那一页在 <b>Writing/BASA-Read-Aloud-Studio.html</b>，派给谁谁就能在「我的作业」里看到。</li>
@@ -2052,24 +2068,41 @@ function viewAudio(){
   const list = RC.list.filter(r=>!KV || r.kid===KV);
   if(!list.length) return html + `<p class="empty">${KV?KID[KV].n:'两个孩子'}还没有录音。派一份「朗读录音棚」给${KV?'':'他们'}，读完就出现在这里。</p>`;
 
-  // 按孩子 → 诗 → 第几遍；每一遍最新的在外面，旧的折起来
+  // 按孩子 → 诗 → 哪一天 → 第几遍。这是「每天读一遍」的作业，所以一天就是一次作业：
+  // 三遍算不算读满，按当天有几个不同的 take 算，不把别的日子的凑进来。
+  // 同一天同一遍重录过的，最新的在外面，旧的折起来。
   const kids = KV ? [KV] : ['grace','warren'].filter(k=>list.some(r=>r.kid===k));
   for(const k of kids){
     const mine = list.filter(r=>r.kid===k);
     if(!KV) html += `<div class="subhd">${KID[k].av} ${KID[k].n}</div>`;
     const poems = [...new Set(mine.map(r=>r.poemId))];
     for(const pid of poems){
-      const rows = mine.filter(r=>r.poemId===pid);
-      const first = rows[0], takes = [...new Set(rows.map(r=>r.take))].sort((a,b)=>a-b);
-      const days = [...new Set(rows.map(r=>r.day).filter(Boolean))];
+      const rows = mine.filter(r=>r.poemId===pid);          // RC.list 已经是新的在前
+      const first = rows[0];
+      const days = [...new Set(rows.map(recDay).filter(Boolean))].sort((a,b)=>b.localeCompare(a));
+      const takesOf = d => [...new Set(rows.filter(r=>recDay(r)===d).map(r=>r.take))].sort((a,b)=>a-b);
+      const full = days.filter(d=>takesOf(d).length >= REC_TAKES).length;
+
+      const dayBlock = d => {
+        const dayRows = rows.filter(r=>recDay(r)===d), takes = takesOf(d);
+        const done = takes.length >= REC_TAKES;
+        let out = `<div class="recday"><span class="d">${esc(dayName(d, d.slice(5)))} 周${wdOf(d)}</span>
+          <span class="n${done?' ok':''}">${takes.length} / ${REC_TAKES} 遍${done?' ✓':''}</span></div>`;
+        for(const t of takes){
+          const same = dayRows.filter(r=>r.take===t);
+          out += recRow(same[0], false);
+          if(same.length > 1) out += `<details class="recold"><summary>当天重录前的 ${same.length-1} 条</summary>
+            ${same.slice(1).map(r=>recRow(r, true)).join('')}</details>`;
+        }
+        return out;
+      };
+
       html += `<div class="reccard"><div class="rechd"><b>${esc(first.poemTitle||pid)}</b>
-        <span class="meta">${esc(first.poemAuthor||'')} · ${takes.length} 遍 · 共 ${rows.length} 条${days.length?` · 最近 ${esc(days[0])}`:''}</span></div>`;
-      for(const t of takes){
-        const same = rows.filter(r=>r.take===t);   // 已经是新的在前
-        html += recRow(same[0], false);
-        if(same.length > 1) html += `<details class="recold"><summary>以前录的 ${same.length-1} 条</summary>
-          ${same.slice(1).map(r=>recRow(r, true)).join('')}</details>`;
-      }
+        <span class="meta">${esc(first.poemAuthor||'')} · 读了 ${days.length} 天${full?` · ${full} 天读满 ${REC_TAKES} 遍`:''} · 共 ${rows.length} 条</span></div>`;
+      days.slice(0, 3).forEach(d=>{ html += dayBlock(d); });
+      const rest = days.slice(3);
+      if(rest.length) html += `<details class="recdays"><summary>更早的 ${rest.length} 天</summary>
+        ${rest.map(dayBlock).join('')}</details>`;
       html += `</div>`;
     }
   }
