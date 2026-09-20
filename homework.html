@@ -236,6 +236,13 @@
   .stages span{opacity:.3} .stages span.got{opacity:1}
   .stages i{font-style:normal;color:var(--mute);font-size:14px}
   .petcard .streakrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  /* Why the fire is on or off — a streak must never just vanish without a reason. */
+  .streakwhy{font-size:15px;line-height:1.45;color:var(--ink2);margin-top:6px}
+  .streakwhy b{color:var(--ink)}
+  .streakwhy.gone{color:var(--ink2);background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:8px 12px}
+  .rules{margin-top:10px;padding-left:20px;font-size:16px;line-height:1.6}
+  .rules li{margin:4px 0}
+  .rules b{white-space:nowrap}
   .earn{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:12px 16px;margin-top:22px}
   .lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin-bottom:4px}
   .earn table{width:100%;border-collapse:collapse;font-size:16px}
@@ -403,6 +410,8 @@ function bySubject(list){
   list.forEach(x=>{ if(!m.has(x.subj)) m.set(x.subj, []); m.get(x.subj).push(x); });
   return [...m].sort((a,b)=>subjRank(a[0])-subjRank(b[0]));
 }
+// Worked out once, at load. The iPad keeps this page open for days, so anything that decides
+// what "today" means has to notice when the date moves on — see dateChanged() at the bottom.
 const today = new Date(); today.setHours(0,0,0,0);
 // Local date, not toISOString() (UTC) — must match the key the parent console writes.
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -636,6 +645,23 @@ function viewMistakes(){
 const PETS_KEY = 'kid.pets.v1', NAP_MS = 3*24*3600*1000, RING = 2*Math.PI*58;
 const plural = (n, w) => `${n} ${w}${n===1?'':'s'}`;
 const shortDate = ms => new Date(ms).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+// 'YYYY-MM-DD' → what a kid would call that day ("yesterday", "Friday", "Sep 12"). Lower case
+// because it always lands mid-sentence; onDay() adds the "on" only where English wants one.
+function dayName(s){
+  const [y,m,d] = String(s||'').split('-').map(Number);
+  if(!y) return '';
+  const dt = new Date(y, m-1, d), ago = Math.round((today-dt)/864e5);
+  return ago===0 ? 'today' : ago===1 ? 'yesterday'
+    : ago<7 ? dt.toLocaleDateString('en-US', { weekday:'long' }) : shortDate(+dt);
+}
+const onDay = s => { const d = dayName(s); return /^(today|yesterday)$/.test(d) ? d : `on ${d}`; };
+// "Reading B" / "Reading B and Synonyms" / "Reading B and 2 more" — never a wall of titles.
+function missedList(list){
+  const t = (list||[]).filter(Boolean).map(esc);
+  return !t.length ? '' : t.length===1 ? `<b>${t[0]}</b>`
+    : t.length===2 ? `<b>${t[0]}</b> and <b>${t[1]}</b>`
+    : `<b>${t[0]}</b> and ${plural(t.length-1, 'more page')}`;
+}
 const petOf = p => p && KidPets.PETS[p.kind];
 const stageIc = p => petOf(p).stages[KidPets.stageOf(p.xp)][0];
 const otherKey = () => Object.keys(KIDS).find(k=>k!==ME.key);
@@ -651,10 +677,13 @@ function habitat(p, extra){
 }
 
 // What pets/{uid} holds: the pet the kid picked, plus the latest summary.
+// `left` = pages still not done on `day`. The sign-in screen (which can't read the database)
+// needs it: a snapshot saved on a day that still had homework left is a streak that has since
+// gone out, and showing the old number there would shrink in front of the kid at sign-in.
 function petDoc(pet, g){
   return { kind:pet.kind, name:pet.name, chosenAt:pet.chosenAt,
     xp:g.xp, lv:g.lv, streak:g.streak, best:g.best, pages:g.pages, badges:g.badges.map(b=>b.id),
-    todayDone:g.todayDone, day:iso(today), updatedAt:Date.now() };
+    todayDone:g.todayDone, left:(g.todayLeft||[]).length, day:iso(today), updatedAt:Date.now() };
 }
 
 const popEl = document.getElementById('pop'), popCard = document.getElementById('popcard');
@@ -688,7 +717,7 @@ async function afterLoad(from){
   }
   const prev = PET, next = petDoc(PET, GAME);
   cachePet(ME.key, next);
-  const same = ['xp','lv','streak','best','pages','todayDone','day'].every(k=>prev[k]===next[k])
+  const same = ['xp','lv','streak','best','pages','todayDone','left','day'].every(k=>prev[k]===next[k])
     && String(prev.badges)===String(next.badges);
   if(!same){
     try { await db.doc(`pets/${ME.uid}`).set(next); }
@@ -703,10 +732,12 @@ async function afterLoad(from){
     badges: GAME.badges.filter(b=>!had.has(b.id)),
     stageUp: KidPets.stageOf(GAME.xp) > KidPets.stageOf(prev.xp||0),
     lvUp: GAME.lv > (prev.lv||1),
-    streakUp: GAME.streak > (prev.streak||0)
+    streakUp: GAME.streak > (prev.streak||0),
+    // A streak that ends gets told to his face, with the reason. Never let the fire just vanish.
+    streakEnd: (prev.streak||0) > 0 && !GAME.streak && GAME.streakBroke
   };
   if(!popEl.hidden) return;
-  if(n.badges.length || n.stageUp || n.lvUp || n.streakUp) showNews(prev, n, from);
+  if(n.badges.length || n.stageUp || n.lvUp || n.streakUp || n.streakEnd) showNews(prev, n, from);
   else if(n.xp) toast(`+${n.xp} XP for ${PET.name} ${stageIc(PET)}`);
 }
 
@@ -722,8 +753,11 @@ function showNews(prev, n, from){
   const pic = n.stageUp
     ? `<div class="evolve" aria-hidden="true"><span class="from">${P.stages[KidPets.stageOf(prev.xp||0)][0]}</span><span class="arrow">→</span><span class="to">${P.stages[st][0]}</span></div>`
     : habitat(PET);
+  // Nothing good to report and the streak stopped: say that plainly instead of cheering.
+  const onlyEnd = n.streakEnd && !n.badges.length && !n.stageUp && !n.lvUp && !n.streakUp && !n.xp;
   const head = n.stageUp ? `${name} grew into a ${esc(P.stages[st][1].toLowerCase())}!`
     : n.lvUp ? `${name} reached Lv ${GAME.lv}!`
+    : onlyEnd ? `Your 🔥 streak stopped — here's why.`
     : from==='signin' ? `Here's what you did since ${sinceLabel(prev.updatedAt)}.` : 'Look what you just earned!';
   const pages = GAME.events.filter(e=>e.kind==='page' && e.at > (prev.updatedAt||0));
   let rows = '';
@@ -734,6 +768,21 @@ function showNews(prev, n, from){
     const s = GAME.streak, b = GAME.best;
     rows += `<div class="r"><span class="v">🔥 ${s}</span><span class="t">${s===1?'homework day':'homework days in a row'}, all done<small>${
       s===1 ? 'Do it again next homework day to start a streak' : s>=b ? "That's your best ever!" : `Your best is ${b}. ${b-s+1} more to beat it!`}</small></span></div>`;
+  }
+  if(n.streakEnd){
+    // `streakBroke` is only the LATEST unfinished day, and `after` is the run THAT day ended.
+    // Those two always belong together. prev.streak does not: if he was away while two homework
+    // days went by unfinished, prev.streak is the old run but streakBroke is the second day —
+    // pairing them would tell him a run ended on a day that didn't end it. So when `after` is 0
+    // (the latest break ended nothing, the fire was already out) name no day at all.
+    const k = GAME.streakBroke, left = (GAME.todayLeft||[]).length;
+    const restart = left ? `Finish today's ${plural(left, 'page')} and a new one starts at 1.`
+      : 'A new one starts on your next full homework day.';
+    const keep = `Your XP, badges and best (${plural(GAME.best, 'day')}) all stay.`;
+    rows += k.after
+      ? `<div class="r"><span class="v" style="color:var(--mute)">🔥→0</span><span class="t">Your streak of ${plural(k.after, 'day')} stopped<small>The homework from ${
+          dayName(k.date)} wasn't all done${k.missed.length ? ` — ${missedList(k.missed)}` : ''}. ${restart} ${keep}</small></span></div>`
+      : `<div class="r"><span class="v" style="color:var(--mute)">🔥→0</span><span class="t">Your 🔥 streak has stopped<small>While you were away, a homework day went by without everything getting done. ${restart} ${keep}</small></span></div>`;
   }
   n.badges.slice(0,3).forEach(b=>{
     const i = KidPets.badgeInfo(b.id, PET.kind);
@@ -796,6 +845,27 @@ function showMeet(){
     <button class="go" type="button" data-close>See today's homework →</button>`);
 }
 
+// Why the streak is what it is, in one or two sentences. A streak that ends must always say
+// which day ended it and what was left on that day (HOMEWORK-SYSTEM.md §二十三).
+function streakWhy(g){
+  const left = (g.todayLeft||[]).length;
+  if(g.streak){
+    const nxt = `${g.streak+1} in a row`;
+    const line = left ? `Finish ${missedList(g.todayLeft)} today and it's ${nxt}.`
+      : g.todayDone ? `Today's homework is all done, so the fire is safe. Do it again next homework day to make it ${nxt}.`
+      : `No homework today, so nothing can break it. Your next full homework day makes it ${nxt}.`;
+    return `<div class="streakwhy">All done since <b>${dayName(g.streakFrom)}</b>. ${line}</div>`;
+  }
+  const b = g.streakBroke;
+  const start = left ? `Finish all ${plural(left, 'page')} left today and a new streak starts at 1.`
+    : `Finish everything a homework day gives you, on that day, and a new streak starts at 1.`;
+  if(!b) return `<div class="streakwhy">${start}</div>`;
+  const what = b.missed.length ? ` — ${missedList(b.missed)} ${b.missed.length===1?'was':'were'}n't done that day`
+    : ` — it wasn't all finished`;
+  return `<div class="streakwhy gone">🔥 <b>Your streak stopped ${onDay(b.date)}</b>${what}.${
+    b.after ? ` That ended a run of ${plural(b.after, 'day')}.` : ''} ${start}</div>`;
+}
+
 function viewPet(){
   const head = `<h2 class="sec">My pet</h2>`;
   if(PET===undefined) return head + `<div class="empty"><span class="e">📡</span>Couldn't load your pet right now.<br>Check the Wi-Fi and try again.</div>`;
@@ -814,6 +884,7 @@ function viewPet(){
       <div class="stages">${P.stages.map((s,i)=>`${i?'<i>›</i>':''}<span class="${i<=st?'got':''}" title="${esc(s[1])}">${s[0]}</span>`).join('')}</div>
       <div class="streakrow"><span class="streak${g.streak?'':' off'}">${g.streak ? `🔥 ${plural(g.streak, 'day')} in a row` : 'No streak yet'}</span>
         <span class="xpcap">best ${g.best}</span></div>
+      ${streakWhy(g)}
     </div></div>`;
 
   const X = KidPets.XP;
@@ -823,6 +894,15 @@ function viewPet(){
     <tr><td>Clear a page from your Mistakes notebook</td><td class="xp">+${X.fix} XP</td></tr>
     <tr><td>Finish all of a day's homework on that day</td><td class="xp">+${X.day} XP</td></tr>
   </table></div>`;
+
+  html += `<div class="earn"><div class="lbl">How the 🔥 streak works</div><ul class="rules">
+    <li>Finish <b>every page</b> a homework day gives you, <b>on that day</b> → your streak goes up by 1.</li>
+    <li>Leave even one page → the streak goes back to <b>zero</b> once that day is over.</li>
+    <li>A day with <b>no homework</b> never counts, and never breaks it.</li>
+    <li>Today can't break it — you have until bedtime.</li>
+    <li>Doing a page <b>late</b> still gives you XP, but it can't bring a stopped streak back.</li>
+    <li>Your <b>best ever</b> is kept forever, even at 0. Yours is ${plural(g.best, 'day')}.</li>
+  </ul></div>`;
 
   const subjects = [...new Set(DAYS.flatMap(d=>[...d.items, ...d.withdrawn].map(it=>it.subj)))];
   const cat = KidPets.catalog(PET.kind, subjects), got = new Map(g.badges.map(b=>[b.id, b.at]));
@@ -840,7 +920,7 @@ function viewPet(){
     html += `<div class="sib"><span class="e">${stageIc(SIB)}</span><span><b>${esc(KIDS[otherKey()].n)}'s pet: ${esc(SIB.name)}</b><br>
       <span class="xpcap">Lv ${L.lv} · ${SIB.streak ? `🔥 ${plural(SIB.streak, 'day')}` : 'no streak yet'} · ${plural((SIB.badges||[]).length, 'badge')}</span></span></div>`;
   }
-  return html + `<p class="foot">Days with no homework never break your streak. Pets never get sick. If you're away for a while, yours just takes a nap.</p>`;
+  return html + `<p class="foot">Pets never get sick, and a streak that stops never takes XP or badges away — you keep everything you earned. If you're away for a while, yours just takes a nap.</p>`;
 }
 
 const viewEl = document.getElementById('view');
@@ -893,7 +973,20 @@ function renderPick(){
       <span class="whisper">${cache[key]===null ? 'Sign in to pick your pet!' : 'Sign in to see your pet!'}</span></button>`;
     const L = KidPets.level(p.xp), st = KidPets.stageOf(p.xp);
     const nap = Date.now() - (p.updatedAt||0) > NAP_MS;
-    const wh = p.day===iso(today) && p.todayDone ? 'All done today ⭐'
+    // Age the snapshot forward: it was true on p.day, not necessarily today. This screen runs
+    // before sign-in and cannot read the database, so there are only three honest answers:
+    //   saved today            → what today's own load worked out; today can't break it
+    //   saved yesterday, clean → yesterday finished, and today can't break it either → still stands
+    //   saved yesterday, left  → yesterday ended unfinished, the fire is already out → 0
+    //   older than that        → homework days may have gone by unseen → we do NOT know.
+    // Printing p.streak in that last case is how the fire used to shrink in his face right
+    // after sign-in, so say nothing rather than a number that is probably wrong.
+    const yest = new Date(today); yest.setDate(yest.getDate() - 1);
+    const fresh = p.day === iso(today), known = fresh || p.day === iso(yest);
+    const left = fresh ? (p.left||0) : 0;
+    const streak = !known ? null : (!fresh && p.left > 0) ? 0 : (p.streak||0);
+    const wh = fresh && p.todayDone ? 'All done today ⭐'
+      : left ? `${plural(left, 'page')} still to do today`
       : nap ? `${esc(p.name)} is napping. Come say hi!`
       : `${esc(p.name)} is ${L.need-L.into} XP from Lv ${L.lv+1}`;
     const medals = (p.badges||[]).slice(-3).reverse().map(id=>KidPets.badgeInfo(id, p.kind)).filter(Boolean)
@@ -902,7 +995,7 @@ function renderPick(){
       ${habitat(p, nap ? '<span class="zz">💤</span>' : '')}
       <span class="nm">${k.n}</span>
       <span class="petnm">&amp; ${esc(p.name)} the ${esc(petOf(p).stages[st][1].toLowerCase())}</span>
-      <span class="streak${p.streak?'':' off'}">${p.streak ? `🔥 ${plural(p.streak, 'day')}` : 'No streak yet'}</span>
+      <span class="streak${streak?'':' off'}">${streak === null ? 'Sign in to see your 🔥' : streak ? `🔥 ${plural(streak, 'day')}` : 'No streak yet'}</span>
       ${medals ? `<span class="medals">${medals}</span>` : ''}
       <span class="whisper">${wh}</span></button>`;
   }).join('');
@@ -975,11 +1068,22 @@ viewEl.addEventListener('click', e=>{
 
 ['pointerdown','keydown','scroll','touchstart'].forEach(ev=>
   window.addEventListener(ev, ()=>{ if(ME) touch(); }, { capture:true, passive:true }));
-setInterval(()=>{ if(ME && idle()) auth.signOut(); }, 60*1000);
+setInterval(()=>{
+  // Midnight while the page just sits there (nothing hidden, nothing clicked). Not mid-popup:
+  // that would throw away a card he hasn't read, or a pet name he's halfway through typing.
+  if(dateChanged() && popEl.hidden){ location.reload(); return; }
+  if(ME && idle()) auth.signOut();
+}, 60*1000);
+
+// A page left open overnight still thinks it's yesterday: it would show yesterday's homework as
+// today's, never notice a streak had ended, and write that stale day into pets/{uid}. Nothing here
+// recomputes `today`, so start the day fresh instead.
+function dateChanged(){ const d = new Date(); d.setHours(0,0,0,0); return +d !== +today; }
 
 // Coming back from a quiz page: refresh so the new score shows straight away.
 // Coming back after a long time away (screen locked, iPad put down): sign out instead.
 function comeBack(){
+  if(dateChanged()){ location.reload(); return; }
   if(!ME) return;
   if(idle()) auth.signOut();
   else load().then(render).then(()=>afterLoad('back')).catch(console.error);

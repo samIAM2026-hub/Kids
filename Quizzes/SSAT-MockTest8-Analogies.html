@@ -186,6 +186,8 @@
   </div>
 
   <div id="result"></div>
+  <div id="fixloop"></div>
+  <div class="divider" id="expdiv" hidden><span>Explanations below</span></div>
   <div id="quiz"></div>
 
   <div style="text-align:center;margin-top:24px">
@@ -196,6 +198,7 @@
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="../JS/fix-loop.js"></script>
 <script>
 const DATA = {
  "label": "Analogies",
@@ -708,6 +711,7 @@ function grade(auto){
   quizEl.classList.add("locked");
 
   let right=0, wrong=0, blank=0;
+  const missed = [];
   DATA.items.filter(x=>x.type!=="passage").forEach(it => {
     const box = document.getElementById("q"+it.n);
     const picked = answers[it.n];
@@ -717,6 +721,7 @@ function grade(auto){
       else if (i === picked) o.classList.add("wrong");
     });
     let v;
+    if (picked !== it.ans) missed.push(it);      // wrong AND blank both need fixing
     if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
     else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
     else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
@@ -754,9 +759,12 @@ function grade(auto){
         'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
       '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
       '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
-    '</div>' +
-    '<div class="divider"><span>Explanations below</span></div>';
+    '</div>';
+  $("#expdiv").hidden = false;
   $("#result").classList.add("show");
+  // Practice, not a second attempt: the score above is already reported and the
+  // fix loop never touches `answers`, so it cannot change what got recorded.
+  FixLoop.mount({ el: $("#fixloop"), items: missed });
   window.scrollTo({top:0, behavior:"smooth"});
 }
 

@@ -11,7 +11,9 @@
            Nothing for speed (it would reward guessing), and failing first never pays more
            than getting it right first time.
    Streak  homework days in a row with everything done that day. Days with no homework
-           are skipped; today can't break it until today is over.
+           are skipped; today can't break it until today is over. Doing a page late still
+           pays XP but never brings a broken streak back — compute() returns streakFrom,
+           streakBroke and todayLeft so the page can say all this in the kid's own words.
 ===================================================================== */
 (function (root) {
   'use strict';
@@ -144,19 +146,26 @@
     }
 
     // Homework days: all done that same day → bonus + streak.
-    let run = 0, best = 0, todayDone = false;
+    // `broke` keeps the last homework day that wasn't finished and what was left on it, so the
+    // page can tell the kid why a streak ended instead of the fire just disappearing on him.
+    let run = 0, best = 0, todayDone = false, from = null, broke = null, todayLeft = null;
     days.filter(d => d.date <= today && (d.items || []).length).sort(byDate).forEach(d => {
       const hits = d.items.map(it => (byItem.get(it.id) || []).find(a => a.date === d.date));
+      const missed = d.items.filter((it, i) => !hits[i]).map(it => it.t || '');
       if (hits.every(Boolean)) {
         const at = Math.max(...hits.map(h => h.at || 0));
         events.push({ at, xp: XP.day, kind: 'day', date: d.date });
-        run++; best = Math.max(best, run);
+        run++; if (run === 1) from = d.date;
+        best = Math.max(best, run);
         if (run >= 3) earn('streak3', at);
         if (run >= 7) earn('streak7', at);
         if (run >= 14) earn('streak14', at);
         if (d.date === today) todayDone = true;
       } else if (d.date !== today) {
-        run = 0;
+        broke = { date: d.date, after: run, missed };
+        run = 0; from = null;
+      } else {
+        todayLeft = missed;                    // today isn't finished yet — it can still be saved
       }
     });
 
@@ -181,7 +190,8 @@
     });
 
     const badges = [...earned].map(([id, at]) => ({ id, at })).sort((a, b) => a.at - b.at);
-    return { xp, ...level(xp), stage: stageOf(xp), streak: run, best, todayDone, pages, subj, badges, events };
+    return { xp, ...level(xp), stage: stageOf(xp), streak: run, best, todayDone, pages, subj, badges, events,
+             streakFrom: from, streakBroke: broke, todayLeft };
   }
 
   const api = { PASS, XP, STAGE_LV, PETS, level, stageOf, catalog, badgeInfo, compute };
