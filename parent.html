@@ -2108,6 +2108,18 @@ function viewEssay(){
 }
 
 const seenText = w => w.seenAt ? `孩子 ${stamp(tsDate(w.seenAt))} 看过` : '孩子还没看';
+
+// 这篇作文是哪一页交的。Writing Lab 的 SSAT 故事是 promptKind:'story'，ISEE 题目和
+// Summer Story Studio 的申请文书都是 'essay'，所以先看 pid 再看 promptKind。
+const SSS_PID = { 'story-cps':'creative problem solver', 'story-res':'resilience' };
+const promptLabel = w => SSS_PID[w.pid]
+  ? `申请文书 · ${SSS_PID[w.pid]}`
+  : (w.promptKind==='story' ? 'SSAT 故事开头' : 'ISEE 题目');
+const promptTypeEN = w => SSS_PID[w.pid]
+  ? 'Private-school application essay — a true personal story from the student\'s own summer, chosen to show '
+    + SSS_PID[w.pid] + '. The handed-in text is the draft first, then the student\'s planning boxes, then their '
+    + 'three "why" answers said out loud. Mark the draft; the notes after it are only context.'
+  : (w.promptKind==='story' ? 'SSAT creative story starter — the student continues the opening line' : 'ISEE personal / expository topic');
 function essayRow(w){
   const r = w.review;
   const dr = WR.drafts[w.id];
@@ -2128,7 +2140,7 @@ function viewEssayOne(){
   const r = w.status==='reviewed' ? w.review : null;
   let html = `<div class="esback"><button class="fchip" data-wback>‹ 全部作文</button></div>
     <div class="eshead"><span class="who">${KID[w.kid].av}</span><div><h2>${esc(w.prompt)}</h2>
-      <div class="l">${KID[w.kid].n} · ${w.promptKind==='story'?'SSAT 故事开头':'ISEE 题目'} · 第 ${w.draftNo||1} 稿 · ${w.at?stamp(w.at)+' 交':''} · ${w.words||0} 词 · 用时 ${dur(w.secs||0)}${(w.draftNo||1)===1 && w.secs>30*60?'（超过 30 分钟）':''}${w.pasted>20?` · <span style="color:var(--amber)">粘贴 ${w.pasted} 字符</span>`:''}</div></div></div>`;
+      <div class="l">${KID[w.kid].n} · ${promptLabel(w)} · 第 ${w.draftNo||1} 稿 · ${w.at?stamp(w.at)+' 交':''} · ${w.words||0} 词 · 用时 ${dur(w.secs||0)}${(w.draftNo||1)===1 && w.secs>30*60?'（超过 30 分钟）':''}${w.pasted>20?` · <span style="color:var(--amber)">粘贴 ${w.pasted} 字符</span>`:''}</div></div></div>`;
   if(w.prevId) html += `<div class="esprev">${prev
       ? `<button class="mini" data-wdiff>${WR.diff?'收起对比':`和第 ${prev.draftNo||1} 稿对比`}</button> <button class="mini" data-wid="${esc(prev.id)}">打开第 ${prev.draftNo||1} 稿和它的批改</button>
          ${WR.diff?`<div class="esdiff">${WritingReview.diff(prev.text, w.text)}</div><p class="eshint">绿底 = 第 ${w.draftNo||2} 稿新写的，红划线 = 删掉的。</p>`:''}`
@@ -2296,7 +2308,7 @@ async function aiDraft(){
   if((ed.notes.length || ed.summary.trim()) && !confirm('用 Claude 的草稿替换现在的批注、总评和分数？')) return;
   const prev = w.prevId && (WR.list||[]).find(x=>x.id===w.prevId);
   const user = [
-    'PROMPT TYPE: ' + (w.promptKind==='story' ? 'SSAT creative story starter — the student continues the opening line' : 'ISEE personal / expository topic'),
+    'PROMPT TYPE: ' + promptTypeEN(w),
     'PROMPT: ' + w.prompt, '',
     'CONDITIONS: ' + ((w.draftNo||1) > 1 ? `draft ${w.draftNo}, rewritten after marking` : `written in ${Math.round((w.secs||0)/60)} minutes (the test allows 30)`) +
       `, ${w.words||0} words` + (w.pasted > 20 ? `, ${w.pasted} characters were pasted in rather than typed` : '') + '.',
