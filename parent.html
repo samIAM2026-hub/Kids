@@ -160,6 +160,23 @@
     .dp .dwhen{order:3;flex:1 1 100%}
   }
   .empty{color:var(--mute);font-size:12.5px;padding:14px 0;text-align:center}
+  /* 朗读录音 */
+  .reccard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;background:var(--card)}
+  .rechd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .rechd b{font-size:15px;color:var(--cream)}
+  .rechd .meta,.recrow .meta{font-size:11.5px;color:var(--mute)}
+  .recrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--line)}
+  .recrow.old{opacity:.72}
+  .recrow .tk{font:600 12px 'IBM Plex Mono',monospace;color:var(--gold);min-width:52px}
+  .recrow audio{height:32px;flex:1;min-width:210px}
+  .recrow .btn2{font:600 12px 'IBM Plex Mono',monospace;background:transparent;color:var(--cream);
+                border:1px solid var(--line);border-radius:7px;padding:5px 11px;cursor:pointer}
+  .recrow .btn2:hover{border-color:var(--gold2)}
+  .recrow .btn2[disabled]{opacity:.5;cursor:default}
+  .recrow .btn2.del{color:var(--mute);margin-left:auto}
+  .recrow .btn2.del:hover{color:var(--red);border-color:var(--red)}
+  .recold{margin:2px 0 2px 52px}
+  .recold summary{font-size:11.5px;color:var(--gold2);cursor:pointer}
   .daynav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 0}
   .daynav input[type=date],.moverow input[type=date]{font-family:inherit;font-size:13px;background:var(--card);
          border:1.5px solid var(--line);border-radius:7px;color:var(--cream);padding:6px 9px;outline:none}
@@ -638,6 +655,7 @@
       <button class="stab" data-v="focus">专注情况</button>
       <button class="stab" data-v="reading">阅读写作</button>
       <button class="stab" data-v="essay">作文 <span class="pill hot" id="essayn" hidden></span></button>
+      <button class="stab" data-v="audio">朗读录音</button>
       <button class="stab assign" id="kidassign">＋ 派题</button>
     </nav>
   </div>
@@ -733,6 +751,34 @@ const LABEL = { quiz:'可判分', practice:'练习', ref:'参考' };
     'm3a.06.mult': { n: "多位数乘一位数（含进位）", ch: '06', chTitle: "Multiplication（3A）" },
     'm3a.07.div': { n: "除法：商和余数、竖式除法", ch: '07', chTitle: "Division（3A）" },
     'm3a.08.word': { n: "四则两步应用题", ch: '08', chTitle: "Word Problems Involving the Four Operations（3A）" },
+    'ssat.q.arith': { n: "整数运算、运算顺序、位值、整除、估算、正负数与绝对值", ch: 'Q', chTitle: "SSAT 数学 Quantitative" },
+    'ssat.q.frac': { n: "分数、小数、百分数的计算与互化", ch: 'Q', chTitle: "SSAT 数学 Quantitative" },
+    'ssat.q.pct': { n: "百分数应用：占百分之几、打折、税、增减百分之几", ch: 'Q', chTitle: "SSAT 数学 Quantitative" },
+    'ssat.q.ratio': { n: "比、比例、单价与速率", ch: 'Q', chTitle: "SSAT 数学 Quantitative" },
+    'ssat.q.algebra': { n: "方程、不等式、代入求值、用字母列式", ch: 'Q', chTitle: "SSAT 数学 Quantitative" },
+    'ssat.q.word': { n: "多步文字题（和倍、差倍、钱币、分组、长度拼接）", ch: 'Q', chTitle: "SSAT 数学 Quantitative" },
+    'ssat.q.geom': { n: "角、三角形、多边形的性质，图形翻转与空间想象", ch: 'Q', chTitle: "SSAT 数学 Quantitative" },
+    'ssat.q.area': { n: "周长、面积、圆、体积、坐标上的图形", ch: 'Q', chTitle: "SSAT 数学 Quantitative" },
+    'ssat.q.data': { n: "读图表、平均数 / 中位数 / 众数、概率与计数", ch: 'Q', chTitle: "SSAT 数学 Quantitative" },
+    'ssat.q.logic': { n: "数的性质与推理：必然为真、正负奇偶、规律、自定义运算、排序推理", ch: 'Q', chTitle: "SSAT 数学 Quantitative" },
+    'ssat.r.main': { n: "主旨、最佳标题、作者目的", ch: 'R', chTitle: "SSAT 阅读 Reading" },
+    'ssat.r.detail': { n: "细节题，含 EXCEPT / NOT 题", ch: 'R', chTitle: "SSAT 阅读 Reading" },
+    'ssat.r.infer': { n: "推断：没直接写的事实、人物是什么样的人、下一段讲什么、作者会同意什么", ch: 'R', chTitle: "SSAT 阅读 Reading" },
+    'ssat.r.vocab': { n: "词在上下文里的意思", ch: 'R', chTitle: "SSAT 阅读 Reading" },
+    'ssat.r.tone': { n: "语气、态度（作者的或人物的）、写作手法", ch: 'R', chTitle: "SSAT 阅读 Reading" },
+    'ssat.s.vocab': { n: "纯词汇：拆不开，只能认得", ch: 'S', chTitle: "SSAT 同义词 Synonyms" },
+    'ssat.s.parts': { n: "能拆词：有学过的词根 / 前后缀，或者是熟词加前后缀", ch: 'S', chTitle: "SSAT 同义词 Synonyms" },
+    'ssat.s.second': { n: "熟词僻义 / 字面陷阱", ch: 'S', chTitle: "SSAT 同义词 Synonyms" },
+    'ssat.a.syn': { n: "同义", ch: 'A', chTitle: "SSAT 类比 Analogies" },
+    'ssat.a.ant': { n: "反义，含开头与结尾", ch: 'A', chTitle: "SSAT 类比 Analogies" },
+    'ssat.a.degree': { n: "程度：X 是 Y 的更强 / 更弱版本", ch: 'A', chTitle: "SSAT 类比 Analogies" },
+    'ssat.a.part': { n: "部分与整体、成员与群体", ch: 'A', chTitle: "SSAT 类比 Analogies" },
+    'ssat.a.type': { n: "种类与类别、学科与对象、单位与度量、象征", ch: 'A', chTitle: "SSAT 类比 Analogies" },
+    'ssat.a.use': { n: "工具与对象、人物与职能、制作者与产物", ch: 'A', chTitle: "SSAT 类比 Analogies" },
+    'ssat.a.place': { n: "地点与在那里的东西", ch: 'A', chTitle: "SSAT 类比 Analogies" },
+    'ssat.a.cause': { n: "材料、来源、因果、用途、治疗、先做后得", ch: 'A', chTitle: "SSAT 类比 Analogies" },
+    'ssat.a.trait': { n: "特征与缺失：Y 总是 X / 某人没有 Y", ch: 'A', chTitle: "SSAT 类比 Analogies" },
+    'ssat.a.other': { n: "幼崽与成体、雄与雌、字面游戏", ch: 'A', chTitle: "SSAT 类比 Analogies" },
   };
   /* ===== SKILLS:END ===== */
 const today = new Date(); today.setHours(0,0,0,0);
@@ -1441,7 +1487,9 @@ function viewHist(){
 const SK_MIN_Q = 5, SK_MAX_PCT = 70, SK_MIN_DAYS = 2;
 const SK_PLAIN_MAX = 20;   // 未标注 is a leftover bucket, not a log — only the latest papers are listed
 const skName = sk => (SKILLS[sk] && SKILLS[sk].n) || sk;
-const skWhere = sk => SKILLS[sk] ? `第 ${Number(SKILLS[sk].ch)} 章 · ${SKILLS[sk].chTitle}` : '知识点表里没有这个 id';
+// Math ids sit in a numbered chapter; SSAT ids sit in a test section (Q/R/S/A), which has no number.
+const skWhere = sk => !SKILLS[sk] ? '知识点表里没有这个 id'
+  : /^\d+$/.test(SKILLS[sk].ch) ? `第 ${Number(SKILLS[sk].ch)} 章 · ${SKILLS[sk].chTitle}` : SKILLS[sk].chTitle;
 
 // One attempt → the questions on it that carry a knowledge point, with whether each was right.
 // v2 records put sk on every qTimes entry (that's the denominator — 正确率 needs the questions the kid
@@ -1546,7 +1594,8 @@ function viewSkills(){
       <li>灰色的「数据还不够」<b>不等于没问题</b>，是<b>还看不出来</b>。两个孩子一周就做几页题，
         一条知识点 3 题里错 2 题是随机波动，不是弱点 —— 别照着它调作业。</li>
       <li>错了之后<b>默认回书上那一课重做原题</b>（哪一课在每条后面写着）。只有程序性的知识点
-        （互化、化简、加减、四舍五入这些）连错两次，才值得出换数字的变式。</li>
+        （互化、化简、加减、四舍五入这些）连错两次，才值得出换数字的变式。
+        SSAT 的不出变式：数学、阅读回原卷，同义词进错词本，类比回 Method Lab 那几张桥的卡片。</li>
       <li><b>未标注</b> = 那份卷子还没打知识点标签，或者是打标之前做的。这些错题只按卷子列出来，
         <b>不进上面的统计</b>。存量的 152 页不回补标签，所以这一块会一直有东西。</li>
       <li>点知识点里的「看是哪几题」能展开原题的日期和卷子；点卷子名在新标签页打开（家长预览，不记成绩）。</li>
@@ -1926,6 +1975,108 @@ function goEssay(id){
   go('essay', a ? a.kid : KV);
 }
 
+/* ===== 朗读录音（HOMEWORK-SYSTEM.md 2026-09-20 · BASA 朗读录音棚） =====
+   孩子在 Writing/BASA-Read-Aloud-Studio.html 里把一首诗读三遍，每一遍单独存。
+   recordings/{id} 是轻行（谁、哪首诗、第几遍、多长、什么时候），音频是 base64，单独放在
+   recordingAudio/{同一个 id} 里 —— 所以这个列表永远不下载音频，点「▶」才去取那一条。
+   重录不会覆盖：同一遍的旧录音还在，折在「以前录的」里。 */
+const REC_MAX = 150;
+let RC = { list:null, err:'', loading:false, src:{}, busy:'', open:{} };
+
+async function loadRecordings(){
+  RC.loading = true; RC.err = '';
+  try {
+    const snap = await db.collection('recordings').orderBy('createdAt','desc').limit(REC_MAX).get();
+    RC.list = snap.docs.map(d=>{ const r = Object.assign({ id:d.id }, d.data());
+      return Object.assign(r, { kid:kidOf(r.kidId) }); }).filter(r=>r.kid);
+  } catch(e){ console.error(e); RC.err = '读录音失败：' + (e.code||e.message); }
+  RC.loading = false;
+  if(V==='audio') render();
+}
+
+// 音频只在点播放的时候取一条。取过的留在 RC.src 里，这一次打开页面不再取第二遍。
+async function playRec(id){
+  if(RC.src[id] || RC.busy) return;
+  const r = (RC.list||[]).find(x=>x.id===id);
+  RC.busy = id; render();
+  try {
+    const snap = await db.collection('recordingAudio').doc(id).get();
+    const d = snap.data();
+    if(!d || !d.audio) throw new Error('这条录音的声音不在了');
+    RC.src[id] = `data:${(r&&r.mime)||'audio/webm'};base64,${d.audio}`;
+  } catch(e){ console.error(e); toast('打不开这条录音：' + (e.code||e.message), true); }
+  RC.busy = ''; render();
+}
+
+async function delRec(id){
+  const r = (RC.list||[]).find(x=>x.id===id); if(!r) return;
+  if(!confirm(`删掉 ${KID[r.kid].n} 的「${r.poemTitle||r.poemId}」第 ${r.take} 遍？删了就没有了。`)) return;
+  RC.busy = id; render();
+  try {
+    const b = db.batch();
+    b.delete(db.collection('recordings').doc(id));
+    b.delete(db.collection('recordingAudio').doc(id));
+    await b.commit();
+    RC.list = RC.list.filter(x=>x.id!==id); delete RC.src[id];
+    toast('已删掉这条录音');
+  } catch(e){ console.error(e); toast('没删成：' + (e.code||e.message), true); }
+  RC.busy = ''; render();
+}
+
+const recLen = s => s ? `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}` : '—';
+const recFmt = m => /mp4|aac|m4a/.test(m||'') ? 'm4a' : /webm|opus/.test(m||'') ? 'webm' : (m||'');
+
+function recRow(r, old){
+  const playing = !!RC.src[r.id], busy = RC.busy===r.id;
+  return `<div class="recrow${old?' old':''}">
+    <span class="tk">第 ${r.take} 遍</span>
+    <span class="meta">${r.createdAt?esc(stamp(new Date(r.createdAt))):''} · ${recLen(r.secs)}${old?' · 之前录的':''}
+      ${recFmt(r.mime)==='webm'?`<span class="chipst st-open" title="Chrome 录的，Safari 放不了；用 Chrome 打开这一页">webm</span>`:''}</span>
+    ${playing ? `<audio controls preload="none" src="${RC.src[r.id]}"></audio>`
+              : `<button class="btn2" data-play="${esc(r.id)}"${busy?' disabled':''}>${busy?'读取中…':'▶ 播放'}</button>`}
+    <button class="btn2 del" data-delrec="${esc(r.id)}"${busy?' disabled':''}>删</button>
+  </div>`;
+}
+
+function viewAudio(){
+  let html = `<h2 class="sec">朗读录音${qm('孩子在「朗读录音棚」里把一首诗整首读一遍，一遍一条，三遍就是三条。点▶才会去取那一条的声音，列表本身不下载音频。重录不会盖掉旧的：同一遍的旧录音折在「以前录的」里。')}</h2>
+    <details class="hguide" data-guide="audio"${guideOpen('audio')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
+      <li><b>一遍一条</b>：每按一次停止就单独存一条，三遍是三条独立的录音，不是一整条。</li>
+      <li><b>最上面那条是最新的</b>。同一遍录过好几次的，旧的在「以前录的」里，没删过就都还在。</li>
+      <li><b>webm 的那几条</b>是在 Chrome / 安卓上录的，Safari 放不出声 —— 用 Chrome 打开家长台就行。iPad 上录的是 m4a，哪儿都能放。</li>
+      <li>录音存在 Firestore 里（一条约半兆），不占 Storage。删掉是连声音一起删，找不回来。</li>
+      <li>孩子那一页在 <b>Writing/BASA-Read-Aloud-Studio.html</b>，派给谁谁就能在「我的作业」里看到。</li>
+    </ul></details>`;
+  if(RC.err) return html + `<p class="empty" style="color:var(--red)">${esc(RC.err)}</p>`;
+  if(!RC.list) return html + `<p class="empty">正在读录音…</p>`;
+  const list = RC.list.filter(r=>!KV || r.kid===KV);
+  if(!list.length) return html + `<p class="empty">${KV?KID[KV].n:'两个孩子'}还没有录音。派一份「朗读录音棚」给${KV?'':'他们'}，读完就出现在这里。</p>`;
+
+  // 按孩子 → 诗 → 第几遍；每一遍最新的在外面，旧的折起来
+  const kids = KV ? [KV] : ['grace','warren'].filter(k=>list.some(r=>r.kid===k));
+  for(const k of kids){
+    const mine = list.filter(r=>r.kid===k);
+    if(!KV) html += `<div class="subhd">${KID[k].av} ${KID[k].n}</div>`;
+    const poems = [...new Set(mine.map(r=>r.poemId))];
+    for(const pid of poems){
+      const rows = mine.filter(r=>r.poemId===pid);
+      const first = rows[0], takes = [...new Set(rows.map(r=>r.take))].sort((a,b)=>a-b);
+      const days = [...new Set(rows.map(r=>r.day).filter(Boolean))];
+      html += `<div class="reccard"><div class="rechd"><b>${esc(first.poemTitle||pid)}</b>
+        <span class="meta">${esc(first.poemAuthor||'')} · ${takes.length} 遍 · 共 ${rows.length} 条${days.length?` · 最近 ${esc(days[0])}`:''}</span></div>`;
+      for(const t of takes){
+        const same = rows.filter(r=>r.take===t);   // 已经是新的在前
+        html += recRow(same[0], false);
+        if(same.length > 1) html += `<details class="recold"><summary>以前录的 ${same.length-1} 条</summary>
+          ${same.slice(1).map(r=>recRow(r, true)).join('')}</details>`;
+      }
+      html += `</div>`;
+    }
+  }
+  if(RC.list.length >= REC_MAX) html += `<p class="empty">只显示最近 ${REC_MAX} 条。</p>`;
+  return html;
+}
+
 function viewEssay(){
   if(WR.cur && WR.list) return viewEssayOne();
   let html = `<h2 class="sec">作文 · Writing Lab${qm('孩子在 Writing Lab 里写完交上来的作文。点一篇进去批改：在原文里选中一段写批注，最后打分、写总评，点「发给他」孩子才看得到。Reading Club 那边的作文在「阅读写作」。')}</h2>
@@ -2237,7 +2388,8 @@ function wireEssay(){
 function render(){
   viewEl.innerHTML = V==='today'?viewToday() : V==='bank'?viewBank() : V==='hist'?viewHist()
                    : V==='dispatch'?viewDispatch()
-                   : V==='skills'?viewSkills() : V==='reading'?viewReading() : V==='essay'?viewEssay() : viewFocus();
+                   : V==='skills'?viewSkills() : V==='reading'?viewReading() : V==='essay'?viewEssay()
+                   : V==='audio'?viewAudio() : viewFocus();
   if(V==='today'){
     const goDay = async d=>{
       if(!d || d===TD) return;
@@ -2276,6 +2428,11 @@ function render(){
       DP.missOnly = !DP.missOnly; render(); }));
   }
   if(V==='essay') wireEssay();
+  if(V==='audio'){
+    if(!RC.list && !RC.loading && !RC.err) loadRecordings();
+    viewEl.querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',()=>playRec(b.dataset.play)));
+    viewEl.querySelectorAll('[data-delrec]').forEach(b=>b.addEventListener('click',()=>delRec(b.dataset.delrec)));
+  }
   if(V==='focus'){
     viewEl.querySelectorAll('.fchip[data-fr]').forEach(c=>c.addEventListener('click',()=>{
       FR = Number(c.dataset.fr); render(); }));

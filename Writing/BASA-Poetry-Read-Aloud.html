@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading a Poem Out Loud — When Great Trees Fall</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', 'Times New Roman', serif; background: linear-gradient(160deg, #e3e9df 0%, #efe8d6 55%, #dcd3bd 100%); min-height: 100vh; color: #1c1a17; padding: 20px 16px 60px; }
+  .wrap { max-width: 800px; margin: 0 auto; }
+
+  header { background: #2f4a3a; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f5ecd9; box-shadow: 0 8px 0 #1e3126; margin-bottom: 16px; }
+  header .crest { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 6px; font-style: italic; }
+  header p { font-size: 15px; opacity: .93; line-height: 1.5; }
+  header .tag { display: inline-block; margin-top: 10px; background: rgba(255,255,255,.14); border-radius: 999px; padding: 5px 14px; font-size: 13px; letter-spacing: .4px; }
+
+  .notice { background: #fff6e0; border: 3px solid #c9973f; border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; font-size: 15px; line-height: 1.65; }
+  .notice b { color: #8a5f18; }
+
+  .bar { position: sticky; top: 0; z-index: 20; background: #f5ecd9; border-radius: 14px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; font-weight: bold; margin-bottom: 16px; box-shadow: 0 4px 0 #c9b890; font-size: 14px; }
+  .progress-track { flex: 1; height: 13px; background: #ddcaa3; border-radius: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0; background: #3a7d44; border-radius: 10px; transition: width .3s; }
+  .saved { font-size: 12px; color: #6b6156; font-weight: normal; min-width: 66px; text-align: right; }
+
+  .sect { background: #fffdf7; border-radius: 16px; padding: 22px; box-shadow: 0 6px 0 #c9b890; margin-bottom: 18px; }
+  .num { display: inline-block; background: #2f4a3a; color: #f5ecd9; width: 30px; height: 30px; border-radius: 50%; text-align: center; line-height: 30px; font-weight: bold; font-size: 16px; }
+  .eyebrow { font-size: 12px; color: #8a6d3b; font-weight: bold; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
+  h2.st { font-size: 22px; color: #2f4a3a; margin: 6px 0 10px; line-height: 1.3; }
+  .lead { font-size: 16.5px; line-height: 1.7; color: #3b352c; }
+  .lead + .lead { margin-top: 10px; }
+  .lead em { color: #2f4a3a; font-style: italic; }
+
+  h3.mini { font-size: 13px; text-transform: uppercase; letter-spacing: .7px; color: #b8862f; margin: 20px 0 8px; }
+
+  .move { border: 3px solid #e6dcc4; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; background: #fffef9; }
+  .move .mt { font-size: 17.5px; color: #2f4a3a; font-weight: bold; line-height: 1.4; }
+  .move .mb { font-size: 15.5px; line-height: 1.65; color: #4a4339; margin-top: 6px; }
+  .move .try { margin-top: 9px; background: #f1f6ef; border-left: 5px solid #3a7d44; border-radius: 0 10px 10px 0; padding: 10px 14px; font-size: 15px; line-height: 1.6; color: #2e4a33; }
+  .move .try b { color: #2b6132; }
+
+  .stz { border: 3px solid #e6dcc4; border-radius: 12px; margin-bottom: 10px; overflow: hidden; background: #fffef9; }
+  .stz .head { width: 100%; text-align: left; background: #f7f3e6; border: none; font-family: inherit; font-size: 16.5px; color: #2f4a3a; padding: 13px 16px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+  .stz .head:hover { background: #f1ecdb; }
+  .stz .head .pill { background: #2f4a3a; color: #f5ecd9; font-size: 12px; font-weight: bold; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+  .stz .head .arrow { margin-left: auto; color: #8a6d3b; font-size: 13px; }
+  .stz .body { display: none; padding: 14px 16px 16px; font-size: 15.5px; line-height: 1.7; color: #4a4339; border-top: 2px dashed #e6dcc4; }
+  .stz.open .body { display: block; }
+  .stz .body .say { margin-top: 10px; background: #fff6e0; border-radius: 10px; padding: 10px 14px; font-size: 15px; color: #6d5320; line-height: 1.6; }
+  .stz .body .say b { color: #8a5f18; }
+
+  .days { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 9px; }
+  .day { border: 3px solid #ddcaa3; border-radius: 12px; padding: 10px 12px; background: #fffef9; cursor: pointer; transition: .12s; }
+  .day:hover { border-color: #c9973f; }
+  .day .dn { font-size: 12px; font-weight: bold; color: #8a6d3b; text-transform: uppercase; letter-spacing: .6px; }
+  .day .df { font-size: 14.5px; line-height: 1.45; color: #4a4339; margin-top: 3px; }
+  .day.on { background: #e8f5e6; border-color: #3a7d44; }
+  .day.on .dn { color: #2b6132; }
+  .day.on .dn::after { content: " ✓"; }
+
+  .steal { border: 3px solid #e6dcc4; border-radius: 12px; padding: 13px 15px; margin-bottom: 10px; background: #fffef9; }
+  .steal label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+  .steal input[type=checkbox] { width: 20px; height: 20px; margin-top: 3px; accent-color: #3a7d44; flex: none; }
+  .steal .sl { font-size: 16.5px; color: #2f4a3a; font-weight: bold; line-height: 1.4; }
+  .steal .sd { font-size: 15px; color: #4a4339; line-height: 1.6; margin-top: 4px; }
+
+  label.fl { display: block; font-size: 13px; font-weight: bold; color: #6b6156; margin: 12px 0 5px; text-transform: uppercase; letter-spacing: .5px; }
+  textarea, input[type=text] { width: 100%; font-family: inherit; font-size: 16.5px; color: #1c1a17; background: #fffef9; border: 3px solid #ddcaa3; border-radius: 12px; padding: 12px 14px; line-height: 1.6; resize: vertical; }
+  textarea:focus, input[type=text]:focus { outline: none; border-color: #2f4a3a; background: #fff; }
+  textarea { min-height: 90px; }
+
+  .nextcard { background: #2f4a3a; color: #f5ecd9; border-radius: 16px; padding: 22px 24px; text-align: center; box-shadow: 0 8px 0 #1e3126; }
+  .nextcard h2 { font-size: 21px; font-style: italic; margin-bottom: 8px; }
+  .nextcard p { font-size: 15.5px; line-height: 1.6; opacity: .93; margin-bottom: 14px; }
+  .nextcard a { display: inline-block; background: #c9973f; color: #2b2109; text-decoration: none; font-weight: bold; font-size: 17px; border-radius: 12px; padding: 12px 24px; box-shadow: 0 5px 0 #8a5f18; }
+  .nextcard a:active { transform: translateY(3px); box-shadow: 0 2px 0 #8a5f18; }
+
+  .back { text-align: center; margin-top: 20px; }
+  .back a { color: #4a4339; font-size: 15px; text-decoration: none; border-bottom: 2px dotted #a89a80; }
+  @media (max-width: 620px) { header h1 { font-size: 22px; } h2.st { font-size: 20px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="crest">🌳</div>
+    <h1>Reading a Poem Out Loud</h1>
+    <p><b>When Great Trees Fall</b> by Maya Angelou</p>
+    <div class="tag">BASA homework · read it aloud every day</div>
+  </header>
+
+  <div class="notice">
+    <b>Keep the printed poem next to you.</b> This page doesn't retype it — the poem belongs to Maya Angelou
+    and it lives on your sheet. This page is the coach: it tells you what to listen for and what to try
+    each day. Read from the paper; read from this page's instructions.
+  </div>
+
+  <div class="bar">
+    <span>🎙️ Days read</span>
+    <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+    <span id="stepcount">0 / 14</span>
+    <span class="saved" id="saved">saved</span>
+  </div>
+
+  <div class="sect">
+    <div class="eyebrow"><span class="num">1</span> &nbsp;Why out loud</div>
+    <h2 class="st">Your eyes can skim. Your mouth can't.</h2>
+    <p class="lead">A poem is built for the ear. Silently, you can slide over a line in half a second and
+    never notice that it was doing something clever. Out loud, you have to decide where to breathe, where to
+    slow down, and which word gets the weight — and those decisions <em>are</em> the poem.</p>
+    <p class="lead">You are also writing a poem this month for the BASA contest. Reading a great one daily for
+    a few weeks is the cheapest training there is: by October your ear will already know how a good poem moves,
+    and you'll hear it when your own lines go flat.</p>
+  </div>
+
+  <div class="sect">
+    <div class="eyebrow"><span class="num">2</span> &nbsp;Four moves</div>
+    <h2 class="st">How to read a poem so it sounds like a poem</h2>
+
+    <div class="move">
+      <div class="mt">Move 1 — Breathe at the punctuation, not at the end of every line.</div>
+      <div class="mb">Beginners stop at every line break, and the poem comes out choppy, like a shopping list.
+      A line break is a small lean, not a full stop. In this poem lots of sentences run across two, three,
+      four lines before they finish. Follow the periods and commas with your breath; lean on the line breaks
+      with your voice.</div>
+      <div class="try"><b>Try:</b> find the very first sentence on your sheet and read it in one breath,
+      all the way to its period, even though it crosses several lines. Then do the same with the next one.</div>
+    </div>
+
+    <div class="move">
+      <div class="mt">Move 2 — Short line, slow line.</div>
+      <div class="mb">When a poet drops a line that is only two or three words long, they are pulling the
+      handbrake. Those lines want air around them. Give them a beat before and a beat after.</div>
+      <div class="try"><b>Try:</b> circle the five shortest lines on your sheet. Read the poem again and
+      put a real silence — count one — after each of those five.</div>
+    </div>
+
+    <div class="move">
+      <div class="mt">Move 3 — Let the volume change with the poem.</div>
+      <div class="mb">The poem starts big and loud (enormous animals, hills, forests) and then goes small and
+      quiet (silence, breath, whispering). If you read the whole thing at the same volume, you flatten it.
+      Start it full-voiced. Let the middle drop to almost nothing.</div>
+      <div class="try"><b>Try:</b> read the last stanza at the volume you'd use to tell someone a secret.
+      Notice that the poem still works — it may even hit harder.</div>
+    </div>
+
+    <div class="move">
+      <div class="mt">Move 4 — Repeated openings are a drumbeat. Keep the beat steady.</div>
+      <div class="mb">Several stanzas start with almost the same words. That's on purpose — repetition is how
+      a poem builds pressure, like a drum under a song. Say each repeat with the same rhythm and the same
+      weight, so the listener's ear catches the pattern.</div>
+      <div class="try"><b>Try:</b> highlight every stanza opening that repeats. Read only those lines,
+      one after another, and listen to the pattern by itself.</div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="eyebrow"><span class="num">3</span> &nbsp;Stanza by stanza</div>
+    <h2 class="st">Walk through it once with your finger on the page</h2>
+    <p class="lead">Tap a stanza to see what to listen for. Everything below refers to <em>your printed
+    sheet</em> — the stanzas are in the same order there.</p>
+
+    <div style="margin-top:14px">
+      <div class="stz"><button class="head" type="button"><span class="pill">Stanza 1</span> The big animals<span class="arrow">tap ▾</span></button>
+        <div class="body">The poem opens with enormous things reacting: hills, lions, elephants. Notice that
+        Angelou never says "this is sad." She shows you heavy animals moving, and you feel the size of the loss
+        without being told. That's the whole trick of the poem — <b>big feeling, shown through concrete things.</b>
+        <div class="say"><b>Reading it:</b> full voice, unhurried. These are heavy creatures; don't let them
+        trot. Let the verbs land.</div></div></div>
+
+      <div class="stz"><button class="head" type="button"><span class="pill">Stanza 2</span> The small things<span class="arrow">tap ▾</span></button>
+        <div class="body">Now the camera zooms from elephants down to the smallest creatures in the forest, and
+        the sound goes out of the world. Watch how fast the scale changes — huge, then tiny. Poets do this on
+        purpose: switching scale makes a reader feel unsteady, which is exactly what grief feels like.
+        <div class="say"><b>Reading it:</b> drop your volume the moment the stanza starts. You are following
+        the poem down into the quiet.</div></div></div>
+
+      <div class="stz"><button class="head" type="button"><span class="pill">Stanza 3</span> From trees to people<span class="arrow">tap ▾</span></button>
+        <div class="body">This is the hinge of the poem. The trees were never only trees — the stanza turns
+        and says so directly. Then it describes something very hard to describe (what the air feels like when
+        someone dies) with three plain adjectives, and it lands on memory: the walks never taken, the kind
+        words nobody said. Those small regrets are more devastating than any big statement would be.
+        <div class="say"><b>Reading it:</b> slow right down on the three adjectives, one at a time,
+        with a small gap between them. Don't rush the list.</div></div></div>
+
+      <div class="stz"><button class="head" type="button"><span class="pill">Stanza 4</span> What's left of us<span class="arrow">tap ▾</span></button>
+        <div class="body">Short stanza, and it's about the people still alive. The word <b>wizened</b> is worth
+        looking up if you don't know it — it means shrivelled and dried out, the way a fruit goes when it loses
+        all its water. Angelou is saying the survivors themselves get smaller.
+        <div class="say"><b>Reading it:</b> this one is nearly all short lines. Handbrake. Let each line sit.</div></div></div>
+
+      <div class="stz"><button class="head" type="button"><span class="pill">Stanza 5</span> The dark cave<span class="arrow">tap ▾</span></button>
+        <div class="body">Here the poem says the grief isn't madness — it's <em>ignorance</em>, being left in
+        the dark and cold with the light gone. Notice how the earlier word <b>radiance</b> and the later
+        <b>dark, cold caves</b> are set against each other. One image answers the other. That's called a
+        contrast, and it's doing the emotional work of an entire paragraph in four words.
+        <div class="say"><b>Reading it:</b> the last three words of this stanza sit alone on their own lines.
+        Say them like three separate sentences.</div></div></div>
+
+      <div class="stz"><button class="head" type="button"><span class="pill">Stanza 6</span> The turn<span class="arrow">tap ▾</span></button>
+        <div class="body">The poem does not end in the cave. Peace comes back — slowly, and not on a schedule.
+        The senses come back, but changed. Then the ending goes to very short sentences and repeats itself, and
+        the repetition is the point: it sounds like someone steadying their own breathing. A poem that ends by
+        turning toward something better, after going all the way down first, is far stronger than one that was
+        cheerful the whole time. <b>Remember this when you write your own.</b>
+        <div class="say"><b>Reading it:</b> quiet, slow, and stop fully between those last short sentences.
+        Then don't say anything for three seconds. That silence is part of the poem.</div></div></div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="eyebrow"><span class="num">4</span> &nbsp;Daily tracker</div>
+    <h2 class="st">Fourteen days, a different job each day</h2>
+    <p class="lead">Read the whole poem out loud once a day. Each day has one small extra job so it never
+    becomes mindless repetition. Tap a card when you've done it.</p>
+    <div class="days" id="days" style="margin-top:14px"></div>
+  </div>
+
+  <div class="sect">
+    <div class="eyebrow"><span class="num">5</span> &nbsp;The steal box</div>
+    <h2 class="st">Five moves you can take into your own poem</h2>
+    <p class="lead">Poets learn by borrowing technique — not words, <em>technique</em>. Tick each one once you
+    can point to it on your sheet, and write down where you saw it.</p>
+
+    <div style="margin-top:14px">
+      <div class="steal"><label><input type="checkbox" data-steal="s1"><span><span class="sl">Show the feeling with a thing, don't name the feeling</span><span class="sd">No "I was sad." Instead: elephants moving heavily toward safety.</span></span></label>
+        <input type="text" id="s1w" placeholder="Where I saw it…"></div>
+
+      <div class="steal"><label><input type="checkbox" data-steal="s2"><span><span class="sl">Repeat an opening to build a drumbeat</span><span class="sd">The same few words starting several stanzas, like a chorus.</span></span></label>
+        <input type="text" id="s2w" placeholder="Where I saw it…"></div>
+
+      <div class="steal"><label><input type="checkbox" data-steal="s3"><span><span class="sl">Change the scale suddenly</span><span class="sd">Huge things, then tiny things. It knocks the reader off balance.</span></span></label>
+        <input type="text" id="s3w" placeholder="Where I saw it…"></div>
+
+      <div class="steal"><label><input type="checkbox" data-steal="s4"><span><span class="sl">Use a short line as a handbrake</span><span class="sd">Two or three words on their own line = maximum weight.</span></span></label>
+        <input type="text" id="s4w" placeholder="Where I saw it…"></div>
+
+      <div class="steal"><label><input type="checkbox" data-steal="s5"><span><span class="sl">Turn at the end</span><span class="sd">Go all the way down first, then lift. The lift only works because of the fall.</span></span></label>
+        <input type="text" id="s5w" placeholder="Where I saw it…"></div>
+    </div>
+
+    <label class="fl">The one move I most want to use in my invention poem — and why</label>
+    <textarea id="takeaway" placeholder="e.g. I want to repeat one line like a drumbeat, because my invention keeps doing the same thing over and over…"></textarea>
+  </div>
+
+  <div class="nextcard">
+    <h2>Now the writing half</h2>
+    <p>Three inventions to brainstorm, and one poem about invention due <b>October 22</b>.
+    The moves you just collected are the toolkit you'll use there.</p>
+    <a href="BASA-Invention-Poem-Workshop.html">🛠️ Go to the Invention Poem Workshop →</a>
+  </div>
+
+  <div class="back"><a href="../homework.html">← Back to my homework</a></div>
+</div>
+
+<script>
+(function () {
+  var STORAGE_KEY = 'warren_basa_poetry_readaloud_v1';
+
+  var DAYS = [
+    'Just read it. No jobs. Get to the end.',
+    'Breathe only at the punctuation.',
+    'Put a full silence after every short line.',
+    'Start loud, end at a whisper.',
+    'Read only the repeated openings, then the whole poem.',
+    'Look up any word you are not 100% sure of.',
+    'Record yourself on a phone. Listen back once.',
+    'Read it to someone else in the room.',
+    'Read it twice as slowly as feels normal.',
+    'Underline the five lines you like most.',
+    'Learn the last stanza by heart.',
+    'Say the last stanza with the sheet face down.',
+    'Read it the way you think Angelou would.',
+    'Read it your way. You have earned an opinion.'
+  ];
+
+  var state = { days: [], steals: {}, fields: {} };
+
+  var savedTag = document.getElementById('saved'), saveTimer = null;
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+    savedTag.textContent = 'saved ✓';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () { savedTag.textContent = 'saved'; }, 1400);
+  }
+
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) { var d = JSON.parse(raw); if (d && typeof d === 'object') {
+      state.days = d.days || []; state.steals = d.steals || {}; state.fields = d.fields || {};
+    } }
+  } catch (e) {}
+
+  var daysWrap = document.getElementById('days');
+  DAYS.forEach(function (job, i) {
+    var el = document.createElement('div');
+    el.className = 'day' + (state.days.indexOf(i) > -1 ? ' on' : '');
+    el.innerHTML = '<div class="dn">Day ' + (i + 1) + '</div><div class="df">' + job + '</div>';
+    el.addEventListener('click', function () {
+      var at = state.days.indexOf(i);
+      if (at > -1) { state.days.splice(at, 1); el.classList.remove('on'); }
+      else { state.days.push(i); el.classList.add('on'); }
+      save(); updateProgress();
+    });
+    daysWrap.appendChild(el);
+  });
+
+  function updateProgress() {
+    var n = state.days.length;
+    document.getElementById('progress').style.width = (n / DAYS.length * 100) + '%';
+    document.getElementById('stepcount').textContent = n + ' / ' + DAYS.length;
+  }
+
+  document.querySelectorAll('.stz .head').forEach(function (h) {
+    h.addEventListener('click', function () {
+      var box = h.parentNode, open = box.classList.contains('open');
+      box.classList.toggle('open', !open);
+      h.querySelector('.arrow').textContent = open ? 'tap ▾' : 'close ▴';
+    });
+  });
+
+  document.querySelectorAll('input[data-steal]').forEach(function (cb) {
+    var k = cb.dataset.steal;
+    cb.checked = !!state.steals[k];
+    cb.addEventListener('change', function () { state.steals[k] = cb.checked; save(); });
+  });
+
+  var fields = Array.prototype.slice.call(document.querySelectorAll('textarea[id], input[type=text][id]'));
+  fields.forEach(function (f) {
+    if (state.fields[f.id]) f.value = state.fields[f.id];
+    f.addEventListener('input', function () { state.fields[f.id] = f.value; save(); });
+  });
+
+  updateProgress();
+})();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
