@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Summer Story Studio · Application Essay</title>
+<style>
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --ink:#1c1a17; --soft:#5b4636; --cream:#f6f3ed; --paper:#fffdf7;
+    --rust:#b4622f; --green:#3f7d4e; --green-soft:#eaf3ec;
+    --red:#c0392b; --red-soft:#fbeaea; --line:#e2d9c9; --gold:#c9a227;
+  }
+  body{
+    font-family:Georgia,"Times New Roman",serif; background:var(--cream); color:var(--ink);
+    line-height:1.65; padding:26px 18px 80px; -webkit-text-size-adjust:100%;
+  }
+  .wrap{ max-width:900px; margin:0 auto; }
+  .mono{ font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace; }
+
+  header{ border-bottom:3px double var(--line); padding-bottom:18px; margin-bottom:26px; }
+  .topline{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+  .eyebrow{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.68rem;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--rust); margin-bottom:7px; }
+  h1{ font-size:1.75rem; line-height:1.2; letter-spacing:-.4px; }
+  .byline{ color:var(--soft); font-size:.92rem; margin-top:7px; font-style:italic; }
+  a.back{ color:var(--rust); font-size:.85rem; text-decoration:none; border-bottom:1px solid transparent; }
+  a.back:hover{ border-bottom-color:var(--rust); }
+
+  button{ font-family:inherit; font-size:.92rem; cursor:pointer; border-radius:8px; border:1px solid var(--line);
+    background:var(--paper); color:var(--ink); padding:9px 15px; transition:.15s; }
+  button:hover{ border-color:var(--rust); color:var(--rust); }
+  button:disabled{ opacity:.45; cursor:default; }
+  button:disabled:hover{ border-color:var(--line); color:var(--ink); }
+  button.primary{ background:var(--green); border-color:var(--green); color:#fff; font-weight:700; padding:12px 24px; font-size:1rem; }
+  button.primary:hover{ background:#356140; border-color:#356140; color:#fff; }
+  button.small{ padding:6px 11px; font-size:.8rem; }
+
+  .screen{ display:none; } .screen.on{ display:block; }
+
+  section{ margin-top:34px; }
+  h2.sec{ font-size:1.18rem; letter-spacing:-.2px; display:flex; align-items:baseline; gap:10px;
+    padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:14px; flex-wrap:wrap; }
+  h2.sec .n{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.72rem;
+    color:var(--rust); letter-spacing:.1em; text-transform:uppercase; }
+  .lead{ color:var(--soft); font-size:.95rem; margin-bottom:18px; }
+  .lead b{ color:var(--ink); }
+
+  .note-box{ background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--gold);
+    border-radius:0 10px 10px 0; padding:15px 18px; margin-bottom:22px; }
+  .note-box h3{ font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--gold);
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; margin-bottom:9px; }
+  .note-box ol{ padding-left:20px; font-size:.95rem; }
+  .note-box li{ margin-bottom:8px; }
+
+  .tip{ background:var(--green-soft); border-left:4px solid var(--green); border-radius:0 10px 10px 0;
+    padding:14px 18px; margin-bottom:20px; font-size:.93rem; }
+  .tip h3{ font-size:.64rem; letter-spacing:.14em; text-transform:uppercase; color:var(--green);
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; margin-bottom:9px; }
+  .tip.warm{ background:#fbf1e8; border-left-color:var(--rust); }
+  .tip.warm h3{ color:var(--rust); }
+  .tip p{ margin-bottom:8px; } .tip p:last-child{ margin-bottom:0; }
+  ul.do{ list-style:none; }
+  ul.do li{ padding-left:24px; position:relative; margin-bottom:6px; }
+  ul.do li.y::before{ content:"\2713"; position:absolute; left:0; color:var(--green); font-weight:700; }
+  ul.do li.n::before{ content:"\2715"; position:absolute; left:0; color:var(--red); font-weight:700; }
+
+  .row{ background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:13px 16px; margin-bottom:10px; }
+  .row .q{ font-size:1rem; margin-bottom:3px; }
+  .row .hint{ font-size:.82rem; color:var(--soft); font-style:italic; margin-bottom:8px; }
+  .row .num{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.68rem;
+    color:var(--rust); letter-spacing:.1em; margin-right:8px; }
+
+  input[type=text], textarea{ width:100%; font-family:Georgia,"Times New Roman",serif; font-size:1rem;
+    color:var(--ink); background:var(--cream); border:1px solid var(--line); border-radius:8px;
+    padding:9px 12px; outline:none; resize:vertical; line-height:1.55; }
+  input[type=text]:focus, textarea:focus{ border-color:var(--rust); background:var(--paper); }
+  textarea{ min-height:74px; }
+  textarea.big{ min-height:44vh; font-size:1.05rem; line-height:32px; padding:22px 24px; background:var(--paper);
+    background-image:repeating-linear-gradient(transparent,transparent 31px,#efe7d8 31px,#efe7d8 32px);
+    background-attachment:local; }
+  ::placeholder{ color:#a89b88; font-style:italic; }
+
+  .pickgrid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:640px){ .pickgrid{ grid-template-columns:1fr; } }
+
+  .scard{ background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--rust);
+    border-radius:0 10px 10px 0; padding:16px 18px; margin-bottom:12px; cursor:pointer; transition:.15s; }
+  .scard:hover{ border-color:var(--rust); box-shadow:0 2px 10px rgba(0,0,0,.06); transform:translateX(2px); }
+  .scard.two{ border-left-color:var(--gold); }
+  .scard h3{ font-size:1.08rem; }
+  .scard .zh{ font-size:.85rem; color:var(--soft); font-style:italic; margin-top:4px; }
+  .scard .st{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.68rem;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--soft); margin-top:9px; }
+  .scard .st.done{ color:var(--green); }
+
+  .promptbar{ background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--rust);
+    border-radius:0 10px 10px 0; padding:15px 18px; margin-bottom:16px; }
+  .promptbar .k{ font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--soft);
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; margin-bottom:5px; }
+  .promptbar .v{ font-size:1.06rem; }
+  .promptbar .look{ font-size:.82rem; color:var(--soft); margin-top:8px; font-style:italic;
+    border-top:1px dotted var(--line); padding-top:8px; }
+
+  .statbar{ display:flex; gap:9px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  .stat{ background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:6px 12px;
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.78rem; color:var(--soft); }
+  .stat b{ color:var(--ink); font-size:.95rem; }
+  .stat.good{ border-color:var(--green); } .stat.good b{ color:var(--green); }
+
+  ol.formula{ list-style:none; counter-reset:f; margin-bottom:18px; }
+  ol.formula li{ counter-increment:f; position:relative; padding-left:44px; margin-bottom:14px; font-size:.94rem; color:var(--soft); }
+  ol.formula li::before{ content:counter(f); position:absolute; left:0; top:1px; width:28px; height:28px;
+    border-radius:6px; background:var(--ink); color:var(--cream); display:flex; align-items:center;
+    justify-content:center; font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.8rem; }
+  ol.formula b{ display:block; color:var(--ink); font-size:1rem; }
+  ol.formula i{ color:var(--rust); }
+
+  label.chk{ display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:1px dotted var(--line);
+    font-size:.93rem; cursor:pointer; }
+  label.chk:last-child{ border-bottom:0; }
+  label.chk input{ margin-top:5px; width:17px; height:17px; accent-color:var(--green); flex:none; }
+
+  details.eg{ margin-top:14px; border-top:1px dotted var(--line); padding-top:12px; }
+  details.eg summary{ cursor:pointer; font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; color:var(--soft); }
+  .eg-body{ margin-top:10px; background:#faf6ee; border:1px solid var(--line); border-radius:9px; padding:14px 16px; font-size:.94rem; color:var(--soft); }
+  .eg-body p{ margin-bottom:10px; } .eg-body p:last-child{ margin-bottom:0; }
+  .eg-body b{ display:block; font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.6rem;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--rust); }
+  .eg-warn{ font-size:.85rem; color:var(--rust); margin-top:10px; font-style:italic; }
+
+  .actions{ display:flex; gap:10px; align-items:center; margin-top:18px; flex-wrap:wrap; }
+  .saved{ font-size:.8rem; color:var(--soft); font-style:italic; }
+  .msg{ border-radius:9px; padding:12px 15px; font-size:.93rem; margin-bottom:14px; }
+  .msg.err{ background:var(--red-soft); border:1px solid var(--red); color:var(--red); }
+  .msg.ok{ background:var(--green-soft); border:1px solid var(--green); }
+  .msg.wait{ background:#fbf1e8; border:1px solid var(--rust); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="topline">
+    <div>
+      <div class="eyebrow">Application Essay &middot; Summer 2026</div>
+      <h1>Summer Story Studio</h1>
+      <div class="byline">Two true stories from your summer &mdash; one that shows you solve problems, one that shows you keep going.</div>
+    </div>
+    <a class="back" href="../homework.html">&larr; My Homework</a>
+  </div>
+</header>
+
+<!-- ================= PREP ================= -->
+<div class="screen on" id="screen-prep">
+
+  <div class="note-box">
+    <h3>Read this first &mdash; 30 seconds</h3>
+    <ol>
+      <li><b>You write it. Nobody else.</b> Your parents ask questions and hand you photos, that's all. A clumsy sentence you wrote beats a polished one an adult wrote &mdash; at the interview, the person across the table will ask you about this essay, and it has to sound like you.</li>
+      <li><b>Adults ask "why".</b> Each story ends with three layers of why. Interviews usually walk down those same three layers, so say the answers out loud before you need them.</li>
+      <li><b>Photos are clues, not homework.</b> Open your own camera roll while you answer Step 1. You're looking for details &mdash; how hard the wind was blowing, how dirty your hands got, who laughed first.</li>
+    </ol>
+  </div>
+
+  <section>
+    <h2 class="sec"><span class="n">Step 1</span> Scroll the camera roll</h2>
+    <p class="lead">Open your summer photos &mdash; camping, the trips, camp. Find <b>six</b> that pass the test below, and for each one write a single line: <b>what is happening in this photo?</b> Nothing gets uploaded here; you're just writing down what you see.</p>
+
+    <div class="tip">
+      <h3>Which photos to pick</h3>
+      <ul class="do">
+        <li class="y">Photos where you are <b>doing</b> something &mdash; hands busy, body moving: pitching a tent, lighting a fire, paddling, patching a tire</li>
+        <li class="y">Photos where something went wrong &mdash; broken gear, rain, a mess, a face falling apart</li>
+        <li class="y">Photos with a real expression &mdash; tired, focused, laughing, completely zoned out</li>
+        <li class="y">Before and after &mdash; half-built versus finished</li>
+        <li class="n">Pure scenery and sunsets. Beautiful, but you're not in them</li>
+        <li class="n">Posed group shots where everyone smiles at the camera</li>
+        <li class="n">Anything so far away that nobody can tell what is going on</li>
+      </ul>
+    </div>
+
+    <div id="photoRows"></div>
+
+    <h2 class="sec" style="margin-top:30px"><span class="n">Step 1b</span> Your YouTube shorts</h2>
+    <p class="lead">The clips you cut for your teacher. Paste each link (set them to <b>Unlisted</b> when you upload, so only people with the link can watch), then answer: <b>which 3 seconds matter most, and why did you keep them?</b></p>
+    <div id="videoRows"></div>
+  </section>
+
+  <section>
+    <h2 class="sec"><span class="n">Step 2</span> Story hunt</h2>
+    <p class="lead">Eight questions to shake stories loose. <b>One line each, and skip anything that brings nothing to mind.</b> The point isn't to write well here &mdash; it's to get every candidate out of your head so you can see them side by side.</p>
+    <div id="huntRows"></div>
+
+    <div class="tip warm" style="margin-top:20px">
+      <h3>Now pick two</h3>
+      <p>The test is simple: which two moments can you still <b>hear, smell, or feel</b>? Those are your stories. Give each one a short working name.</p>
+    </div>
+    <div class="pickgrid">
+      <div class="row"><div class="q"><span class="num">One</span>Creative problem solver</div>
+        <div class="hint">I came up with something nobody else thought of.</div>
+        <input type="text" id="pick_cps" data-f="pick_cps" placeholder="A short name for this story&hellip;"></div>
+      <div class="row"><div class="q"><span class="num">Two</span>Resilience</div>
+        <div class="hint">I wanted to stop, and I didn't.</div>
+        <input type="text" id="pick_res" data-f="pick_res" placeholder="A short name for this story&hellip;"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec"><span class="n">Step 3</span> Build each story, then hand it in</h2>
+    <p class="lead">Take one at a time. Each one has five boxes to fill, a draft to write, and three whys to answer out loud with a parent. Hand them in separately &mdash; Dad or Mom reads each one and marks it.</p>
+    <div class="scard" id="card0" onclick="openStory(0)">
+      <h3>Story 1 &middot; Creative problem solver</h3>
+      <div class="zh">I found a way</div>
+      <div class="st" id="st0">Not started</div>
+    </div>
+    <div class="scard two" id="card1" onclick="openStory(1)">
+      <h3>Story 2 &middot; Resilience</h3>
+      <div class="zh">I kept going</div>
+      <div class="st" id="st1">Not started</div>
+    </div>
+    <div id="signmsg"></div>
+  </section>
+</div>
+
+<!-- ================= STORY ================= -->
+<div class="screen" id="screen-story">
+  <div class="actions" style="margin:0 0 16px"><button class="small" onclick="backToPrep()">&larr; Back to Steps 1 &amp; 2</button></div>
+
+  <div class="promptbar">
+    <div class="k" id="p-kind">Story</div>
+    <div class="v" id="p-text"></div>
+    <div class="look" id="p-look"></div>
+  </div>
+
+  <section style="margin-top:22px">
+    <h2 class="sec"><span class="n">Five boxes</span> Fill these before you write a sentence</h2>
+    <p class="lead">One or two sentences each, and fragments are completely fine. Once all five are full, the essay is about 80% done. Box 3, <b>the one detail</b>, is the most valuable sentence in the whole piece.</p>
+
+    <div class="tip warm">
+      <h3>What counts as a detail</h3>
+      <p>A detail is something your five senses can grab onto. Not <i>"it was hard"</i> &mdash; <i>"my fingers were too cold to tie the knot."</i> Not <i>"the tent broke"</i> &mdash; <i>"the snapped end kept poking through the fabric."</i></p>
+      <p>The trick: close your eyes, go back to that exact minute, and ask <b>what did I hear? what was in my hands? what did it smell like?</b> Whatever you answer goes straight into Box 3.</p>
+    </div>
+
+    <div id="boxRows"></div>
+    <details class="eg"><summary>Peek at somebody else's example</summary>
+      <div class="eg-body" id="egBody"></div>
+      <p class="eg-warn">This is somebody else's story. Borrow the shape, never the sentences &mdash; your details will look nothing like theirs, and that is exactly what makes your essay worth reading.</p>
+    </details>
+  </section>
+
+  <section>
+    <h2 class="sec"><span class="n">The draft</span> Put it together in your own voice</h2>
+    <p class="lead">Connect the boxes in the order below and you have a paragraph. <b>Use the words you actually say.</b> If you wouldn't use a word at the dinner table, leave it out &mdash; readers can always tell which sentences an adult wrote.</p>
+    <ol class="formula">
+      <li><b>Open with a moment, not a summary.</b> Don't start with <i>This summer I learned a lot about myself.</i> Admissions readers see hundreds of those. Drop straight into the scene: <i>The tent pole snapped at two in the morning.</i></li>
+      <li><b>Middle: problem &rarr; detail &rarr; what you did.</b> Keep the part where your first fix didn't work. "I solved it right away" reads as made up, and the second attempt is the interesting one anyway.</li>
+      <li><b>Ending: two or three sentences on how you felt and what you think now.</b> No slogans &mdash; <i>Never give up!</i> tells the reader nothing. Write the small true thought: <i>I still came in last, and I was fine with that.</i></li>
+    </ol>
+    <div class="statbar">
+      <div class="stat" id="st-words">Words <b>0</b></div>
+      <div class="stat" id="st-time">Time <b>0:00</b></div>
+      <div class="stat">Aim for <b>120&ndash;200</b></div>
+    </div>
+    <textarea class="big" id="draft" data-f="draft" placeholder="Start with the moment&hellip;"></textarea>
+    <div class="saved" id="savedmsg">Saved on this device as you type.</div>
+  </section>
+
+  <section>
+    <h2 class="sec"><span class="n">Self-check</span> Run through this once the draft is done</h2>
+    <div id="checkRows"></div>
+  </section>
+
+  <section>
+    <h2 class="sec"><span class="n">Why? Why? Why?</span> Out loud, with a parent in the room</h2>
+    <p class="lead">Once the essay is in, the interviewer works their way down the story &mdash; almost always along these three layers. You talk, your parent writes down <b>what you actually said</b>, not a tidied-up version of it.</p>
+    <div id="whyRows"></div>
+  </section>
+
+  <div id="handmsg"></div>
+  <div class="actions">
+    <button class="primary" onclick="handIn()">Hand this story in</button>
+    <button class="small" onclick="backToPrep()">Save and come back later</button>
+  </div>
+</div>
+
+<!-- ================= DONE ================= -->
+<div class="screen" id="screen-done">
+  <section style="margin-top:0">
+    <h2 class="sec"><span class="n">Handed in</span> Nice work</h2>
+    <div class="msg ok" id="done-msg"></div>
+    <div class="actions"><button class="primary" onclick="backToPrep()">Back to the studio</button></div>
+  </section>
+</div>
+
+</div>
+
+<script>
+/* =====================================================================
+   Summer Story Studio — the private-school application essay, built from
+   the kid's own summer. Two stories (creative problem solver · resilience),
+   each broken into five boxes, a draft, a self-check and a why ladder.
+
+   Handing in goes through JS/quiz-report.js exactly like Writing/Writing-Lab.html:
+   this page exposes the globals its `practice` adapter matches on —
+   startRound / finish / ROUNDS / round / solvedFirst — and puts the piece in
+   REPORT_WRITING just around finish(), so the attempt and writings/{same ID}
+   ride the same offline-safe queue. A parent marks it from parent.html.
+
+   Nothing is uploaded: Step 1 asks the kid to read their own camera roll and
+   write down what they see (GitHub Pages has nowhere to put photos).
+   Design: HOMEWORK-SYSTEM.md, 2026-09-20 文书故事工作台.
+===================================================================== */
+
+/* ---------- content ---------- */
+var STORIES = [
+  { id:'story-cps', key:'cps',
+    title:'Creative problem solver',
+    t:'Tell a true story from this summer that shows you are a creative problem solver.',
+    look:'The reader wants the moment your first idea failed and you looked around for what else you had. That second attempt is the whole essay.' },
+  { id:'story-res', key:'res',
+    title:'Resilience',
+    t:'Tell a true story from this summer that shows resilience — a time you wanted to stop and kept going.',
+    look:'Nobody believes "I never gave up". They believe the specific minute you almost did, and what you told yourself instead.' }
+];
+
+var PHOTOQ = [
+  'Photo 1 — what is happening in it?',
+  'Photo 2 — what is happening in it?',
+  'Photo 3 — what is happening in it?',
+  'Photo 4 — what is happening in it?',
+  'Photo 5 — what is happening in it?',
+  'Photo 6 — what is happening in it?'
+];
+
+var HUNT = [
+  ['Did something break, get lost, or stop working — and you fixed it?', "Gear, a bike, a zipper, a fire that wouldn't light."],
+  ['Did the plan fall apart?', 'Rain, a wrong turn, something left at home, running late.'],
+  ["Was there a moment you really wanted to quit — and didn't?", 'The hill, the last kilometre, the third night.'],
+  ['Did you solve something in a way nobody else thought of?', 'Using the wrong tool for the right job counts.'],
+  ['Were you the slowest, smallest, or least experienced in the group?', 'Being at the back is a story.'],
+  ['Did you get somebody else out of a mess?', 'A sibling, a tentmate, a stranger at the next site.'],
+  ['Did you have to do something you had never done before?', 'First time leading, first time gutting a fish, first time sleeping away.'],
+  ["What's the moment you still tell people about?", "If you've told it twice already, it's a good story."]
+];
+
+var BOXES = [
+  ['when',    'When · Where · Who',                'Time, place, who was there. One sentence, then move on.'],
+  ['problem', 'The problem',                                'What went wrong? Also one sentence. The more specific, the better.'],
+  ['detail',  'The one detail ★',                      'The most important box. Something you heard, touched, smelled, or saw.'],
+  ['did',     'What I did — and what failed first',    'What did you try first? Did it work? What did you do next?'],
+  ['felt',    'How I felt · what I think now',         'Two or three sentences. How did it feel then? Looking back, what do you make of it?']
+];
+
+var EG = {
+  cps: [
+    ['When · Where · Who', 'Second night at Porteau Cove, August. Me, my dad, and my sister.'],
+    ['The problem', 'A tent pole snapped in the wind and the tent sagged down onto our sleeping bags.'],
+    ['The one detail ★', 'The broken end kept poking through the fabric, and my sleeping bag already smelled like wet dog.'],
+    ['What I did — and what failed first', "First I tried tape, but it wouldn't stick to the wet pole. Then I slid the pole inside a spare tent peg and lashed it tight with my water-bottle strap."],
+    ['How I felt · what I think now', 'I was mostly relieved, not proud. I think the first fix almost never works — you just look at what you already have and try the next thing.']
+  ],
+  res: [
+    ['When · Where · Who', 'Day three of camp on Anvil Island. My kayak group, and me at the back of it.'],
+    ['The problem', 'My arms were burning and the group was already way ahead. I wanted to ask the counsellor to tow me in.'],
+    ['The one detail ★', 'My paddle kept slapping the water instead of slicing it, and every slap threw cold water across my legs.'],
+    ['What I did — and what failed first', 'Trying to catch the group just made it worse. So I stopped doing that and paddled to the next red buoy. Then the next one.'],
+    ['How I felt · what I think now', 'I came in last and I was fine with it. Finishing slowly turned out to be a completely different thing from quitting.']
+  ]
+};
+
+var CHECKS = [
+  ['c1', 'My first sentence is a moment or an action, not a summary.'],
+  ['c2', 'There is at least one sensory detail — something I heard, touched, smelled, or saw.'],
+  ['c3', 'I kept the part where my first attempt failed.'],
+  ['c4', 'The ending is in my words, not words an adult would use.'],
+  ['c5', "There is no word in here I wouldn't say out loud."],
+  ['c6', "I read the whole thing aloud and it didn't feel strange."]
+];
+
+var WHYS = [
+  ['w1', 'Why did you solve it that way, and not some other way?', 'There was a reason, even if the reason was "it was the only thing within reach".'],
+  ['w2', 'Why did this matter to you?', "What would have been lost if it hadn't worked out?"],
+  ['w3', 'What would you do differently next time?', '"Nothing" is not an answer — find one thing.']
+];
+
+/* ---------- globals quiz-report.js's `practice` adapter matches on ---------- */
+var ROUNDS = STORIES.map(function (s) { return { name: s.title, items: [1, 2, 3, 4, 5, 6] }; });
+var round = 0;
+var solvedFirst = 0;         // must be a number when quiz-report.js looks; null at hand-in = not marked yet
+var REPORT_WRITING = null;   // set just around finish(); quiz-report.js sends it to `writings`
+
+/* ---------- helpers ---------- */
+var KEY = 'summerStoryStudio.v1';
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c){
+  return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); }
+function words(s){ var m = String(s || '').trim().match(/[A-Za-z0-9'’\-]+/g); return m ? m.length : 0; }
+function mmss(s){ var n = Math.max(0, Math.round(s)); return Math.floor(n/60) + ':' + ('0' + (n%60)).slice(-2); }
+function trim(s){ return String(s || '').trim(); }
+
+/* ---------- state ---------- */
+var S = { prep:{}, cps:{ checks:{} }, res:{ checks:{} } };
+var cur = null;              // the story being worked on: STORIES[round]
+var tick = null, tickFrom = 0;
+var FB = null, ME = null;
+
+function load(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    if (raw){
+      var d = JSON.parse(raw);
+      if (d && typeof d === 'object'){
+        S.prep = d.prep || {};
+        S.cps  = d.cps  || {}; S.cps.checks  = S.cps.checks  || {};
+        S.res  = d.res  || {}; S.res.checks  = S.res.checks  || {};
+      }
+    }
+  }catch(e){}
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+/* ---------- build the prep screen ---------- */
+function buildPrep(){
+  $('photoRows').innerHTML = PHOTOQ.map(function (q, i){
+    return '<div class="row"><div class="q"><span class="num">' + ('0' + (i+1)).slice(-2) + '</span>' + esc(q) + '</div>' +
+      '<input type="text" data-p="photo' + i + '" placeholder="One line — what is going on here?"></div>';
+  }).join('');
+
+  $('videoRows').innerHTML = [0,1,2].map(function (i){
+    return '<div class="row"><div class="q"><span class="num">Clip ' + (i+1) + '</span>Link and the 3 seconds that matter</div>' +
+      '<input type="text" data-p="vurl' + i + '" placeholder="https://youtu.be/…" style="margin-bottom:8px">' +
+      '<textarea data-p="vnote' + i + '" placeholder="Which 3 seconds matter most, and why did you keep them?"></textarea></div>';
+  }).join('');
+
+  $('huntRows').innerHTML = HUNT.map(function (h, i){
+    return '<div class="row"><div class="q"><span class="num">' + ('0' + (i+1)).slice(-2) + '</span>' + esc(h[0]) + '</div>' +
+      '<div class="hint">' + esc(h[1]) + '</div>' +
+      '<input type="text" data-p="hunt' + i + '" placeholder="Whatever comes to mind. Skip it if nothing does…"></div>';
+  }).join('');
+
+  document.querySelectorAll('[data-p]').forEach(function (el){
+    el.value = S.prep[el.dataset.p] || '';
+    el.addEventListener('input', function (){ S.prep[el.dataset.p] = el.value; save(); });
+  });
+  ['pick_cps','pick_res'].forEach(function (f){
+    var el = $(f);
+    el.value = S.prep[f] || '';
+    el.addEventListener('input', function (){ S.prep[f] = el.value; save(); refreshCards(); });
+  });
+  refreshCards();
+}
+
+function refreshCards(){
+  STORIES.forEach(function (s, i){
+    var d = S[s.key] || {}, name = trim(S.prep['pick_' + s.key]);
+    var el = $('st' + i);
+    if (d.handedInAt){
+      el.className = 'st done';
+      el.textContent = '✓ Handed in · draft ' + (d.draftNo || 1) + ' · ' + new Date(d.handedInAt).toLocaleDateString();
+    } else if (words(d.draft) > 0){
+      el.className = 'st';
+      el.textContent = 'In progress · ' + words(d.draft) + ' words' + (name ? ' · ' + name : '');
+    } else {
+      el.className = 'st';
+      el.textContent = name ? 'Ready to build · ' + name : 'Not started';
+    }
+  });
+}
+
+/* ---------- the story screen ---------- */
+function show(which){
+  ['prep','story','done'].forEach(function (n){ $('screen-' + n).className = 'screen' + (n === which ? ' on' : ''); });
+  window.scrollTo(0, 0);
+}
+
+function openStory(i){
+  startRound(i);                    // quiz-report.js starts timing the round here
+  cur = STORIES[i];
+  var d = S[cur.key];
+  $('p-kind').textContent = 'Story ' + (i + 1) + (trim(S.prep['pick_' + cur.key]) ? ' · ' + trim(S.prep['pick_' + cur.key]) : '');
+  $('p-text').textContent = cur.t;
+  $('p-look').textContent = cur.look;
+  $('handmsg').innerHTML = '';
+
+  $('boxRows').innerHTML = BOXES.map(function (b, k){
+    return '<div class="row"><div class="q"><span class="num">0' + (k+1) + '</span>' + esc(b[1]) + '</div>' +
+      '<div class="hint">' + esc(b[2]) + '</div>' +
+      '<textarea data-f="' + b[0] + '" placeholder="' + (k === 2 ? 'What I heard, touched, smelled…' : 'One or two sentences…') + '"></textarea></div>';
+  }).join('');
+
+  $('egBody').innerHTML = EG[cur.key].map(function (r){
+    return '<p><b>' + esc(r[0]) + '</b>' + esc(r[1]) + '</p>';
+  }).join('');
+
+  $('checkRows').innerHTML = CHECKS.map(function (c){
+    return '<label class="chk"><input type="checkbox" data-c="' + c[0] + '"><span>' + esc(c[1]) + '</span></label>';
+  }).join('');
+
+  $('whyRows').innerHTML = WHYS.map(function (w){
+    return '<div class="row"><div class="q">' + esc(w[1]) + '</div><div class="hint">' + esc(w[2]) + '</div>' +
+      '<textarea data-f="' + w[0] + '" placeholder="Write down exactly what was said…"></textarea></div>';
+  }).join('');
+
+  // #draft is a fixed element (the rows around it are rebuilt each time), so bind it once and always
+  // write to the story that is open now — a listener left over from the other story would otherwise
+  // overwrite its draft with this one's text.
+  document.querySelectorAll('#screen-story [data-f]').forEach(function (el){
+    el.value = d[el.dataset.f] || '';
+    if (el.dataset.bound) return;
+    el.dataset.bound = '1';
+    el.addEventListener('input', function (){
+      S[cur.key][el.dataset.f] = el.value;
+      if (el.dataset.f === 'draft') countDraft();
+      save();
+    });
+  });
+  document.querySelectorAll('#screen-story [data-c]').forEach(function (el){
+    el.checked = !!d.checks[el.dataset.c];
+    if (el.dataset.bound) return;
+    el.dataset.bound = '1';
+    el.addEventListener('change', function (){ S[cur.key].checks[el.dataset.c] = el.checked; save(); });
+  });
+  if (!$('draft').dataset.pbound){
+    $('draft').dataset.pbound = '1';
+    $('draft').addEventListener('paste', function (e){
+      var t = e.clipboardData || window.clipboardData;
+      var s = t ? (t.getData('text') || '') : '';
+      var dd = S[cur.key];
+      dd.pasted = (dd.pasted || 0) + s.length;
+      save();
+    });
+  }
+
+  countDraft();
+  startTick();
+  show('story');
+}
+
+function countDraft(){
+  var n = words(S[cur.key].draft);
+  $('st-words').innerHTML = 'Words <b>' + n + '</b>';
+  $('st-words').className = 'stat' + (n >= 120 && n <= 220 ? ' good' : '');
+}
+
+function startTick(){
+  stopTick();
+  tickFrom = Date.now();
+  tick = setInterval(function (){
+    var d = S[cur.key];
+    $('st-time').innerHTML = 'Time <b>' + mmss((d.secs || 0) + (Date.now() - tickFrom) / 1000) + '</b>';
+  }, 1000);
+  $('st-time').innerHTML = 'Time <b>' + mmss(S[cur.key].secs || 0) + '</b>';
+}
+function stopTick(){
+  if (tick){ clearInterval(tick); tick = null; }
+  if (cur && tickFrom){ S[cur.key].secs = (S[cur.key].secs || 0) + (Date.now() - tickFrom) / 1000; tickFrom = 0; save(); }
+}
+
+function backToPrep(){ stopTick(); refreshCards(); show('prep'); }
+
+/* ---------- handing in ---------- */
+function pieceText(d){
+  var name = trim(S.prep['pick_' + cur.key]);
+  var L = [];
+  L.push(cur.title.toUpperCase() + (name ? ' — ' + name : ''));
+  L.push('');
+  L.push(trim(d.draft));
+  L.push('');
+  L.push('--- BUILDING BLOCKS ---');
+  BOXES.forEach(function (b){ L.push(b[1] + ': ' + (trim(d[b[0]]) || '—')); });
+  L.push('');
+  L.push('--- THE WHY LADDER (said out loud) ---');
+  WHYS.forEach(function (w){ L.push(w[1] + ' ' + (trim(d[w[0]]) || '—')); });
+  return L.join('\n').slice(0, 20000);
+}
+
+function msg(cls, html){ $('handmsg').innerHTML = '<div class="msg ' + cls + '">' + html + '</div>'; }
+
+function handIn(){
+  var d = S[cur.key];
+  var empty = BOXES.filter(function (b){ return !trim(d[b[0]]); });
+  if (empty.length){
+    msg('err', 'Box <b>' + esc(empty[0][1]) + '</b> is still empty. Fill all five before handing this in — they are what the essay is made of.');
+    return;
+  }
+  var n = words(d.draft);
+  if (n < 60){
+    msg('err', 'The draft is only ' + n + ' words. Aim for 120–200 — write a bit more before handing it in.');
+    return;
+  }
+  var noWhy = WHYS.filter(function (w){ return !trim(d[w[0]]); }).length;
+  if (noWhy && !confirm('The why ladder is still empty. It is the interview prep — hand in anyway?')) return;
+  if (!ME){
+    msg('err', "You are not signed in, so this can't reach Dad or Mom. It is saved on this device — " +
+      '<a class="back" href="../homework.html">sign in on My Homework</a>, then come back and hand it in.');
+    return;
+  }
+
+  stopTick();
+  d.draftNo = (d.draftNo || 0) + 1;
+  var text = pieceText(d);
+  var w = { pid: cur.id, prompt: cur.t, promptKind: 'essay', text: text,
+            words: n, secs: Math.round(d.secs || 0), pasted: d.pasted || 0,
+            status: 'submitted', draftNo: d.draftNo, reportVersion: 2 };
+
+  solvedFirst = null;                  // no mark yet — a parent adds it when marking
+  REPORT_WRITING = w;
+  finish();                            // records the attempt, then the writing
+  REPORT_WRITING = null;
+  solvedFirst = 0;
+
+  d.handedInAt = Date.now();
+  save();
+  refreshCards();
+
+  $('done-msg').innerHTML = (navigator.onLine === false
+      ? 'You are offline right now, so it is saved on this device and goes out as soon as the internet is back. '
+      : '') +
+    '<b>' + esc(cur.title) + '</b> is in. Dad or Mom will read it and mark it — the marks show up on <b>My Homework</b>. ' +
+    (S[cur.key === 'cps' ? 'res' : 'cps'].handedInAt
+      ? 'Both stories are handed in. Nicely done.'
+      : 'One more story to go.');
+  show('done');
+}
+
+/* ---------- quiz-report.js hooks (see HOMEWORK-SYSTEM.md §四) ---------- */
+// Declared as plain functions so JS/quiz-report.js's `practice` adapter can wrap them:
+// startRound(r) begins timing a round, finish() ends it and records the attempt.
+function startRound(r){ round = r; }
+function finish(){ /* quiz-report.js reads solvedFirst + REPORT_WRITING after this runs */ }
+
+/* ---------- boot ---------- */
+(function init(){
+  load();
+  buildPrep();
+  window.addEventListener('beforeunload', function (){ stopTick(); save(); });
+
+  // quiz-report.js loads after this script; once it has, follow the kid's sign-in.
+  window.addEventListener('load', function (){
+    if (!window.QuizReport || !QuizReport.ready) return;
+    QuizReport.ready.then(function (fb){
+      FB = fb;
+      fb.auth.onAuthStateChanged(function (u){
+        ME = u && !u.isAnonymous ? u : null;
+        $('signmsg').innerHTML = ME ? '' :
+          '<div class="msg wait">You are not signed in yet. You can write here and it stays on this device, but to hand a story in, ' +
+          '<a class="back" href="../homework.html">sign in on My Homework</a> first.</div>';
+      });
+    }).catch(function (){});
+  });
+})();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
