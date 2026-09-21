@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warren · Application Essay — Marked</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --ink:#1c1a17;
+    --soft:#5b4636;
+    --cream:#f6f3ed;
+    --paper:#fffdf7;
+    --rust:#b4622f;
+    --green:#3f7d4e;
+    --green-soft:#eaf3ec;
+    --red:#c0392b;
+    --red-soft:#fbeaea;
+    --line:#e2d9c9;
+    --gold:#c9a227;
+    --blue:#2f5d7c;
+    --blue-soft:#e9f0f5;
+  }
+  body{
+    font-family: Georgia, "Times New Roman", serif;
+    background: var(--cream);
+    color: var(--ink);
+    line-height:1.65;
+    padding: 34px 18px 70px;
+  }
+  .wrap{ max-width: 900px; margin:0 auto; }
+
+  /* ---------- banner ---------- */
+  .banner{
+    background:var(--green); color:#fff; border-radius:12px;
+    padding:18px 22px; margin-bottom:26px;
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  }
+  .banner .tick{ font-size:2rem; line-height:1; }
+  .banner .bt{ font-size:1.25rem; font-weight:700; letter-spacing:-.2px; }
+  .banner .bs{ font-size:.92rem; opacity:.92; margin-top:2px; }
+
+  /* ---------- header ---------- */
+  header{ border-bottom:3px double var(--line); padding-bottom:22px; margin-bottom:30px; }
+  .eyebrow{
+    font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size:.7rem; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--rust); margin-bottom:8px;
+  }
+  h1{ font-size:1.9rem; line-height:1.2; letter-spacing:-.4px; }
+  .byline{ color:var(--soft); font-size:.95rem; margin-top:8px; font-style:italic; }
+
+  .scorebar{ display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
+  .chip{
+    background:var(--paper); border:1px solid var(--line); border-radius:8px;
+    padding:9px 14px; min-width:112px;
+  }
+  .chip .k{
+    font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size:.62rem; letter-spacing:.13em; text-transform:uppercase; color:var(--soft);
+  }
+  .chip .v{ font-size:1.15rem; font-weight:700; margin-top:1px; }
+  .chip.good .v{ color:var(--green); }
+  .chip.warn .v{ color:var(--rust); }
+  .chip.bad  .v{ color:var(--red); }
+
+  /* ---------- sections ---------- */
+  section{ margin-top:44px; }
+  h2{
+    font-size:1.25rem; letter-spacing:-.2px;
+    display:flex; align-items:baseline; gap:10px;
+    padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:18px;
+  }
+  h2 .n{
+    font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size:.75rem; color:var(--rust); letter-spacing:.1em;
+  }
+  h3{ font-size:1rem; margin:22px 0 8px; color:var(--soft); }
+  p{ margin-bottom:12px; }
+  .lead{ color:var(--soft); font-size:.95rem; margin-bottom:16px; }
+
+  /* ---------- original ---------- */
+  .prompt{
+    background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--rust);
+    border-radius:0 8px 8px 0; padding:14px 18px; margin-bottom:20px; font-size:.92rem; color:var(--soft);
+  }
+  .prompt b{ color:var(--ink); }
+
+  .manuscript{
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:26px 28px; font-size:1.04rem; line-height:1.9; white-space:pre-wrap;
+  }
+
+  /* ---------- annotated ---------- */
+  .annotated{
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:24px 26px; font-size:1.04rem; line-height:2;
+  }
+  .mark{
+    cursor:pointer; border-radius:3px; padding:1px 2px;
+    transition:background .15s ease, box-shadow .15s ease;
+  }
+  .mark sup{
+    font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size:.6rem; font-weight:700; padding:0 2px; vertical-align:super;
+  }
+  .mark.g{ background:var(--green-soft); box-shadow:inset 0 -2px 0 var(--green); }
+  .mark.g sup{ color:var(--green); }
+  .mark.f{ background:var(--red-soft); box-shadow:inset 0 -2px 0 var(--red); }
+  .mark.f sup{ color:var(--red); }
+  .mark:hover{ filter:brightness(.97); }
+  .mark.active{ box-shadow:inset 0 -3px 0 currentColor, 0 0 0 3px rgba(180,98,47,.18); }
+
+  .legend{
+    display:flex; gap:18px; flex-wrap:wrap; font-size:.82rem; color:var(--soft);
+    margin-bottom:14px; font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace; letter-spacing:.03em;
+  }
+  .swatch{ display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-1px; margin-right:6px; }
+  .swatch.g{ background:var(--green-soft); border:1px solid var(--green); }
+  .swatch.f{ background:var(--red-soft); border:1px solid var(--red); }
+
+  .notes{ margin-top:22px; display:grid; gap:12px; }
+  .note{
+    border:1px solid var(--line); border-radius:9px; background:var(--paper);
+    padding:13px 16px; scroll-margin-top:20px;
+    transition:box-shadow .2s ease, border-color .2s ease;
+  }
+  .note.g{ border-left:4px solid var(--green); }
+  .note.f{ border-left:4px solid var(--red); }
+  .note.flash{ box-shadow:0 0 0 3px rgba(180,98,47,.22); border-color:var(--rust); }
+  .note .h{
+    font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; color:var(--soft);
+    display:flex; align-items:center; gap:8px; margin-bottom:5px; flex-wrap:wrap;
+  }
+  .note.g .h .tag{ color:var(--green); }
+  .note.f .h .tag{ color:var(--red); }
+  .note q{ color:var(--soft); font-style:italic; }
+  .note p{ margin:0; font-size:.95rem; }
+  .note p + p{ margin-top:7px; }
+  .note .try{ background:var(--green-soft); border-radius:5px; padding:7px 10px; font-size:.92rem; }
+  .note .try b{ color:var(--green); }
+
+  /* ---------- table ---------- */
+  table{ width:100%; border-collapse:collapse; background:var(--paper); border:1px solid var(--line); border-radius:8px; overflow:hidden; font-size:.94rem; }
+  th, td{ text-align:left; padding:9px 13px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{
+    font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size:.66rem; letter-spacing:.11em; text-transform:uppercase; color:var(--soft); background:#faf6ee;
+  }
+  tr:last-child td{ border-bottom:none; }
+  td.wrong{ color:var(--red); text-decoration:line-through; }
+  td.right{ color:var(--green); font-weight:700; }
+  td.hint{ color:var(--soft); font-size:.87rem; }
+  td.sc{ font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace; font-weight:700; white-space:nowrap; }
+  td.sc.lo{ color:var(--red); }
+  td.sc.mid{ color:var(--rust); }
+  td.sc.hi{ color:var(--green); }
+
+  /* ---------- before / after ---------- */
+  .ba{ display:grid; gap:14px; }
+  .pair{ background:var(--paper); border:1px solid var(--line); border-radius:9px; overflow:hidden; }
+  .pair .b, .pair .a{ padding:13px 16px; font-size:.97rem; }
+  .pair .b{ background:var(--red-soft); border-bottom:1px solid var(--line); }
+  .pair .a{ background:var(--green-soft); }
+  .pair .lab{
+    font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size:.62rem; letter-spacing:.13em; text-transform:uppercase; display:block; margin-bottom:4px;
+  }
+  .pair .b .lab{ color:var(--red); }
+  .pair .a .lab{ color:var(--green); }
+  .pair .why{ padding:11px 16px; font-size:.88rem; color:var(--soft); background:var(--paper); }
+
+  /* ---------- fix list ---------- */
+  ol.fixes{ counter-reset:f; list-style:none; display:grid; gap:14px; }
+  ol.fixes li{
+    background:var(--paper); border:1px solid var(--line); border-radius:9px;
+    padding:15px 18px 15px 56px; position:relative;
+  }
+  ol.fixes li::before{
+    counter-increment:f; content:counter(f);
+    position:absolute; left:16px; top:14px;
+    width:26px; height:26px; border-radius:50%;
+    background:var(--rust); color:#fff; font-weight:700; font-size:.85rem;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  ol.fixes b{ display:block; margin-bottom:3px; }
+  ol.fixes span{ font-size:.93rem; color:var(--soft); }
+
+  /* ---------- plan ---------- */
+  .plan{ display:grid; gap:12px; }
+  .para{
+    background:var(--paper); border:1px solid var(--line); border-radius:9px; padding:14px 17px;
+    border-left:4px solid var(--blue);
+  }
+  .para.star{ border-left-color:var(--gold); background:#fff9ec; }
+  .para .pn{
+    font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size:.66rem; letter-spacing:.12em; text-transform:uppercase; color:var(--blue); margin-bottom:4px;
+  }
+  .para.star .pn{ color:#96751a; }
+  .para .pt{ font-weight:700; margin-bottom:4px; }
+  .para .pd{ font-size:.93rem; color:var(--soft); }
+  .para .pd em{ color:var(--ink); }
+
+  .rules{ display:grid; gap:9px; margin-top:6px; }
+  .rule{ background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:11px 14px; font-size:.94rem; }
+  .rule .no{ color:var(--red); font-weight:700; }
+  .rule .yes{ color:var(--green); font-weight:700; }
+
+  .cta{
+    display:inline-block; background:var(--rust); color:#fff; text-decoration:none;
+    border-radius:9px; padding:13px 22px; font-size:1.02rem; font-weight:700; margin-top:6px;
+  }
+  .cta:hover{ filter:brightness(1.07); }
+  .ctanote{ font-size:.86rem; color:var(--soft); margin-top:9px; }
+
+  /* ---------- checklist ---------- */
+  .checklist{ display:grid; gap:9px; }
+  .chk{
+    display:flex; align-items:flex-start; gap:11px; cursor:pointer;
+    background:var(--paper); border:1px solid var(--line); border-radius:9px; padding:12px 15px;
+    user-select:none; transition:background .15s ease, border-color .15s ease;
+  }
+  .chk .box{
+    flex:none; width:21px; height:21px; border:2px solid var(--soft); border-radius:5px;
+    display:flex; align-items:center; justify-content:center; font-size:.8rem; color:#fff; margin-top:1px;
+  }
+  .chk.done{ background:var(--green-soft); border-color:var(--green); }
+  .chk.done .box{ background:var(--green); border-color:var(--green); }
+  .chk.done .box::after{ content:"✓"; }
+  .chk.done .txt{ color:var(--green); }
+  .chk .txt{ font-size:.96rem; }
+  .chk .txt small{ display:block; color:var(--soft); font-size:.83rem; margin-top:2px; }
+  .progress{
+    font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size:.78rem; color:var(--soft); margin-top:12px; letter-spacing:.06em;
+  }
+
+  /* ---------- notes / callouts ---------- */
+  .endnote{ background:#fff9ec; border:1px solid var(--gold); border-radius:10px; padding:24px 26px; }
+  .endnote p:last-child{ margin-bottom:0; }
+  .endnote .sig{ font-style:italic; color:var(--soft); font-size:.9rem; margin-top:16px; }
+
+  .callout{
+    background:var(--blue-soft); border:1px solid #bcd0dd; border-radius:9px;
+    padding:16px 18px; font-size:.95rem;
+  }
+  .callout b{ color:var(--blue); }
+  .callout p:last-child{ margin-bottom:0; }
+
+  footer{
+    margin-top:52px; padding-top:18px; border-top:1px solid var(--line);
+    color:var(--soft); font-size:.82rem; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+  footer a{ color:var(--rust); }
+
+  @media (max-width:600px){
+    body{ padding:24px 13px 50px; }
+    h1{ font-size:1.5rem; }
+    .manuscript, .annotated{ padding:18px 16px; font-size:1rem; }
+    .banner .bt{ font-size:1.1rem; }
+  }
+  @media print{
+    body{ background:#fff; }
+    .chk, .note, .pair, .para{ break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="banner">
+    <span class="tick">✅</span>
+    <span>
+      <div class="bt">Marked — 已批改完毕</div>
+      <div class="bs">Read every note on this page. Then write the whole thing again — draft 2.</div>
+    </span>
+  </div>
+
+  <header>
+    <div class="eyebrow">Private school application · Personal essay · Draft 1</div>
+    <h1>“How I overcame my fear of public speaking”</h1>
+    <p class="byline">Warren, age 12 · handed in 20 September 2026 · 391 words · marked against what an admissions reader looks for — not against SSAT grammar</p>
+
+    <div class="scorebar">
+      <div class="chip warn"><div class="k">Overall</div><div class="v">3 / 6</div></div>
+      <div class="chip good"><div class="k">Story</div><div class="v">Real</div></div>
+      <div class="chip bad"><div class="k">Opening</div><div class="v">Announces</div></div>
+      <div class="chip bad"><div class="k">Paragraphs</div><div class="v">1 huge</div></div>
+      <div class="chip bad"><div class="k">The turn</div><div class="v">Missing</div></div>
+      <div class="chip warn"><div class="k">Ending</div><div class="v">About marks</div></div>
+    </div>
+  </header>
+
+  <!-- 1. THE STANDARD -->
+  <section>
+    <h2><span class="n">01</span> What this is being marked against</h2>
+    <p class="lead">An admissions reader gets a few hundred of these in a season and most get about two minutes each. They are not marking your English — that is what the SSAT is for. They are asking one question: <b>can I picture this kid in our classroom?</b> Five things decide it.</p>
+
+    <table>
+      <thead><tr><th>What they look for</th><th>What that means</th><th>You</th></tr></thead>
+      <tbody>
+        <tr><td><b>Only you could have written it</b></td><td>If a classmate could swap in their name and hand it in, it isn't finished.</td><td class="sc hi">4 / 6</td></tr>
+        <tr><td><b>Detail, not adjectives</b></td><td>“It was terrifying” proves nothing. “My hands were shaking” proves it.</td><td class="sc mid">3 / 6</td></tr>
+        <tr><td><b>The reader does the work</b></td><td>You never name the quality. You show it and let them say the word themselves.</td><td class="sc mid">3 / 6</td></tr>
+        <tr><td><b>You are the one who acted</b></td><td>Something changed — and <i>you</i> are the reason, not time passing, not your mum.</td><td class="sc lo">2 / 6</td></tr>
+        <tr><td><b>A real thought at the end</b></td><td>Two or three honest sentences. Not a slogan, not your report card.</td><td class="sc lo">2 / 6</td></tr>
+      </tbody>
+    </table>
+
+    <p class="lead" style="margin-top:14px">Overall <b>3 / 6 — developing</b>. You have a true story with a genuinely good moment in it, and that is the hard part to find. What is not there yet is the shape: the piece announces itself, runs the whole thing together in one block, and then skips the part the reader actually came for.</p>
+  </section>
+
+  <!-- 2. AS HANDED IN -->
+  <section>
+    <h2><span class="n">02</span> What you handed in</h2>
+    <div class="prompt">
+      <b>The task:</b> tell one true story about something you did where something went wrong or turned out harder than you expected, and what you did about it.
+      <br><b>Handed in:</b> 20 September 2026 · 391 words · 3 paragraphs, but the middle one is 330 words on its own.
+    </div>
+    <div class="manuscript">In this story I'll be explaining how I overcame my fear of public speaking and how it affected me as a person.
+
+ Before I had public speaking class, I would have some opportunities in school to speak in public such as assemblies, or presentations. During these sessions I would feel terrified which caused me to stutter, miss words, and lose track of where I was on the page. Because of this,  no one wanted to be my partner for group projects involving speaking. When I told my mom about this she signed me up for a public speaking class without even telling me as she knew that I would not approve. On the first day of class, everyone had a speech and was reciting them out loud. They even used hand gestures which made them look extremely professional. When it was my turn, I didn't prepare a speech as it was my first class. Therefore, my teacher gave me the topic “talk about a time when someone else saved you from doing something humiliating” and told me to improvise. I got on that stage, hands shaking and just stood there for what felt like 5 minutes without saying a word. Eventually the teacher just told me to come down and said that he needed to talk to my parents about an assessment of my level. I walked down from that stage probably looking as red as a tomato while everyone was staring at me looking annoyed. The next week when I came back, I got to know the process of how they did things there. First the teacher would give you a topic and you would have to write a speech about it, then you would memorise the speech and say it in front of the class. At first I would just get on stage and not say a word and I would be told to get off but slowly I improved and started actually talking until I could get on stage and was just about as good as everyone else.
+
+Ultimately the process was quite terrifying. However, now when I speak in front of the class I don't stutter at all and people actually want me to be their partner now! This affected me tremendously as it caused me to get higher marks on presentations due to new found confidence.</div>
+  </section>
+
+  <!-- 3. MARKED UP -->
+  <section>
+    <h2><span class="n">03</span> Marked up — tap any highlight</h2>
+    <div class="legend">
+      <span><span class="swatch g"></span>this works — keep it in draft 2</span>
+      <span><span class="swatch f"></span>this is costing you</span>
+    </div>
+
+    <div class="annotated" id="annotated">
+      <span class="mark f" data-note="n1">In this story I'll be explaining how I overcame my fear of public speaking and how it affected me as a person.<sup>1</sup></span>
+      Before I had public speaking class, I would have some opportunities in school to speak in public such as assemblies, or presentations.
+      <span class="mark g" data-note="n2">During these sessions I would feel terrified which caused me to stutter, miss words, and lose track of where I was on the page.<sup>2</sup></span>
+      <span class="mark f" data-note="n3">Because of this, no one wanted to be my partner for group projects involving speaking.<sup>3</sup></span>
+      <span class="mark g" data-note="n4">When I told my mom about this she signed me up for a public speaking class without even telling me as she knew that I would not approve.<sup>4</sup></span>
+      On the first day of class, everyone had a speech and was reciting them out loud. They even used hand gestures which made them look extremely professional. When it was my turn, I didn't prepare a speech as it was my first class.
+      <span class="mark f" data-note="n5">Therefore,<sup>5</sup></span> my teacher gave me the topic
+      <span class="mark g" data-note="n6">“talk about a time when someone else saved you from doing something humiliating”<sup>6</sup></span> and told me to improvise.
+      <span class="mark f" data-note="n7">I got on that stage, hands shaking and just stood there for what felt like 5 minutes without saying a word.<sup>7</sup></span>
+      Eventually the teacher just told me to come down and
+      <span class="mark f" data-note="n8">said that he needed to talk to my parents about an assessment of my level.<sup>8</sup></span>
+      I walked down from that stage <span class="mark f" data-note="n9">probably looking as red as a tomato<sup>9</sup></span>
+      <span class="mark f" data-note="n10">while everyone was staring at me looking annoyed.<sup>10</sup></span>
+      <span class="mark f" data-note="n11">The next week when I came back, I got to know the process of how they did things there. First the teacher would give you a topic and you would have to write a speech about it, then you would memorise the speech and say it in front of the class.<sup>11</sup></span>
+      <span class="mark f" data-note="n12">At first I would just get on stage and not say a word and I would be told to get off but slowly I improved and started actually talking until I could get on stage and was just about as good as everyone else.<sup>12</sup></span>
+      <span class="mark f" data-note="n13">Ultimately the process was quite terrifying.<sup>13</sup></span>
+      However, now when I speak in front of the class I don't stutter at all and
+      <span class="mark f" data-note="n14">people actually want me to be their partner now!<sup>14</sup></span>
+      <span class="mark f" data-note="n15">This affected me tremendously as it caused me to get higher marks on presentations due to new found confidence.<sup>15</sup></span>
+    </div>
+
+    <div class="notes">
+
+      <div class="note f" id="n1"><div class="h"><span class="tag">1 · Fix</span> You announced the essay</div>
+        <p>A reader can see what the essay is about by reading it. Telling them first is like explaining a joke before you tell it — and it uses up the one sentence that decides whether they read carefully or skim.</p>
+        <p class="try"><b>Draft 2:</b> delete this sentence completely. Open on the stage, in the silence. Do not replace it with a different summary.</p>
+      </div>
+
+      <div class="note g" id="n2"><div class="h"><span class="tag">2 · Good</span> Fear shown as facts</div>
+        <p>You didn't write “I was very nervous.” You wrote what the fear actually <i>did</i> — stutter, miss words, lose your place on the page. Three specific things. That is exactly the move the rest of the essay needs more of.</p>
+      </div>
+
+      <div class="note f" id="n3"><div class="h"><span class="tag">3 · Fix</span> Big claim, no evidence</div>
+        <p>“No one wanted to be my partner” is the saddest line in the essay and you give it seven words. A reader can't feel it because you didn't put them in the room.</p>
+        <p class="try"><b>Draft 2:</b> one moment instead of the summary — the teacher says “find a partner,” and what happened in the next ten seconds. What did you look at? Who ended up with you, and how?</p>
+      </div>
+
+      <div class="note g" id="n4"><div class="h"><span class="tag">4 · Good</span> Only you could have written this</div>
+        <p>Your mum signing you up <q>without even telling me as she knew that I would not approve</q> is true, slightly funny, and tells the reader something about your family in one line. Keep it word for word.</p>
+      </div>
+
+      <div class="note f" id="n5"><div class="h"><span class="tag">5 · Fix</span> Lab-report word</div>
+        <p><q>Therefore</q> belongs in a science write-up, not in your own voice. You wouldn't say it out loud.</p>
+        <p class="try"><b>Draft 2:</b> “So my teacher gave me a topic instead…”</p>
+      </div>
+
+      <div class="note g" id="n6"><div class="h"><span class="tag">6 · Good</span> The best detail in the whole piece</div>
+        <p>Being handed <q>talk about a time when someone else saved you from doing something humiliating</q> — and then being humiliated on stage, with nobody saving you — is a gift. It is ironic, it is true, and no other applicant has it. Quote it exactly again in draft 2.</p>
+      </div>
+
+      <div class="note f" id="n7"><div class="h"><span class="tag">7 · Fix</span> Your opening is buried here</div>
+        <p>This is where the essay should start. <q>hands shaking</q> is good — but the whole freeze gets one sentence, and the reader is through it before they can feel it.</p>
+        <p class="try"><b>Draft 2:</b> give this four or five sentences of its own. What did you see from up there? What could you hear? What were your hands doing? How long before someone coughed? Slow it right down. (Also: write <b>five minutes</b>, not <b>5 minutes</b>.)</p>
+      </div>
+
+      <div class="note f" id="n8"><div class="h"><span class="tag">8 · Fix</span> Say it the way it happened</div>
+        <p><q>an assessment of my level</q> is office language. The real version is harder and better: in front of everyone, the teacher decided you might be in the wrong class.</p>
+        <p class="try"><b>Draft 2:</b> “…and said he needed to talk to my parents about whether I was in the right class.”</p>
+      </div>
+
+      <div class="note f" id="n9"><div class="h"><span class="tag">9 · Fix</span> Borrowed phrase</div>
+        <p><q>as red as a tomato</q> is a phrase you've read, not something you noticed. And <q>probably</q> tells the reader you're guessing about your own story.</p>
+        <p class="try"><b>Draft 2:</b> what did it actually feel like from the inside? Ears hot, throat dry, the walk back to your seat being far too long — pick the one that is true.</p>
+      </div>
+
+      <div class="note f" id="n10"><div class="h"><span class="tag">10 · Fix</span> You can't know this</div>
+        <p>You couldn't see whether they were annoyed — you were the one on stage. Guessing at other people's feelings makes a reader trust you less, and it makes the class sound mean when the real problem was inside you.</p>
+        <p class="try"><b>Draft 2:</b> report only what you could actually see or hear. Nobody laughing is often worse than laughing — if that's what happened, say that.</p>
+      </div>
+
+      <div class="note f" id="n11"><div class="h"><span class="tag">11 · Fix</span> This is a timetable, not a story</div>
+        <p>Three lines explaining how the class ran — topic, write it, memorise it, say it. The reader doesn't need the system; they need what it was like to be you inside it. This is also where you slip into <q>you would have to write a speech</q>, which stops being about you at all.</p>
+        <p class="try"><b>Draft 2:</b> cut it to one clause, or cut it entirely. Stay in “I”.</p>
+      </div>
+
+      <div class="note f" id="n12"><div class="h"><span class="tag">12 · Fix</span> ★ The biggest problem — you skipped the part that matters</div>
+        <p>Weeks of change, the entire point of the essay, in one sentence: <q>slowly I improved and started actually talking</q>. The reader wants to know <b>how</b>, and right now the honest answer the essay gives is “time passed.”</p>
+        <p>This is also where the ownership goes missing. Your mum signed you up, the teacher set the topics, and improvement just… happened. Nowhere do we see <i>you</i> decide something.</p>
+        <p class="try"><b>Draft 2:</b> this becomes your longest paragraph. Pick <b>one</b> specific class. What was the topic that day? What did you do differently that week — where did you practise, how many times, did you say it to a wall, to your sister, in the shower? Name the first sentence you ever got all the way through. One real day beats “slowly I improved” every time.</p>
+      </div>
+
+      <div class="note f" id="n13"><div class="h"><span class="tag">13 · Fix</span> Hedging word</div>
+        <p><q>quite terrifying</q> — <b>quite</b> makes it smaller. Either it was terrifying or it wasn't. And by now the reader already knows it was, so the sentence isn't earning its place.</p>
+      </div>
+
+      <div class="note f" id="n14"><div class="h"><span class="tag">14 · Fix</span> The exclamation mark is doing the work</div>
+        <p>An exclamation mark is the writer telling the reader to be impressed. Take it away and the sentence has to prove itself — which is the point.</p>
+        <p class="try"><b>Draft 2:</b> one fact instead: who asked you first, and when. “Last month Ethan asked me before the teacher finished the sentence.”</p>
+      </div>
+
+      <div class="note f" id="n15"><div class="h"><span class="tag">15 · Fix</span> Your ending settles for marks</div>
+        <p>You had the whole essay to earn a real thought, and the thought is “I get higher marks now.” Every applicant wants higher marks — it tells the reader nothing about you. <q>affected me tremendously</q> and <q>due to</q> are also the two stiffest phrases in the piece, right where the writing should sound most like you.</p>
+        <p class="try"><b>Draft 2:</b> two or three honest sentences about what you do <b>now</b> that you would not have done before. Volunteering to go first. Sitting with the kid who has gone quiet. Something you can point at. No slogan, no “this taught me,” no exclamation mark.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 4. LINE FIXES -->
+  <section>
+    <h2><span class="n">04</span> Sentence-level fixes</h2>
+    <p class="lead">These are worth ten minutes, not an hour. Nobody is rejected over a comma — but an essay that is clean reads as one you cared about. Canadian spelling throughout.</p>
+    <table>
+      <thead><tr><th>You wrote</th><th>Write</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td class="wrong">terrified which caused me</td><td class="right">terrified, which caused me</td><td class="hint">comma before a “which” clause that adds information</td></tr>
+        <tr><td class="wrong">such as assemblies, or presentations</td><td class="right">such as assemblies or presentations</td><td class="hint">no comma before “or” in a two-item list</td></tr>
+        <tr><td class="wrong">everyone had a speech and was reciting them</td><td class="right">everyone had a speech and was reciting it</td><td class="hint">one speech each → “it”, not “them”</td></tr>
+        <tr><td class="wrong">Because of this,&nbsp;&nbsp;no one</td><td class="right">Because of this, no one</td><td class="hint">two spaces after the comma — one space</td></tr>
+        <tr><td class="wrong">what felt like 5 minutes</td><td class="right">what felt like five minutes</td><td class="hint">numbers under ten are spelled out in an essay</td></tr>
+        <tr><td class="wrong">I got on that stage, hands shaking and just stood</td><td class="right">I got on that stage, hands shaking, and just stood</td><td class="hint">“hands shaking” is an insert — it needs a comma on both sides</td></tr>
+        <tr><td class="wrong">memorise</td><td class="right">memorize</td><td class="hint">Canadian spelling: <i>-ize</i> verbs, but <i>colour</i>, <i>neighbour</i></td></tr>
+        <tr><td class="wrong">I walked down from that stage</td><td class="right">I walked off the stage</td><td class="hint">shorter and it's what people actually say</td></tr>
+        <tr><td class="wrong">new found confidence</td><td class="right">newfound confidence</td><td class="hint">one word — though see note 15: cut the sentence anyway</td></tr>
+        <tr><td class="wrong">one paragraph of 330 words</td><td class="right">five paragraphs</td><td class="hint">the first thing a reader sees, before a single word is read</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 5. BEFORE / AFTER -->
+  <section>
+    <h2><span class="n">05</span> Two of your own sentences, opened up</h2>
+    <p class="lead">These use <b>your</b> story and <b>your</b> words — they are here to show the move, not to be copied. Do not paste these into draft 2; the essay has to sound like you, and a reader can always tell. Notice that nothing new was invented. The detail was already there; it just wasn't written down.</p>
+
+    <div class="ba">
+      <div class="pair">
+        <div class="b"><span class="lab">You wrote — 1 sentence</span>I got on that stage, hands shaking and just stood there for what felt like 5 minutes without saying a word.</div>
+        <div class="a"><span class="lab">Slowed down — same moment</span>I got up on the stage. My hands were shaking, so I put them behind my back. I could see the whole class waiting, and someone's chair creaked. I opened my mouth and nothing came out of it. It felt like five minutes.</div>
+        <div class="why">Same facts, no invention. Five short sentences instead of one long one, because short sentences are slow — and slow is what a frightening moment should feel like.</div>
+      </div>
+
+      <div class="pair">
+        <div class="b"><span class="lab">You wrote — the whole change</span>At first I would just get on stage and not say a word and I would be told to get off but slowly I improved and started actually talking until I could get on stage and was just about as good as everyone else.</div>
+        <div class="a"><span class="lab">What it needs — one real day</span>[the week you decided something] + [where you practised, and how many times] + [the first speech you got all the way through, and what it was about] + [what the teacher said, or didn't say]</div>
+        <div class="why">This is the paragraph you have to write from scratch — only you know what actually happened in those weeks. It is the difference between “I got better” and an essay somebody remembers.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. TOP THREE -->
+  <section>
+    <h2><span class="n">06</span> The three things that decide the next draft</h2>
+    <ol class="fixes">
+      <li><b>Show the turn, don't report it</b><span>One specific day, one specific speech, and what <i>you</i> did that week. Longest paragraph in the essay. If a reader can't say what you did differently, the essay hasn't happened yet.</span></li>
+      <li><b>Start inside the moment, end with a real thought</b><span>Cut the announcement at the top; the stage is your first line. At the bottom, cut the marks; end with one thing you do now that you didn't do before.</span></li>
+      <li><b>Five paragraphs</b><span>Frozen on stage · how you got there · the weeks of silence · the day it changed · now. A 330-word block tells a reader you handed in the first thing you wrote.</span></li>
+    </ol>
+  </section>
+
+  <!-- 7. THE REWRITE -->
+  <section>
+    <h2><span class="n">07</span> Now write it again — draft 2</h2>
+    <p class="lead">Same story. Don't go looking for a better one — this one is good, it just isn't written yet. <b>300–350 words, five paragraphs.</b> Write it from the start; don't patch draft 1, because patching keeps the old shape.</p>
+
+    <div class="plan">
+      <div class="para">
+        <div class="pn">Paragraph 1 · about 70 words</div>
+        <div class="pt">On the stage, frozen</div>
+        <div class="pd">Your first line is the teacher handing you the topic, or the silence. <em>No explaining, no “in this story”.</em> Hands, chair, the class waiting, your mouth opening. Quote the topic you were given word for word.</div>
+      </div>
+      <div class="para">
+        <div class="pn">Paragraph 2 · about 60 words</div>
+        <div class="pt">How you ended up there</div>
+        <div class="pd">Short. Assemblies and presentations, what the fear did to you (keep the stutter / miss words / lose your place line), <em>one</em> partner moment, and your mum signing you up without telling you.</div>
+      </div>
+      <div class="para">
+        <div class="pn">Paragraph 3 · about 50 words</div>
+        <div class="pt">The weeks of saying nothing</div>
+        <div class="pd">Get on, say nothing, get told to sit down — how many times? Don't explain how the class worked. Stay in “I”.</div>
+      </div>
+      <div class="para star">
+        <div class="pn">Paragraph 4 · about 100 words · ★ the one that matters</div>
+        <div class="pt">The day something changed — and what you did</div>
+        <div class="pd">One class. What was the topic? What did you do differently that week, and where? How many times did you run it? What was the first sentence you got all the way through, and what happened when you did? <em>This is the paragraph a reader remembers or forgets you by.</em></div>
+      </div>
+      <div class="para">
+        <div class="pn">Paragraph 5 · about 50 words</div>
+        <div class="pt">Now</div>
+        <div class="pd">Two or three sentences. One concrete thing you do now that you couldn't do before — not a mark, not a slogan, no exclamation mark. Then stop. Don't add “and that is how I overcame my fear.”</div>
+      </div>
+    </div>
+
+    <h3>Banned in draft 2</h3>
+    <div class="rules">
+      <div class="rule"><span class="no">✕</span> “In this story I'll be explaining…” &nbsp;·&nbsp; “This taught me…” &nbsp;·&nbsp; “Ultimately…” &nbsp;·&nbsp; “Therefore…”</div>
+      <div class="rule"><span class="no">✕</span> tremendously &nbsp;·&nbsp; quite &nbsp;·&nbsp; extremely &nbsp;·&nbsp; as red as a tomato &nbsp;·&nbsp; any exclamation mark</div>
+      <div class="rule"><span class="no">✕</span> telling the reader what anyone else was thinking or feeling</div>
+      <div class="rule"><span class="yes">✓</span> keep: the quoted topic, the shaking hands, your mum not telling you, the stutter / miss words / lose your place line</div>
+      <div class="rule"><span class="yes">✓</span> every adjective you cut, replace with a thing that was actually there</div>
+    </div>
+
+    <p style="margin-top:22px"><a class="cta" href="Summer-Story-Studio.html">✍️ Open The Application Essay and write draft 2 →</a></p>
+    <p class="ctanote">Type it straight into that page and hand it in there. Dad or Mom will read draft 2 against the same five standards at the top of this page. Keep this page open beside it while you write.</p>
+  </section>
+
+  <!-- 8. CHECKLIST -->
+  <section>
+    <h2><span class="n">08</span> Before you hand draft 2 in — run this</h2>
+    <p class="lead">Five minutes at the end. Tap to tick.</p>
+    <div class="checklist" id="checklist">
+      <label class="chk"><span class="box"></span><span class="txt">Does my first sentence drop the reader inside a moment?<small>If it summarises anything, delete it</small></span></label>
+      <label class="chk"><span class="box"></span><span class="txt">Is the day everything changed my longest paragraph?<small>Count the lines — the reader does, without meaning to</small></span></label>
+      <label class="chk"><span class="box"></span><span class="txt">Can a stranger say exactly what I did, in one sentence?<small>Not “I improved” — what did I actually do?</small></span></label>
+      <label class="chk"><span class="box"></span><span class="txt">Five paragraphs, 300–350 words?<small>Check the word counter on the writing page</small></span></label>
+      <label class="chk"><span class="box"></span><span class="txt">Have I taken out every banned word from the list above?<small>Search for “quite”, “tremendously”, “!”</small></span></label>
+      <label class="chk"><span class="box"></span><span class="txt">Does every “it was hard” have a real thing next to it?<small>Adjective out, object in</small></span></label>
+      <label class="chk"><span class="box"></span><span class="txt">If I put a classmate's name on this, would it still work?<small>If yes, it isn't personal enough yet</small></span></label>
+      <label class="chk"><span class="box"></span><span class="txt">Does the last sentence say something true instead of something impressive?<small>No slogan, no marks</small></span></label>
+      <label class="chk"><span class="box"></span><span class="txt">Did I read the whole thing out loud once?<small>Anything you stumble on, a reader stumbles on too</small></span></label>
+    </div>
+    <div class="progress" id="progress">0 / 9 checked</div>
+  </section>
+
+  <!-- 9. ONE MORE THING -->
+  <section>
+    <h2><span class="n">09</span> One more thing — the interview</h2>
+    <div class="callout">
+      <p><b>Whoever reads this may interview you, and they will ask about it.</b> “You said you practised — where?” “What was the first speech you actually finished?” “Who was the kid nobody would partner with in your class — did you notice them?”</p>
+      <p>That is another reason draft 1 is risky: there is almost nothing in it to ask about, and the parts that could be asked about (“slowly I improved”) you'd have to invent on the spot. Write the true details down and the interview answers are already yours.</p>
+    </div>
+  </section>
+
+  <!-- 10. OVERALL -->
+  <section>
+    <h2><span class="n">10</span> Overall comment</h2>
+    <div class="endnote">
+      <p>Warren — the hard part of an application essay is finding something real to write about, and you already have it. A boy who is genuinely afraid, a mother who signs him up anyway, a teacher who hands him “talk about a time when someone else saved you from doing something humiliating” and then watches him stand there in silence. That is a better story than most people your age manage to find, and the honesty in it does you credit. You didn't tidy yourself up, and that matters.</p>
+
+      <p>What holds it at a 3 is that you <b>reported</b> your story instead of <b>writing</b> it. The essay tells us at the top what it is about, runs 330 words without a paragraph break, and then covers months of change — the only part a reader is actually waiting for — in a single clause: “slowly I improved.” The ending reaches for marks when it should reach for a thought. And the way it currently reads, the two people who changed things are your mum and your teacher; you are the one it happened to.</p>
+
+      <p>None of that is a talent problem. Every fix on this page is a decision about where to spend your words, and you already proved you can do it — “stutter, miss words, and lose track of where I was on the page” is exactly the right kind of writing, in the third sentence of the piece. Do that to the day it changed, and this becomes an essay a reader remembers at the end of a long afternoon.</p>
+
+      <p class="sig">Marked 21 September 2026 · draft 1 of the application essay · draft 2 due next</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Kids · Application essay · feedback</span>
+    <span><a href="../homework.html">← My Homework</a></span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  /* --- annotation to note linking --- */
+  var marks = document.querySelectorAll('.mark');
+  marks.forEach(function(m){
+    m.addEventListener('click', function(){
+      var note = document.getElementById(m.dataset.note);
+      if(!note) return;
+      marks.forEach(function(x){ x.classList.remove('active'); });
+      document.querySelectorAll('.note').forEach(function(n){ n.classList.remove('flash'); });
+      m.classList.add('active');
+      note.classList.add('flash');
+      note.scrollIntoView({ behavior:'smooth', block:'center' });
+    });
+  });
+
+  /* --- checklist --- */
+  var boxes = document.querySelectorAll('#checklist .chk');
+  var out = document.getElementById('progress');
+  var KEY = 'appEssayFeedback.checks.v1';
+  function refresh(){
+    var done = document.querySelectorAll('#checklist .chk.done').length;
+    out.textContent = done + ' / ' + boxes.length + ' checked' + (done === boxes.length ? '  ✓ ready to hand in' : '');
+    out.style.color = (done === boxes.length) ? '#3f7d4e' : '';
+  }
+  function save(){
+    try{
+      var on = [];
+      boxes.forEach(function(b, i){ if(b.classList.contains('done')) on.push(i); });
+      localStorage.setItem(KEY, JSON.stringify(on));
+    }catch(e){}
+  }
+  try{
+    var saved = JSON.parse(localStorage.getItem(KEY) || '[]');
+    saved.forEach(function(i){ if(boxes[i]) boxes[i].classList.add('done'); });
+  }catch(e){}
+  boxes.forEach(function(b){
+    b.addEventListener('click', function(e){
+      e.preventDefault();
+      b.classList.toggle('done');
+      save(); refresh();
+    });
+  });
+  refresh();
+})();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
