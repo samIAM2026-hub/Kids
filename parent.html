@@ -872,11 +872,10 @@ const dayRef = (k, d) => db.doc(`assignments/${KID[k].uid}/days/${d}`);
 const MOM_EMAIL = 'mom@family.local';
 const kidOf = uid => Object.keys(KID).find(k => KID[k].uid === uid);
 
-// Writing Lab (HOMEWORK-SYSTEM.md 2026-09-18): the kid hands a piece in, a parent marks it in 作文 on the ISEE /
-// SSAT reader's 1–6 scale (or leaves the score off). Shown as 4/6 / 已批改 / 待批改 and kept out of 达标: as a %
-// against the 80% line, a solid 4/6 would read as a red 67%. On sending, the attempt gets practice.firstTry = the
-// score and practice.reviewed = true; the text and the marking are in writings/{attempt ID}.
-const WL_ID = encodeURIComponent('../Writing/Writing-Lab.html');
+// 写作台（HOMEWORK-SYSTEM.md 2026-09-18 起）：孩子交一篇，家长在「作文」里按 ISEE / SSAT 阅卷人的
+// 1–6 分批（也可以不给分）。显示成 4/6 / 已批改 / 待批改，不算进达标 —— 拿 80% 那条线量，
+// 批得不错的 4/6 会变成红色的 67%。发出批改时 attempt 写回 practice.firstTry = 分数、
+// practice.reviewed = true；正文和批注在 writings/{attempt ID}。
 // 三个写作台交卷的写法是同一套：finish() 之前把 solvedFirst 设成 null，所以 attempt 里
 // practice.firstTry 在家长批改之前一直是 null（批完由 sendReview 写回分数）。对这几页，
 // 「交没交」看的是有没有这条记录，不是 firstTry —— 估时那边要用（buildEst）。
@@ -886,7 +885,7 @@ const HANDIN_IDS = new Set(['../Writing/Writing-Lab.html', '../Writing/Summer-St
 const essayCol = n => n>=5 ? 'var(--green)' : n>=4 ? 'var(--cream)' : n>=3 ? 'var(--amber)' : 'var(--red)';
 const ess = a => a.essay!=null ? { txt:a.essay+'/6', col:essayCol(a.essay), todo:false }
                : a.reviewed ? { txt:'已批改', col:'var(--green)', todo:false } : { txt:'待批改', col:'var(--amber)', todo:true };
-const lastEssay = tries => [...tries].reverse().find(a=>a.wl) || null;   // tries oldest-first
+const lastEssay = tries => [...tries].reverse().find(a=>a.handin) || null;   // tries oldest-first
 
 function toAtt(doc){
   const a = doc.data(), kid = kidOf(a.kidId);
@@ -896,14 +895,18 @@ function toAtt(doc){
   // practice / ref pages report completion, not a score — pct stays null for those
   // A practice game (a.practice) scores one round as right-on-the-first-go / items (Sam 2026-09-14).
   const pr = a.practice;
-  const wl = a.itemId===WL_ID, essay = wl && pr && typeof pr.firstTry==='number' ? pr.firstTry : null;
+  // 三个写作台批的是 1–6 分，不是百分比。原来这道分界线只画在 Writing Lab 一页上，
+  // 故事工作台和演讲工作台就掉进了下面那条 practice 的算法：批 4 分、items 是 6，
+  // 于是一篇批得不错的文章显示成红色的 67%，还被算进达标（Sam 2026-09-21 叫查的）。
+  const hand = HANDIN_IDS.has(a.itemId);
+  const essay = hand && pr && typeof pr.firstTry==='number' ? pr.firstTry : null;
   const pct = typeof a.pct==='number' ? a.pct : a.total ? Math.round(100*a.score/a.total)
-            : !wl && pr && typeof pr.firstTry==='number' && pr.items ? Math.round(100*pr.firstTry/pr.items) : null;
+            : !hand && pr && typeof pr.firstTry==='number' && pr.items ? Math.round(100*pr.firstTry/pr.items) : null;
   return { kid, id:a.itemId, t:a.t||b.t||a.itemId, subj:b.subj||'', book:b.book||'',
            pct, score: typeof a.score==='number' ? a.score : null, total: a.total||0, wrong: a.wrong || [],
            practice: a.practice || null,   // { round, firstTry, items } from the Chinese practice games
-           wl, essay, reviewed: !!(pr && pr.reviewed), aid: doc.id,   // Writing Lab: mark 1–6 / marked yet; aid = the writing's ID
-           handin: HANDIN_IDS.has(a.itemId),   // 写作台交上来的一篇（批改前 practice.firstTry 是 null）
+           essay, reviewed: !!(pr && pr.reviewed), aid: doc.id,   // 写作台：1–6 分 / 批没批过；aid = 那篇文章的 ID
+           handin: hand,   // 写作台交上来的一篇（批改前 practice.firstTry 是 null）
            secs:a.secs||0, date: when ? iso(when) : '', at: when,
            activeSecs: typeof a.activeSecs==='number' ? a.activeSecs : null,
            focus: a.focus || null, qTimes: a.qTimes || [],
@@ -1574,7 +1577,7 @@ async function autoArchiveDone(){
 function bankRow(b, withPlace){
   const h = attFor(b.docId)[0], hr = h && dayResult(h.kid, b.docId, h.date);
   const hp = hr && hr.scored ? hr.last.pct : null;   // that day's score: a practice game's rounds added up
-  const last = h ? `<span style="color:${h.wl?ess(h).col:pctColor(hp)};font-weight:600">${h.wl?ess(h).txt:pctText(hp)}</span>
+  const last = h ? `<span style="color:${h.handin?ess(h).col:pctColor(hp)};font-weight:600">${h.handin?ess(h).txt:pctText(hp)}</span>
                     <div class="crumb">${h.date.slice(5)}</div>` : `<span class="lock">没做过</span>`;
   const kid = KID[b.kid] || KID.both;
   return `<tr class="${SEL.has(b.docId)?'sel':''}${b.archived?' arch':''}${assignedTo(b.docId).length?' assigned':''}">
@@ -1903,7 +1906,7 @@ function histSummary(k, papers, S){
       out.push(`第一遍每道题用了几秒、中途有没有离开页面，到「专注情况」看。`);
     }
   }
-  const es = S.essays.flatMap(p=>p.tries.filter(a=>a.wl)), todo = es.filter(a=>ess(a).todo).length;
+  const es = S.essays.flatMap(p=>p.tries.filter(a=>a.handin)), todo = es.filter(a=>ess(a).todo).length;
   if(es.length) out.push(`${sc?'还':''}写了 <b>${es.length} 篇作文</b>（${es.map(a=>ess(a).txt).join('、')}，满分 6，不算进达标）` +
     (todo ? `，<b style="color:var(--amber)">${todo} 篇等你批改</b>，到「作文」标签批。` : `，原文和批改到「作文」标签看。`));
   if(S.plain.length){
@@ -1926,12 +1929,12 @@ function histPaper(p){
                 p.before ? `这天之前做过 ${p.before} 次` : ''].filter(Boolean).map(esc).join(' · ');
   const tries = p.tries.map((a,i)=>{
     const pr = a.practice;
-    const what = a.wl ? `<b style="color:${ess(a).col}">${ess(a).txt}</b> <button class="mini" data-essay="${esc(a.aid)}">${ess(a).todo?'去批改':'看作文'} ›</button>`
+    const what = a.handin ? `<b style="color:${ess(a).col}">${ess(a).txt}</b> <button class="mini" data-essay="${esc(a.aid)}">${ess(a).todo?'去批改':'看作文'} ›</button>`
       : a.pct!=null
       ? `<b style="color:${pctColor(a.pct)}">${a.pct}%</b>${a.total?`（对 ${a.score}/${a.total} 题）`
           : pr && pr.items ? `（一次就对 ${pr.firstTry}/${pr.items}）` : ''}`
       : `<b style="color:var(--green)">✓</b>`;
-    const name = a.wl ? `第 ${i+1} 篇` : p.scored && !p.prac ? nthTry(i) : `第 ${i+1} 轮${pr && pr.round ? ' '+esc(pr.round) : ''}`;
+    const name = a.handin ? `第 ${i+1} 篇` : p.scored && !p.prac ? nthTry(i) : `第 ${i+1} 轮${pr && pr.round ? ' '+esc(pr.round) : ''}`;
     return `<span class="try">${name} ${what}${a.at?` · ${hm(a.at)} 交`:''} · 用 ${dur(a.secs)}</span>`;
   }).join('<span class="arr">→</span>');
   const wq = wrongQs(p.last.wrong);
@@ -2473,7 +2476,7 @@ function readingDetail(d, id, open, F){
 let V = 'today', KV = null;
 let KSUB = 'hist';   // the kid page's last sub-tab, kept when switching Grace ↔ Warren
 const kidsShown = () => KV ? [KV] : ['grace','warren'];
-const essaysTodo = k => ATT.filter(a=>a.kid===k && a.wl && ess(a).todo).length;
+const essaysTodo = k => ATT.filter(a=>a.kid===k && a.handin && ess(a).todo).length;
 const viewEl = document.getElementById('view');
 const bar = document.getElementById('assignbar');
 
