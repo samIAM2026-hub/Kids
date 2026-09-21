@@ -238,6 +238,11 @@
   details.subj[open]>summary::before{transform:rotate(90deg)}
   details.subj>summary:hover{background:rgba(42,59,88,.35)}
   .scount{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:500;color:var(--mute)}
+  /* ⏱ 预计用时：题数下面那一行。实测过的（蓝）和纯估的（灰虚线）一眼分得开 */
+  .est{display:inline-block;margin-top:3px;font-size:11px;line-height:1.4;white-space:nowrap;
+       color:var(--mute);cursor:help;border-bottom:1px dashed rgba(147,162,189,.4)}
+  .est.real{color:var(--blue);border-bottom-color:rgba(91,143,199,.5)}
+  .est:hover{color:var(--cream)}
   .ssel{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;font-weight:600;
         background:var(--gold2);color:var(--ink);border-radius:999px;padding:1px 8px}
   .shelf{border-top:1px solid var(--line);padding:2px 18px 6px}
@@ -291,6 +296,8 @@
              display:flex;gap:12px;align-items:center;flex-wrap:wrap}
   #assignbar .n{font-size:14px;font-weight:600}
   #assignbar .n b{color:var(--gold);font-size:19px;font-family:'Playfair Display',serif}
+  #assignbar .n .mins{font-weight:500;color:var(--mute);cursor:help}
+  #assignbar .n .mins b{color:var(--cream);font-size:14px;font-family:inherit}
   #assignbar label{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute)}
   #assignbar select,#assignbar input[type=date]{font-family:inherit;font-size:13px;background:var(--card);
              border:1.5px solid var(--line);border-radius:7px;color:var(--cream);padding:8px 10px;outline:none}
@@ -698,7 +705,7 @@
 </div>
 
 <div id="assignbar" hidden><div class="inner">
-  <span class="n">已选 <b id="seln">0</b> 份</span>
+  <span class="n">已选 <b id="seln">0</b> 份<span class="mins" id="selmin"></span></span>
   <label for="asskid">派给</label>
   <select id="asskid"><option value="grace">👧 Grace</option><option value="warren">👦 Warren</option><option value="both">👧👦 两个人</option></select>
   <label for="assdate">日期</label>
@@ -916,6 +923,7 @@ async function loadAll(){
     .sort((a,b) => col.compare(a.subj,b.subj) || col.compare(a.book||'',b.book||'') || col.compare(a.t,b.t));
   BANK_BY_ID = Object.fromEntries(BANK.map(b => [b.docId, b]));
   ATT = attSnap.docs.map(toAtt).filter(Boolean);
+  buildEst();   // 用时估算要等题库和成绩都到齐才算得出来
 }
 
 const attFor = id => ATT.filter(a => a.id===id);   // ATT is already newest-first
@@ -1025,6 +1033,11 @@ function viewToday(){
       <li>一份做了好几遍：状态里是<b>最后一遍</b>的分数，标题下面的小字写这天做了几遍、第一遍多少分。每一遍的细节看「完成记录」。</li>
       <li><b>闯关练习</b>答错可以一直重试，所以分数 = <b>一次就对</b>的句数 ÷ 总句数；这天做了好几关，就几关合起来算。</li>
       <li><b>派于</b> = 什么时候派的；<b>从 09-12 挪来</b> = 用「改日期」从别的日子挪过来的。</li>
+      <li><b>预计用时</b>（和每份前面的 <span class="est">⏱ 约 X 分钟</span>）= 这天的活儿大概要坐多久，
+        含中间换卷子的零碎时间。<span class="est real">蓝色</span>= 有出处（限时卷按卷子自己写的时长，
+        其余按孩子以前真做过的用时）；灰色 = 还没做过，按题数推的。鼠标停上去会说清这个数打哪儿来。</li>
+      <li>做完的那份，<span class="est real">⏱ 约 X 分钟</span> 直接换成 <b>用了 X 分钟</b> —— 估得准不准，一眼就对上了。
+        算的都是<b>人真坐在页面上</b>的时间：页面开着人跑了，那段不算作业量。</li>
       <li>只算<b>这一天</b>交的卷：以前做过、这天没做，这里照样显示「未开始」。</li>
     </ul></details><div class="grid2">`;
   ['grace','warren'].forEach(k=>{
@@ -1035,8 +1048,10 @@ function viewToday(){
     const scored = done.filter(r=>r.scored);
     const avg = scored.length ? Math.round(scored.reduce((s,r)=>s+r.last.pct,0)/scored.length) : null;
     const nq = quizzes.reduce((s,it)=>s+(it.n||0),0);
+    // 这天已经真坐了多久（估时由 estSumTxt 现算）。
+    const spent = list.reduce((s,it)=>{ const r = doneOf(it); return s + (r ? r.tries.reduce((x,a)=>x+estSecs(a),0) : 0); }, 0);
     html += kidCard('today', k, list.length?'已派 '+list.length+' 份':isToday?'今天还没派':'这天没派',
-      list.length ? `完成 <b>${done.length}/${list.length}</b> · 题目 ${nq} 道 · 平均 <b style="color:${
+      list.length ? `完成 <b>${done.length}/${list.length}</b> · 约 <b>${estSumTxt(list, k)}</b> · 题目 ${nq} 道 · 平均 <b style="color:${
           avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</b>`
         : `到「题库」勾选几份，再派给 ${KID[k].n}`) + `
       <div class="hmet">
@@ -1044,6 +1059,10 @@ function viewToday(){
         <div><div class="v">${nq}</div><div class="k">题目数${qm(`${quizzes.length} 份打分卷子加起来一共几道题`)}</div></div>
         <div><div class="v">${list.length-quizzes.length}</div><div class="k">练习/参考${qm(`不是选择题卷子的份数：闯关练习按「一次就对」算分，参考打开看过就算完成`)}</div></div>
         <div><div class="v" style="color:${avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</div><div class="k">平均分${qm(scored.length?`做完的 ${scored.length} 份有分数的（含闯关练习），每份取这天最后一遍的分数再平均`:'这天还没有打分的成绩')}</div></div>
+        <div><div class="v">${list.length?estSumTxt(list, k):'—'}</div><div class="k">预计用时${qm(
+            list.length ? estSumTip(list, k) + '。派之前想知道够不够孩子当下的空档，看这个数'
+                        : '这天没派东西')}</div>${
+            spent?`<div class="x">已经坐了 ${dur(spent)}</div>`:''}</div>
       </div>`;
     if(!list.length){
       html += `<p class="empty">到「题库」勾选几份，再派给 ${KID[k].n}。</p>`;
@@ -1059,10 +1078,13 @@ function viewToday(){
         const n = r ? r.tries.length : 0;
         const again = n<2 ? '' : le ? `这天写了 ${n} 篇` : r.prac ? `这天做了 ${n} 轮${r.first.pct!==r.last.pct?'，每关第一次合起来 '+r.first.pct+'%':''}`
           : `这天做了 ${n} 遍${r.first.pct!=null?'，第一遍 '+r.first.pct+'%':''}`;
+        // 没做的写「约多久」帮着排时间，做完的直接写真用了多久 —— 估的准不准，一眼就对上了。
+        const spentIt = r ? r.tries.reduce((x,a)=>x+estSecs(a),0) : 0;
+        const tmEst = r ? `<span class="est real" title="这天真坐在页面上的时间，几遍加起来（开着页面跑掉那段不算）">⏱ 用了 ${dur(spentIt)}</span>` : estChip(it, k);
         const tm = [at?'派于 '+stamp(at):'', it.movedFrom?'从 '+ymd(it.movedFrom)+' 挪来':'', again].filter(Boolean).join(' · ');
         html += `<div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
           <b>${openLink(it.href, esc(it.t))}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
-          ${tm?`<span class="tm">${tm}</span>`:''}
+          <span class="tm">${tmEst}${tm?' · '+tm:''}</span>
           </span><span class="acts">${st}
             <button class="mini" data-move="${esc(key)}">改日期</button>
             <button class="mini bad" data-pull="${esc(key)}">撤回</button></span></div>`;
@@ -1156,6 +1178,170 @@ function viewDispatch(){
     html += `</tbody></table>`;
   });
   return html;
+}
+
+/* ===================== 用时估算 ===================== */
+// 派作业前先知道「这份大概要坐多久」，才好照孩子当下有多少空档来派（Sam 2026-09-20）。
+//
+// 限时卷（描述里写着「· 18 minutes」的那些 SSAT 分节）直接用卷子自己写的时间：那是允许用满的，
+// 排时间就得按这个留。孩子实际比限时快，提示里会说，但台面上的数字宁可留够。
+//
+// 其余的能用真数据就不猜：这份以前做过，就按过去几次的用时取中位数。
+//   · 一「次」= 一个孩子在同一天、在同一份上花的时间加起来 —— 派一次就是坐下来一次，
+//     中间重做两遍也还是那一次的时间。
+//   · 只认真做完的那几次（出了分 / 闯关有记录 / 作文交了），打开看两眼就关掉的不算。
+//   · 算的是 activeSecs（人在页面上的时间），不是挂钟时间 —— 页面开着人跑了，那段不该算进作业量。
+//     实测差得很远：一份 30 分钟的 Quantitative，挂钟 49 分钟，真坐着只有 17 分钟。
+// 没做过的才推：每题多少秒 × 题数。那个秒数也不是拍脑袋，是从全部历史成绩里现算的 ——
+//   同类型下攒够 EST_MIN_SUBJ 次的科目用它自己的速度（数学比 SSAT 慢一倍多），
+//   不够就退到这个类型的整体速度，一次历史都没有（比如刚清过数据）才落到写死的 EST_DEF。
+// 题数也没有的那几十份，用这个类型「一次坐多久」的中位数。
+//
+// 估的终归是估的，所以界面上一律写「约」；鼠标停上去会说清这个数是怎么来的。
+const EST_MIN_SUBJ = 6;                              // 一个科目攒够几次，才配用它自己的速度
+const EST_DEF  = { quiz:60, practice:30, ref:40 };   // 完全没历史时：每题多少秒
+const EST_FLAT = { quiz:20, practice:12, ref:10 };   // 连题数都没有时：整份多少分钟
+const EST_GAP  = 2;                                  // 一批里每换一份，加几分钟的转场
+// 有些页面在描述里自报要多久，那是作者写的，比任何推算都准：
+//   「30 questions · 18 minutes」= 限时分节 ·「45–60 min」= 一节课，取上限往宽了留。
+// 两个式子都得顶着行首或「·」才算数，否则 "1 hour = 60 min" 这种句子里的数也会被当成时长。
+const EST_RANGE_RE = /(?:^|·)\s*(\d+)\s*[–—-]\s*(\d+)\s*min(?:ute)?s?\b/;
+const EST_MIN_RE   = /(?:^|·)\s*(\d+)\s*minutes\b/;
+function statedMins(b){
+  const d = b.d || '';
+  const r = EST_RANGE_RE.exec(d);   // 区间先试：18 minutes 那条也会咬住 "45–60 min" 的后半截
+  if(r) return +r[2];
+  const m = EST_MIN_RE.exec(d);
+  return m ? +m[1] : null;
+}
+// 真正花在这份上的时间：人在页面上的那部分。老记录没有 activeSecs 才退回挂钟时间。
+const estSecs = a => typeof a.activeSecs === 'number' ? a.activeSecs : (a.secs||0);
+let SESS = new Map(), EST_RATE = {}, EST_FLATM = {};
+
+const estMed = xs => { const a = [...xs].sort((x,y)=>x-y);
+  return a.length ? (a.length%2 ? a[(a.length-1)/2] : (a[a.length/2-1]+a[a.length/2])/2) : null; };
+
+// loadAll 之后跑一次：把历史成绩压成「每份做过几次、各用了多久」，顺手算出各科的每题秒数。
+function buildEst(){
+  SESS = new Map(); EST_RATE = {}; EST_FLATM = {};
+  const by = new Map();
+  ATT.forEach(a=>{
+    if(a.demo || !a.date) return;
+    const k = a.kid+'|'+a.id+'|'+a.date;
+    const cur = by.get(k) || { kid:a.kid, id:a.id, date:a.date, secs:0, done:false };
+    cur.secs += estSecs(a);
+    cur.done = cur.done || a.pct!=null || a.practice!=null || a.wl;
+    by.set(k, cur);
+  });
+  const rate = {}, flat = {};
+  by.forEach(x=>{
+    if(!x.done || x.secs<=0) return;
+    if(!SESS.has(x.id)) SESS.set(x.id, []);
+    SESS.get(x.id).push(x);
+    const b = BANK_BY_ID[x.id]; if(!b) return;
+    const ty = b.type || 'quiz';
+    (flat[ty] = flat[ty] || []).push(x.secs/60);
+    if(!b.n) return;
+    const r = x.secs / b.n;
+    if(r < 5 || r > 900) return;   // 秒开秒关、或挂在那儿没人管：这种会把中位数拖歪
+    (rate[ty] = rate[ty] || []).push(r);
+    (rate[ty+'|'+(b.subj||'')] = rate[ty+'|'+(b.subj||'')] || []).push(r);
+  });
+  Object.keys(rate).forEach(k=>{
+    if(k.includes('|') && rate[k].length < EST_MIN_SUBJ) return;   // 样本太少的科目不单独立规矩
+    EST_RATE[k] = estMed(rate[k]);
+  });
+  Object.keys(flat).forEach(k=>{ EST_FLATM[k] = estMed(flat[k]); });
+}
+
+// 一份要多久。b 可以是题库那份，也可以是今日作业里的一条（一个有 docId，一个有 id）。
+// kid 给了就先只看这个孩子自己做过的几次 —— 同一份卷子两个孩子的速度能差一倍。
+// 返回 { mins, src, said, n, who }。src 就是这个数打哪儿来的：
+//   said = 卷子自报的时长 · past = 这份自己的实测 · rate = 每题秒数 × 题数 · flat = 同类型的兜底。
+// 前两种叫得出出处，界面上标蓝；后两种是推的，灰着。
+function estOf(item, kid){
+  const id = item.docId || item.id;
+  // 今日作业里的条目是派发那一刻抄下来的快照，只有标题 / 题数 / 类型，没有描述 ——
+  // 而限时卷的时长恰恰写在描述里。所以一律回题库取那条完整的，不然同一份卷子
+  // 在「题库」和「今日作业」会显示成两个时间（真发生过：Reading B 一边 18 分钟一边 5 分钟）。
+  const b = BANK_BY_ID[id] || item;
+  const ty = b.type || item.type || 'quiz';
+  const said = statedMins(b);
+  if(said) return { mins: said, src:'said', said, n:(SESS.get(id)||[]).length, who:null };
+  const all = SESS.get(id) || [];
+  const mine = kid && kid!=='both' && kid!=='all' ? all.filter(x=>x.kid===kid) : [];
+  const use = mine.length ? mine : all;
+  if(use.length) return { mins: estMed(use.map(x=>x.secs))/60, src:'past', said:null, n:use.length, who: mine.length?kid:null };
+  if(b.n){
+    const r = EST_RATE[ty+'|'+(b.subj||'')] || EST_RATE[ty] || EST_DEF[ty] || EST_DEF.quiz;
+    return { mins: b.n*r/60, src:'rate', said:null, n:0, who:null };
+  }
+  return { mins: EST_FLATM[ty] || EST_FLAT[ty] || EST_FLAT.quiz, src:'flat', said:null, n:0, who:null };
+}
+
+// 估算不该装出精确的样子：10 分钟以内取到分钟，往上一律取到 5 分钟，最少 2 分钟。
+const estRound = m => m < 10 ? Math.max(2, Math.round(m)) : Math.round(m/5)*5;
+const estTxt = m => dur(estRound(m)*60);
+// 卷子自报的时长照原样写 —— 那是个准数，取整反而失真
+const estTxtOf = e => e.src==='said' ? dur(e.mins*60) : estTxt(e.mins);
+
+// 鼠标停在 ⏱ 上说清这个数打哪儿来 —— 估算只有讲得出出处才敢用来排时间。
+function estTip(item, kid){
+  const b = BANK_BY_ID[item.docId || item.id] || item;   // 同 estOf：今日作业的快照少字段，回题库取
+  const e = estOf(item, kid), ty = b.type || item.type || 'quiz';
+  if(e.said){
+    // 限时卷：台面上写允许的时间，实际比这快就在提示里说一句，免得排得太松
+    const id = b.docId || b.id, all = SESS.get(id) || [];
+    const mine = kid && kid!=='both' && kid!=='all' ? all.filter(x=>x.kid===kid) : [];
+    const use = mine.length ? mine : all;
+    const real = use.length ? estMed(use.map(x=>x.secs))/60 : null;
+    return `卷子自己写的限时 ${e.said} 分钟，按这个留时间`
+      + (real==null ? '（还没做过）'
+        : `。${mine.length?KID[kid].n:'实际'}做过 ${use.length} 次，真坐着的时间约 ${estTxt(real)}`);
+  }
+  if(e.src==='past'){   // ← 不是 e.real：estOf 返回的是 src，写成 e.real 会永远走不进来
+    const who = e.who ? KID[e.who].n : '两个孩子';
+    return (e.n>1 ? `${who}以前做过 ${e.n} 次，取中位数 ${estTxt(e.mins)}（同一天做几遍算一次）`
+                  : `${who}以前做过 1 次，用了 ${estTxt(e.mins)}`)
+      + '。算的是人真坐在页面上的时间，开着页面跑掉那段不算';
+  }
+  if(b.n){
+    const key = ty+'|'+(b.subj||'');
+    const per = EST_RATE[key] || EST_RATE[ty] || EST_DEF[ty] || EST_DEF.quiz;
+    const src = EST_RATE[key] ? `${b.subj} 这类卷子` : EST_RATE[ty] ? `全部「${LABEL[ty]||ty}」` : '默认';
+    return `还没做过。按${src}每题约 ${Math.round(per)} 秒 × ${b.n} ${ty==='quiz'?'题':'项'} 推出来的`;
+  }
+  return `还没做过，也没写题数。按「${LABEL[ty]||ty}」一次坐多久的中位数算`;
+}
+
+// 题库行、今日作业行共用的那枚 ⏱。
+function estChip(b, kid){
+  const e = estOf(b, kid);
+  const solid = e.src==='said' || e.src==='past';
+  return `<span class="est${solid?' real':''}" title="${esc(estTip(b,kid))}">⏱ 约 ${estTxtOf(e)}</span>`;
+}
+
+// 一批加起来多久：各自的估时之和，外加每换一份 EST_GAP 分钟的转场（孩子中间总要喝口水）。
+function estSum(items, kid){
+  if(!items.length) return { mins:0, real:0, gap:0 };
+  const each = items.map(b=>estOf(b, kid));
+  const gap = EST_GAP*(items.length-1);
+  return { mins: each.reduce((s,e)=>s+e.mins,0) + gap, gap,
+           real: each.filter(e=>e.src==='said'||e.src==='past').length };
+}
+// 只选了一份，总数就得跟那一行写的一模一样 —— 行里写 18 分钟、底下那条写 20 分钟，看着就不可信了。
+// 两份以上才取整到 5 分钟：来源混在一起，本来就精确不到分钟。
+const estSumTxt = (items, kid) => items.length===1 ? estTxtOf(estOf(items[0], kid)) : estTxt(estSum(items, kid).mins);
+
+function estSumTip(items, kid, what){
+  if(!items.length) return '还没派东西';
+  const e = estSum(items, kid);
+  const out = [`${what||''}${items.length} 份加起来约 ${estSumTxt(items, kid)}`];
+  if(e.gap) out.push(`已经含了中间换卷子的 ${e.gap} 分钟`);
+  out.push(!e.real ? '这几份都没有可靠出处，全是按题数推的'
+    : e.real===items.length ? '每一份要么是卷子自报的限时，要么有以前真做过的用时'
+    : `其中 ${e.real} 份有出处（卷子自报的限时、或以前真做过的用时），另外 ${items.length-e.real} 份是按题数推的`);
+  return out.join('；');
 }
 
 /* ===================== BANK ===================== */
@@ -1264,7 +1450,8 @@ function bankRow(b, withPlace){
     <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)} ${bothBadge(b)}${assignedBadge(b.docId)}</div><div class="d">${esc(b.d)}</div>
       ${withPlace?`<div class="crumb">${esc(b.subj)}${b.book?' · '+esc(b.book):''}</div>`:''}${bankDates(b)}</td>
     ${F.kid==='all'?`<td class="crumb" style="width:92px">${kid.av} ${kid.n}</td>`:''}
-    <td class="c crumb" style="width:64px">${b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '—'}</td>
+    <td class="c crumb" style="width:84px">${b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '—'}
+        <div>${estChip(b, F.kid)}</div></td>
     <td class="c" style="width:124px"><span class="badge b-${esc(b.type)}">${LABEL[b.type]||esc(b.type)}</span>
         <div class="archline">${archCell(b)}</div></td>
     <td class="c" style="width:90px">${last}</td></tr>`;
@@ -1296,6 +1483,12 @@ function viewBank(){
       <b style="color:var(--blue)">可判分</b> 做完自动出分 ·
       <b style="color:var(--gold)">练习</b> 闯关式，按「一次就对」算分 ·
       <b style="color:var(--mute)">参考</b> 只记看过没看过</p>
+      <p>每行题数下面那个 <span class="est">⏱ 约 X 分钟</span> 是<b>预计要做多久</b>，好照孩子手上还剩多少空档来挑。
+      <span class="est real">蓝色</span>是有出处的：限时卷（SSAT 分节那种）按卷子自己写的时长，宁可留够；
+      其余的按这份以前真做过几次的用时取中位数 —— 同一天做几遍算一次，只算真做完的，
+      而且只算<b>人真坐在页面上</b>的时间（页面开着人跑了那段不算，实测差得很远）。
+      灰色是还没做过的，按同科目每题多少秒 × 题数推，那个秒数也是从历史成绩里现算的。鼠标停上去看它怎么来的。
+      勾几份，<b>底部那条会把总时间加起来</b>（含中间换卷子的零碎时间），换个孩子数也跟着变。</p>
       <p>归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。
       每行类型下面有 <b>归档</b> 按钮，点一下就收起来；要一次收一批，就勾选后用底部那条的 <b>归档</b>。归档过的按 <b>放回</b> 回到在用列表。</p>`)}</h2>
     ${kidTabs()}
@@ -2608,6 +2801,7 @@ function render(){
     `现在有 ${nDemo} 条假成绩（只为看效果），完成记录、今日作业和孩子页面里都会显示。`;
   bar.hidden = !(V==='bank' && SEL.size);
   document.getElementById('seln').textContent = SEL.size;
+  assMins();
   // 底部那颗归档键跟着选中的走：选的全是归档过的，它就变成「放回在用」
   const selArch = [...SEL].map(id=>BANK_BY_ID[id]).filter(Boolean);
   const allArch = selArch.length > 0 && selArch.every(b=>b.archived);
@@ -2737,6 +2931,16 @@ document.getElementById('archgo').addEventListener('click', async ()=>{
     toast('归档没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
   } finally { go.disabled = false; }
 });
+// 底部那条上的「约 45 分钟」：选中的加起来要多久，换个孩子（他俩速度不一样）也跟着变。
+function assMins(){
+  const items = [...SEL].map(id=>BANK_BY_ID[id]).filter(Boolean);
+  const kid = document.getElementById('asskid').value;
+  const el = document.getElementById('selmin');
+  if(!items.length){ el.textContent = ''; el.removeAttribute('title'); return; }
+  el.innerHTML = ' · 约 <b>' + esc(estSumTxt(items, kid)) + '</b>';
+  el.title = estSumTip(items, kid, kid==='both' ? '每人 ' : '');
+}
+document.getElementById('asskid').addEventListener('change', assMins);
 document.getElementById('assclear').addEventListener('click',()=>{ SEL.clear(); render(); });
 
 // 撤回: the item leaves the kid's day. A copy goes to `withdrawn`, so the parent sees what was taken
@@ -2824,6 +3028,7 @@ let gateMsg = '';
 
 function showGate(msg){
   BANK = []; BANK_BY_ID = {}; ATT = []; ASSIGN = { grace:[], warren:[] }; PULLED = { grace:[], warren:[] }; SEL.clear();
+  SESS = new Map(); EST_RATE = {}; EST_FLATM = {};
   TODAY_ITEMS = { grace:[], warren:[] };
   RD.data = null; RD.err = ''; RD.loading = false; RD.want = 0;
   viewEl.innerHTML = ''; bar.hidden = true; document.getElementById('demobar').hidden = true;
