@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 9 · Reading A</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 9 &middot; Section 2, part 1</div>
+    <h1>Reading Comprehension &mdash; Part A (Questions 1&ndash;24)</h1>
+    <div class="meta">24 questions &middot; 24 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">24:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 9 &middot; <a href="SSAT-MockTest9-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading A",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 1 &middot; Questions 1&ndash;4",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">On Christmas Day, William was crowned in Westminster Abbey under the title of William</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>the First, but he is best known as William the Conqueror. It was a strange coronation; one of the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>bishops who performed the ceremony asked the Normans, in French, if they would have William</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>the Conqueror for their king. They answered &ldquo;Yes.&rdquo; Another of the bishops put the same question</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>to the Saxons, in English. They too answered &ldquo;Yes,&rdquo; with a loud shout. The noise was heard by a</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>guard of Norman horse-soldiers outside, and was mistaken for resistance on the part of the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>English. The guard instantly set fire to the neighboring houses, and chaos ensued, in the midst of</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>which the king, being left alone in the abbey with a few priests (and they all being in a terrible</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>fright together), was hurriedly crowned. When the crown was placed upon his head, he swore to</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>govern the English as well as the best of their own monarchs. I dare say you think, as I do, that if</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>we except the great Alfred, he might pretty easily have done that.</span></div></div>"
+  },
+  {
+   "n": 1,
+   "stem": "When the author says William was &ldquo;best known&rdquo; as William the Conqueror, which of the following does he most nearly mean?",
+   "opts": [
+    "Most accurately known",
+    "Most humorously known",
+    "Most commonly known",
+    "Most sarcastically known",
+    "Most deservedly known"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.vocab",
+   "why": "Read the sentence around it: he was crowned &ldquo;under the title of William the First, <b>but</b> he is best known as William the Conqueror.&rdquo; The &ldquo;but&rdquo; is contrasting his official title with the name people actually use &mdash; so &ldquo;best known&rdquo; means <b>most commonly known</b>. The trap is (E) <i>most deservedly known</i>, because &ldquo;best&rdquo; sounds like praise; here it just means &ldquo;most widely&rdquo;. With a vocabulary-in-context question, cover the choices, put your own word in the gap, and then look."
+  },
+  {
+   "n": 2,
+   "stem": "&ldquo;Alfred&rdquo; was most probably ______.",
+   "opts": [
+    "the bishop who crowned William",
+    "a former king of England",
+    "a former Norman warrior",
+    "a former English bishop",
+    "an attending noble at the coronation"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.infer",
+   "why": "The last sentence is the evidence: William swore &ldquo;to govern the English as well as the best of their own <b>monarchs</b>&hellip; if we except the great Alfred.&rdquo; To be an exception to a list of monarchs, Alfred has to <i>be</i> one &mdash; so <b>a former king of England</b>. He is also called &ldquo;their own&rdquo;, which makes him English, not Norman, killing (C). This is the shape of most inference questions: the answer is not stated, but one sentence makes it the only possibility."
+  },
+  {
+   "n": 3,
+   "stem": "Why does the author think the crowning of William was a &ldquo;strange coronation&rdquo;?",
+   "opts": [
+    "Because the bishops in attendance were unwilling to crown William without the consent of all the people",
+    "Because of the hurried nature of the ceremony",
+    "Because of the tensions between the Normans and the English",
+    "Because of the romantic nature of the conquered English people",
+    "Because of the aggressive behavior of the Norman conquerors"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.main",
+   "why": "Follow what the word &ldquo;strange&rdquo; is pointing at. Everything after the semicolon builds to one picture: a shout, a fire outside, chaos, and a king left &ldquo;alone in the abbey with a few priests&hellip; in a terrible fright&rdquo; who was <b>hurriedly crowned</b>. A coronation is meant to be slow and grand; this one was rushed through while the town burned &mdash; that is what makes it strange. Weigh the choices against the <i>whole</i> account rather than one line of it.",
+   "flag": "A judgement call. (C) <i>tensions between the Normans and the English</i> is defensible: the two-language question and the mistaken &ldquo;resistance&rdquo; are both about that divide. (B) is set here because the passage says the ceremony itself was <b>hurried</b>, and the question asks what was strange about the <i>crowning</i>, not what caused the trouble."
+  },
+  {
+   "n": 4,
+   "stem": "Which of these assumptions does the author most notably make in this text?",
+   "opts": [
+    "His audience understands the similarities between the English and the French",
+    "His audience does not care where William was crowned",
+    "His audience does not want to read a disagreeable story",
+    "His audience understands the significance of where William comes from",
+    "His audience is already familiar with aspects of English history"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "An assumption is what a writer takes for granted without explaining. The giveaway is &ldquo;<b>I dare say you think, as I do</b>, that if we except <b>the great Alfred</b>&rdquo; &mdash; Alfred is dropped in with no introduction at all, as a name the reader will already know and already admire. That only works on an audience that <b>knows some English history</b>. The other choices describe things the passage never relies on. Look for the name or fact the author does <i>not</i> bother to explain &mdash; that is where the assumption hides."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 2 &middot; Questions 5&ndash;10",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">The rowboat <i>Fox</i>, of the port of New York, manned by George Harbo, thirty-one years of</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>age, captain of a merchantman, and Frank Samuelson, twenty-six years of age, left New York for</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Havre on the sixth of June. Ten days later, the boat was met by the German transatlantic</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>steamer <i>F&uuml;rst Bismarck</i>, proceeding from Cherbourg to New York. On the eighth, ninth and</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>tenth of July, the <i>Fox</i> was cast by a <u>tempest</u> upon the reefs of Newfoundland. The two men</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>jumped into the sea, and thanks to the watertight compartments provided with air chambers fore</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>and aft, it was possible for them to right the boat; but the unfortunates lost their provisions and</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>their supply of drinking water. On the fifteenth, they met the Norwegian three-masted vessel <i>Cito</i>,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>which supplied them with food and water. The captains of the vessels met with signed the log</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>book and testified that the boat had neither sail nor rudder. The <i>Fox</i> reached the Scilly Islands on</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>the first of August, having at this date been on the ocean fifty-five days. It arrived at Havre on the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>seventh of August.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Cost what it might, the men were bent upon reaching this port in order to gain the reward</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>promised by Mr. Fox, of the <i>Police Gazette</i>. Thanks to the wind and a favourable current, they</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span>made one hundred and twenty-five miles in twenty-four hours. One slept three hours while the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>other rowed. <u>Their skins and faces were tumefied by the wind, salt water, and sun; the skin of</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>their hands was renewed three times; their legs were weakened; and they were worn out.</u></span></div></div>"
+  },
+  {
+   "n": 5,
+   "stem": "For how long were the two men at sea?",
+   "opts": [
+    "It is impossible to say.",
+    "Fifty-five days",
+    "Sixty-one days",
+    "Eighty-five days",
+    "Eighty days"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.detail",
+   "why": "The passage hands you a count and then keeps going. They had been on the ocean <b>fifty-five days</b> when they reached the Scilly Islands on <b>1 August</b> (lines 10&ndash;11), and they did not arrive at Havre until the <b>7th of August</b> &mdash; six days more. 55 + 6 = <b>61 days</b>. (B) fifty-five is the trap: it is a real number from the passage, but it stops at the wrong place. When a question asks &ldquo;how long in total&rdquo;, check whether the journey ends where the number was given."
+  },
+  {
+   "n": 6,
+   "stem": "Why did the two men want to row across the Atlantic?",
+   "opts": [
+    "To atone for breaking the law",
+    "To claim the promised reward",
+    "To prove that it could be done",
+    "To impress their wives",
+    "To achieve fame"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "The second paragraph says it outright: &ldquo;Cost what it might, the men were bent upon reaching this port <b>in order to gain the reward promised by Mr. Fox</b>, of the <i>Police Gazette</i>.&rdquo; (C) and (E) are the reasons people <i>usually</i> row oceans, which is exactly why they are offered &mdash; but the passage names a different one. When the text states a motive in so many words, general knowledge about people does not get a vote."
+  },
+  {
+   "n": 7,
+   "stem": "The underlined portion of the text is meant to highlight ______.",
+   "opts": [
+    "the difficulty of life on the open ocean",
+    "why the two men were rowing across the Atlantic",
+    "how much the two men suffered for their prize",
+    "on what things the two men would spend their winnings",
+    "the diseases that were common in this time period"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.main",
+   "why": "The underlined sentence is a list of damage done to their bodies: swollen skin, hands whose skin grew back three times, weakened legs, worn out. And it sits immediately after the sentence about the <b>reward</b> they were rowing for. Put the two together and the point is <b>how much they suffered for their prize</b>. (A) is the tempting near-miss &mdash; the sentence is about <i>these two men&rsquo;s</i> bodies, not about ocean life in general. Ask what a line is doing <i>in the place the author put it</i>, not just what it says."
+  },
+  {
+   "n": 8,
+   "stem": "The underlined word &ldquo;tempest&rdquo; most probably means ______.",
+   "opts": [
+    "fish",
+    "joke",
+    "ship",
+    "blessing",
+    "storm"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.vocab",
+   "why": "Use what the sentence does to the boat: the <i>Fox</i> &ldquo;was <b>cast by a tempest upon the reefs</b>&rdquo;, over three days, and the men ended up in the sea having lost their provisions. Only something violent throws a boat onto rocks, so <b>storm</b> is the only choice that fits. (C) ship is the trap &mdash; there are two other ships in the passage, so the word feels at home &mdash; but a ship does not cast a rowboat onto reefs. Let the verb tell you what kind of thing the noun must be."
+  },
+  {
+   "n": 9,
+   "stem": "How did the Norwegian vessel the two men met most significantly help them?",
+   "opts": [
+    "It provided them with food and water.",
+    "It verified that they were operating without sail or rudder.",
+    "It rescued them from the open ocean.",
+    "It gave them additional fuel for their ship.",
+    "It towed them to Havre."
+   ],
+   "ans": 0,
+   "sk": "ssat.r.detail",
+   "why": "Track what the men had just lost. When the boat went onto the reefs, &ldquo;the unfortunates lost their provisions and their supply of drinking water&rdquo; &mdash; and four lines later the Norwegian <i>Cito</i> &ldquo;<b>supplied them with food and water</b>&rdquo;. That is the help, and it is the help that kept them alive. (C), (D) and (E) all describe things no vessel in this passage does &mdash; the men rowed the whole way themselves, and a rowboat has no fuel.",
+   "flag": "A judgement call on the word &ldquo;significantly&rdquo;. (B) is arguable: the captains signed the log book and testified that the boat had no sail or rudder, which is what proved the crossing and won the reward. (A) is set here because the passage attaches food and water directly to the Norwegian vessel, while the signing is credited to &ldquo;the captains of the vessels met with&rdquo; &mdash; both ships, not just that one."
+  },
+  {
+   "n": 10,
+   "stem": "George Harbo and Frank Samuelson were trying to ______.",
+   "opts": [
+    "be the first men to sail across the Atlantic ocean unassisted by others",
+    "reach America from Europe without stopping for additional fuel",
+    "row across the Atlantic without the help of a sail or a rudder",
+    "swim across the Atlantic ocean",
+    "reach Europe from America without stopping for additional fuel"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.main",
+   "why": "Three details pin this down. It is a <b>rowboat</b> and &ldquo;one slept three hours while the other <b>rowed</b>&rdquo;, so not sailing (A) and not swimming (D). The captains testified that the boat had <b>neither sail nor rudder</b> &mdash; the very thing being proved. And they went from <b>New York to Havre</b>, America to Europe, so (B) has the direction backwards. (E) is close on direction but talks about fuel, which a rowboat does not use. Check every half of a long answer choice: one wrong word is enough to kill it."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 3 &middot; Questions 11&ndash;14",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">There was only one road to success or fame in those days, and that was the profession of</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>fighting. The ambition of every high-born young fellow was to become a knight. Knighthood was</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>something that both kings and nobles regarded as higher in some respects than even the royalty or</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>nobility to which they were born. No one could be admitted into an order of the great brotherhood</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>of knights, which extended all over Europe and formed an independent society, unless he had</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>gone through severe discipline, and had performed some distinguished deed of valour. Then he</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>could wear the golden spurs; for knighthood had its earliest origin in the distinction of fighting on</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>horseback, while ordinary soldiers fought on foot. Although knighthood changed afterward, the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>word &ldquo;chivalry&rdquo; always expressed it, from the French word <i>cheval</i>, a horse. And in addition</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>to <u>valour</u>, which was the result of physical strength and courage, the knight was expected to be</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>generous, courteous, faithful, devout, truthful, high-souled, high-principled. Hence the epithet,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>&ldquo;chivalrous,&rdquo; which, even today, is so often heard applied to men of especially fine spirit.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>&ldquo;Honour&rdquo; was the great word which included all these qualities then, as it does in some measure</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>now.</span></div></div>"
+  },
+  {
+   "n": 11,
+   "stem": "The underlined word &ldquo;valour&rdquo; most nearly means ______.",
+   "opts": [
+    "bravery",
+    "doubt",
+    "fear",
+    "guilt",
+    "sorrow"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.vocab",
+   "why": "The passage defines it for you in the same line: valour &ldquo;was the result of <b>physical strength and courage</b>&rdquo;, and earlier a knight must have &ldquo;performed some distinguished <b>deed of valour</b>&rdquo;. Courage in action is <b>bravery</b>. (C) fear is its opposite, and it is offered because fear and courage live in the same sentence in most people&rsquo;s heads. When a passage offers a definition right beside the word, take it &mdash; that is the free mark on a reading section."
+  },
+  {
+   "n": 12,
+   "stem": "Why did some of the kings and nobles regard knighthood higher than royalty?",
+   "opts": [
+    "Because you have to earn knighthood whereas royalty is just given by birth right",
+    "Because kings and queens are subject to the desires of the people",
+    "Because knights do not have to pay taxes",
+    "Because knights sacrifice themselves for the good of the kingdom",
+    "Because knights go out on the battlefield and fight"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "Set the two sentences side by side. Royalty is &ldquo;the royalty or nobility to which they were <b>born</b>&rdquo;; knighthood admitted <b>no one</b> &ldquo;unless he had <b>gone through severe discipline, and had performed some distinguished deed of valour</b>.&rdquo; One is given, the other is <b>earned</b> &mdash; that is the contrast the passage draws. (E) is true of knights but is not the reason the passage gives for the ranking. When a question asks <i>why</i>, look for the contrast the author actually sets up."
+  },
+  {
+   "n": 13,
+   "stem": "What does the author describe as the only road to success in &ldquo;those days&rdquo;?",
+   "opts": [
+    "birth right",
+    "education",
+    "good health",
+    "fighting",
+    "good parenting"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.detail",
+   "why": "First sentence, in the author&rsquo;s own words: &ldquo;There was only one road to success or fame in those days, and that was the <b>profession of fighting</b>.&rdquo; (A) birth right is the trap &mdash; the passage does discuss being high-born, but it says birth is exactly what knighthood ranked <i>below</i>. When a question echoes the wording of a sentence (&ldquo;only road to success&rdquo;), find that sentence and answer from it rather than from the paragraph around it."
+  },
+  {
+   "n": 14,
+   "stem": "From which language does the English word &ldquo;chivalry&rdquo; derive?",
+   "opts": [
+    "Dutch",
+    "Spanish",
+    "Italian",
+    "French",
+    "German"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.detail",
+   "why": "Line 9 says it plainly: &ldquo;the word &lsquo;chivalry&rsquo; always expressed it, from the <b>French word <i>cheval</i></b>, a horse.&rdquo; The italics are the signal &mdash; a foreign word is printed in italics, and the sentence around it almost always names the language. Worth keeping as a fact, too: <i>cheval</i> is why a knight on horseback gives us <i>chivalry</i> and <i>cavalry</i>."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 4 &middot; Questions 15&ndash;24",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">The Mole had been working very hard all the morning, spring cleaning his little home. First</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>with brooms, then with dusters, then on ladders and steps and chairs, with a brush and a pail of</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>whitewash, &rsquo;till he had dust in his throat and eyes, and splashes of whitewash all over his black</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>fur, and an aching back and weary arms. Spring was moving in the air above and in the earth</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>below and around him, penetrating even his dark and lowly little house with its spirit of divine</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>discontent and longing. It was small wonder, then, that he suddenly flung down his brush on the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>floor, said &ldquo;Bother!&rdquo; and &ldquo;O blow!&rdquo; and also &ldquo;Hang spring cleaning!&rdquo; and bolted out of the house</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>without even waiting to put on his coat. Something up above was calling him imperiously, and he</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>made for the steep little tunnel which answered in his case to the graveled carriage-drive owned by</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>animals whose residences are nearer to the sun and air. <u>So he scraped and scratched and scrabbled</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>and scrooged and then he scrooged again and scrabbled and scratched and scraped, working</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>busily with his little paws and muttering to himself, &ldquo;Up we go! Up we go!&rdquo; &rsquo;till at last, pop!</u> His</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>snout came out into the sunlight, and he found himself rolling in the warm grass of a great</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>meadow.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span style=\"text-indent:26px;display:inline-block\">&ldquo;This is fine!&rdquo; he said to himself. &ldquo;This is better than whitewashing!&rdquo; The sunshine struck hot</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>on his fur, soft breezes caressed his heated brow, and after the seclusion of the cellarage he had</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>lived in so long, the carol of happy birds fell on his dulled hearing almost like a shout. Jumping</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>off all his four legs at once, in the joy of living and the delight of spring without its cleaning, he</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>pursued his way across the meadow &rsquo;till he reached the hedge on the further side.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20</span><span style=\"text-indent:26px;display:inline-block\">&ldquo;Hold up!&rdquo; said an elderly rabbit at the gap. &ldquo;Sixpence for the privilege of passing by the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>private road!&rdquo; He was bowled over in an instant by the impatient and <u>contemptuous</u> Mole, who</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>trotted along the side of the hedge chaffing the other rabbits as they peeped hurriedly from their</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>holes to see what the row was about. &ldquo;Onion-sauce! Onion-sauce!&rdquo; he remarked jeeringly, and</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>was gone before they could think of a thoroughly satisfactory reply. Then they all started</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25</span><span>grumbling at each other. &ldquo;How STUPID you are! Why didn&rsquo;t you tell him&mdash;&rdquo; &ldquo;Well, why didn&rsquo;t</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>YOU say&mdash;&rdquo; &ldquo;You might have reminded him&mdash;&rdquo; and so on, in the usual way; but, of course, it</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>was then much too late, as is always the case.</span></div></div>"
+  },
+  {
+   "n": 15,
+   "stem": "Why does the mole say &ldquo;Bother,&rdquo; &ldquo;O blow,&rdquo; and &ldquo;Hang spring cleaning&rdquo; in the passage&rsquo;s first paragraph?",
+   "opts": [
+    "His is enthusiastic about spring cleaning.",
+    "He is sick of spring cleaning and is going to stop soon.",
+    "He is discussing spring cleaning with the elderly rabbit and is shocked that the elderly rabbit does not enjoy spring cleaning as much as he does.",
+    "He keeps dropping things while trying to clean his house.",
+    "These are the lyrics of a song he is singing to himself about spring cleaning."
+   ],
+   "ans": 1,
+   "sk": "ssat.r.tone",
+   "why": "Read what happens on either side of the words. Before: dust in his throat, whitewash in his fur, &ldquo;an aching back and weary arms&rdquo;. After: he &ldquo;<b>flung down his brush</b>&rdquo; and &ldquo;<b>bolted out of the house</b>&rdquo; without even his coat. Those are exclamations of fed-up-ness, and he stops cleaning within the same sentence. (A) is the opposite, and it is there for anyone who reads the exclamation marks as excitement. Old-fashioned words you do not know &mdash; <i>bother</i>, <i>O blow</i>, <i>hang</i> &mdash; are decoded by the actions around them."
+  },
+  {
+   "n": 16,
+   "stem": "When the mole says &ldquo;Onion-sauce! Onion-sauce!&rdquo; to the rabbits, this statement is meant to be ______.",
+   "opts": [
+    "a nickname",
+    "a demand",
+    "lyrics to a song",
+    "a clue to a mystery",
+    "a taunt"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.tone",
+   "why": "The sentence tells you the tone: &ldquo;he remarked <b>jeeringly</b>&rdquo;, straight after he has bowled the rabbit over and while he is &ldquo;<b>chaffing</b> the other rabbits&rdquo; &mdash; and they are left unable to think of &ldquo;a thoroughly satisfactory reply&rdquo;. That is a <b>taunt</b>. You do not need to know that onion sauce was served with rabbit; the adverb does all the work. When a strange phrase appears in dialogue, the words around the quotation marks usually label it."
+  },
+  {
+   "n": 17,
+   "stem": "What effect does the author&rsquo;s use of repetition have in the lines underlined in paragraph 1?",
+   "opts": [
+    "The repetition doesn&rsquo;t affect the reader&rsquo;s perception of the story at all; the author is just having fun with language.",
+    "The repetition suggests that the mole gets lost on his way from his home to the surface.",
+    "The repetition emphasizes how long and how much energy it takes the mole to burrow to the surface.",
+    "The repetition emphasizes how busily the mole worked while spring cleaning his home.",
+    "The repetition is meant to confuse the reader, just as the mole is confused on his way to the surface."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.main",
+   "why": "Look at what is repeated and where. The underlined line piles up <i>scraped, scratched, scrabbled, scrooged</i> &mdash; and then runs the same four words backwards &mdash; before ending &ldquo;&rsquo;till at last, <b>pop!</b>&rdquo; The sentence takes a long time to get somewhere, which is exactly what the digging felt like: <b>long and hard work</b>. (D) is the trap, because repetition really does suggest effort &mdash; but this passage places these words <i>after</i> he left the house, in the tunnel, not during the cleaning. Match the device to the moment it appears in."
+  },
+  {
+   "n": 18,
+   "stem": "In context, the underlined word &ldquo;contemptuous&rdquo; most nearly means ______.",
+   "opts": [
+    "admiring",
+    "confused",
+    "respectful",
+    "patient",
+    "scornful"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.vocab",
+   "why": "The Mole is called &ldquo;the <b>impatient and contemptuous</b> Mole&rdquo; in the act of bowling a rabbit over, then jeering at his friends. The word sits beside <i>impatient</i> and describes rude, dismissive behaviour &mdash; that is <b>scornful</b>. (D) patient is ruled out by the &ldquo;and&rdquo;, which joins words of similar feeling rather than opposite ones. Two rules in one question: a word takes its colour from the words it is paired with, and the character&rsquo;s actions confirm it."
+  },
+  {
+   "n": 19,
+   "stem": "Which of these is an assumption that the reader is expected to make when reading this passage?",
+   "opts": [
+    "The mole and the rabbits can talk, but no other animal can.",
+    "Every road in the story is a toll road.",
+    "Moles normally sleep through spring.",
+    "The rabbits normally speak in rhyme, but the elderly rabbit is not very good at rhyming, so he doesn&rsquo;t.",
+    "Animals can make use of tools similar to the ones that humans use."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "The story never pauses to explain how a mole came by <b>brooms, dusters, ladders, a brush and a pail of whitewash</b>, or how a rabbit came to charge <b>sixpence</b>. It simply expects you to accept it &mdash; that is an assumption. (A) overreaches: the passage shows two kinds of animal talking and says nothing about the rest. (B) takes one private road and makes a rule of it. A good assumption answer covers what the passage <i>relies on</i> without over-claiming."
+  },
+  {
+   "n": 20,
+   "stem": "Based on what you have read in the passage, which of the following people or things would most likely be introduced as a character later in this story?",
+   "opts": [
+    "a king",
+    "a flower",
+    "a wizard",
+    "an alien",
+    "a toad"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "Ask what kind of story this is. Its world is English countryside animals who talk, keep house and carry money &mdash; a mole and a colony of rabbits so far. A <b>toad</b> is another such animal and would fit straight in; a king, a wizard and an alien all belong to different kinds of story, and a flower is not a character. (The book is <i>The Wind in the Willows</i>, and Toad turns up in it &mdash; but you can get there from the passage alone.) Extend the pattern the passage has already set rather than picking what would be most exciting."
+  },
+  {
+   "n": 21,
+   "stem": "What is the mole excited to do in this passage?",
+   "opts": [
+    "be outside",
+    "sleep",
+    "spring clean his home",
+    "prepare for a party",
+    "see his friends, the rabbits"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.detail",
+   "why": "The joy all arrives at the same moment &mdash; when he gets out. &ldquo;<b>This is fine!</b>&hellip; This is better than whitewashing!&rdquo;, the sunshine on his fur, &ldquo;jumping off all his four legs at once, in the <b>joy of living and the delight of spring</b>&rdquo;. He is excited to be <b>outside</b>. (C) is the opposite &mdash; the cleaning is what he flees; (E) is wrong twice over, since he knocks a rabbit down and jeers at the rest. Find where the happiest language sits and see what it is attached to."
+  },
+  {
+   "n": 22,
+   "stem": "In which order does the mole use the following tools when spring cleaning his home?",
+   "opts": [
+    "Brooms, dusters, whitewash",
+    "Brooms, whitewash, dusters",
+    "Whitewash, dusters, brooms",
+    "Whitewash, brooms, dusters",
+    "Dusters, brooms, whitewash"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.detail",
+   "why": "The second sentence lists them in order with the signposts built in: &ldquo;<b>First</b> with brooms, <b>then</b> with dusters, <b>then</b> on ladders and steps and chairs, with a brush and a pail of whitewash.&rdquo; So <b>brooms, dusters, whitewash</b>. Sequence questions are pure evidence-hunting &mdash; go back and underline the ordering words (<i>first, then, after, finally</i>) instead of trusting your memory of the paragraph."
+  },
+  {
+   "n": 23,
+   "stem": "What does the elderly rabbit want the mole to do?",
+   "opts": [
+    "Teach him how to dig underground",
+    "Tell him where he is going",
+    "Stop to chat",
+    "Help him with spring cleaning his burrow",
+    "Stop and pay a toll"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.detail",
+   "why": "&ldquo;<b>Hold up!</b>&rdquo; said the rabbit. &ldquo;<b>Sixpence for the privilege of passing by the private road!</b>&rdquo; Stop, and pay to come through &mdash; that is a <b>toll</b>. If the word <i>toll</i> is unfamiliar, work it out from the deal being offered: money in exchange for passing. The answer choices often use a single word for something the passage acts out in a whole sentence."
+  },
+  {
+   "n": 24,
+   "stem": "Where is the mole&rsquo;s home located?",
+   "opts": [
+    "in a tree",
+    "in a cave",
+    "underground",
+    "he doesn&rsquo;t have a permanent home",
+    "above ground"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.detail",
+   "why": "Three separate clues all point down. Spring moves &ldquo;in the earth <b>below</b>&hellip; penetrating even his <b>dark and lowly little house</b>&rdquo;; he climbs a &ldquo;<b>steep little tunnel</b>&rdquo; to reach the surface; and he speaks of &ldquo;the seclusion of the <b>cellarage</b>&rdquo; he had lived in so long. So his home is <b>underground</b>. (B) a cave is the near-miss &mdash; also below ground, but nothing in the passage says cave, and a mole digs its own tunnel. Gather the clues and pick the choice that <i>all</i> of them fit."
+  }
+ ],
+ "count": 24
+};
+const MINUTES = 24;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

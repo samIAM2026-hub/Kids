@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 9 · Quantitative 2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #2f6f5e; --accent-soft: #d5e7e0;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 9 &middot; Section 4</div>
+    <h1>Quantitative Skills &mdash; Section 4 (Questions 1&ndash;25)</h1>
+    <div class="meta">25 questions &middot; 30 minutes &middot; 72 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">30:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 9 &middot; <a href="SSAT-MockTest9-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Quantitative 2",
+ "items": [
+  {
+   "n": 1,
+   "stem": "Which of the following numbers has the greatest value?",
+   "opts": [
+    "1.4378",
+    "1.07548",
+    "1.43592",
+    "0.89409",
+    "1.43785"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.arith",
+   "why": "Compare place by place, left to right, and stop at the first difference &mdash; never by how many digits a number has. (D) starts with 0, so it is out. (B) has 0 in the tenths place, so it is out. That leaves 1.4378<b>0</b>, 1.435&hellip; and 1.4378<b>5</b>. In the thousandths place 7 beats 5, so (C) goes. The last two agree as far as 1.4378, so line them up and pad with a zero: 1.43780 against <b>1.43785</b> &mdash; (E) wins by five hundred-thousandths. The trap is thinking the longest string of digits is biggest; padding with zeros turns the comparison into one you can see."
+  },
+  {
+   "n": 2,
+   "stem": "The value of 6 &times; 12 is the same as:",
+   "opts": [
+    "2 &times; 4 &times; 4 &times; 2",
+    "7 &times; 4 &times; 3",
+    "6 &times; 6 &times; 3",
+    "3 &times; 3 &times; 4 &times; 2",
+    "3 &times; 4 &times; 4 &times; 2"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.arith",
+   "why": "6 &times; 12 = <b>72</b>, so just work out each choice: (A) 64, (B) 84, (C) 108, <b>(D) 9 &times; 8 = 72</b> &#10003;, (E) 96. The neater way is to break both sides into prime factors: 6 &times; 12 = (2 &times; 3) &times; (2 &times; 2 &times; 3) = 2<sup>3</sup> &times; 3<sup>2</sup>, and (D) is 3 &times; 3 &times; 4 &times; 2 = 3<sup>2</sup> &times; 2<sup>3</sup> &mdash; the same bag of primes. Two products are equal exactly when their prime factors match, however they are grouped."
+  },
+  {
+   "n": 3,
+   "stem": "This chart indicates how many sales of CDs, vinyl records, and MP3 downloads occurred over the last year. Approximately what percentage of the total sales was from CDs?",
+   "fig": "<svg width=\"400\" height=\"250\" viewBox=\"0 0 400 250\" role=\"img\" aria-label=\"A pie chart titled total sales of vinyl records, CDs and MP3 downloads, in millions. The CD slice is a little under half the circle, the MP3 slice is about half, and the vinyl slice is a thin sliver.\"><text x=\"200\" y=\"20\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"13\" font-weight=\"bold\" fill=\"#1c1a17\">Total sales of vinyl records, CDs</text><text x=\"200\" y=\"36\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"13\" font-weight=\"bold\" fill=\"#1c1a17\">and MP3 downloads (in millions)</text><path d=\"M118.0 140.0 L118.0 48.0 A92 92 0 0 1 172.1 214.4 Z\" fill=\"#2f6f5e\" stroke=\"#1c1a17\" stroke-width=\"1.5\"/><path d=\"M118.0 140.0 L172.1 214.4 A92 92 0 0 1 63.9 65.6 Z\" fill=\"#9dc2b7\" stroke=\"#1c1a17\" stroke-width=\"1.5\"/><path d=\"M118.0 140.0 L63.9 65.6 A92 92 0 0 1 118.0 48.0 Z\" fill=\"#d5e7e0\" stroke=\"#1c1a17\" stroke-width=\"1.5\"/><rect x=\"252\" y=\"99\" width=\"14\" height=\"14\" fill=\"#d5e7e0\" stroke=\"#1c1a17\" stroke-width=\"1\"/><text x=\"274\" y=\"110\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">Vinyl</text><rect x=\"252\" y=\"127\" width=\"14\" height=\"14\" fill=\"#2f6f5e\" stroke=\"#1c1a17\" stroke-width=\"1\"/><text x=\"274\" y=\"138\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">CD</text><rect x=\"252\" y=\"155\" width=\"14\" height=\"14\" fill=\"#9dc2b7\" stroke=\"#1c1a17\" stroke-width=\"1\"/><text x=\"274\" y=\"166\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">MP3</text></svg>",
+   "opts": [
+    "55%",
+    "25%",
+    "40%",
+    "5%",
+    "30%"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.data",
+   "why": "The word is <b>approximately</b>, so estimate against landmarks instead of measuring. Half the circle is 50% and a quarter is 25%. The CD slice is clearly <b>bigger than a quarter</b> but does <b>not quite reach half</b> &mdash; that rules out 25%, 30% and 55% and leaves <b>40%</b>. (D) 5% is the thin vinyl sliver, and (A) 55% is the MP3 half. On a pie chart, learn the four landmark shapes &mdash; 25% (a right angle), 50% (a straight edge through the middle), 75%, 100% &mdash; and every estimate becomes a comparison."
+  },
+  {
+   "n": 4,
+   "stem": "After a 20% sale discount, Frank purchased a new refrigerator for $850. How much did he save from the original price?",
+   "opts": [
+    "$170",
+    "$212.50",
+    "$105.75",
+    "$200",
+    "$120"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.word",
+   "why": "$850 is what he <b>paid</b>, not what the fridge cost to begin with &mdash; that is the whole question. After 20% off he paid 80% of the original, so original = 850 &divide; 0.8 = <b>$1,062.50</b>, and the saving is 1,062.50 &minus; 850 = <b>$212.50</b>. (A) $170 is 20% of 850 &mdash; the trap, and the answer to a question that was not asked. Rule to keep: a percent is always <i>of</i> something. Decide first whether the number you were handed is the before-price or the after-price."
+  },
+  {
+   "n": 5,
+   "stem": "Which of the following is largest?",
+   "opts": [
+    "0.45",
+    "0.096",
+    "0.3",
+    "0.313",
+    "0.29"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.arith",
+   "why": "Give every number the same number of decimal places and the comparison stops being a puzzle: 0.450, 0.096, 0.300, 0.313, 0.290. Now the tenths digit alone decides: 4 beats 3, 3, 2 and 0, so <b>0.45</b> is largest. (B) 0.096 is the trap &mdash; it has the most digits and the biggest-looking 96 in it, but it is less than a tenth. Digits after the point do not make a number bigger; only the place they sit in does."
+  },
+  {
+   "n": 6,
+   "stem": "What is the value of <i>b</i> in this equation 5<i>b</i> &minus; 4 = 2<i>b</i> + 17 ?",
+   "opts": [
+    "13",
+    "24",
+    "7",
+    "21",
+    "15"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.algebra",
+   "why": "Move the letters to one side and the numbers to the other: subtract 2<i>b</i> from both sides to get 3<i>b</i> &minus; 4 = 17, then add 4 to get 3<i>b</i> = 21, so <b><i>b</i> = 7</b>. Substitute back as a check: 5(7) &minus; 4 = 31 and 2(7) + 17 = 31 &#10003;. (D) 21 is the trap &mdash; it is where you stop if you forget the last division. When an answer choice is exactly your last line of working, that is usually the trap, not the answer."
+  },
+  {
+   "n": 7,
+   "stem": "A school has 15 teachers and 20 teaching assistants. They have 200 students. What is the ratio of faculty to students?",
+   "opts": [
+    "3:20",
+    "4:17",
+    "3: 2",
+    "7:40",
+    "3:40"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.ratio",
+   "why": "&ldquo;Faculty&rdquo; is everyone who works there: 15 + 20 = <b>35</b> adults. So the ratio is 35 : 200, and both divide by 5 &mdash; <b>7 : 40</b>. (A) 3:20 is 15:100, the ratio if you count only the teachers; (E) 3:40 is 15:200, the same mistake unsimplified. The lesson is in the word, not the arithmetic: before you build a ratio, check which people each side is supposed to include."
+  },
+  {
+   "n": 8,
+   "stem": "Express the solution to the following problem in decimal form: <sup>3</sup>&frasl;<sub>5</sub> &times; <sup>7</sup>&frasl;<sub>10</sub> &divide; <sup>1</sup>&frasl;<sub>2</sub> ?",
+   "opts": [
+    "0.042",
+    "84%",
+    "0.84",
+    "0.42",
+    "It cannot be determined from the information given."
+   ],
+   "ans": 2,
+   "sk": "ssat.q.frac",
+   "why": "Left to right. <sup>3</sup>&frasl;<sub>5</sub> &times; <sup>7</sup>&frasl;<sub>10</sub> = <sup>21</sup>&frasl;<sub>50</sub> = 0.42. Then dividing by <sup>1</sup>&frasl;<sub>2</sub> is the same as multiplying by 2: 0.42 &times; 2 = <b>0.84</b>. (D) 0.42 is the trap for stopping one step early, and (B) 84% is the right number in the wrong form &mdash; the question said <b>decimal</b>. Rule worth keeping: dividing by a fraction smaller than 1 makes a number <i>bigger</i>. If your answer shrank, you multiplied when you should have flipped."
+  },
+  {
+   "n": 9,
+   "stem": "A student gets an 85% on a test with 20 questions. How many answers did the student solve correctly?",
+   "opts": [
+    "15",
+    "16",
+    "17",
+    "18",
+    "14"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.frac",
+   "why": "85% of 20 means 0.85 &times; 20 = <b>17</b>. If decimals feel slippery, use friendly pieces: 10% of 20 is 2, so 80% is 16, and 5% is 1 &mdash; 16 + 1 = 17. Check the other way round: 17 &divide; 20 = 0.85 &#10003;. Building a percent out of 10% and 5% chunks is the fastest mental method there is, and it works on any number."
+  },
+  {
+   "n": 10,
+   "stem": "If Sarah reads at an average rate of 21 pages in four nights, how long will it take her to read 140 pages?",
+   "opts": [
+    "6 nights",
+    "26 nights",
+    "8 nights",
+    "27 nights",
+    "28 nights"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.ratio",
+   "why": "Get to one night: 21 &divide; 4 = <b>5.25 pages a night</b>. Then 140 &divide; 5.25 = <b>26.67</b> nights &mdash; and since she cannot stop two-thirds of the way through a night, she needs a <b>27th</b> night to finish. (B) 26 nights leaves her 3&frac12; pages short; (A) 6 is 140 &divide; 21, which forgets that each of those 21-page blocks takes four nights. When time comes out as a decimal, ask what happens in the leftover bit &mdash; finishing a job almost always rounds <i>up</i>."
+  },
+  {
+   "n": 11,
+   "stem": "Alan currently weighs 200 pounds, but he wants to lose weight to get down to 175 pounds. What is this difference in kilograms? (1 pound is approximately equal to 0.45 kilograms.)",
+   "opts": [
+    "9 kg",
+    "11.75 kg",
+    "78.75 kg",
+    "90 kg",
+    "11.25 kg"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.word",
+   "why": "Find the difference first, then convert: 200 &minus; 175 = <b>25 pounds</b>, and 25 &times; 0.45 = <b>11.25 kg</b>. Converting both weights first (90 kg and 78.75 kg) gets you there too, but it is two conversions instead of one and it plants both of those numbers &mdash; (C) and (D) &mdash; in the answer list as traps. Subtract inside one unit, convert once at the end: fewer steps, fewer slips."
+  },
+  {
+   "n": 12,
+   "stem": "Johnny earns $2334.50 from his job each month. He pays $1437 for monthly expenses. Johnny is planning a vacation in 3 months&rsquo; time that he estimates will cost $1750 total. How much will Johnny have left over from three months&rsquo; of saving once he pays for his vacation?",
+   "opts": [
+    "$948.50",
+    "$548.50",
+    "$852.50",
+    "$942.50",
+    "$845.50"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.word",
+   "why": "Three steps, in this order. What he saves in a month: 2,334.50 &minus; 1,437 = <b>$897.50</b>. Over three months: 897.50 &times; 3 = <b>$2,692.50</b>. After the trip: 2,692.50 &minus; 1,750 = <b>$942.50</b>. (A) $948.50 is a near-miss from a slip in the subtraction, and (B) $548.50 comes from taking the vacation out of a single month. On a multi-step money question, write each line down &mdash; the wrong answers here are all one small step away from the right one."
+  },
+  {
+   "n": 13,
+   "stem": "What is <sup>420</sup>&frasl;<sub>98</sub> rounded to the nearest integer?",
+   "opts": [
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.arith",
+   "why": "Round the bottom to something easy: 98 is almost 100, and 420 &divide; 100 = 4.2, so the answer is a little over 4. Exactly: 98 &times; 4 = 392 and 98 &times; 5 = 490, so 420 sits much nearer 392 &mdash; the value is 4.29, which rounds to <b>4</b>. Estimating first also protects you from (E) 7, which is a guess at 420 &divide; 60. Round the divisor to a friendly number, decide roughly, then confirm with one multiplication."
+  },
+  {
+   "n": 14,
+   "stem": "Solve the following: 4 &times; 7 + ( 25 &minus; 21 )<sup>2</sup> &divide; 2",
+   "opts": [
+    "512",
+    "36",
+    "60.5",
+    "22",
+    "18"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.arith",
+   "why": "Brackets, then the power, then &times; and &divide;, then + and &minus;. (25 &minus; 21) = 4, and 4<sup>2</sup> = 16. Now 4 &times; 7 = 28 and 16 &divide; 2 = 8. Finally 28 + 8 = <b>36</b>. The traps come from breaking that order: adding 28 + 16 before dividing gives 22, and squaring after dividing gives 4<sup>2</sup>&frasl;2 read wrongly. Say the order aloud as you go &mdash; it is the cheapest insurance on the paper."
+  },
+  {
+   "n": 15,
+   "stem": "The total perimeter of a rectangle is 36 cm. If the length of each side is 12 cm, what is the width?",
+   "opts": [
+    "3 cm",
+    "12 cm",
+    "6 cm",
+    "8 cm",
+    "4 cm"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.geom",
+   "why": "Read it as &ldquo;the length is 12 cm&rdquo; &mdash; if all four sides really were 12, the perimeter would be 48, not 36, so that is the only reading that works. A rectangle has two lengths and two widths: 2(12) + 2<i>w</i> = 36, so 2<i>w</i> = 12 and <b><i>w</i> = 6 cm</b>. (A) 3 cm is 36 &minus; 24 = 12 divided by 4 &mdash; halving once too often. Check by walking the rectangle: 12 + 6 + 12 + 6 = 36 &#10003;.",
+   "flag": "The printed wording says &ldquo;the length of each side is 12 cm&rdquo;, which cannot be true of a rectangle with perimeter 36. It has been left exactly as printed; the sum only works if &ldquo;length&rdquo; means the long side, which is how the answer choices are built."
+  },
+  {
+   "n": 16,
+   "stem": "Dwayne has received the following scores on his math tests: 78, 92, 83, 97. What score must Dwayne get on his next math test to have an overall average of at least 90?",
+   "opts": [
+    "89",
+    "98",
+    "95",
+    "99",
+    "100"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.data",
+   "why": "Work backwards from the total he needs. Five tests averaging 90 means a total of 5 &times; 90 = <b>450</b>. He already has 78 + 92 + 83 + 97 = <b>350</b>. So the next test must be 450 &minus; 350 = <b>100</b>. (B) 98 and (D) 99 are near-misses from a slip in the addition, and they are meant to feel plausible because 100 looks like an extreme answer. Rule worth keeping: for any &ldquo;what do I need to average&hellip;&rdquo; question, turn the average into a total first &mdash; averages are hard to steer, totals are just subtraction."
+  },
+  {
+   "n": 17,
+   "stem": "What is the overall median of Dwayne&rsquo;s current scores: 78, 92, 83, 97?",
+   "opts": [
+    "19",
+    "85",
+    "83",
+    "87.5",
+    "88"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.data",
+   "why": "Order them first &mdash; that step is the whole question: 78, <b>83, 92</b>, 97. With an even count there is no single middle, so take the mean of the two middle ones: (83 + 92) &divide; 2 = <b>87.5</b>. (C) 83 is what you get by taking a middle value from the <i>unsorted</i> list, and (E) 88 is the mean of all four (350 &divide; 4 = 87.5&hellip; close but that is the mean, not the median). Sort, then count in from both ends."
+  },
+  {
+   "n": 18,
+   "stem": "Solve the following: ( &radic;36 &times; &radic;16 ) &minus; 3<sup>2</sup>",
+   "opts": [
+    "30",
+    "21",
+    "15",
+    "13",
+    "16"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.arith",
+   "why": "Roots and powers before the subtraction: &radic;36 = 6, &radic;16 = 4, so the bracket is 6 &times; 4 = 24; and 3<sup>2</sup> = 9. Then 24 &minus; 9 = <b>15</b>. (B) 21 comes from reading 3<sup>2</sup> as 3 &times; 2 = 6, which is the most common slip with small powers. A square root asks &ldquo;what times itself gives this?&rdquo; and a square asks &ldquo;this times itself&rdquo; &mdash; they undo each other, and neither one involves the number 2 as a multiplier."
+  },
+  {
+   "n": 19,
+   "stem": "In Jim&rsquo;s school, there are 3 girls for every 2 boys. There are 650 students in total. Using this information, how many students are girls?",
+   "opts": [
+    "260",
+    "130",
+    "65",
+    "390",
+    "320"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.ratio",
+   "why": "A ratio question is a sharing question. Three girls and two boys make a group of <b>5 parts</b>, so one part is 650 &divide; 5 = <b>130</b> students. Girls take 3 parts: 3 &times; 130 = <b>390</b>. Check: boys are 2 &times; 130 = 260, and 390 + 260 = 650 &#10003;. (A) 260 is the number of boys and (B) 130 is one part &mdash; both are real steps on the way, which is exactly why they are in the list. Find one part first, then take the shares the question asks for."
+  },
+  {
+   "n": 20,
+   "stem": "What is the greatest number of rectangles 4 centimeters wide and 6 centimeters long that can be cut from a square piece of paper with a side of 24 centimeters?",
+   "opts": [
+    "2",
+    "10",
+    "24",
+    "36",
+    "48"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.area",
+   "why": "Compare areas first: the square is 24 &times; 24 = 576 cm&sup2; and each rectangle is 4 &times; 6 = 24 cm&sup2;, so at most 576 &divide; 24 = <b>24</b> of them. Then check they actually <i>fit</i> without waste, because area alone never proves that: 24 &divide; 4 = 6 across and 24 &divide; 6 = 4 down, so 6 &times; 4 = 24 fit exactly, no offcuts. (D) 36 and (E) 48 ignore one of the two dimensions. Always do both steps &mdash; area for the ceiling, a row-and-column check to see whether the ceiling is reachable."
+  },
+  {
+   "n": 21,
+   "stem": "Kimberley earns $10 an hour babysitting, and after 10 p.m., she earns $12 an hour, with the amount paid being rounded to the nearest hour accordingly. On her last job, she worked from 5:30 p.m. to 11 p.m. In total, how much did Kimberley earn on her last job?",
+   "opts": [
+    "$45",
+    "$57",
+    "$62",
+    "$42",
+    "$55"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.word",
+   "why": "Split the evening at 10 p.m., because that is where the rate changes. 5:30 p.m. to 10 p.m. is <b>4&frac12; hours</b> at $10; 10 p.m. to 11 p.m. is <b>1 hour</b> at $12. Now use the sentence about rounding &mdash; it is in the question for a reason: the 4&frac12; hours are paid as <b>5 whole hours</b>, so 5 &times; $10 = $50, plus 1 &times; $12 = $12, giving <b>$62</b>. (E) $55 charges the whole evening at $10 and forgets the rate change; (A) $45 forgets the late hour entirely. When a question adds a rule you did not need, that rule is usually the point of it.",
+   "flag": "A judgement call. Ignore the rounding sentence and the arithmetic gives 4&frac12; &times; $10 + $12 = <b>$57</b>, which is choice (B). (C) $62 is set here because the paper goes out of its way to say the pay is &ldquo;rounded to the nearest hour&rdquo;, and 4&frac12; rounds up to 5 &mdash; otherwise that clause does nothing at all. If a printed key says (B), change the page."
+  },
+  {
+   "n": 22,
+   "stem": "Solve this equation: 9<i>x</i> + <i>x</i> &minus; 7 = 16 + 2<i>x</i>",
+   "opts": [
+    "-4",
+    "3",
+    "<sup>9</sup>&frasl;<sub>8</sub>",
+    "<sup>23</sup>&frasl;<sub>8</sub>",
+    "4"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.algebra",
+   "why": "Tidy each side before you move anything: 9<i>x</i> + <i>x</i> = 10<i>x</i>, so the equation is 10<i>x</i> &minus; 7 = 16 + 2<i>x</i>. Take 2<i>x</i> off both sides: 8<i>x</i> &minus; 7 = 16. Add 7: 8<i>x</i> = 23. Divide: <b><i>x</i> = <sup>23</sup>&frasl;<sub>8</sub></b>. An ugly fraction feels wrong, but check it &mdash; 8(23&frasl;8) = 23 and 23 &minus; 7 = 16 &#10003;. (C) <sup>9</sup>&frasl;<sub>8</sub> comes from moving the 7 the wrong way (16 &minus; 7 instead of 16 + 7). Answers on the SSAT are allowed to be fractions; do not talk yourself out of one."
+  },
+  {
+   "n": 23,
+   "stem": "Arrange the following numbers from least to greatest value: 0.85, <sup>4</sup>&frasl;<sub>5</sub>, <sup>2</sup>&frasl;<sub>3</sub>, <sup>9</sup>&frasl;<sub>10</sub>, <sup>91</sup>&frasl;<sub>100</sub>",
+   "opts": [
+    "0.85, <sup>4</sup>&frasl;<sub>5</sub>, <sup>2</sup>&frasl;<sub>3</sub>, <sup>9</sup>&frasl;<sub>10</sub>, <sup>91</sup>&frasl;<sub>100</sub>",
+    "<sup>4</sup>&frasl;<sub>5</sub>, 0.85, <sup>2</sup>&frasl;<sub>3</sub>, <sup>9</sup>&frasl;<sub>10</sub>, <sup>91</sup>&frasl;<sub>100</sub>",
+    "<sup>2</sup>&frasl;<sub>3</sub>, <sup>4</sup>&frasl;<sub>5</sub>, 0.85, <sup>9</sup>&frasl;<sub>10</sub>, <sup>91</sup>&frasl;<sub>100</sub>",
+    "0.85, <sup>4</sup>&frasl;<sub>5</sub>, <sup>2</sup>&frasl;<sub>3</sub>, <sup>91</sup>&frasl;<sub>100</sub>, <sup>9</sup>&frasl;<sub>10</sub>",
+    "<sup>2</sup>&frasl;<sub>3</sub>, <sup>4</sup>&frasl;<sub>5</sub>, <sup>9</sup>&frasl;<sub>10</sub>, 0.85, <sup>91</sup>&frasl;<sub>100</sub>"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.frac",
+   "why": "Put everything in one form &mdash; decimals are easiest here. <sup>2</sup>&frasl;<sub>3</sub> = 0.667, <sup>4</sup>&frasl;<sub>5</sub> = 0.8, 0.85 stays 0.85, <sup>9</sup>&frasl;<sub>10</sub> = 0.9, <sup>91</sup>&frasl;<sub>100</sub> = 0.91. In order: <b>0.667, 0.8, 0.85, 0.9, 0.91</b> &mdash; which is choice <b>(C)</b>. (E) has the same first two but then puts 0.9 before 0.85, and (D) swaps the last pair. Two habits save you here: convert <i>everything</i> to one form before comparing anything, and when several choices start the same way, go straight to the place where they first differ."
+  },
+  {
+   "n": 24,
+   "stem": "Keith&rsquo;s bakery had 252 customers go through its doors last week. This week, that number increased to 378. Express this increase as a percentage.",
+   "opts": [
+    "26%",
+    "50%",
+    "35%",
+    "12%",
+    "21%"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.ratio",
+   "why": "Percent increase is <b>the change divided by the starting number</b>. The change is 378 &minus; 252 = <b>126</b>, and 126 &divide; 252 = 0.5 = <b>50%</b>. It helps to notice 126 is exactly half of 252 &mdash; no long division needed. (C) 35% is 126 &divide; 378, dividing by the <i>new</i> number instead of the old one, and that is the single most common percent-change mistake there is. The starting value always goes on the bottom."
+  },
+  {
+   "n": 25,
+   "stem": "If 4<i>x</i> &minus; 3 = 5, then <i>x</i> = ?",
+   "opts": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "<sup>1</sup>&frasl;<sub>2</sub>"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.algebra",
+   "why": "Undo the operations in reverse order. The equation does &ldquo;times 4, then minus 3&rdquo;, so you undo with &ldquo;plus 3, then divide by 4&rdquo;: 4<i>x</i> = 8, so <b><i>x</i> = 2</b>. Check: 4(2) &minus; 3 = 5 &#10003;. With five short choices you can also just test them &mdash; on a last question with the clock running, substituting (B) takes three seconds and proves it. Undo in reverse, then verify; both are fast here."
+  }
+ ],
+ "count": 25
+};
+const MINUTES = 30;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 9 · Reading B</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 9 &middot; Section 2, part 2</div>
+    <h1>Reading Comprehension &mdash; Part B (Questions 25&ndash;40)</h1>
+    <div class="meta">16 questions &middot; 16 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">16:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 9 &middot; <a href="SSAT-MockTest9-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading B",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 5 &middot; Questions 25&ndash;28",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">At the equator, and within certain limits north and south of it, the sun at certain periods of the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>year is directly overhead at noon. These limits are called the Tropics of Cancer and of Capricorn.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Upon the belt comprised between these two circles, the sun&rsquo;s rays fall with their mightiest power,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>for here they shoot directly downwards and heat both earth and sea more than when they strike</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>slantingly. When the vertical sunbeams strike the land, they heat it, and the air in contact with the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>hot soil becomes heated in turn. But when heated, the air expands, and when it expands, it</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>becomes lighter. This lighter air rises through the heavier air overhead.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">When the sunbeams fall upon the sea, the water is warmed, though not so much as the land.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>The warmed water expands, becomes thereby lighter, and therefore continues to float upon the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>top. This upper layer of water warms to some extent the air in contact with it, but it also sends up</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>a quantity of aqueous vapor, which being far lighter than air helps the latter to rise. Thus both</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>from the land and from the sea we have <u>ascending</u> currents established by the action of the sun.</span></div></div>"
+  },
+  {
+   "n": 25,
+   "stem": "The underlined word &ldquo;ascending&rdquo; most nearly means ______.",
+   "opts": [
+    "offending",
+    "exceeding",
+    "allowing",
+    "rising",
+    "intensifying"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.vocab",
+   "why": "The whole passage has been building one idea: heated air &ldquo;<b>rises</b> through the heavier air overhead&rdquo;, and vapour &ldquo;<b>helps the latter to rise</b>&rdquo;. The last sentence sums that up as &ldquo;ascending currents&rdquo;, so ascending means <b>rising</b>. (B) exceeding and (E) intensifying are traps built on sound and on the general idea of &ldquo;more&rdquo;. A summary sentence almost always repeats, in one word, something the paragraph has already said in plainer language &mdash; find that plainer word."
+  },
+  {
+   "n": 26,
+   "stem": "The primary function of this passage is ______.",
+   "opts": [
+    "define how the Earth&rsquo;s rotation around the sun affects the intensity of the seasons",
+    "explain the history of the Tropics of Cancer and Capricorn",
+    "describe the sun&rsquo;s position in relation to the Tropics and the equator",
+    "define the limits of the Tropics of Cancer and Capricorn",
+    "explain how rising currents are caused by the position and power of the sun"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.main",
+   "why": "Read the last sentence, because that is where this passage lands: &ldquo;<b>Thus</b> both from the land and from the sea we have ascending currents established by the action of the sun.&rdquo; Everything before it &mdash; the vertical rays, the heated soil, the expanding air, the warmed sea &mdash; is the chain that gets there. (C) and (D) describe the <i>first two sentences</i> only; they are the trap for readers who decide the topic from the opening. A passage&rsquo;s main idea is usually where its argument arrives, not where it starts."
+  },
+  {
+   "n": 27,
+   "stem": "The Tropics of Cancer and Capricorn are ______.",
+   "opts": [
+    "the limits of where the sun&rsquo;s energy can be properly absorbed by the water",
+    "where the sun&rsquo;s rays are least likely to fall during the winter",
+    "the physical limits of where the sun can adequately make a difference in the regulation of earth&rsquo;s atmosphere",
+    "the geographical limits of where the sun is sometimes directly overhead at noon",
+    "the two warmest parts of the planet"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.detail",
+   "why": "The definition is in the first two lines, and the answer keeps its words: at the equator &ldquo;and within <b>certain limits</b> north and south of it, the sun <b>at certain periods of the year is directly overhead at noon</b>. <b>These limits</b> are called the Tropics&hellip;&rdquo; That is choice (D), with &ldquo;at certain periods&rdquo; becoming &ldquo;sometimes&rdquo;. (E) is the trap &mdash; the passage says the strongest rays fall on the <i>belt between</i> the two circles, not on the circles themselves. Match the answer to the sentence that defines the term, not to what sounds generally true."
+  },
+  {
+   "n": 28,
+   "stem": "Why is the water heated more dramatically closer to the equator?",
+   "opts": [
+    "Because the sun is much closer",
+    "Because the sun&rsquo;s rays fall directly, as opposed to on a slant",
+    "Because summer lasts much longer closer to the equator",
+    "Because the moon exerts a gravitational pull on the water",
+    "Because the equator is heated from within the Earth&rsquo;s crust"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "Lines 3&ndash;5 give the reason in one sentence: the rays &ldquo;fall with their mightiest power, for here they <b>shoot directly downwards</b> and heat both earth and sea more than when they strike <b>slantingly</b>.&rdquo; Direct beats slanting &mdash; that is the mechanism. (A) is the everyday misconception and the reason it is offered; the passage never says the sun is nearer, only that its rays arrive straight on. On a &ldquo;why&rdquo; question, look for the word <i>for</i>, <i>because</i> or <i>since</i> &mdash; the author usually marks the answer."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 6 &middot; Questions 29&ndash;34",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">There was a little stream in ancient times, in the north of Italy, which flowed eastward into</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>the Adriatic Sea, called the Rubicon. This stream has been <u>immortalized</u> by the transactions</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>which we are now about to describe.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">The Rubicon was a very important boundary, and yet it was in itself so small and</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>insignificant that it is now impossible to determine which of two or three little brooks here</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>running into the sea is entitled to its name and <u>renown</u>. In history, the Rubicon is a grand,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>permanent, and conspicuous stream, gazed upon with continued interest by all mankind for nearly</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>twenty centuries; in nature it is an uncertain rivulet, for a long time doubtful and undetermined,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>and finally lost.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span style=\"text-indent:26px;display:inline-block\">The Rubicon originally derived its importance from the fact that it was the boundary between all</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>that part of the north of Italy which is formed by the valley of the Po, one of the richest and most</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>magnificent countries of the world, and the more southern Roman territories. This country of the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Po constituted what was in those days called the hither Gaul, and was a Roman province. It</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>belonged now to C&aelig;sar&rsquo;s jurisdiction, as the commander in Gaul. All south of the Rubicon was</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span>territory reserved for the immediate <u>jurisdiction</u> of the city. The Romans, in order to protect</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>themselves from any danger which might threaten their own liberties from the immense armies</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>which they raised for the conquest of foreign nations, had imposed on every side very strict</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>limitations and restrictions in respect to the approach of these armies to the capital. The Rubicon</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>was the limit on this northern side. Generals commanding in Gaul were never to pass it. To cross</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20</span><span>the Rubicon with an army on the way to Rome was rebellion and treason. Hence the Rubicon</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>became, as it were, the visible sign and symbol of civil restriction to military power.</span></div></div>"
+  },
+  {
+   "n": 29,
+   "stem": "Why does the author discuss the geographical nature of the Rubicon at the beginning of the second paragraph?",
+   "opts": [
+    "To defend against allegations that Caesar was an abhorrent tyrant",
+    "To illustrate how close the river was to the city of Rome",
+    "To discuss the logistical problems faced by Caesar&rsquo;s army",
+    "To contrast the smallness of its actual size with the massive effect it has had on history",
+    "To demonstrate how simple it would have been for Caesar to cross the river"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.main",
+   "why": "The paragraph is built on one <b>and yet</b>: &ldquo;a very important boundary, <b>and yet</b>&hellip; so small and insignificant&rdquo; that nobody can now say which brook it was. Then it doubles the contrast: &ldquo;<b>In history</b>, the Rubicon is a grand, permanent, and conspicuous stream&hellip; <b>in nature</b> it is an uncertain rivulet&hellip; and finally lost.&rdquo; That is size against significance &mdash; choice (D). Whenever a paragraph turns on <i>and yet</i>, <i>but</i> or <i>however</i>, its purpose is almost always the contrast itself."
+  },
+  {
+   "n": 30,
+   "stem": "The underlined word &ldquo;immortalized&rdquo; most nearly means ______.",
+   "opts": [
+    "deified",
+    "made ceremonial",
+    "made safe",
+    "made eternal",
+    "sanctified"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.vocab",
+   "why": "Take the word apart: <i>im-</i> (not) + <i>mortal</i> (able to die). To immortalize is to <b>make eternal</b> &mdash; and the passage proves it, saying the stream is &ldquo;gazed upon with continued interest by all mankind for nearly <b>twenty centuries</b>&rdquo; even though the river itself is lost. (A) deified and (E) sanctified mean made into a god and made holy; they share the <i>feeling</i> of the word but not the meaning. Break a long word into its pieces first, then check the piece against the passage."
+  },
+  {
+   "n": 31,
+   "stem": "The underlined word &ldquo;jurisdiction&rdquo; most nearly means ______.",
+   "opts": [
+    "subordination",
+    "authority",
+    "brevity",
+    "mendacity",
+    "veracity"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.vocab",
+   "why": "The word appears twice, and the second use explains the first: the Po country &ldquo;belonged now to C&aelig;sar&rsquo;s jurisdiction, <b>as the commander in Gaul</b>&rdquo;, and all south of the river was &ldquo;reserved for the immediate jurisdiction <b>of the city</b>&rdquo;. It is about who is in charge of which land &mdash; <b>authority</b>. The other three choices are simply hard words (brevity = shortness, mendacity = lying, veracity = truthfulness) with nothing in the passage behind them. When a word appears twice, read both places: together they usually fix the meaning."
+  },
+  {
+   "n": 32,
+   "stem": "The underlined word &ldquo;renown&rdquo; most nearly means ______.",
+   "opts": [
+    "kingdom",
+    "fame",
+    "orthodox",
+    "disgrace",
+    "infamy"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.vocab",
+   "why": "The brooks are competing to be &ldquo;entitled to its <b>name and renown</b>&rdquo; &mdash; and the next sentence says the Rubicon is &ldquo;gazed upon with continued interest by all mankind&rdquo;. That is being widely known and admired: <b>fame</b>. (E) infamy is the trap &mdash; it means fame of the <i>bad</i> kind, and here the tone is grand and admiring, not disapproving. Get the positive-or-negative feel of the sentence first; it eliminates half the choices before you weigh meanings."
+  },
+  {
+   "n": 33,
+   "stem": "By crossing the Rubicon, Caesar ______.",
+   "opts": [
+    "violated the laws made in Gaul to protect the Empire",
+    "got back in time to defend the capital from barbarians",
+    "accommodated the wishes of the Roman Senate",
+    "fulfilled a long held prophecy that the commander of Gaul would rule all of Rome",
+    "threatened the Roman capital with his army"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "The last paragraph explains exactly what the boundary was for. Rome limited how near its own armies could come &ldquo;in order to protect themselves from any <b>danger which might threaten their own liberties</b>&rdquo;; generals in Gaul &ldquo;were <b>never to pass it</b>&rdquo;; and to cross it with an army &ldquo;was <b>rebellion and treason</b>&rdquo;. So crossing it <b>threatened the capital with an army</b>. (A) has the geography backwards &mdash; the rule protected Rome, and it was Roman, not Gallic. Answer from the rule the passage sets up, not from anything you may already know about Caesar."
+  },
+  {
+   "n": 34,
+   "stem": "The Rubicon originally got its importance from ______.",
+   "opts": [
+    "its closeness to the Adriatic Sea",
+    "its position as a dividing line between Gaul and Briton",
+    "None of these answers",
+    "being the boundary between Northern and Southern Italy",
+    "its flood plains that were very useful for large scale agriculture"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.detail",
+   "why": "The sentence begins with the question&rsquo;s own word: &ldquo;The Rubicon <b>originally derived its importance</b> from the fact that it was the <b>boundary between</b> all that part of the north of Italy&hellip; and the <b>more southern Roman territories</b>.&rdquo; North against south inside Italy &mdash; choice (D). (B) is the careful trap: the land north of it <i>was</i> called hither Gaul, but Briton is nowhere in the passage, and one wrong half sinks the whole choice. Beware &ldquo;None of these answers&rdquo; &mdash; it is only right when you can rule out all four, and here you cannot."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 7 &middot; Questions 35&ndash;40",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Henry Plantagenet, when he was but twenty-one years old, quietly <u>succeeded</u> to the throne of</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>England, according to his agreement made with the <u>late</u> king at Winchester. Six weeks after</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Stephen&rsquo;s death, he and his queen, Eleanor, were crowned in that city, into which they rode on</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>horseback in great state, side by side, amidst much shouting and rejoicing, and clashing of music,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>and strewing of flowers.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">The reign of King Henry the Second began well. The king had great possessions, and (with</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>his own property, and with that of his wife) was lord of one-third part of France. He was a young</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>man of strength, ability, and determination, and immediately applied himself to remove some of</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>the evils which had arisen in the last unhappy reign. He took away all the grants of land that had</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>been hastily made, on either side, during the recent struggles; he forced numbers of disorderly</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>soldiers to depart from England; he reclaimed all the castles belonging to the crown; and he</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>forced the <u>wicked nobles</u> to pull down their own castles, to the number of eleven hundred, in</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>which such dismal cruelties had been inflicted on the people.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">The king&rsquo;s brother, Geoffrey, rose against him in France and forced Henry to wage a war in</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span>France. After he had subdued and made a friendly arrangement with his brother (who did not live</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>long), his ambition to increase his possessions involved him in a war with the French king,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Louis. He had been on such friendly terms with the French king just before, that to his infant</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>daughter, then a baby in the cradle, he had promised one of his little sons in marriage, who was a</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>child of five years old. However, the war came to nothing at last, and the Pope made the two</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20</span><span>kings friends again.</span></div></div>"
+  },
+  {
+   "n": 35,
+   "stem": "Why does the author call the underlined nobles &ldquo;wicked&rdquo; near the end of the second paragraph?",
+   "opts": [
+    "Because they were unable to provide food and protection for the people",
+    "Because they had refused to fight against the French",
+    "Because they had turned against the king",
+    "Because they had abandoned their religion",
+    "Because they had tortured the common people"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.detail",
+   "why": "The reason is in the same sentence, just after the castles: Henry forced them to pull down eleven hundred castles &ldquo;in which such <b>dismal cruelties had been inflicted on the people</b>.&rdquo; Cruelty done to ordinary people is what earns the word <b>wicked</b>. (C) is the tempting one &mdash; the paragraph is full of Henry bringing nobles to heel &mdash; but the passage gives the cruelties as the reason, not disloyalty. When an author uses a loaded word, the justification is usually within a line of it."
+  },
+  {
+   "n": 36,
+   "stem": "The underlined word &ldquo;late&rdquo; most nearly means ______.",
+   "opts": [
+    "arrived",
+    "existing",
+    "dead",
+    "delayed",
+    "replaced"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.vocab",
+   "why": "The next sentence dates everything from &ldquo;<b>Stephen&rsquo;s death</b>&rdquo;, and Henry succeeds to the throne by an agreement made with &ldquo;the late king&rdquo; &mdash; so the late king is the one who has <b>died</b>. (D) delayed is the everyday meaning of <i>late</i> and is the whole trap; this is an older, formal use that survives in phrases like <i>my late grandmother</i>. A common word in a vocabulary question is a warning sign: the test is asking about its <i>second</i> meaning."
+  },
+  {
+   "n": 37,
+   "stem": "Stephen was most likely ______.",
+   "opts": [
+    "A French soldier fighting the British",
+    "A religious leader in England",
+    "The king of England before Henry",
+    "Eleanor&rsquo;s previous husband",
+    "A French king"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.infer",
+   "why": "Line up the first two sentences. Henry &ldquo;succeeded to the throne of England, according to his agreement made with <b>the late king</b>&rdquo;, and then &ldquo;<b>six weeks after Stephen&rsquo;s death</b>&rdquo; Henry was crowned. The late king and Stephen are the same person, so Stephen was <b>the king of England before Henry</b>. (E) a French king is the distractor &mdash; there is a French king in the passage, but he is named Louis, and he is alive. Two pronouns or names that point at the same event are usually pointing at the same person."
+  },
+  {
+   "n": 38,
+   "stem": "What can you predict happened to King Henry&rsquo;s French territory during his lifetime?",
+   "opts": [
+    "It stayed roughly the same size.",
+    "It grew slightly larger.",
+    "It became slightly smaller.",
+    "It was dramatically expanded.",
+    "It was dramatically reduced."
+   ],
+   "ans": 1,
+   "sk": "ssat.r.infer",
+   "why": "Predict from the character the passage draws. Henry is &ldquo;a young man of <b>strength, ability, and determination</b>&rdquo;, already lord of a third of France, and driven by &ldquo;his <b>ambition to increase his possessions</b>&rdquo;. That points upward. But the one attempt described &ldquo;came to nothing at last&rdquo;, and he starts from a third of France already &mdash; so <b>slightly larger</b> fits better than <i>dramatically expanded</i>. A prediction question wants the trend the passage implies, at the size the passage supports: not the most exciting answer, the best-evidenced one.",
+   "flag": "A judgement call. (A) <i>stayed roughly the same size</i> is defensible, since the only war described &ldquo;came to nothing at last&rdquo; and the Pope patched the quarrel up. (B) is set here because the passage makes a point of Henry&rsquo;s determination and his ambition to increase his possessions, which is the trait a prediction question is asking you to extend."
+  },
+  {
+   "n": 39,
+   "stem": "The theme of the second paragraph is that ______.",
+   "opts": [
+    "Henry had many difficulties to confront upon becoming king and was able to meet them due to his strong and talented nature.",
+    "The reign of the previous king had been much more successful than Henry&rsquo;s was.",
+    "Stephen had left Henry a great deal of wealth to spend.",
+    "Henry was facing an impossible task in trying to keep England under control.",
+    "War with France was inevitable once Henry became King."
+   ],
+   "ans": 0,
+   "sk": "ssat.r.main",
+   "why": "The paragraph has two halves and the answer must cover both. First his qualities &mdash; &ldquo;a young man of strength, ability, and determination&rdquo;. Then a list of what he did with them: took back hasty land grants, sent disorderly soldiers out of England, reclaimed the crown&rsquo;s castles, pulled down eleven hundred more. Problems met by a capable king &mdash; choice (A). (B) and (D) contradict &ldquo;<b>The reign of King Henry the Second began well</b>&rdquo;, the paragraph&rsquo;s own first line. A theme answer must fit the <i>whole</i> paragraph; one sentence it contradicts is enough to rule it out."
+  },
+  {
+   "n": 40,
+   "stem": "The underlined word &ldquo;succeeded&rdquo; most nearly means ______.",
+   "opts": [
+    "treasured",
+    "appreciated",
+    "meandered",
+    "inherited",
+    "worshiped"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.vocab",
+   "why": "He &ldquo;succeeded <b>to the throne</b>&rdquo; by an agreement with the old king and was crowned six weeks after that king&rsquo;s death. To succeed to something is to <b>come into it after someone else</b> &mdash; here, to inherit the crown. The trap is the ordinary meaning of <i>succeed</i>, &ldquo;to do well&rdquo;, which is not among the choices precisely because the test wants the other sense. Notice the little word after the verb: <i>succeed <b>to</b></i> is inheriting; <i>succeed <b>in</b></i> is managing something."
+  }
+ ],
+ "count": 16
+};
+const MINUTES = 16;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

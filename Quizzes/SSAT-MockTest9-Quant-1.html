@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 9 · Quantitative 1</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #2f6f5e; --accent-soft: #d5e7e0;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 9 &middot; Section 1</div>
+    <h1>Quantitative Skills &mdash; Section 1 (Questions 1&ndash;25)</h1>
+    <div class="meta">25 questions &middot; 30 minutes &middot; 72 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">30:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 9 &middot; <a href="SSAT-MockTest9-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Quantitative 1",
+ "items": [
+  {
+   "n": 1,
+   "stem": "Which of the following is equivalent to the value of the digit 3 in the number 792.134?",
+   "opts": [
+    "3 &times; 10",
+    "3 &times; 100",
+    "<sup>3</sup>&frasl;<sub>10</sub>",
+    "<sup>3</sup>&frasl;<sub>100</sub>",
+    "<sup>3</sup>&frasl;<sub>1000</sub>"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.arith",
+   "why": "Name the place before you do anything else. To the right of the point the places run tenths, hundredths, thousandths &mdash; so in 792.<b>1&thinsp;3&thinsp;4</b> the 1 is a tenth, the <b>3 is a hundredth</b>, and the 4 is a thousandth. The digit is therefore worth <sup>3</sup>&frasl;<sub>100</sub>. The trap is (C): <sup>3</sup>&frasl;<sub>10</sub> is right for the <i>first</i> place after the point, and it catches anyone who counts the decimal point itself as a step. Rule to keep: left of the point the places multiply by 10, right of the point they divide by 10."
+  },
+  {
+   "n": 2,
+   "stem": "How will the following number be written in standard form: ( 1 &times; 10<sup>4</sup> ) + ( 3 &times; 10<sup>3</sup> ) + ( 7 &times; 10<sup>1</sup> ) + ( 8 &times; 10<sup>0</sup> ) ?",
+   "opts": [
+    "137",
+    "13,078",
+    "1,378",
+    "8,731",
+    "87,031"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.arith",
+   "why": "Write the empty place in. 10<sup>4</sup> = 10,000 &middot; 10<sup>3</sup> = 1,000 &middot; 10<sup>1</sup> = 10 &middot; 10<sup>0</sup> = 1, so the sum is 10,000 + 3,000 + 70 + 8. There is <b>no 10<sup>2</sup> term</b>, so the hundreds place is a <b>zero</b>: <b>13,078</b>. That missing term is the whole question &mdash; (C) 1,378 is what you get by writing the digits 1, 3, 7, 8 in a row and skipping the empty place. Whenever a place is missing from expanded form, put a zero there on purpose."
+  },
+  {
+   "n": 3,
+   "stem": "How will the number 847.89632 be written if rounded to the nearest hundredth?",
+   "opts": [
+    "847.90",
+    "900",
+    "847.89",
+    "847.896",
+    "847.8963"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.arith",
+   "why": "The hundredths place is the second digit after the point, so you are keeping 847.<b>89</b> and the next digit decides. That digit is <b>6</b>, which is 5 or more, so the 9 rounds up: 847.89 + 0.01 = <b>847.90</b>. (C) 847.89 is the trap &mdash; it is what you get by chopping the tail off instead of rounding it. Keep the trailing zero: it is what shows you rounded to hundredths and not to tenths."
+  },
+  {
+   "n": 4,
+   "stem": "What is the value of the sum of <sup>1</sup>&frasl;<sub>3</sub> and <sup>2</sup>&frasl;<sub>5</sub>?",
+   "opts": [
+    "<sup>3</sup>&frasl;<sub>8</sub>",
+    "<sup>11</sup>&frasl;<sub>15</sub>",
+    "<sup>11</sup>&frasl;<sub>30</sub>",
+    "<sup>4</sup>&frasl;<sub>5</sub>",
+    "<sup>1</sup>&frasl;<sub>4</sub>"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.frac",
+   "why": "Fifteen is the smallest number both 3 and 5 divide into, so rewrite both fractions over 15: <sup>1</sup>&frasl;<sub>3</sub> = <sup>5</sup>&frasl;<sub>15</sub> and <sup>2</sup>&frasl;<sub>5</sub> = <sup>6</sup>&frasl;<sub>15</sub>. Then 5 + 6 = 11 fifteenths, or <b><sup>11</sup>&frasl;<sub>15</sub></b>. Check it roughly: 0.33 + 0.4 = 0.73, and 11 &divide; 15 = 0.73 &#10003;. The trap is (A) <sup>3</sup>&frasl;<sub>8</sub> &mdash; adding the tops and the bottoms separately. Tops add, bottoms don&rsquo;t."
+  },
+  {
+   "n": 5,
+   "stem": "What is the value of the expression: 7<sup>2</sup> &minus; 3 &times; ( 4 + 2 ) + 15 &divide; 5 ?",
+   "opts": [
+    "12.2",
+    "40.2",
+    "34",
+    "58.2",
+    "58"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.arith",
+   "why": "Work the order of operations in blocks. Brackets first: 4 + 2 = 6. Then the power: 7<sup>2</sup> = 49. Then <i>all</i> the multiplying and dividing: 3 &times; 6 = 18 and 15 &divide; 5 = 3. Only now the adding and subtracting, left to right: 49 &minus; 18 + 3 = <b>34</b>. The trap is doing 49 &minus; 18 + 3 out of order as 49 &minus; 21 = 28, or adding before subtracting. Plus and minus have equal rank &mdash; you take them left to right, never one before the other."
+  },
+  {
+   "n": 6,
+   "stem": "How will <sup>4</sup>&frasl;<sub>5</sub> be written as a percent?",
+   "opts": [
+    "40%",
+    "125%",
+    "90%",
+    "80%",
+    "50%"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.frac",
+   "why": "A percent is just hundredths. Fifths go into hundredths neatly: multiply top and bottom by 20 and <sup>4</sup>&frasl;<sub>5</sub> = <sup>80</sup>&frasl;<sub>100</sub> = <b>80%</b>. Or divide: 4 &divide; 5 = 0.8 = 80%. (B) 125% is <sup>5</sup>&frasl;<sub>4</sub> &mdash; the fraction flipped. Worth memorising, because they come up constantly: <sup>1</sup>&frasl;<sub>5</sub> = 20%, <sup>1</sup>&frasl;<sub>4</sub> = 25%, <sup>1</sup>&frasl;<sub>3</sub> &asymp; 33%, <sup>1</sup>&frasl;<sub>8</sub> = 12.5%."
+  },
+  {
+   "n": 7,
+   "stem": "If Danny takes 48 minutes to walk 3 miles, how long should it take him to walk 5 miles maintaining the same speed?",
+   "opts": [
+    "32 min",
+    "64 min",
+    "80 min",
+    "96 min",
+    "128 min"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.ratio",
+   "why": "Find the cost of <i>one</i> mile first: 48 &divide; 3 = <b>16 minutes per mile</b>. Five miles is then 5 &times; 16 = <b>80 minutes</b>. Sanity check: 5 miles is a bit under twice 3 miles, and 80 is a bit under twice 48 &#10003;. (E) 128 min comes from multiplying 48 by 8&frasl;3 instead of 5&frasl;3, and (D) 96 min is simply double. The unit rate is almost always the fastest road through a rate question &mdash; get to &ldquo;per one&rdquo; and the rest is one multiplication."
+  },
+  {
+   "n": 8,
+   "stem": "What are all the factors of 12?",
+   "opts": [
+    "12, 24, 36",
+    "1, 2, 4, 6, 12",
+    "12, 24, 36, 48",
+    "1, 2, 3, 4, 6, 12",
+    "2, 3, 4, 6"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.arith",
+   "why": "Factors go <i>into</i> a number; multiples come <i>out</i> of it. Hunt factors in pairs so you cannot miss one: 1 &times; 12, 2 &times; 6, 3 &times; 4 &mdash; and 5 does not divide 12, so you are done. That gives <b>1, 2, 3, 4, 6, 12</b>. (A) and (C) are lists of multiples; (B) has dropped the 3; (E) has dropped 1 and 12, which always count. Pairing up is the habit: it tells you when to stop."
+  },
+  {
+   "n": 9,
+   "stem": "A construction company is building a new housing development with the property of each house measuring 30 feet wide. If the length of the street is zoned off at 345 feet, how many houses can be built on the street?",
+   "opts": [
+    "11",
+    "115",
+    "11.5",
+    "12",
+    "125"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.word",
+   "why": "345 &divide; 30 = <b>11.5</b> &mdash; and then you have to think like a builder, not a calculator. Half a house is not a house, so only <b>11</b> fit. (C) 11.5 is the calculator&rsquo;s answer and the trap the question is built around; (D) 12 is rounding up, which would need 360 feet of street. Rule worth keeping: when the answer counts <b>whole things</b>, round down no matter what the decimal says."
+  },
+  {
+   "n": 10,
+   "stem": "How will the following algebraic expression be simplified: ( 5<i>x</i><sup>2</sup> &minus; 3<i>x</i> + 4 ) &minus; ( 2<i>x</i><sup>2</sup> &minus; 7 ) ?",
+   "opts": [
+    "<i>x</i><sup>5</sup>",
+    "3<i>x</i><sup>2</sup> &minus; 3<i>x</i> + 11",
+    "3<i>x</i><sup>2</sup> &minus; 3<i>x</i> &minus; 3",
+    "<i>x</i> &minus; 3",
+    "5<i>x</i>"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.algebra",
+   "why": "The minus sign in front of the bracket belongs to <i>everything</i> inside it, so &minus;(2<i>x</i><sup>2</sup> &minus; 7) becomes &minus;2<i>x</i><sup>2</sup> <b>+ 7</b>. Now collect: 5<i>x</i><sup>2</sup> &minus; 2<i>x</i><sup>2</sup> = 3<i>x</i><sup>2</sup>, the &minus;3<i>x</i> has nothing to pair with, and 4 + 7 = 11 &mdash; giving <b>3<i>x</i><sup>2</sup> &minus; 3<i>x</i> + 11</b>. (C) is exactly what you get if you forget to flip that second sign (4 &minus; 7 = &minus;3), which is the single most common slip in the whole topic. Write the sign change in before you collect anything."
+  },
+  {
+   "n": 11,
+   "stem": "Kassidy drove for 3 hours at a speed of 60 miles per hour. Using the distance formula, <i>d</i> = <i>r</i> &times; <i>t</i> (distance = rate &times; time), how far did Kassidy travel?",
+   "opts": [
+    "20 miles",
+    "60 miles",
+    "65 miles",
+    "120 miles",
+    "180 miles"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.word",
+   "why": "The formula is handed to you: <i>d</i> = 60 &times; 3 = <b>180 miles</b>. Check it in words &mdash; 60 miles in the first hour, 60 in the second, 60 in the third. (A) 20 miles is 60 &divide; 3, which is what you get by reaching for division out of habit. When a question gives you the formula, the only real work is putting each number in the right slot: rate goes with &ldquo;per hour&rdquo;, time goes with &ldquo;hours&rdquo;."
+  },
+  {
+   "n": 12,
+   "stem": "If &minus;3 ( <i>x</i> + 4 ) = <i>x</i> + 8, what is the value of <i>x</i> ?",
+   "opts": [
+    "<i>x</i> = 4",
+    "<i>x</i> = 2",
+    "<i>x</i> = 5",
+    "<i>x</i> = &minus;5",
+    "<i>x</i> = 15"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.algebra",
+   "why": "Multiply out first, keeping the negative on both terms: &minus;3<i>x</i> &minus; 12 = <i>x</i> + 8. Gather the <i>x</i>&rsquo;s on one side and the numbers on the other: &minus;3<i>x</i> &minus; <i>x</i> = 8 + 12, so &minus;4<i>x</i> = 20 and <b><i>x</i> = &minus;5</b>. Always substitute back: &minus;3(&minus;5 + 4) = &minus;3(&minus;1) = 3, and &minus;5 + 8 = 3 &#10003;. Forgetting to distribute the minus over the 4 gives &minus;3<i>x</i> + 12 and the wrong sign on the answer &mdash; the check catches it in five seconds."
+  },
+  {
+   "n": 13,
+   "stem": "Karen gets paid a weekly salary and a commission for every sale that she makes. The table below shows the number of sales and her pay for different weeks. Which of the following equations represents Karen&rsquo;s weekly pay?",
+   "fig": "<table class=\"dt\"><caption>Karen&rsquo;s sales and her pay for different weeks</caption><tr><th>Sales</th><th>2</th><th>7</th><th>4</th><th>8</th></tr><tr><td class=\"rh\"><b>Pay</b></td><td>$380</td><td>$580</td><td>$460</td><td>$620</td></tr></table>",
+   "opts": [
+    "<i>y</i> = 90<i>x</i> + 200",
+    "<i>y</i> = 90<i>x</i> &minus; 200",
+    "<i>y</i> = 40<i>x</i> &minus; 200",
+    "<i>y</i> = 90<i>x</i> + 400",
+    "<i>y</i> = 40<i>x</i> + 300"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.data",
+   "why": "The commission is the <i>change</i> in pay per extra sale. From 2 sales to 7 sales the pay goes from $380 to $580: that is $200 for 5 sales, so <b>$40 a sale</b>. The salary is what is left when she sells nothing: at 2 sales the commission is 2 &times; 40 = $80, so the salary is 380 &minus; 80 = <b>$300</b>. Hence <b><i>y</i> = 40<i>x</i> + 300</b>. Test it on a row you did not use: 8 sales &rarr; 40(8) + 300 = $620 &#10003;. The 90 in three of the choices is 380 &divide; 2 rounded about &mdash; a rate worked out from one row alone. In a table, slope needs <b>two</b> rows."
+  },
+  {
+   "n": 14,
+   "stem": "Which inequality represents the values displayed on the number line?",
+   "fig": "<svg width=\"430\" height=\"74\" viewBox=\"0 0 430 74\" role=\"img\" aria-label=\"A number line from negative five to five. A solid dot sits on 1 and a heavy ray runs from it to the right, ending in an arrow.\"><line x1=\"18\" y1=\"34\" x2=\"412\" y2=\"34\" stroke=\"#1c1a17\" stroke-width=\"2\"/><path d=\"M18 34 l10 -5 v10 z\" fill=\"#1c1a17\"/><path d=\"M412 34 l-10 -5 v10 z\" fill=\"#1c1a17\"/><line x1=\"35\" y1=\"27\" x2=\"35\" y2=\"41\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"35\" y=\"60\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">-5</text><line x1=\"71\" y1=\"27\" x2=\"71\" y2=\"41\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"71\" y=\"60\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">-4</text><line x1=\"107\" y1=\"27\" x2=\"107\" y2=\"41\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"107\" y=\"60\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">-3</text><line x1=\"143\" y1=\"27\" x2=\"143\" y2=\"41\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"143\" y=\"60\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">-2</text><line x1=\"179\" y1=\"27\" x2=\"179\" y2=\"41\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"179\" y=\"60\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">-1</text><line x1=\"215\" y1=\"27\" x2=\"215\" y2=\"41\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"215\" y=\"60\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">0</text><line x1=\"251\" y1=\"27\" x2=\"251\" y2=\"41\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"251\" y=\"60\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">1</text><line x1=\"287\" y1=\"27\" x2=\"287\" y2=\"41\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"287\" y=\"60\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">2</text><line x1=\"323\" y1=\"27\" x2=\"323\" y2=\"41\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"323\" y=\"60\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">3</text><line x1=\"359\" y1=\"27\" x2=\"359\" y2=\"41\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"359\" y=\"60\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">4</text><line x1=\"395\" y1=\"27\" x2=\"395\" y2=\"41\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"395\" y=\"60\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"13\" fill=\"#1c1a17\">5</text><line x1=\"251\" y1=\"34\" x2=\"404\" y2=\"34\" stroke=\"#1c1a17\" stroke-width=\"5\"/><path d=\"M412 34 l-13 -7 v14 z\" fill=\"#1c1a17\"/><circle cx=\"251\" cy=\"34\" r=\"7\" fill=\"#1c1a17\"/></svg>",
+   "opts": [
+    "<i>x</i> &lt; 1",
+    "<i>x</i> &le; 1",
+    "<i>x</i> &gt; 1",
+    "<i>x</i> &ge; 1",
+    "<i>x</i> = 1"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.algebra",
+   "why": "Read the dot, then the arrow. The dot on 1 is <b>filled in</b>, so 1 itself is included &mdash; that means &le; or &ge;, never &lt; or &gt;. The heavy line runs to the <b>right</b>, towards the bigger numbers, so the values are 1 and everything above it: <b><i>x</i> &ge; 1</b>. (C) <i>x</i> &gt; 1 is the trap for anyone who reads the arrow but not the dot. Two things to check every time: is the circle hollow or solid, and which way does the ray point?"
+  },
+  {
+   "n": 15,
+   "stem": "What is the 42<sup>nd</sup> item in the pattern:",
+   "fig": "<div class=\"ascii\">&#9650;&nbsp;&nbsp;&#9675;&#9675;&#9633;&nbsp;&nbsp;&#9650;&nbsp;&nbsp;&#9675;&#9675;&#9633;&nbsp;&nbsp;&#9650;&nbsp;&nbsp;&hellip;</div>",
+   "opts": [
+    "&#9675;",
+    "&#9650;",
+    "&#9633;",
+    "None of the above",
+    "all of the above"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.logic",
+   "why": "Find the length of one full repeat: &#9650; &#9675; &#9675; &#9633; &mdash; <b>4 items</b>. Then divide and look at the <i>remainder</i>: 42 &divide; 4 = 10 remainder <b>2</b>. Ten whole repeats use up 40 items, so the 42nd is the <b>2nd item of the next repeat</b>, which is a circle &#9675;. A remainder of 0 would have meant the <i>last</i> item of a repeat, not the first &mdash; that is where most pattern questions are lost. Say it out loud: &ldquo;remainder 2 means second in the block.&rdquo;"
+  },
+  {
+   "n": 16,
+   "stem": "Which of the following statements is true about the two lines below?",
+   "fig": "<svg width=\"300\" height=\"180\" viewBox=\"0 0 300 180\" role=\"img\" aria-label=\"Two straight lines, each with an arrowhead at both ends, crossing near the middle of the picture at an oblique angle.\"><line x1=\"40\" y1=\"30\" x2=\"262\" y2=\"150\" stroke=\"#1c1a17\" stroke-width=\"3\"/><path d=\"M40 30 l16 2 l-9 9 z\" fill=\"#1c1a17\"/><path d=\"M262 150 l-16 -2 l9 -9 z\" fill=\"#1c1a17\"/><line x1=\"40\" y1=\"148\" x2=\"264\" y2=\"46\" stroke=\"#1c1a17\" stroke-width=\"3\"/><path d=\"M40 148 l15 -5 l-4 12 z\" fill=\"#1c1a17\"/><path d=\"M264 46 l-15 5 l4 -12 z\" fill=\"#1c1a17\"/></svg>",
+   "opts": [
+    "The two lines are parallel but not perpendicular.",
+    "The two lines are perpendicular but not parallel.",
+    "The two lines are both parallel and perpendicular.",
+    "The two lines are neither parallel nor perpendicular",
+    "It cannot be determined from the information given."
+   ],
+   "ans": 3,
+   "sk": "ssat.q.geom",
+   "why": "Parallel lines never meet &mdash; these two cross, so parallel is out at once, and that also kills (A) and (C). Perpendicular means they cross at a <b>square corner</b>, 90&deg;; these cross at a clear slant, making two wide angles and two narrow ones. So they are <b>neither</b>. Note that (C) can never be true of any pair of lines &mdash; parallel and perpendicular exclude each other, so you can cross it out before you even look at the picture."
+  },
+  {
+   "n": 17,
+   "stem": "Which of the following figures is not a polygon?",
+   "opts": [
+    "Decagon",
+    "Cone",
+    "Triangle",
+    "Rhombus",
+    "Pentagon"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.geom",
+   "why": "A polygon is a <b>flat, closed</b> shape made only of <b>straight</b> sides. Decagon (10 sides), triangle (3), rhombus (4) and pentagon (5) all qualify. A <b>cone</b> fails twice over: it is a solid, not a flat figure, and its surface curves. The &ndash;gon ending is a useful tell &mdash; it means &ldquo;angle&rdquo;, so anything ending in &ndash;gon is a polygon and is counting its corners."
+  },
+  {
+   "n": 18,
+   "stem": "What is the area of the regular hexagon shown below?",
+   "fig": "<svg width=\"300\" height=\"250\" viewBox=\"0 0 300 250\" role=\"img\" aria-label=\"A regular hexagon. One side along the bottom is marked 12, and a segment from the centre to the middle of that side, meeting it at a right angle, is marked 10.39.\"><polygon points=\"246.0,118.0 198.0,201.1 102.0,201.1 54.0,118.0 102.0,34.9 198.0,34.9\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><line x1=\"150\" y1=\"118\" x2=\"150\" y2=\"201.1\" stroke=\"#1c1a17\" stroke-width=\"1.6\" stroke-dasharray=\"4 3\"/><path d=\"M150 201.1 h12 v-12\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.4\"/><text x=\"158\" y=\"164\" text-anchor=\"start\" font-family=\"Georgia, serif\" font-size=\"14\" fill=\"#1c1a17\">10.39</text><text x=\"150\" y=\"223\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"14\" fill=\"#1c1a17\">12</text></svg>",
+   "opts": [
+    "72",
+    "124.68",
+    "374.04",
+    "748.08",
+    "187.02"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.area",
+   "why": "A regular hexagon is six identical triangles meeting at the centre. Each has base 12 (a side) and height 10.39 (the marked segment, the <i>apothem</i>), so each is &frac12; &times; 12 &times; 10.39 = 62.34, and six of them make <b>374.04</b>. The shortcut is the same sum tidied up: area = &frac12; &times; perimeter &times; apothem = &frac12; &times; 72 &times; 10.39 = 374.04. Watch the traps: (B) 124.68 is 12 &times; 10.39 (one rectangle, no halving), and (D) 748.08 is forgetting the &frac12; altogether &mdash; exactly double the right answer. A doubled or halved answer sitting in the list is almost always a sign the &frac12; is the point of the question."
+  },
+  {
+   "n": 19,
+   "stem": "The area of a given rectangle is 24 centimeters. If the measure of each side is multiplied by 3, what is the area of the new figure?",
+   "opts": [
+    "48 cm",
+    "72 cm",
+    "216 cm",
+    "13,824 cm",
+    "144 cm"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.area",
+   "why": "Try it on a real rectangle: 4 by 6 has area 24. Multiply both sides by 3 and you get 12 by 18, area 216. So the area is <b>9 times</b> bigger, not 3 times. That is the rule worth keeping: if every length is multiplied by <i>k</i>, area is multiplied by <i>k</i><sup>2</sup> (and volume by <i>k</i><sup>3</sup>). (B) 72 is 24 &times; 3, the trap for scaling the area once instead of scaling both sides. Picking friendly numbers and testing is faster and safer than arguing about it in your head."
+  },
+  {
+   "n": 20,
+   "stem": "What are the coordinates of the point plotted on the grid?",
+   "fig": "<svg width=\"300\" height=\"300\" viewBox=\"0 0 300 300\" role=\"img\" aria-label=\"A coordinate grid running from negative four to four on both axes, with a single dot plotted three units left of the origin and two units up.\"><line x1=\"30\" y1=\"30\" x2=\"30\" y2=\"270\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"30\" y1=\"30\" x2=\"270\" y2=\"30\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"60\" y1=\"30\" x2=\"60\" y2=\"270\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"30\" y1=\"60\" x2=\"270\" y2=\"60\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"90\" y1=\"30\" x2=\"90\" y2=\"270\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"30\" y1=\"90\" x2=\"270\" y2=\"90\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"120\" y1=\"30\" x2=\"120\" y2=\"270\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"30\" y1=\"120\" x2=\"270\" y2=\"120\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"150\" y1=\"30\" x2=\"150\" y2=\"270\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"30\" y1=\"150\" x2=\"270\" y2=\"150\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"180\" y1=\"30\" x2=\"180\" y2=\"270\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"30\" y1=\"180\" x2=\"270\" y2=\"180\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"210\" y1=\"30\" x2=\"210\" y2=\"270\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"30\" y1=\"210\" x2=\"270\" y2=\"210\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"240\" y1=\"30\" x2=\"240\" y2=\"270\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"30\" y1=\"240\" x2=\"270\" y2=\"240\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"270\" y1=\"30\" x2=\"270\" y2=\"270\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"30\" y1=\"270\" x2=\"270\" y2=\"270\" stroke=\"#c9c2b4\" stroke-width=\"1\"/><line x1=\"22\" y1=\"150\" x2=\"278\" y2=\"150\" stroke=\"#1c1a17\" stroke-width=\"2\"/><line x1=\"150\" y1=\"22\" x2=\"150\" y2=\"278\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"37\" y=\"166\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"11\" fill=\"#6b6152\">-4</text><text x=\"138\" y=\"274\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"11\" fill=\"#6b6152\">-4</text><text x=\"97\" y=\"166\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"11\" fill=\"#6b6152\">-2</text><text x=\"138\" y=\"214\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"11\" fill=\"#6b6152\">-2</text><text x=\"210\" y=\"166\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"11\" fill=\"#6b6152\">2</text><text x=\"138\" y=\"94\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"11\" fill=\"#6b6152\">2</text><text x=\"270\" y=\"166\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"11\" fill=\"#6b6152\">4</text><text x=\"138\" y=\"34\" text-anchor=\"middle\" font-family=\"Georgia, serif\" font-size=\"11\" fill=\"#6b6152\">4</text><circle cx=\"60\" cy=\"90\" r=\"6\" fill=\"#1c1a17\"/></svg>",
+   "opts": [
+    "(&minus;3, 2)",
+    "(2, 13)",
+    "(&minus;3, &minus;2)",
+    "(2, 3)",
+    "It cannot be determined from the information given."
+   ],
+   "ans": 0,
+   "sk": "ssat.q.geom",
+   "why": "Walk it from the origin: <b>3 to the left</b>, then <b>2 up</b>. Left is negative and up is positive, and the <i>x</i> (across) always goes first, so the point is <b>(&minus;3, 2)</b>. (D) (2, 3) is the same point with the numbers swapped and the sign lost &mdash; the classic error. Say &ldquo;along the hall, then up the stairs&rdquo; every single time and the order stops being a guess."
+  },
+  {
+   "n": 21,
+   "stem": "The perimeter of a 6-sided polygon is 56 cm. The length of three sides is 9 cm each. The length of two other sides is 8 cm each. What is the length of the missing side?",
+   "opts": [
+    "11cm",
+    "12 cm",
+    "13 cm",
+    "10 cm",
+    "It cannot be determined from the information given."
+   ],
+   "ans": 2,
+   "sk": "ssat.q.geom",
+   "why": "Count the sides before you add anything: 3 + 2 = 5 of the six are given, so exactly one is missing. Those five come to 3 &times; 9 = 27 and 2 &times; 8 = 16, together <b>43</b>. The perimeter is the whole way round, so the last side is 56 &minus; 43 = <b>13 cm</b>. (E) is tempting because you are not told the shape &mdash; but perimeter only cares about the total, never the shape. Whenever a perimeter question gives you all-but-one side, it is a subtraction."
+  },
+  {
+   "n": 22,
+   "stem": "Katie works at a clothing company and sold 192 shirts over the weekend. <sup>1</sup>&frasl;<sub>3</sub> of the shirts that were sold were patterned, and the rest were solid. Which mathematical expression would calculate the number of solid shirts Katie sold over the weekend?",
+   "opts": [
+    "192 &times; <sup>1</sup>&frasl;<sub>3</sub>",
+    "192 &divide; <sup>1</sup>&frasl;<sub>3</sub>",
+    "192 &times; ( 1 &minus; <sup>1</sup>&frasl;<sub>3</sub> )",
+    "192 &divide; 3",
+    "It cannot be determined from the information given."
+   ],
+   "ans": 2,
+   "sk": "ssat.q.frac",
+   "why": "Read what is being asked for: <b>solid</b> shirts, not patterned ones. If <sup>1</sup>&frasl;<sub>3</sub> are patterned then 1 &minus; <sup>1</sup>&frasl;<sub>3</sub> = <sup>2</sup>&frasl;<sub>3</sub> are solid, so the expression is <b>192 &times; (1 &minus; <sup>1</sup>&frasl;<sub>3</sub>)</b> = 128 shirts. (A) and (D) both give the 64 <i>patterned</i> shirts &mdash; the right sum to the wrong question. (B) dividing by a fraction under 1 makes the number <i>bigger</i> (576), which should feel wrong immediately. Underline the word that says which group they want before you pick."
+  },
+  {
+   "n": 23,
+   "stem": "Which measure for the center of a small sample set is most affected by outliers?",
+   "opts": [
+    "Mean",
+    "Median",
+    "Mode",
+    "None of the above",
+    "All of the above"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.data",
+   "why": "Test it. Take 2, 3, 4, 5: the mean is 3.5 and the median is 3.5. Now swap the 5 for 100: the mean jumps to 27.25 while the median only moves to 3.5. The <b>mean</b> uses every value in the sum, so one wild number drags it; the median only cares about the middle position, and the mode about what repeats. Rule: <b>one extreme value moves the mean and barely touches the median</b> &mdash; which is why house prices and incomes are usually reported as medians."
+  },
+  {
+   "n": 24,
+   "stem": "Given the value of a given stock at monthly intervals, which graph should be used to best represent the trend of the stock?",
+   "opts": [
+    "Box plot",
+    "Line plot",
+    "Circle graph",
+    "Line graph",
+    "None of the above"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.data",
+   "why": "The key word is <b>trend</b> &mdash; a change over time. A <b>line graph</b> puts time along the bottom and joins the points, so the rise and fall is the shape you see. The trap is (B) &ldquo;line plot&rdquo;, which sounds like the same thing but is a different animal: it is a dot plot, stacked dots showing how often each value occurs, with no time axis at all. A circle graph shows parts of a whole, and a box plot shows spread. Match the graph to the job: over time &rarr; line graph; parts of a whole &rarr; circle; spread &rarr; box plot."
+  },
+  {
+   "n": 25,
+   "stem": "What is the probability of randomly picking the winner and runner-up from a race of 4 horses and distinguishing which is the winner?",
+   "opts": [
+    "<sup>1</sup>&frasl;<sub>4</sub>",
+    "<sup>1</sup>&frasl;<sub>2</sub>",
+    "<sup>1</sup>&frasl;<sub>16</sub>",
+    "<sup>1</sup>&frasl;<sub>3</sub>",
+    "<sup>1</sup>&frasl;<sub>12</sub>"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.logic",
+   "why": "Count the ways the top two can come out. Any of the <b>4</b> horses can win, and then any of the <b>3</b> that are left can come second: 4 &times; 3 = <b>12</b> different outcomes, and only one of them is your pick &mdash; so <b><sup>1</sup>&frasl;<sub>12</sub></b>. (C) <sup>1</sup>&frasl;<sub>16</sub> is 4 &times; 4, which would let the same horse finish first and second. Because the question says <b>distinguishing which is the winner</b>, order matters, and the second pick always has one fewer horse to choose from."
+  }
+ ],
+ "count": 25
+};
+const MINUTES = 30;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
