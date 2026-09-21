@@ -288,6 +288,9 @@
            border:1px solid var(--line);border-radius:5px;padding:2px 7px;cursor:pointer;white-space:nowrap}
   .archbtn:hover,.linkedit:hover{color:var(--cream);border-color:var(--gold2)}
   .archbtn:disabled,.linkedit:disabled{opacity:.45;cursor:default}
+  .archbtn.keep{opacity:.5}
+  .archbtn.keep.on,.archbtn.keep:hover{opacity:1}
+  .archbtn.keep.on{color:var(--gold);border-color:var(--gold2);background:rgba(201,162,77,.12)}
   .archline{margin-top:4px;display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap}
 
   /* ---------- 自定义链接: the little form at the top of 题库 ---------- */
@@ -305,7 +308,6 @@
   .linkform .lfhint{font-size:11px;color:var(--mute);text-transform:none;letter-spacing:0}
   .linkform .lfbtns{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}
   .linkform .lferr{font-size:12px;color:var(--red);flex:1 1 100%}
-
 
   /* ---------- assign bar ---------- */
   #assignbar{position:fixed;left:0;right:0;bottom:0;z-index:90;background:var(--ink2);
@@ -954,6 +956,9 @@ async function loadAll(){
   sortBank();
   ATT = attSnap.docs.map(toAtt).filter(Boolean);
   buildEst();   // 用时估算要等题库和成绩都到齐才算得出来
+  // 完成的派件自动收进归档（Sam 2026-09-20）。写不成也只是没收起来，页面照常用。
+  try { await autoArchiveDone(); }
+  catch(e){ console.error(e); toast('自动归档没写成：' + (e.code||e.message) + '，题库没变', true); }
 }
 
 const attFor = id => ATT.filter(a => a.id===id);   // ATT is already newest-first
@@ -1396,7 +1401,10 @@ const RECENT = shiftDay(iso(today), -6);
 const touched = b => b.updated && b.updated > (b.added||'') ? b.updated : (b.added||'');
 function bankDates(b){
   const part = (lbl, s) => s ? `<span class="${s>=RECENT?'recent':''}">${lbl} ${ymd(s)}</span>` : '';
-  const html = [part('上传', b.added), part('更新', b.updated)].filter(Boolean).join(' · ');
+  // 归档过的多写两个日期：什么时候做完的、什么时候收起来的（Sam 2026-09-20）
+  const html = [part('上传', b.added), part('更新', b.updated),
+                b.archived ? part('完成', b.doneOn) : '',
+                b.archived ? part('归档', b.archivedOn) : ''].filter(Boolean).join(' · ');
   return html ? `<div class="crumb">${html}</div>` : '';
 }
 // Same running order as the Quizzes hub (Quizzes/index.html SUBJ_ORDER); unknown subjects go last.
@@ -1457,11 +1465,14 @@ function assignedBadge(id){
 // The archive switch that sits under the type badge, one per row. Archived rows also say when and why
 // (the reason is whatever archived them — the batches in HOMEWORK-SYSTEM.md §三之二, or 家长手动).
 function archCell(b){
-  const why = [b.archivedOn ? ymd(b.archivedOn) : '', b.archivedWhy || ''].filter(Boolean).join(' · ');
+  const why = [b.doneOn ? '完成 '+ymd(b.doneOn) : '', b.archivedOn ? '归档 '+ymd(b.archivedOn) : '',
+               b.archivedWhy || ''].filter(Boolean).join(' · ');
   return b.archived
     ? `<span class="badge b-arch"${why?` title="${esc(why)}"`:''}>已归档</span>
-       <button class="archbtn" data-arch="${esc(b.docId)}" data-to="0" title="放回在用列表">放回</button>`
-    : `<button class="archbtn" data-arch="${esc(b.docId)}" data-to="1" title="从默认列表里收起来，不删文件、不动成绩">归档</button>`;
+       <button class="archbtn" data-arch="${esc(b.docId)}" data-to="0" title="放回在用列表（放回之后不会再被自动归档，除非又做了一遍）">放回</button>`
+    : `<button class="archbtn" data-arch="${esc(b.docId)}" data-to="1" title="从默认列表里收起来，不删文件、不动成绩">归档</button>
+       <button class="archbtn keep${b.keep?' on':''}" data-keep="${esc(b.docId)}" data-to="${b.keep?'0':'1'}"
+               title="${b.keep?'已钉住：做完也不会自动归档。点一下取消':'钉住：常年重复派的，做完也不自动归档'}">📌${b.keep?' 钉住':''}</button>`;
 }
 
 // 归档 = 从默认题库列表里收起来。文件留着、历史成绩照样指得到、归档的还能派作业（§三之二）。
@@ -1470,17 +1481,93 @@ function archCell(b){
 async function setArchived(ids, on){
   const del = firebase.firestore.FieldValue.delete();
   const batch = db.batch();
+  const t = iso(today);
   ids.forEach(id => batch.set(db.collection('bank').doc(id), on
-    ? { archived:true, archivedOn: iso(today), archivedWhy: '家长手动归档' }
-    : { archived:false, archivedOn: del, archivedWhy: del }, { merge:true }));
+    // 手动归档的也顺手记一笔完成日期（算得出来才记），归档列表里两个日期就是一套的
+    ? Object.assign({ archived:true, archivedOn: t, archivedWhy: '家长手动归档' },
+                    doneDate(BANK_BY_ID[id]) ? { doneOn: doneDate(BANK_BY_ID[id]) } : {})
+    // 放回 = 「我还要用它」。记下放回的日子：在那之后没有新的完成，就不会被自动归档再收回去。
+    : { archived:false, archivedOn: del, archivedWhy: del, doneOn: del, reopenedOn: t }, { merge:true }));
   await batch.commit();
   // BANK 和 BANK_BY_ID 指的是同一批对象，改一处两边都跟上，不用重新拉一次题库
   ids.forEach(id=>{
     const b = BANK_BY_ID[id];
     if(!b) return;
-    if(on){ b.archived = true; b.archivedOn = iso(today); b.archivedWhy = '家长手动归档'; }
-    else { b.archived = false; delete b.archivedOn; delete b.archivedWhy; }
+    if(on){ const d = doneDate(b); b.archived = true; b.archivedOn = t; b.archivedWhy = '家长手动归档'; if(d) b.doneOn = d; }
+    else { b.archived = false; delete b.archivedOn; delete b.archivedWhy; delete b.doneOn; b.reopenedOn = t; }
   });
+}
+
+// 📌 钉住 = 常年要重复派的那几份（作文本、打字游戏、每周的复习页），做完也不自动归档。
+async function setKeep(id, on){
+  const del = firebase.firestore.FieldValue.delete();
+  await db.collection('bank').doc(id).set({ keep: on ? true : del }, { merge:true });
+  const b = BANK_BY_ID[id];
+  if(b){ if(on) b.keep = true; else delete b.keep; }
+}
+
+/* ===================== 完成即归档 (Sam 2026-09-20) =====================
+   「只要派件完成的作业就归档，然后写归档日期和完成日期」。家长台每次读完数据就跑一遍，不用点。
+   完成的口径（Sam 定的）：
+   · 派出去、孩子交了卷就算完成 —— 不看分数高低；练习页 / 参考页回传的「完成」也算；
+   · 但 quiz 得真交出点东西来（realTry）：判了分、练习游戏跑完一轮、或者写作台交了一篇。
+     光打开页面 15 秒 quiz-report.js 也会写一条没分数的记录（VIEW_MIN_SECS），那不算做完
+     —— Sam 2026-09-21 定的，起因是 Unknown Word Drill 只开了 58 秒没分数，却要被记成完成；
+   · 两个孩子都派过的那一份，要两个人都交了才归档（免得 Warren 还没做，它就从列表里消失了）；
+   · 撤回的不算「要做」—— 撤回之后它就不在那天的 items[] 里了；
+   · 完成日期 = 变成「都做完」的那一天，也就是两个孩子各自第一次交卷里较晚的那个。
+   归档只是从默认列表里收起来：文件、成绩、已经派出去的作业都不动（§三之二）。
+   三个刹车：
+   · 今天或以后还排在派单上的，一份都不收（scheduled）—— 免得上午刚派、孩子做完，下午就找不着了，
+     也免得下周要做的东西今天就从「在用」里消失（Grace 的 Class Vocab 一次派到周五）；
+   · 「放回在用」写下 reopenedOn，在那之后没有新的完成就不会再被收回去；
+   · 行上那颗 📌 钉住的，做完也不自动归档。 */
+// 这条记录算不算「真交了」：判了分 / 练习游戏跑完一轮（firstTry 是个数）/ 写作台交了一篇。
+// ref 和自定义链接没有分数可言（孩子自己点「✓ I'm done」），有记录就算，不走这道闸。
+const realTry = a => a.pct!=null || (a.practice && a.practice.firstTry!=null) || a.handin;
+const countsAsDone = (a, b) => (b.type||'quiz')==='quiz' ? realTry(a) : true;
+// 今天或以后任何一天还排着的，先别收。DAYS 里两个孩子的每一天都在（loadDays 全取）。
+const scheduled = id => ['grace','warren'].some(k =>
+  (DAYS[k]||[]).some(d => d.date >= iso(today) && d.items.some(it => it.id===id)));
+// 这一份算完成了没：完成返回「变成完成的那一天」，没完成（或从来没派过）返回 ''。
+function doneDate(b){
+  if(!b || !b.docId) return '';
+  // 放回在用之后，只认放回那天起的新成绩 —— 老的那次完成不能把它再收回去
+  const floor = b.reopenedOn || '';
+  let out = '';
+  for(const k of ['grace','warren']){
+    const days = (DAYS[k]||[]).filter(d => d.items.some(it => it.id===b.docId)).map(d => d.date);
+    if(!days.length) continue;                       // 没派给这个孩子 → 不要求他做
+    const first = days.reduce((a,c) => c<a ? c : a); // 第一次派给他是哪天
+    const from = first > floor ? first : floor;
+    const done = ATT.filter(a => a.kid===k && a.id===b.docId && !a.demo && a.date && a.date>=from
+                                 && countsAsDone(a, b))
+                    .map(a => a.date).sort();
+    if(!done.length) return '';                      // 派了没做 → 整份都不算完成
+    if(done[0] > out) out = done[0];                 // 两个孩子里较晚交的那天
+  }
+  return out;
+}
+
+async function autoArchiveDone(){
+  const t = iso(today), todo = [];
+  BANK.forEach(b=>{
+    if(b.archived || b.keep) return;
+    if(scheduled(b.docId)) return;                      // 今天或以后还排着 → 先不收
+    const d = doneDate(b);                              // 放回之后没有新完成的，这里就返回 ''
+    if(!d) return;
+    todo.push([b, d]);
+  });
+  if(!todo.length) return;
+  for(let i=0; i<todo.length; i+=400){                  // Firestore 一批最多 500 个写
+    const batch = db.batch();
+    todo.slice(i, i+400).forEach(([b, d]) => batch.set(db.collection('bank').doc(b.docId),
+      { archived:true, archivedOn:t, doneOn:d, archivedWhy:'派件完成自动归档' }, { merge:true }));
+    await batch.commit();
+  }
+  todo.forEach(([b, d]) => Object.assign(b, { archived:true, archivedOn:t, doneOn:d, archivedWhy:'派件完成自动归档' }));
+  const names = todo.slice(0,3).map(([b]) => b.t).join('、');
+  toast(`做完的派件自动归档 ${todo.length} 份：${names}${todo.length>3?' 等':''} —— 在「归档」里，点「放回」能拿回来`);
 }
 
 // One bank row. withPlace: also say which subject / book it sits in (the by-time list has no groups).
@@ -1668,7 +1755,12 @@ function viewBank(){
       填个标题和网址，它就和别的卷子一样待在题库里，勾上就能派。
       外站那边判不了分，所以孩子在作业页上自己点「✓ I'm done」，这边显示「✓ 完成」。</p>
       <p>归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。
-      每行类型下面有 <b>归档</b> 按钮，点一下就收起来；要一次收一批，就勾选后用底部那条的 <b>归档</b>。归档过的按 <b>放回</b> 回到在用列表。</p>`)}</h2>
+      每行类型下面有 <b>归档</b> 按钮，点一下就收起来；要一次收一批，就勾选后用底部那条的 <b>归档</b>。归档过的按 <b>放回</b> 回到在用列表。</p>
+      <p><b>派出去做完的会自己归档</b>：派给谁就要谁交卷，两个孩子都派过的要<b>两个都交了</b>才收；
+      有题的卷子要真做出个分数才算完成（光打开看看不算），参考页和自定义链接点了「✓ I'm done」就算；
+      撤回的不算，<b>今天或以后还排在派单上的一份都不收</b>。归档那行写着 <b>完成 X 月 X 日 · 归档 X 月 X 日</b>。
+      点 <b>放回</b> 就拿回在用列表，而且放回之后不会再被自动收走 —— 除非又做了一遍。
+      常年要重复派的（作文本、打字游戏那种），点行上那颗 <b>📌</b> 钉住，做完也不自动归档。</p>`)}</h2>
     ${kidTabs()}
     <div class="seclead groupbar slim">${rows.length} 条<span class="sep">·</span>
       ${[['arch',[['active','在用'],['archived','归档']]],
@@ -3003,7 +3095,19 @@ function render(){
     // Re-render on every pick so the subject's "已选 N" and the shelf's select-all stay in step.
     viewEl.querySelectorAll('input.pick').forEach(cb=>cb.addEventListener('change',()=>{
       cb.checked?SEL.add(cb.dataset.id):SEL.delete(cb.dataset.id); render(); }));
-    viewEl.querySelectorAll('button.archbtn').forEach(btn=>btn.addEventListener('click', async ()=>{
+    viewEl.querySelectorAll('button.archbtn[data-keep]').forEach(btn=>btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.keep, on = btn.dataset.to==='1', b = BANK_BY_ID[id];
+      btn.disabled = true;
+      try {
+        await setKeep(id, on);
+        toast(on ? `已钉住「${b?b.t:''}」，做完也不自动归档` : `取消钉住「${b?b.t:''}」，做完会自动归档`);
+        render();
+      } catch(e){
+        console.error(e); btn.disabled = false;
+        toast('没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
+      }
+    }));
+    viewEl.querySelectorAll('button.archbtn[data-arch]').forEach(btn=>btn.addEventListener('click', async ()=>{
       const id = btn.dataset.arch, on = btn.dataset.to==='1', b = BANK_BY_ID[id];
       btn.disabled = true;
       try {
