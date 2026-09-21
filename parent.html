@@ -2685,7 +2685,17 @@ const seenText = w => w.seenAt ? `孩子 ${stamp(tsDate(w.seenAt))} 看过` : '�
 // 两种都是申请文书，批的口径一样（不是 ISEE/SSAT 那套），所以都得认出来。
 const SSS_PID = { 'story-cps':'creative problem solver', 'story-res':'resilience' };
 const isAppEssay = w => w.pid==='app-essay' || !!SSS_PID[w.pid];
-const promptLabel = w => w.pid==='app-essay'
+// 演讲课（Writing/Speech-Studio.html）：一课拆成五天，每天单独交一次，pid 是 speech-L<课>-d<天>。
+// 手批，不按 ISEE/SSAT 判分口径走 —— 见 HOMEWORK-SYSTEM.md 2026-09-20 演讲工作台。
+// 五个格子是「步骤」不是「天」（Sam 2026-09-21：用 Day 会逼着孩子当天做完；
+// 一次可能做两步，一步也可能分几次做）。pid 里的 d 只是内部编号，没改。
+const SPEECH_DAY = { 1:'用自己的话复述技术点', 2:'三个开场白', 3:'骨架 · 意图 + 三个论点',
+                     4:'结尾 · 三种收尾 + takeaway', 5:'成稿 + 朗读录音' };
+const speechAt = w => /^speech-L(\d+)-d([1-5])$/.exec(w && w.pid || '');
+const isSpeech = w => !!speechAt(w);
+const promptLabel = w => isSpeech(w)
+  ? (m => `演讲课 · Lesson ${m[1]} · 第 ${m[2]} 步 ${SPEECH_DAY[+m[2]]||''}`)(speechAt(w))
+  : w.pid==='app-essay'
   ? '申请文书'
   : SSS_PID[w.pid]
     ? `申请文书 · ${SSS_PID[w.pid]}`
@@ -2706,7 +2716,20 @@ const APP_ESSAY_EN =
   + 'way, but spend your fix notes on the storytelling and the voice. A clean essay that says nothing scores '
   + 'LOWER here than a rough one that says something real.';
 
-const promptTypeEN = w => w.pid==='app-essay'
+const SPEECH_EN =
+  'Public-speaking homework (Leaders of Tomorrow, Level 1). One course lesson is built in five steps and '
+  + 'each step is handed in on its own: step 1 the technique in her own words, step 2 three different opening hooks, '
+  + 'step 3 the skeleton (purpose, specific intention, three main points each with support), step 4 three possible '
+  + 'last lines plus the takeaway, step 5 the whole speech written out (150-250 words) with the lesson\'s outline above '
+  + 'it, then read out loud and recorded. This is a SPOKEN piece, not an essay: mark it by how it would land on a '
+  + 'room of listeners. What counts: would the opening make someone look up; is the intention one clear sentence; '
+  + 'are the three points genuinely separate, about the same thing, and roughly the same size; does each point have '
+  + 'something real behind it; does the ending leave them with one thing. Short sentences and plain words are a '
+  + 'virtue here, not a weakness. Spelling and grammar get a light pass only.';
+
+const promptTypeEN = w => isSpeech(w)
+  ? SPEECH_EN
+  : w.pid==='app-essay'
   ? APP_ESSAY_EN
   : SSS_PID[w.pid]
     ? APP_ESSAY_EN + ' This one was written on the older version of the page, to show '
@@ -2904,7 +2927,7 @@ async function aiDraft(){
     'PROMPT TYPE: ' + promptTypeEN(w),
     'PROMPT: ' + w.prompt, '',
     // 申请文书是在家慢慢写的，没有 30 分钟这回事，别让 Claude 拿考试的时间标准去评。
-    'CONDITIONS: ' + ((w.draftNo||1) > 1 ? `draft ${w.draftNo}, rewritten after marking` : isAppEssay(w) ? `written in ${Math.round((w.secs||0)/60)} minutes, untimed` : `written in ${Math.round((w.secs||0)/60)} minutes (the test allows 30)`) +
+    'CONDITIONS: ' + ((w.draftNo||1) > 1 ? `draft ${w.draftNo}, rewritten after marking` : (isAppEssay(w) || isSpeech(w)) ? `written in ${Math.round((w.secs||0)/60)} minutes, untimed` : `written in ${Math.round((w.secs||0)/60)} minutes (the test allows 30)`) +
       `, ${w.words||0} words` + (w.pasted > 20 ? `, ${w.pasted} characters were pasted in rather than typed` : '') + '.',
     ...(prev && prev.review ? ['', 'WHAT WAS MARKED ON THE DRAFT BEFORE:',
       ...WritingReview.ordered(prev.review.notes).map(n=>`- [${n.kind}] "${n.quote}"${n.fix?' -> '+n.fix:''}${n.note?' ('+n.note+')':''}`)] : []),

@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speech Studio · Public Speaking Level 1</title>
+<style>
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --ink:#1c1a17; --soft:#5b4636; --cream:#f6f3ed; --paper:#fffdf7;
+    --rust:#b4622f; --green:#3f7d4e; --green-soft:#eaf3ec;
+    --red:#c0392b; --red-soft:#fbeaea; --line:#e2d9c9; --gold:#c9a227;
+    --amber:#e0951f;
+  }
+  body{
+    font-family:Georgia,"Times New Roman",serif; background:var(--cream); color:var(--ink);
+    line-height:1.65; padding:26px 18px 90px; -webkit-text-size-adjust:100%;
+  }
+  .wrap{ max-width:880px; margin:0 auto; }
+
+  header{ border-bottom:3px double var(--line); padding-bottom:18px; margin-bottom:24px; }
+  .topline{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+  .eyebrow{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.68rem;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--rust); margin-bottom:7px; }
+  h1{ font-size:1.72rem; line-height:1.2; letter-spacing:-.4px; }
+  .byline{ color:var(--soft); font-size:.92rem; margin-top:7px; font-style:italic; }
+  a.back{ color:var(--rust); font-size:.85rem; text-decoration:none; border-bottom:1px solid transparent; }
+  a.back:hover{ border-bottom-color:var(--rust); }
+
+  button{ font-family:inherit; font-size:.92rem; cursor:pointer; border-radius:8px; border:1px solid var(--line);
+    background:var(--paper); color:var(--ink); padding:9px 15px; transition:.15s; }
+  button:hover{ border-color:var(--rust); color:var(--rust); }
+  button:disabled{ opacity:.45; cursor:not-allowed; }
+  button.primary{ background:var(--green); border-color:var(--green); color:#fff; font-weight:700; padding:12px 24px; font-size:1rem; }
+  button.primary:hover:not(:disabled){ background:#356140; border-color:#356140; color:#fff; }
+  button.rec{ background:var(--red); border-color:var(--red); color:#fff; font-weight:700; padding:12px 22px; }
+  button.rec:hover:not(:disabled){ background:#a5301f; border-color:#a5301f; color:#fff; }
+  button.small{ padding:6px 11px; font-size:.8rem; }
+
+  .screen{ display:none; } .screen.on{ display:block; }
+  section{ margin-top:30px; }
+  h2.sec{ font-size:1.16rem; letter-spacing:-.2px; display:flex; align-items:baseline; gap:10px;
+    padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:15px; flex-wrap:wrap; }
+  h2.sec .n{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.72rem;
+    color:var(--rust); letter-spacing:.1em; text-transform:uppercase; }
+  .lead{ color:var(--soft); font-size:.95rem; margin-bottom:16px; }
+  .lead b{ color:var(--ink); }
+
+  .reader{ background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--gold);
+    border-radius:0 10px 10px 0; padding:16px 19px; margin-bottom:24px; font-size:.97rem; }
+  .reader h3{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.64rem;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin-bottom:9px; }
+  .reader p{ margin-bottom:9px; } .reader p:last-child{ margin-bottom:0; }
+
+  .promptbar{ background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--rust);
+    border-radius:0 10px 10px 0; padding:15px 18px; margin-bottom:18px; }
+  .promptbar .k{ font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--soft);
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; margin-bottom:5px; }
+  .promptbar .v{ font-size:1.06rem; }
+  .promptbar .look{ font-size:.84rem; color:var(--soft); margin-top:8px; font-style:italic;
+    border-top:1px dotted var(--line); padding-top:8px; }
+
+  /* ---------- lesson + day cards ---------- */
+  .lcard{ background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:17px 20px;
+    margin-bottom:14px; cursor:pointer; transition:.15s; }
+  .lcard:hover{ border-color:var(--rust); }
+  .lcard .h{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .lcard .t{ font-size:1.1rem; font-weight:700; }
+  .lcard .k{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.66rem;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--rust); }
+  .lcard .d{ font-size:.9rem; color:var(--soft); margin-top:5px; }
+  .pips{ display:flex; gap:6px; margin-top:11px; align-items:center; flex-wrap:wrap; }
+  .pip{ width:30px; height:8px; border-radius:99px; background:#e9e2d5; }
+  .pip.part{ background:var(--amber); } .pip.done{ background:var(--green); }
+  .pips .lab{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.7rem; color:var(--soft); margin-left:6px; }
+
+  .dcard{ background:var(--paper); border:1px solid var(--line); border-radius:11px; padding:15px 18px;
+    margin-bottom:11px; cursor:pointer; display:flex; justify-content:space-between; gap:14px;
+    align-items:center; flex-wrap:wrap; transition:.15s; }
+  .dcard:hover{ border-color:var(--rust); }
+  .dcard.done{ border-left:4px solid var(--green); }
+  .dcard.part{ border-left:4px solid var(--amber); }
+  .dcard .l .t{ font-size:1.02rem; font-weight:700; }
+  .dcard .l .d{ font-size:.87rem; color:var(--soft); margin-top:3px; }
+  .chip{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.68rem; letter-spacing:.08em;
+    text-transform:uppercase; padding:4px 10px; border-radius:99px; border:1px solid var(--line);
+    color:var(--soft); background:var(--cream); white-space:nowrap; }
+  .chip.done{ color:var(--green); border-color:var(--green); background:var(--green-soft); }
+  .chip.part{ color:#8a5a00; border-color:#e0c07a; background:#fdf6e3; }
+  .chip.marked{ color:#fff; background:var(--green); border-color:var(--green); }
+
+  /* ---------- fields ---------- */
+  .fld{ margin-bottom:18px; }
+  .fld .lab{ font-size:.95rem; font-weight:700; margin-bottom:3px; }
+  .fld .hint{ font-size:.85rem; color:var(--soft); margin-bottom:7px; font-style:italic; }
+  textarea, input[type=text], select{ width:100%; font-family:Georgia,"Times New Roman",serif; font-size:1rem;
+    line-height:1.6; color:var(--ink); background:var(--paper); border:1px solid var(--line);
+    border-radius:9px; padding:11px 14px; resize:vertical; outline:none; }
+  textarea:focus, input[type=text]:focus, select:focus{ border-color:var(--rust); }
+  select{ cursor:pointer; }
+  ::placeholder{ color:#a89b88; font-style:italic; }
+  .big{ min-height:38vh; line-height:30px;
+    background-image:repeating-linear-gradient(transparent,transparent 29px,#efe7d8 29px,#efe7d8 30px);
+    background-attachment:local; padding:18px 16px; }
+  .two{ display:grid; grid-template-columns:1fr 2.2fr; gap:10px; }
+  @media(max-width:600px){ .two{ grid-template-columns:1fr; } }
+
+  .tip{ background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:13px 17px; margin-bottom:10px; }
+  .tip .h{ font-size:1rem; font-weight:700; margin-bottom:3px; }
+  .tip .h .k{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.66rem;
+    color:var(--rust); letter-spacing:.1em; margin-right:9px; font-weight:400; }
+  .tip .b{ font-size:.93rem; color:var(--soft); }
+
+  ul.plain{ list-style:none; }
+  ul.plain li{ padding-left:20px; position:relative; margin-bottom:10px; font-size:.95rem; color:var(--soft); }
+  ul.plain li::before{ content:"\2014"; position:absolute; left:0; color:var(--rust); }
+  .dcard.readc{ border-left:4px solid var(--gold); }
+  .modelnote{ font-size:.88rem; color:var(--soft); font-style:italic; margin-top:11px; }
+
+  table.ten{ width:100%; border-collapse:collapse; font-size:.9rem; background:var(--paper);
+    border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  table.ten td{ padding:7px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.ten tr:last-child td{ border-bottom:0; }
+  table.ten td.n{ font-weight:700; white-space:nowrap; width:1%; }
+  table.ten td.e{ color:var(--soft); font-style:italic; }
+
+  label.chk{ display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:1px dotted var(--line);
+    font-size:.93rem; cursor:pointer; }
+  label.chk:last-child{ border-bottom:0; }
+  label.chk input{ margin-top:5px; width:17px; height:17px; accent-color:var(--green); flex:none; }
+
+  details.stuck{ margin-top:12px; background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:12px 16px; }
+  details.stuck summary{ cursor:pointer; font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--soft); }
+  details.stuck .body{ margin-top:10px; font-size:.93rem; color:var(--soft); }
+  details.stuck .body b{ color:var(--ink); }
+
+  .statbar{ display:flex; gap:9px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  .stat{ background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:6px 12px;
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.78rem; color:var(--soft); }
+  .stat b{ color:var(--ink); font-size:.95rem; }
+  .stat.good{ border-color:var(--green); } .stat.good b{ color:var(--green); }
+  .stat.warn{ border-color:var(--rust); } .stat.warn b{ color:var(--rust); }
+
+  .outline{ background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:16px 19px; }
+  .outline .row{ display:grid; grid-template-columns:auto 1fr; gap:6px 14px; padding:6px 0;
+    border-bottom:1px dotted var(--line); font-size:.95rem; }
+  .outline .row:last-child{ border-bottom:0; }
+  .outline .k{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.68rem;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--rust); padding-top:5px; white-space:nowrap; }
+  .outline .v.empty{ color:#b3a693; font-style:italic; }
+  @media(max-width:600px){ .outline .row{ grid-template-columns:1fr; gap:2px; } }
+
+  /* ---------- booth ---------- */
+  .booth{ background:var(--paper); border:1px solid var(--line); border-radius:11px; padding:17px 20px; }
+  .booth .clock{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:1.5rem; }
+  .meterwrap{ height:9px; background:#efe7d8; border-radius:99px; overflow:hidden; margin:11px 0; }
+  .meter{ height:100%; width:0; background:var(--green); transition:width .08s linear; }
+  .take{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+    padding:10px 0; border-bottom:1px dotted var(--line); font-size:.9rem; }
+  .take:last-child{ border-bottom:0; }
+  .take .n{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.75rem; color:var(--soft); }
+  .take audio{ height:34px; max-width:260px; }
+
+  .actions{ display:flex; gap:10px; align-items:center; margin-top:20px; flex-wrap:wrap; }
+  .msg{ border-radius:9px; padding:13px 16px; margin:14px 0; font-size:.92rem; }
+  .msg.err{ background:var(--red-soft); border:1px solid #e6b8b0; color:#8c2d20; }
+  .msg.wait{ background:#fdf6e3; border:1px solid #e3d49a; color:#7a5c00; }
+  .msg.ok{ background:var(--green-soft); border:1px solid var(--green); }
+  .msg a{ color:inherit; font-weight:700; }
+
+  .marks{ background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:15px 18px; margin-top:14px; }
+  .marks .sum{ font-size:.96rem; margin-bottom:11px; }
+  .marks .note{ font-size:.9rem; padding:8px 0 8px 22px; position:relative; border-bottom:1px dotted var(--line); }
+  .marks .note:last-child{ border-bottom:0; }
+  .marks .note .q{ color:var(--soft); font-style:italic; }
+  .marks .note.fix::before{ content:"\270E"; position:absolute; left:0; color:var(--rust); }
+  .marks .note.good::before{ content:"\2713"; position:absolute; left:0; color:var(--green); }
+  .marks .note.cmt::before{ content:"\2022"; position:absolute; left:0; color:var(--soft); }
+
+  footer{ margin-top:46px; padding-top:18px; border-top:1px solid var(--line); font-size:.85rem; color:var(--soft); }
+  .saved{ font-size:.8rem; color:var(--soft); font-style:italic; margin-top:6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="topline">
+    <div>
+      <div class="eyebrow">Leaders of Tomorrow · Level 1 · Influence</div>
+      <h1>Speech Studio</h1>
+      <div class="byline" id="sub">One lesson, five steps, one speech you actually say out loud. Take the steps at whatever pace suits you.</div>
+    </div>
+    <a class="back" href="../homework.html">← 我的作业 My Homework</a>
+  </div>
+</header>
+
+<div id="signmsg"></div>
+
+<!-- ============ HOME ============ -->
+<div class="screen on" id="screen-home">
+  <div class="reader">
+    <h3>How this works</h3>
+    <p>Ten lessons — the whole of Level 1. Each one starts with <b>the lesson itself</b>: five minutes of
+      reading, with a worked speech to look at. Then you build a speech of your own in <b>five steps</b>.</p>
+    <p><b>Step 1</b> learn the idea &middot; <b>Step 2</b> write three openings &middot; <b>Step 3</b> build the
+      skeleton &middot; <b>Step 4</b> write the ending &middot; <b>Step 5</b> put it together, then
+      <b>read it out loud and record it</b>.</p>
+    <p><b>Steps are an order, not a timetable.</b> One sitting, one step is the usual shape — but take two
+      when it is going well, and leave a big one half finished when it is not. Nothing here expires and nothing
+      is late.</p>
+    <p>Each step you hand in, Dad or Mom reads and writes back. Nobody marks your spelling here —
+      they are looking at whether it would hold a room.</p>
+  </div>
+  <section>
+    <h2 class="sec"><span class="n">Pick one</span> Lessons</h2>
+    <div id="lessons"></div>
+  </section>
+</div>
+
+<!-- ============ LESSON ============ -->
+<div class="screen" id="screen-lesson">
+  <button class="small" onclick="goHome()">← All lessons</button>
+  <section>
+    <h2 class="sec"><span class="n" id="L-k"></span> <span id="L-t"></span></h2>
+    <div class="promptbar">
+      <div class="k">You are speaking about</div>
+      <div class="v" id="L-topic"></div>
+      <div class="look" id="L-look"></div>
+    </div>
+    <div id="L-days"></div>
+  </section>
+</div>
+
+<!-- ============ THE LESSON ITSELF (courseware) ============ -->
+<div class="screen" id="screen-read">
+  <button class="small" onclick="backToLesson()">← Back to the lesson</button>
+  <section>
+    <h2 class="sec"><span class="n" id="R-k"></span> <span id="R-t"></span></h2>
+    <div id="R-body"></div>
+    <div class="actions">
+      <button class="primary" onclick="startDay1()">Start step 1</button>
+      <button onclick="backToLesson()">Back to the lesson</button>
+    </div>
+  </section>
+</div>
+
+<!-- ============ ONE DAY ============ -->
+<div class="screen" id="screen-day">
+  <button class="small" onclick="backToLesson()">← Back to the lesson</button>
+  <section>
+    <h2 class="sec"><span class="n" id="D-k"></span> <span id="D-t"></span></h2>
+    <div class="lead" id="D-ask"></div>
+    <div id="D-teach"></div>
+    <div id="D-body"></div>
+    <div id="D-msg"></div>
+    <div class="actions">
+      <button class="primary" id="D-hand">Hand it in</button>
+      <span class="saved" id="D-saved"></span>
+    </div>
+    <div id="D-marks"></div>
+  </section>
+</div>
+
+<!-- ============ DONE ============ -->
+<div class="screen" id="screen-done">
+  <section>
+    <h2 class="sec"><span class="n">Handed in</span> Nice work</h2>
+    <div class="msg ok" id="done-msg"></div>
+    <div class="actions">
+      <button class="primary" onclick="backToLesson()">Back to the lesson</button>
+      <button onclick="goHome()">All lessons</button>
+    </div>
+  </section>
+</div>
+
+<footer>
+  Public Speaking · Level 1 <i>The Leader In You</i>. Ten lessons, each one read in five minutes and then
+  practised in five steps. The printed book stays on paper — everything here is written fresh. <a class="back" href="../homework.html">我的作业 My Homework</a>
+</footer>
+</div>
+
+<script src="../JS/writing-review.js"></script>
+<script>
+/* =====================================================================
+   Speech Studio — Grace's public-speaking homework, one lesson at a time.
+
+   The course book (Leaders of Tomorrow, Level 1 · Influence) sets one
+   speech per lesson. Sam wants something she writes EVERY day, so each
+   lesson is cut into five steps: learn it · hook · skeleton · ending ·
+   full draft read out loud. They are steps, deliberately not days (Sam
+   2026-09-21): one sitting may hold two of them, a big one may take several,
+   and nothing on this page says today, tomorrow or late. An order, not a
+   schedule. Each step is handed in on its own and a
+   parent marks it by hand (Sam 2026-09-20: 全部家长手批).
+
+   Nothing from the book is retyped here — same rule as the BASA poems.
+   The teaching lines below are written fresh, kid-first.
+
+   Two rides on existing rails, so no Firestore rule changes:
+     · each day  → `writings` through quiz-report.js's `practice` adapter
+                   (promptKind 'speech', pid speech-L<n>-d<d>)
+     · step 5 take → `recordings` + `recordingAudio`, the same two-doc batch
+                   the BASA read-aloud studio writes. The row's poem* fields
+                   carry the lesson, because validRecording() allows no others.
+   Design notes: HOMEWORK-SYSTEM.md, 2026-09-20 演讲工作台.
+===================================================================== */
+
+/* ---------- the course, as data ---------- */
+/* Ten lessons. Each one carries its own courseware (the leadership page, the
+   speech skill taught properly, a worked model speech with every part labelled,
+   and the questions to argue about out loud) plus that lesson's speech task.
+   The five practice days are generated from it by daySpec(). Nothing from the
+   printed book is reproduced — this is all written fresh, same rule as the
+   BASA poems. */
+var LESSONS = [
+  {
+    n: 1, title: 'Structure of a Speech', leader: 'Be Yourself',
+    lead: [
+      'Everybody feels it. Standing up in front of people makes your heart go, and it does that to leaders too. It is not a fault in you, it is just what humans do.',
+      'Here is what nobody tells you: the room is on your side. Nobody came hoping you would be bad. They are hoping you will be interesting, and they will forgive almost anything if you are.',
+      'What they will not forgive is a perfect robot. A flawless speech with nothing real in it is the most boring thing in the world. They want to hear YOU — what you think, what you noticed, what happened to you. Make it personal and everything else gets easier.'
+    ],
+    teach: [
+      ['Three parts, always', 'Introduction, body, conclusion. The introduction says where you are taking them. The body is the actual stuff. The conclusion reminds them what mattered. Every talk you have ever liked had all three.'],
+      ['Order is what they keep', 'People remember a talk that went in order and forget one that wandered. And when a talk is jumbled, listeners quietly decide the speaker did not really know the subject — you lose more than the point, you lose their trust.'],
+      ['Structure is a calm button', 'It is not only for them. Knowing exactly what comes next is what keeps your hands still and your voice steady. You are never lost if you know which of the three parts you are standing in.'],
+      ['Three points fit in a head', 'Fewer is better. Three is the sweet spot: enough to say something real, few enough that one person can carry all of them home.'],
+      ['What "no plan" sounds like', 'Without a plan you say everything you know in the order it arrives, and it ends with "yeah… so… that’s it." You have heard that ending. You never want it to be yours.']
+    ],
+    model: {
+      title: 'The Part You Don’t See',
+      why: 'Watch how small it is. Three points, one sentence of support each, and the ending calls back to the opening.',
+      lines: [
+        ['Hook', 'I have played the piano for six years. I have never once played it for a room.'],
+        ['Introduction', 'You know me as the person who talks a lot at lunch. So today I want to tell you three things about me that do not fit on a school form.'],
+        ['Point 1', 'I practise an instrument nobody has heard me play. Forty minutes a day, door shut, because it is the one hour where being wrong costs nothing.'],
+        ['Point 2', 'I am frightened of being the new person. We moved once, and the walk into that classroom is still the bravest thing I have done.'],
+        ['Point 3', 'And I want to build things people actually use. Not famous things — useful ones, the kind you find in a kitchen drawer.'],
+        ['Conclusion', 'A closed door, a classroom I was scared of, and a drawer full of useful things. That is the part you do not see.'],
+        ['Last line', 'One day I will play that room. I am telling you now so I have to.']
+      ]
+    },
+    talk: [
+      'Think about the last talk you sat through. Could you tell where the introduction stopped and the real stuff started?',
+      'The book says a disorganised speech makes people trust the speaker less. Why would that be — what does being organised prove?',
+      'Does structure still matter when you are just telling a story at dinner?'
+    ],
+    topic: 'Yourself — but the parts people don’t know. What you hope for, what you’re scared of, ' +
+           'who you want to be like, what you want to pull off. Point it at the future, not at your baby photos.',
+    look: 'Book task: a 3–5 minute speech. Here you write it short and say it once.',
+    d1ask: 'Think about the last talk you sat through — a teacher, a YouTuber, someone at dinner. Could you tell where the introduction stopped and the real stuff started?'
+  },
+
+  {
+    n: 2, title: 'The Introduction', leader: 'Work Smart',
+    lead: [
+      'It is easy to keep doing a thing the same way forever, for no reason except that is how you did it last time. That is not being hard-working, that is being stuck.',
+      'Leaders keep asking a slightly annoying question: could this be better? Even the small stuff — making breakfast, getting your bag ready, doing your homework — can usually be done in less time if somebody actually thinks about it.',
+      'Time is the one thing nobody can buy more of. Every minute you win back from the boring part is a minute you get to spend on something you love.'
+    ],
+    teach: [
+      ['An introduction has five jobs', 'Grab their attention · say what the talk is about · show why YOU are the one saying it · say why it matters to THEM · hint at where you are going. Five jobs, usually in about four sentences.'],
+      ['Small, and decisive', 'It is only about a tenth of the whole talk. It also decides whether anybody listens to the other nine tenths, so it is worth more work than any other part.'],
+      ['"Why you" is not fame', 'You do not need to be an expert. "I tried this every morning for three weeks" is credibility. So is "this went wrong for me twice". Having done the thing beats knowing about the thing.'],
+      ['"Why them" has to be said out loud', 'The listener is quietly asking what is in it for them. Do not make them wonder — answer it in the first thirty seconds, in plain words.'],
+      ['The mistake almost everyone makes', '"Um, hi, my name is… and today I’m going to talk about…" is not an introduction, it is a label on a box. Start with the thing itself. Your name is on the list already.']
+    ],
+    model: {
+      title: 'Eleven Minutes',
+      why: 'Five jobs done in four sentences — see if you can spot each one before you read the labels.',
+      lines: [
+        ['Hook', 'Last month I worked out that I was spending eleven minutes every morning looking for things I already owned.'],
+        ['Introduction · what + why me', 'So I spent three weeks fixing my own mornings, and I got those eleven minutes back. I am not organised by nature — that is exactly why it works.'],
+        ['Introduction · why you', 'If mornings in your house involve somebody shouting up the stairs, this is for you.'],
+        ['Introduction · preview', 'Three changes: the night before, the one-place rule, and the two-minute law.'],
+        ['Point 1', 'The night before. Everything I need goes by the door while I am still awake enough to think.'],
+        ['Point 2', 'The one-place rule. Keys, card, headphones live in one bowl. Not usually — always.'],
+        ['Point 3', 'The two-minute law. If it takes under two minutes, it happens now, and it never becomes a morning job.'],
+        ['Conclusion', 'Night before, one place, two minutes. Eleven minutes back, every single day.'],
+        ['Last line', 'That is an extra hour a week. I spent this week’s on the piano.']
+      ]
+    },
+    talk: [
+      'Which of the five jobs do you think matters most? Argue for it.',
+      'Find a video you liked. Which jobs did its opening do, and which did it skip?',
+      'Can a speech survive a bad introduction? What would have to happen next?'
+    ],
+    topic: 'A routine thing you made faster or better — your morning, your homework, packing your bag, ' +
+           'feeding the pet. What you changed, and what it bought you.',
+    look: 'Book task: a 5 minute speech, then explain how your introduction did the five jobs.',
+    d1ask: 'Find a talk or a video you liked. Which of the five jobs did its opening do, and which did it skip?'
+  },
+
+  {
+    n: 3, title: 'The Body · Main Points', leader: 'Know Your Stuff',
+    lead: [
+      'When people look to you, they are assuming you know something they do not. That is a nice feeling and also a debt.',
+      'If you stand up in front of people without doing the reading, you are spending their time and yours, and quietly telling them your word is not worth much. That is an expensive way to save an hour.',
+      'The opposite is just as true. Do the work, and what comes out is not just an informative talk — it is one people still bring up weeks later.'
+    ],
+    teach: [
+      ['Purpose comes first', 'Every speech is trying to do one of three things: persuade, inform, or entertain. Choose before you write a word, because the same facts get arranged completely differently for each one.'],
+      ['Then the specific intention', 'Not "about water". Try: "to persuade my class to take shorter showers, because less water means less energy and a resource we keep." Who, what, where, when, why, how — one sentence, and everything else has to serve it.'],
+      ['Points that behave', 'Separated: no two points are secretly the same. United: all of them belong to that one intention. Balanced: none is twice the size of the others. Flowing: point 1 makes you want point 2.'],
+      ['Support, or it is only an opinion', 'Each point needs one thing standing behind it — a number, an example, a story, something you saw. A point with nothing behind it is just a sentence you like.'],
+      ['The "so what" test', 'Say a point out loud, then say "so what?" in a rude voice. If you cannot answer, the point is not ready. Do this to all three before you write the draft.']
+    ],
+    model: {
+      title: 'Why The Ground Shakes',
+      why: 'An informing speech. Each point is one idea with one real fact behind it — nothing more.',
+      lines: [
+        ['Hook', 'The ground under this room is moving right now. Slowly — about as fast as your fingernails grow.'],
+        ['Introduction', 'I spent a week reading about earthquakes because I wanted to know why they cannot be predicted. Here are the three things that changed how I think about the floor.'],
+        ['Point 1', 'The surface of the Earth is broken into plates, and they are all leaning on each other.'],
+        ['Support 1', 'The plate under the Pacific moves roughly seven centimetres a year — measured by satellite, not guessed.'],
+        ['Point 2', 'They do not slide smoothly. They stick, and the pressure keeps arriving anyway.'],
+        ['Support 2', 'That stuck stress can build for a hundred years before anything moves at all.'],
+        ['Point 3', 'When it finally slips, all of that stored energy leaves at once.'],
+        ['Support 3', 'A big quake can release more energy in ninety seconds than a city uses in a year.'],
+        ['Conclusion', 'Plates leaning, pressure sticking, energy leaving — and that is why we build for it instead of predicting it.'],
+        ['Last line', 'The ground is not still. It is just slow.']
+      ]
+    },
+    talk: [
+      'Take a speech you have already written. Were your points actually separate, or were two of them the same point wearing different hats?',
+      'Is three always right? When would two be better — or four?',
+      'Which kind of support convinces you most: a number, a story, or something the speaker saw themselves?'
+    ],
+    topic: 'Something you have to look things up for — how an earthquake happens, why polar bears ' +
+           'aren’t cold, how chocolate is made, how a bridge stands up.',
+    look: 'Book task: a 5 minute researched speech. Look up at least two real facts you didn’t know this morning.',
+    d1ask: 'Take any speech you’ve written before. Were your points actually separate, or were two of them the same point wearing different hats?'
+  },
+
+  {
+    n: 4, title: 'The Conclusion', leader: 'Speak Less, Say More',
+    lead: [
+      'Almost everything comes with a time limit — an exam, getting out of the door, a speech. The limit is not the enemy. It is the thing that forces you to decide what actually matters.',
+      'So do not fill the time. Choose the message, choose the points that carry it, and say them simply. Cram in too much and you will not remember it all yourself, never mind your audience.',
+      'Being effective and being efficient are not opposites. Use just enough words, in just enough time, to land the thing you came to land.'
+    ],
+    teach: [
+      ['A conclusion has three jobs', 'Signal that the end is coming · remind them of the points · leave them with a takeaway or something to do. Miss the first and they are startled; miss the third and they leave with nothing.'],
+      ['Do not slow down', 'Most speakers get quiet and relieved in the last ten seconds, right when people are listening hardest. Keep your energy up through the final word. End on a high note, not a sigh.'],
+      ['"Thank you" is not an ending', 'Say your last line. Pause. THEN say thank you, if you want. Tacking thanks onto the end of your real sentence wipes it out.'],
+      ['Cutting to fit', 'When you are over time, cut a whole point, not words from every sentence. Two points delivered properly beat three delivered at speed.'],
+      ['No new material at the end', 'The conclusion is not the place for a fresh idea, however good it is. If it is that good, it was a point.']
+    ],
+    model: {
+      title: 'Three Minutes On A Beach Machine',
+      why: 'A timed speech. Notice how short the points are and how much room the ending gets.',
+      lines: [
+        ['Hook', 'Last summer I counted forty-one bottle caps on one stretch of sand the length of this room.'],
+        ['Introduction', 'So I designed a machine to pick them up. It does not exist yet, but I can tell you exactly what it has to do.'],
+        ['Point 1', 'It has to be slow, because anything fast on a beach hurts what is living in it.'],
+        ['Point 2', 'It has to sort as it goes, or someone spends their whole day at a table separating plastic from shells.'],
+        ['Point 3', 'And it has to be cheap enough that a school can own one, not just a city.'],
+        ['Conclusion · signal', 'So that is the whole machine.'],
+        ['Conclusion · remind', 'Slow, sorting, and cheap enough to belong to people who actually use the beach.'],
+        ['Last line · challenge', 'Forty-one caps, one room-length of sand. Go and count your own stretch — then tell me a machine is a silly idea.']
+      ]
+    },
+    talk: [
+      'Think about a recent talk you heard. Did it have a real conclusion? Name two things that would have made it stronger.',
+      'Why does an abrupt ending make people feel cheated, even when the talk was good?',
+      'Is it braver to finish early or to use all your time?'
+    ],
+    topic: 'A timed three-minute challenge: an invention that cleans up the beach, why you joined a club, ' +
+           'or how to make a proper breakfast. Short, and finished on time.',
+    look: 'Book task: maximum 3 minutes. Then say how your conclusion did all three jobs.',
+    d1ask: 'Think about a talk that just stopped instead of ending. What did that feel like as a listener?'
+  },
+
+  {
+    n: 5, title: 'The Hook · Opening Statement', leader: 'Cultivate Poise',
+    lead: [
+      'Poise means having yourself under control, especially when things get difficult. Not losing your temper when you are upset. Not going to pieces when something goes wrong.',
+      'Great leaders have a lot of it, and it shows most in public. It is not that they have no feelings — it is that they do not overreact with them, in either direction.',
+      'On a stage, poise is what lets you lose your place, take a breath, and carry on as though nothing happened. Which, mostly, is true.'
+    ],
+    teach: [
+      ['You get about ten seconds', 'The opening statement is the moment you have every pair of eyes in the room. Use it to create interest, not to do admin.'],
+      ['Ten ways in', 'A question · a bold statement · a quote · strong emotion · "imagine…" · a big demand · a statistic · an opinion · a sound · a story. Any of them beats "today I am going to talk about".'],
+      ['A hook is a promise', 'Whatever you open with, the talk has to pay it off. A dramatic opening on a speech that goes nowhere makes people feel tricked.'],
+      ['Never open with an apology', '"Sorry, I did not have much time to prepare" tells the room to expect less. Even if it is true, start with the talk.'],
+      ['Match the hook to the talk', 'A joke in front of a serious topic, or a statistic in front of a personal story, lands wrong. Pick the one that fits what comes next.']
+    ],
+    model: {
+      title: 'The Wrong Bus',
+      why: 'Same speech, three possible openings. Read all three out loud and notice how differently the room would feel.',
+      lines: [
+        ['Hook · story', 'At 4:10 on a Tuesday I realised I was on the wrong bus, in the wrong part of town, with a dead phone.'],
+        ['Hook · question (alternate)', 'What is the calmest you have ever had to be, when you really did not feel calm?'],
+        ['Hook · bold statement (alternate)', 'Panicking is a decision. It just happens very fast.'],
+        ['Introduction', 'I want to tell you what I did in the next twenty minutes, because I surprised myself — and because the trick is learnable.'],
+        ['Point 1', 'First I did nothing for sixty seconds. That is the hardest part and it is the whole trick.'],
+        ['Point 2', 'Then I named what I actually knew: the street, the time, and that buses come back.'],
+        ['Point 3', 'Then I asked a stranger one clear question instead of five panicky ones.'],
+        ['Conclusion', 'A minute of nothing, a list of what I knew, one good question.'],
+        ['Last line', 'I got home at five. The calm was not luck — it was the sixty seconds.']
+      ]
+    },
+    talk: [
+      'Make a list of attention-getters you could use for a speech about recycling. Which would work best, and why?',
+      'Which of the ten do you never see used? Is there a reason, or is it just unfashionable?',
+      'Can a talk recover from a boring first line?'
+    ],
+    topic: 'A time you kept your cool when it would have been easy not to — and what you actually did in that moment.',
+    look: 'Book task: a 5 minute speech, plus a second hook of a different type for the same speech.',
+    d1ask: 'Watch the first ten seconds of two videos. Which one made you stay, and what exactly did it do?'
+  },
+
+  {
+    n: 6, title: 'Impromptu Speaking', leader: 'Be Giving',
+    lead: [
+      'You do not need money to be generous. Give your time — there are causes everywhere that need hands more than they need donations.',
+      'Give what you know. Help someone finish a project, help a friend get through a test, help your brother with his maths. Sharing what you are good at is one of the most satisfying things there is.',
+      'And give praise. Kind words cost nothing and they lift people instantly. Most people are waiting for someone to notice — be the one who does.'
+    ],
+    teach: [
+      ['Most of your speeches will be unplanned', 'Somebody’s dad asks how your team is doing. A stranger asks about your holiday. You will give a hundred impromptu speeches for every prepared one.'],
+      ['Think, then speak', 'Repeating the question buys you three or four seconds and, more importantly, makes your own brain finish the thought before your mouth starts.'],
+      ['Keep a structure anyway', 'Echo the question → make two points → close. That tiny shape is the difference between an answer and a ramble, and it fits in your head under pressure.'],
+      ['Reach for the 5WH', 'Who, what, where, when, why, how. When your mind goes blank, those six words will always hand you something true to say.'],
+      ['They are not judging you', 'Nobody asked a question hoping for a bad answer. They are interested. Being confident here is mostly just believing that.']
+    ],
+    model: {
+      title: '"So, how is the season going?"',
+      why: 'Twenty seconds, no preparation. Watch the shape: echo, two points, close.',
+      lines: [
+        ['Echo', 'How is the season going — honestly, better than the table says.'],
+        ['Point 1', 'We have lost three, but two of those were by one goal against the top teams.'],
+        ['Point 2', 'And the thing that has actually changed is the defence. Nobody is arguing about whose job it was any more.'],
+        ['Close', 'So: a bad table and a better team. Ask me again in a month.']
+      ]
+    },
+    talk: [
+      'If it happens on the spur of the moment, how can you possibly prepare for it? What would "being ready" even mean?',
+      'Name five times you might have to speak with no warning. Which is easiest? Which is hardest?',
+      'Why does repeating the question help so much?'
+    ],
+    topic: 'Pick any topic from the list at the bottom of the page — or have someone pick one for you — ' +
+           'and take it cold. Thirty seconds to think, then talk.',
+    look: 'Book task: an impromptu speech on a given topic, plus five occasions you might need one.',
+    weekNote: 'For this lesson, step 5 is different: do not read your draft. Look at the outline only, and say it.',
+    d1ask: 'When did somebody last ask you a question in front of other people? What did the first five seconds feel like?'
+  },
+
+  {
+    n: 7, title: 'Concluding Devices · Takeaway', leader: 'Advocate for a Cause',
+    lead: [
+      'Leaders believe they can make the place better. The problem is never a shortage of causes — it is that nobody has the time, money and energy for all of them.',
+      'So choose one. Forests, plastic bottles, animals, anybody who is being left out. Then break it into things small enough that you can actually do them.',
+      'Start at home. Bring your family in, then your friends. That is how something small gets to your school, then your neighbourhood, then your city. Small goals, actually finished, leave a mark.'
+    ],
+    teach: [
+      ['The last sentence is the one they keep', 'Your concluding device is the final thing you say. It closes the talk, but its real job is to leave people with something to do or think about.'],
+      ['Five devices', 'A quote · a rhetorical question · a challenge · a visualisation · a call to action. Pick the one that matches what you actually want to happen next.'],
+      ['Challenge vs call to action', 'A challenge asks for effort — "eat four portions of vegetables a day instead of two." A call to action asks for one specific behaviour — "stop using plastic straws." Do not blur them.'],
+      ['Make it possible', 'Asking a room of eleven-year-olds to change a law will get nods and nothing else. Ask for the thing they could do on Saturday.'],
+      ['Write it before the middle', 'If you know your last line early, the whole speech steers towards it. Most people write it last and it shows.']
+    ],
+    model: {
+      title: 'Two Hundred Bottles',
+      why: 'One cause, three small asks, and an ending that gives them something to do this week.',
+      lines: [
+        ['Hook · statistic', 'Our class goes through about two hundred plastic bottles a month. I counted for three weeks.'],
+        ['Introduction', 'I am not asking anybody to save the ocean. I am asking for three things that fit in this building.'],
+        ['Point 1', 'A refill station by the gym door — there is already a tap there.'],
+        ['Point 2', 'A bottle with your name on it, because the ones people lose are the ones nobody owns.'],
+        ['Point 3', 'And a number on the wall each month, because people change what gets counted.'],
+        ['Conclusion', 'A tap, a name, a number.'],
+        ['Last line · call to action', 'Bring one bottle from home on Monday. Two hundred becomes a hundred, and we did that in a week.']
+      ]
+    },
+    talk: [
+      'What is the actual difference between a challenge and a call to action?',
+      'What other concluding devices can you think of that are not on the list of five?',
+      'Which cause would you pick, and what is the smallest useful thing you could do about it?'
+    ],
+    topic: 'A cause you would like to champion — and how you would raise awareness and make an actual difference.',
+    look: 'Book task: a speech about your cause. Then say which concluding device suits it best, and why.',
+    d1ask: 'Think of an advert or a speech that made you want to do something. What was its last line?'
+  },
+
+  {
+    n: 8, title: 'Gestures · Eye Contact · Movement', leader: 'Own Your Mistakes',
+    lead: [
+      'If you trip over a sentence, forget a line, or get a fact wrong — own it. Do not make excuses and do not try to hide behind another point.',
+      'Admitting it does two things: you learn, and the room respects you. Refusing to admit it costs you the thing you were trying to protect, which was people believing you.',
+      'There is no shame in a mistake, even for leaders. It is only human. What matters is that you admit it, learn from it, and move on. Own your mistakes, or they will own you.'
+    ],
+    teach: [
+      ['Eye contact', 'When a speaker does not look at people, the room drifts off. When you look at someone directly, the talk becomes personal — they feel spoken to, not spoken at. A few seconds per person, moving around the room.'],
+      ['Gestures', 'Hands and arms that emphasise what you are saying. Too much and you look like you are flailing; too little and you look stiff and nervous. The good ones are the ones that mean something: three fingers for three points, hands apart for something big.'],
+      ['Movement', 'Movement is where your feet go — forward, sideways, back. Standing frozen is bad, pacing non-stop is worse. Plan two or three moments to move, usually between points, and be still the rest of the time.'],
+      ['Where the hands go when they are not working', 'Down by your sides. It feels wrong and it looks fine. Pockets, folded arms and gripping the paper all read as "I would like to leave now".'],
+      ['When you trip', 'Stop. Say "let me take that again." Say the sentence properly. That is it — the room forgets in four seconds. Apologising for thirty seconds is what they remember.']
+    ],
+    model: {
+      title: 'The Email I Sent To Everyone',
+      why: 'The [ ] marks are where the body does something. Notice how few there are — that is the point.',
+      lines: [
+        ['Hook', 'I once sent a message meant for one person to forty-two people. [stand still, look at one person]'],
+        ['Introduction', 'What I did in the next ten minutes was worse than the email. Here is what I learned from the cleanup.'],
+        ['Point 1', 'First I tried to pretend it had not happened. [step sideways] Everybody already knew.'],
+        ['Point 2', 'Then I tried to explain why it was not really my fault. [hands out] That made it mine twice.'],
+        ['Point 3', 'Then I said the six words that fixed it: that was me, I am sorry. [hands down, slow]'],
+        ['Conclusion', 'Hiding, excusing, owning — only one of those ends the story. [three fingers]'],
+        ['Last line', 'Forty-two people forgot by Friday. I did not, which is rather the point.']
+      ]
+    },
+    talk: [
+      'Have you listened to a speaker who never made eye contact? What did you think of the speech?',
+      'How can you become more aware of your own gestures — what would you have to do to find out what you actually do?',
+      'How could movement make a talk better? When would it make it worse?'
+    ],
+    topic: 'A time you had to admit a mistake and move on — what happened, what you did, what it taught you.',
+    look: 'Book task: a 3–5 minute speech. Plan the gestures and the movement before you say it.',
+    d1ask: 'Watch a speaker with the sound off for one minute. What did their hands and feet tell you?'
+  },
+
+  {
+    n: 9, title: 'Vocal Variety', leader: 'Live Your Dream',
+    lead: [
+      'We become what we repeatedly do. Practise three-pointers and you turn into someone who makes three-pointers. Keep sitting at the piano and one day you can play.',
+      'So look forward: picture the life you would like to have, then look at what you are doing now and ask whether it points that way.',
+      'Leaders have a vision for themselves, not just for their projects — a picture of who they are becoming. Every step takes them closer to it. Yours starts now, with whatever you do this afternoon.'
+    ],
+    teach: [
+      ['Good delivery vs great delivery', 'Good delivery gets the message across. Great delivery gets it across clearly, interestingly, and without anything distracting. The target is a really good conversation, not a performance.'],
+      ['Volume', 'How loud or soft. Used on purpose it marks the important parts — and dropping quieter can grab a room harder than shouting.'],
+      ['Pitch and inflection', 'How high or low your voice goes. It changes the meaning of the very same words: "I love public speaking" and "I LOVE public speaking" are two different sentences.'],
+      ['Rate', 'How fast you talk. Quick carries urgency and excitement; slow carries seriousness and sadness. Most nervous speakers do the whole thing at one speed: fast.'],
+      ['Pauses', 'The brief silences that let a line land. This is the single most powerful thing on the list and the hardest to do, because two seconds of silence feels like ten when you are the one standing up.'],
+      ['Do not overdo it', 'Vocal variety should sound spontaneous, like you actually mean it. Forced, it sounds like a cartoon. If you would not say it that way to a friend, do not say it that way to a room.']
+    ],
+    model: {
+      title: 'Marked Up For The Voice',
+      why: 'The same speech from Lesson 1, marked for delivery. Read it out loud twice — once flat, once with the marks.',
+      lines: [
+        ['Hook', 'I have played the piano for six years. [PAUSE — two whole seconds] I have never once played it for a room.'],
+        ['Introduction', 'You know me as the person who talks a lot at lunch. [faster] So here are three things that do not fit on a school form.'],
+        ['Point 1', 'Forty minutes a day. [slow] Door shut. [slow] Because it is the one hour where being wrong costs nothing.'],
+        ['Point 2', '[quieter] I am frightened of being the new person.'],
+        ['Point 3', '[brighter, quicker] And I want to build things people actually use — the kind you find in a kitchen drawer.'],
+        ['Conclusion', 'A closed door. A classroom I was scared of. A drawer full of useful things. [PAUSE]'],
+        ['Last line', '[full voice] One day I will play that room. [quiet] I am telling you now so I have to.']
+      ]
+    },
+    talk: [
+      'Find a speech online and listen to the speaker’s vocal variety. Where could they improve?',
+      'Say "I never said she took the money" seven times, stressing a different word each time. How many meanings did you get?',
+      'Why is a pause so hard to do when you are nervous?'
+    ],
+    topic: 'Take any speech you have already made this course and do it again — better. Use the marks you were given, ' +
+           'and everything you have learned since.',
+    look: 'Book task: rework a past speech, using the evaluations you were given and all the speech lessons so far.',
+    d1ask: 'Listen to somebody read aloud today. Where did they pause, and what did it do?'
+  },
+
+  {
+    n: 10, title: 'Review · Put It All Together', leader: 'Be Kind',
+    lead: [
+      'The most important thing leaders do is make a difference to other people. Kindness ripples — it moves from one person to the next and brightens the whole line.',
+      'It does not take much. Hold a door. Help with the chores nobody claimed. Share your lunch. One compliment, one smile, one kind act, one person at a time.',
+      'These cost nothing and get remembered for years. Nothing that simple has that much effect.'
+    ],
+    teach: [
+      ['What you have', 'Structure · introduction · body · conclusion · opening statement · impromptu speaking · concluding devices · gestures · vocal variety. Nine tools. Most adults have two.'],
+      ['Which ones actually changed your speaking?', 'Be honest about it. The three that made the biggest difference are the three worth practising for the next year — the rest will come along behind them.'],
+      ['Everyone says a speech is their greatest fear', 'And it is still one of the most valuable things a person can learn to do. Those two facts are related: valuable, because most people never get over it.'],
+      ['The thing that made it work', 'Not talent. Weekly speech projects and the evaluations you got on them. You built a foundation — keep putting things on it.'],
+      ['How to keep going', 'Volunteer for the talk nobody wants. Answer the question at dinner in three parts. Say the toast at the birthday. Every one of those is a rep.']
+    ],
+    model: {
+      title: 'Everything, In Ninety Seconds',
+      why: 'Every tool from the course in one short speech. See how many you can name before you read the labels.',
+      lines: [
+        ['Hook · sound', 'Beep. Beep. Beep. [PAUSE] Six forty in the morning, and I am already arguing with a machine.'],
+        ['Introduction', 'Ten weeks ago I could not stand in front of you without reading off a page. Three things changed that, and none of them was confidence.'],
+        ['Point 1 + support', 'A plan. [three fingers] Three points, written before a single sentence — and suddenly I was never lost.'],
+        ['Point 2 + support', 'A first line worth saying. [step forward] I stopped opening with my name and the room started looking up.'],
+        ['Point 3 + support', 'And silence. [PAUSE] Two seconds of it does more than any loud word I own.'],
+        ['Conclusion · signal + remind', 'So: a plan, a first line, and the nerve to stop talking for a moment.'],
+        ['Last line · challenge', 'You already have all three. [slow] Go and find a room.']
+      ]
+    },
+    talk: [
+      'Which of the nine lessons was most valuable to you? Which was hardest?',
+      'What would you tell somebody starting this course next term?',
+      'What is the next room you are going to speak in?'
+    ],
+    topic: 'Your best speech from this whole course, rebuilt — using every tool you have now. Or a brand new one, ' +
+           'if there is something you have been wanting to say.',
+    look: 'Book task: review the lessons and discuss which were most valuable. Here: prove it by rebuilding one.',
+    d1ask: 'Look back at your first speech from Lesson 1. What would you change now, and why?'
+  }
+];
+
+/* Lesson 6 hands her a topic cold. These are the pool. */
+var IMPROMPTU = [
+  'The best thing about being the youngest — or the oldest — in a family',
+  'Something everybody likes that you secretly do not',
+  'The most useful thing in your school bag',
+  'A rule you would change at school, and what you would put in its place',
+  'The best meal you have ever eaten',
+  'Would you rather be able to fly or be invisible? Defend it.',
+  'The hardest thing about learning something new',
+  'A place you would take a visitor who had one day here',
+  'Something you changed your mind about this year',
+  'Is it better to be early or to be interesting?'
+];
+
+/* The ten ways to open, and the five ways to close, are the book's lists.
+   The examples are ours. */
+var HOOKS = [
+  ['question',  'Ask a question',      'Have you ever forgotten your own name in front of people?'],
+  ['bold',      'A bold statement',    'Mornings are the worst-designed hour of the day.'],
+  ['quote',     'A quote',             '"You miss 100% of the shots you don’t take."'],
+  ['emotion',   'Strong emotion',      'What I love about this is that it is completely unfair.'],
+  ['imagine',   'Imagine…',       'Imagine your alarm goes off and you are already dressed.'],
+  ['demand',    'A big demand',        'Give me four minutes and I’ll give you back an hour a week.'],
+  ['stat',      'A statistic',         'Nine out of ten mornings in this house start with someone shouting.'],
+  ['opinion',   'An opinion',          'To me, the hardest part of any speech is the first ten seconds.'],
+  ['sound',     'A sound',             'Beep. Beep. Beep — 6:40 a.m.'],
+  ['story',     'A story',             'Last Tuesday I put on two different shoes and didn’t notice until lunch.']
+];
+var ENDERS = [
+  ['quote',  'A quote',          'End on somebody else’s good sentence — if it really fits.'],
+  ['question','A question',      'Leave them one they have to answer in their own head.'],
+  ['challenge','A challenge',    'Ask them to actually do something hard, starting now.'],
+  ['vis',    'A picture',        'Make them see the future you’re describing.'],
+  ['cta',    'A call to action', 'One clear thing to do, and when.']
+];
+
+/* ---------- limits ---------- */
+/* Same arithmetic as the read-aloud studio: a Firestore doc tops out at 1 MB,
+   base64 adds a third, 150 s at 24 kbps stays well inside. */
+var MAX_TAKES = 3, MAX_SECS = 150, BITRATE = 24000, MAX_B64 = 720000;
+var DRAFT_MIN = 150, DRAFT_MAX = 250;
+
+var KIDS = {
+  mbtSDgfFrOOS4xIT3eXr7pETEt33: 'grace',
+  paACSAD0W0bBNknKrAf3GfpHy8x1: 'warren'
+};
+
+/* ---------- globals quiz-report.js's `practice` adapter matches on ---------- */
+/* Must be var + plain function declarations: the adapter reads them off window. */
+var ROUNDS = [];
+var round = 0;
+var solvedFirst = 0;         // a number when quiz-report.js first looks; null at hand-in = not marked yet
+var REPORT_WRITING = null;   // set just around finish(); quiz-report.js sends it to `writings`
+function startRound(r){ round = r; }
+function finish(){ /* quiz-report.js reads solvedFirst + REPORT_WRITING after this runs */ }
+
+LESSONS.forEach(function (L){
+  for (var d = 1; d <= 5; d++) ROUNDS.push({ name: 'L' + L.n + ' · Step ' + d, items: [1, 2, 3] });
+});
+function roundIndex(ln, d){
+  for (var i = 0; i < LESSONS.length; i++) if (LESSONS[i].n === ln) return i * 5 + (d - 1);
+  return 0;
+}
+
+/* ---------- small helpers ---------- */
+var PREVIEW = /(?:^|&)preview=1(?:&|$)/.test(location.search.slice(1));
+var K_STATE = 'speechStudio.v1';
+function $(id){ return document.getElementById(id); }
+var esc = (window.WritingReview && WritingReview.esc) || function (s){
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function (c){
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+  });
+};
+function words(s){ var m = String(s || '').trim().match(/[A-Za-z0-9'’\-]+/g); return m ? m.length : 0; }
+function two(n){ return String(n).padStart(2, '0'); }
+function mmss(s){ var n = Math.max(0, Math.floor(s)); return Math.floor(n / 60) + ':' + two(n % 60); }
+function ymd(d){ return d.getFullYear() + '-' + two(d.getMonth() + 1) + '-' + two(d.getDate()); }
+function when(t){ return new Date(t).toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }); }
+
+/* ---------- state (everything survives a refresh) ---------- */
+var S = { v:1, f:{}, checks:{}, sub:{}, recs:{}, spent:{} };
+try {
+  var raw = localStorage.getItem(K_STATE);
+  if (raw){
+    var got = JSON.parse(raw);
+    if (got && got.v === 1) S = { v:1, f:got.f||{}, checks:got.checks||{}, sub:got.sub||{}, recs:got.recs||{}, spent:got.spent||{} };
+  }
+} catch(e){ /* a blocked or full localStorage must never stop her writing */ }
+function save(){
+  try { localStorage.setItem(K_STATE, JSON.stringify(S)); $('D-saved').textContent = 'Saved on this device'; }
+  catch(e){ $('D-saved').textContent = ''; }
+}
+
+var FB = null, ME = null, MEKEY = '';
+var MINE = {};             // pid -> the newest writing doc for it
+var CUR = null;            // { L, d, spec, key, startedAt }
+var TAKES = [];            // this day's takes: { state, blob, url, secs, err, id }
+var RECORDING = false;
+
+function dkey(ln, d){ return 'L' + ln + 'd' + d; }
+function fval(k, fid){ return S.f[k + ':' + fid] || ''; }
+function setf(k, fid, v){ S.f[k + ':' + fid] = v; }
+
+/* =====================================================================
+   The five steps
+===================================================================== */
+function daySpec(L, d){
+  if (d === 1) return {
+    name: 'Learn it', mins: 'about 10 minutes', icon: '\u{1F4D6}',
+    ask: 'Read the ideas in the lesson. Then write three of them back <b>in your own words</b> — not copied, yours. ' +
+         'Writing it yourself is how you find out whether you actually got it.',
+    teach: 'tips',
+    fields: [
+      { id:'own1', lab:'Idea 1, in your own words', rows:2, min:8 },
+      { id:'own2', lab:'Idea 2, in your own words', rows:2, min:8 },
+      { id:'own3', lab:'Idea 3, in your own words', rows:2, min:8 },
+      { id:'seen', lab:'Somebody who did this — or didn’t', hint:L.d1ask, rows:3, min:15 }
+    ],
+    stuck: ['<b>Stuck on "in your own words"?</b> Close your eyes and explain it to a six-year-old. ' +
+            'Whatever you just said out loud — write that down.']
+  };
+
+  if (d === 2) return {
+    name: 'The hook', mins: 'about 15 minutes', icon: '\u{1FA9D}',
+    ask: 'The first ten seconds decide whether anyone listens to the other five minutes. ' +
+         'Write <b>three different openings</b> for this lesson’s topic, each a different type. Then pick one.',
+    teach: 'hooks',
+    fields: [
+      { id:'h1kind', type:'select', opts:HOOKS, lab:'Opening 1 — type' },
+      { id:'h1', lab:'Opening 1 — say it', hint:'One or two sentences. Out loud first, then write it.', rows:2, min:6 },
+      { id:'h2kind', type:'select', opts:HOOKS, lab:'Opening 2 — type' },
+      { id:'h2', lab:'Opening 2 — say it', rows:2, min:6 },
+      { id:'h3kind', type:'select', opts:HOOKS, lab:'Opening 3 — type' },
+      { id:'h3', lab:'Opening 3 — say it', rows:2, min:6 },
+      { id:'pick', type:'select', lab:'Which one are you using in the speech?',
+        opts:[['1','Opening 1',''],['2','Opening 2',''],['3','Opening 3','']] },
+      { id:'why', lab:'Why that one?', hint:'What does it do to the person listening that the other two don’t?', rows:2, min:10 }
+    ],
+    stuck: ['<b>All three sound the same?</b> That usually means all three are opinions. ' +
+            'Force one to be a story and one to be a question — they can’t come out the same.',
+            '<b>Read them out loud.</b> A hook that is hard to say is a hook that is hard to hear.']
+  };
+
+  if (d === 3) return {
+    name: 'The skeleton', mins: 'the big one · fine to do in two sittings', icon: '\u{1F9B4}',
+    ask: 'Now the bones. Purpose, then the one sentence that says exactly what you’re doing, then three points ' +
+         'that each carry something real.',
+    teach: 'skeleton',
+    fields: [
+      { id:'purpose', type:'select', lab:'Purpose',
+        opts:[['persuade','To persuade','get them to think or do something'],
+              ['inform','To inform','give them something they didn’t know'],
+              ['entertain','To entertain','give them a good four minutes']] },
+      { id:'intent', lab:'Specific intention — one sentence',
+        hint:'Who, what, where, when, why, how. "To ___ my ___ that ___, because ___."', rows:3, min:12 },
+      { id:'intro', lab:'Introduction — what comes after the hook',
+        hint:'One or two sentences: what this talk is, why you get to say it, why they should care.', rows:3, min:15 },
+      { id:'p1', lab:'Point 1', rows:2, min:5 },
+      { id:'s1', lab:'└ what backs it up', hint:'A fact, a number, an example, something you saw.', rows:2, min:6 },
+      { id:'p2', lab:'Point 2', rows:2, min:5 },
+      { id:'s2', lab:'└ what backs it up', rows:2, min:6 },
+      { id:'p3', lab:'Point 3', rows:2, min:5 },
+      { id:'s3', lab:'└ what backs it up', rows:2, min:6 }
+    ],
+    checks: [
+      ['sep',  'Separated — no two points are secretly the same point'],
+      ['uni',  'United — all three are about the one thing in my intention'],
+      ['bal',  'Balanced — none of them is twice the size of the others'],
+      ['flow', 'Flows — point 1 makes you want point 2']
+    ],
+    stuck: ['<b>Two points keep overlapping?</b> Merge them and go find a third. Three real points beat four blurry ones.',
+            '<b>No support for a point?</b> Then it isn’t a point yet, it’s a feeling. Look something up, or cut it.']
+  };
+
+  if (d === 4) return {
+    name: 'The ending', mins: 'about 15 minutes', icon: '\u{1F3AF}',
+    ask: 'The last sentence is the one they walk out with. A conclusion does three jobs: <b>signal the end</b>, ' +
+         '<b>remind them of the three points</b>, and <b>leave them something</b>. Write three possible last lines, then pick one.',
+    teach: 'enders',
+    fields: [
+      { id:'wrap', lab:'The wrap-up — your three points in one or two sentences',
+        hint:'Not word-for-word again. Shorter, tighter, the shape of them.', rows:3, min:12 },
+      { id:'e1kind', type:'select', opts:ENDERS, lab:'Last line 1 — type' },
+      { id:'e1', lab:'Last line 1 — say it', rows:2, min:5 },
+      { id:'e2kind', type:'select', opts:ENDERS, lab:'Last line 2 — type' },
+      { id:'e2', lab:'Last line 2 — say it', rows:2, min:5 },
+      { id:'e3kind', type:'select', opts:ENDERS, lab:'Last line 3 — type' },
+      { id:'e3', lab:'Last line 3 — say it', rows:2, min:5 },
+      { id:'epick', type:'select', lab:'Which last line are you using?',
+        opts:[['1','Last line 1',''],['2','Last line 2',''],['3','Last line 3','']] },
+      { id:'take', lab:'The takeaway — in one sentence, what should they leave with?', rows:2, min:8 }
+    ],
+    stuck: ['<b>Don’t slow down at the end.</b> Most speakers get quiet and relieved in the last ten seconds. ' +
+            'Keep your energy up right through the final word — that is what makes it land.',
+            '<b>"Thank you" is not an ending.</b> Say your last line, pause, THEN say thank you.']
+  };
+
+  return {
+    name: 'Put it together · say it out loud', mins: 'about 20 minutes · needs a room you can talk out loud in', icon: '\u{1F3A4}',
+    ask: 'Everything you have written for this lesson, in one place. Fill the gaps, write it out as ' + DRAFT_MIN + '–' + DRAFT_MAX +
+         ' words, then <b>stand up and read it to the microphone</b>. You are not done until you have said it.',
+    teach: 'outline',
+    fields: [
+      { id:'title', type:'text', lab:'Title', hint:'Short. Five words or fewer if you can.', min:1 },
+      { id:'draft', type:'big', lab:'The speech, written out', min:DRAFT_MIN,
+        hint:'Start with the hook you picked in step 2. Then your introduction, your three points with their support, ' +
+             'your wrap-up, your last line. Write it the way you would say it — short sentences, real words.' },
+      { id:'gest', lab:'One thing your body does', hint:'Where do you look, what do your hands do at the big moment, where do you move?', rows:2, min:5 }
+    ],
+    checks: [
+      ['c1', 'It opens with the hook I picked — not with "Um, hi, so today I’m going to…"'],
+      ['c2', 'My three points are in there, in order, each with its support'],
+      ['c3', 'The last line is the one I chose in step 4'],
+      ['c4', 'I read the whole thing out loud at least once before recording'],
+      ['c5', 'It sounds like me — a friend reading it would know it was mine']
+    ],
+    booth: true,
+    stuck: ['<b>Too long when you say it?</b> ' + DRAFT_MAX + ' words is about two minutes spoken. Cut whole sentences, not words.',
+            '<b>Tripped over a line?</b> Own it, start that sentence again, keep going. The recording does not have to be perfect — it has to be finished.']
+  };
+}
+
+/* =====================================================================
+   Screens
+===================================================================== */
+function show(name){
+  ['home','read','lesson','day','done'].forEach(function (s){ $('screen-' + s).classList.toggle('on', s === name); });
+  window.scrollTo(0, 0);
+}
+function goHome(){ stopClock(); CUR = null; paintHome(); show('home'); }
+function backToLesson(){ stopClock(); if (!CUR) return goHome(); paintLesson(CUR.L); show('lesson'); }
+
+/* how far along a day is: 'none' | 'part' | 'done' */
+function dayState(L, d){
+  var k = dkey(L.n, d);
+  if (S.sub[k]) return 'done';
+  var spec = daySpec(L, d), any = false;
+  spec.fields.forEach(function (f){ if (String(fval(k, f.id)).trim()) any = true; });
+  return any ? 'part' : 'none';
+}
+
+function paintHome(){
+  $('lessons').innerHTML = LESSONS.map(function (L){
+    var pips = '', done = 0;
+    for (var d = 1; d <= 5; d++){
+      var st = dayState(L, d);
+      if (st === 'done') done++;
+      pips += '<span class="pip ' + (st === 'none' ? '' : st) + '"></span>';
+    }
+    return '<div class="lcard" onclick="openLesson(' + L.n + ')">' +
+      '<div class="h"><div class="t">Lesson ' + L.n + ' · ' + esc(L.title) + '</div>' +
+      '<div class="k">' + esc(L.leader) + '</div></div>' +
+      '<div class="d">' + esc(L.topic.slice(0, 96)) + (L.topic.length > 96 ? '…' : '') + '</div>' +
+      '<div class="pips">' + pips + '<span class="lab">' + done + '/5 handed in</span></div></div>';
+  }).join('');
+}
+
+function openLesson(n){
+  var L = LESSONS.filter(function (x){ return x.n === n; })[0];
+  if (!L) return;
+  CUR = { L: L, d: 0 };
+  paintLesson(L);
+  show('lesson');
+}
+
+function paintLesson(L){
+  CUR = CUR || {}; CUR.L = L;
+  $('L-k').textContent = 'Lesson ' + L.n + ' · ' + L.leader;
+  $('L-t').textContent = L.title;
+  $('L-topic').textContent = L.topic;
+  $('L-look').textContent = L.look;
+  var html = '<div class="dcard readc" onclick="openRead(' + L.n + ')">' +
+    '<div class="l"><div class="t">\u{1F4DA} The lesson \u00b7 read this first</div>' +
+    '<div class="d">about 5 minutes \u00b7 the idea, a worked example, questions to argue about \u00b7 nothing to hand in</div></div>' +
+    '<span class="chip">\u8bfe\u4ef6</span></div>';
+  for (var d = 1; d <= 5; d++){
+    var spec = daySpec(L, d), st = dayState(L, d), k = dkey(L.n, d);
+    var w = MINE['speech-L' + L.n + '-d' + d];
+    var chip = st === 'done'
+      ? (w && w.review ? '<span class="chip marked">✓ Marked</span>' : '<span class="chip done">✓ Handed in</span>')
+      : st === 'part' ? '<span class="chip part">In progress</span>' : '<span class="chip">Not started</span>';
+    html += '<div class="dcard ' + (st === 'none' ? '' : st) + '" onclick="openDay(' + L.n + ',' + d + ')">' +
+      '<div class="l"><div class="t">' + spec.icon + ' Step ' + d + ' · ' + esc(spec.name) + '</div>' +
+      '<div class="d">' + spec.mins + '</div></div>' + chip + '</div>';
+  }
+  $('L-days').innerHTML = html;
+}
+
+/* ---------- the lesson itself ---------- */
+/* Everything the printed book puts on its two teaching pages, rewritten: the
+   leadership page, the speech skill in full, a worked model speech with every
+   part labelled, the discussion questions, and the lesson's task. Read it once at
+   the start of the lesson; the five steps below are the practice. */
+function openRead(n){
+  var L = LESSONS.filter(function (x){ return x.n === n; })[0];
+  if (!L) return;
+  stopClock();
+  CUR = { L: L, d: 0 };
+  $('R-k').textContent = 'Lesson ' + L.n + ' \u00b7 ' + L.leader;
+  $('R-t').textContent = L.title;
+  $('R-body').innerHTML = readHtml(L);
+  show('read');
+}
+function startDay1(){ if (CUR && CUR.L) openDay(CUR.L.n, 1); }
+
+function readHtml(L){
+  var h = '<div class="reader"><h3>The leadership lesson \u00b7 ' + esc(L.leader) + '</h3>' +
+    L.lead.map(function (p){ return '<p>' + esc(p) + '</p>'; }).join('') + '</div>';
+
+  h += '<section><h2 class="sec"><span class="n">The speech skill</span> ' + esc(L.title) + '</h2>' +
+    L.teach.map(function (t){
+      return '<div class="tip"><div class="h"><span class="k">' + esc(t[0]) + '</span></div>' +
+             '<div class="b">' + esc(t[1]) + '</div></div>';
+    }).join('') + '</section>';
+
+  h += '<section><h2 class="sec"><span class="n">A worked example</span> ' + esc(L.model.title) + '</h2>' +
+    '<div class="lead">' + esc(L.model.why) + '</div><div class="outline">' +
+    L.model.lines.map(function (l){
+      return '<div class="row"><div class="k">' + esc(l[0]) + '</div><div class="v">' + esc(l[1]) + '</div></div>';
+    }).join('') + '</div>' +
+    '<div class="modelnote">This is a model, not a template. Take the shape \u2014 never the sentences. ' +
+    'Yours have to be true, and only you know what happened to you.</div></section>';
+
+  if (L.n === 6){
+    h += '<section><h2 class="sec"><span class="n">Topic pool</span> Have someone pick one for you</h2>' +
+      '<table class="ten">' + IMPROMPTU.map(function (t){
+        return '<tr><td class="e">' + esc(t) + '</td></tr>';
+      }).join('') + '</table></section>';
+  }
+
+  h += '<section><h2 class="sec"><span class="n">Say these out loud</span> With Mum or Dad</h2>' +
+    '<ul class="plain">' + L.talk.map(function (q){ return '<li>' + esc(q) + '</li>'; }).join('') + '</ul></section>';
+
+  h += '<section><h2 class="sec"><span class="n">Then, your turn</span> Your speech</h2>' +
+    '<div class="promptbar"><div class="k">You are speaking about</div><div class="v">' + esc(L.topic) + '</div>' +
+    '<div class="look">' + esc(L.look) + (L.weekNote ? ' \u2014 ' + esc(L.weekNote) : '') + '</div></div></section>';
+  return h;
+}
+
+/* ---------- one day ---------- */
+function openDay(ln, d){
+  var L = LESSONS.filter(function (x){ return x.n === ln; })[0];
+  if (!L) return;
+  var spec = daySpec(L, d), k = dkey(ln, d);
+  CUR = { L:L, d:d, spec:spec, key:k };
+  TAKES = [];
+  $('D-k').textContent = 'Lesson ' + ln + ' · Step ' + d;
+  $('D-t').textContent = spec.name;
+  $('D-ask').innerHTML = spec.ask + (d === 5 && L.weekNote ? ' <b>' + esc(L.weekNote) + '</b>' : '');
+  $('D-teach').innerHTML = teachHtml(L, spec);
+  $('D-body').innerHTML = fieldsHtml(L, spec, k) +
+    (spec.checks ? '<section><h2 class="sec"><span class="n">Before you hand it in</span> Check yourself</h2><div id="D-checks">' +
+      spec.checks.map(function (c){
+        return '<label class="chk"><input type="checkbox" data-c="' + c[0] + '"' +
+               (S.checks[k + ':' + c[0]] ? ' checked' : '') + '><span>' + esc(c[1]) + '</span></label>';
+      }).join('') + '</div></section>' : '') +
+    (spec.booth ? boothHtml() : '') +
+    (spec.stuck ? '<details class="stuck"><summary>Stuck?</summary><div class="body">' +
+      spec.stuck.map(function (s){ return '<p style="margin-bottom:8px">' + s + '</p>'; }).join('') + '</div></details>' : '');
+  $('D-msg').innerHTML = '';
+  $('D-saved').textContent = '';
+  wireDay(L, spec, k);
+  paintMarks(L, d);
+  handButton();
+  show('day');
+  startRound(roundIndex(ln, d));   // quiz-report.js starts timing here
+  startClock();
+}
+
+function teachHtml(L, spec){
+  if (spec.teach === 'tips'){
+    return '<div class="actions" style="margin-top:0"><button class="small" onclick="openRead(' + L.n + ')">' +
+      '\u{1F4DA} Read the whole lesson first</button></div><section>' + L.teach.map(function (p){
+      return '<div class="tip"><div class="h"><span class="k">' + esc(p[0]) + '</span></div><div class="b">' + esc(p[1]) + '</div></div>';
+    }).join('') + '</section>';
+  }
+  if (spec.teach === 'hooks'){
+    return '<section><h2 class="sec"><span class="n">Ten ways in</span> Pick three different ones</h2>' +
+      '<table class="ten">' + HOOKS.map(function (h){
+        return '<tr><td class="n">' + esc(h[1]) + '</td><td class="e">' + esc(h[2]) + '</td></tr>';
+      }).join('') + '</table></section>';
+  }
+  if (spec.teach === 'enders'){
+    return '<section><h2 class="sec"><span class="n">Five ways out</span> Pick three different ones</h2>' +
+      '<table class="ten">' + ENDERS.map(function (h){
+        return '<tr><td class="n">' + esc(h[1]) + '</td><td class="e">' + esc(h[2]) + '</td></tr>';
+      }).join('') + '</table></section>';
+  }
+  if (spec.teach === 'skeleton'){
+    return '<section>' + L.teach.slice(1).map(function (p){
+      return '<div class="tip"><div class="h"><span class="k">' + esc(p[0]) + '</span></div><div class="b">' + esc(p[1]) + '</div></div>';
+    }).join('') + '</section>';
+  }
+  if (spec.teach === 'outline'){
+    return '<section><h2 class="sec"><span class="n">So far</span> What you already wrote</h2>' +
+      '<div class="outline" id="D-outline"></div></section>';
+  }
+  return '';
+}
+
+function fieldsHtml(L, spec, k){
+  return '<section>' + spec.fields.map(function (f){
+    var v = fval(k, f.id);
+    var head = '<div class="lab">' + esc(f.lab) + '</div>' + (f.hint ? '<div class="hint">' + esc(f.hint) + '</div>' : '');
+    if (f.type === 'select'){
+      var opts = f.opts.map(function (o){
+        return '<option value="' + esc(o[0]) + '"' + (v === o[0] ? ' selected' : '') + '>' + esc(o[1]) +
+               (o[2] ? ' — ' + esc(o[2]) : '') + '</option>';
+      }).join('');
+      return '<div class="fld">' + head + '<select data-f="' + f.id + '"><option value="">— choose —</option>' + opts + '</select></div>';
+    }
+    if (f.type === 'text'){
+      return '<div class="fld">' + head + '<input type="text" data-f="' + f.id + '" value="' + esc(v) + '"></div>';
+    }
+    if (f.type === 'big'){
+      return '<div class="fld">' + head +
+        '<div class="statbar"><span class="stat" id="wc">words <b>0</b></span>' +
+        '<span class="stat">target <b>' + DRAFT_MIN + '–' + DRAFT_MAX + '</b></span>' +
+        '<span class="stat" id="clock">time <b>0:00</b></span></div>' +
+        '<textarea class="big" data-f="' + f.id + '" placeholder="Say it, then write what you said…">' + esc(v) + '</textarea></div>';
+    }
+    return '<div class="fld">' + head + '<textarea data-f="' + f.id + '" rows="' + (f.rows || 2) + '">' + esc(v) + '</textarea></div>';
+  }).join('') + '</section>';
+}
+
+function wireDay(L, spec, k){
+  $('D-body').querySelectorAll('[data-f]').forEach(function (el){
+    el.addEventListener('input', function (){
+      setf(k, el.dataset.f, el.value);
+      if (el.dataset.f === 'draft') paintWords();
+      save(); handButton();
+    });
+    if (el.tagName === 'SELECT') el.addEventListener('change', function (){
+      setf(k, el.dataset.f, el.value); save(); handButton();
+    });
+  });
+  $('D-body').querySelectorAll('[data-c]').forEach(function (el){
+    el.addEventListener('change', function (){
+      S.checks[k + ':' + el.dataset.c] = el.checked; save(); handButton();
+    });
+  });
+  if (spec.teach === 'outline') paintOutline(L);
+  if (spec.booth) wireBooth();
+  if (spec.fields.some(function (f){ return f.type === 'big'; })) paintWords();
+  $('D-hand').onclick = handIn;
+}
+
+function paintWords(){
+  var el = $('wc'); if (!el) return;
+  var n = words(fval(CUR.key, 'draft'));
+  el.innerHTML = 'words <b>' + n + '</b>';
+  el.className = 'stat' + (n >= DRAFT_MIN && n <= DRAFT_MAX + 40 ? ' good' : n > 0 ? ' warn' : '');
+}
+
+/* Step 5 shows the lesson's own answers back, in the book's YOUR SPEECH shape. */
+function paintOutline(L){
+  var el = $('D-outline'); if (!el) return;
+  var k2 = dkey(L.n, 2), k3 = dkey(L.n, 3), k4 = dkey(L.n, 4);
+  var hook = fval(k2, 'h' + (fval(k2, 'pick') || '1'));
+  var last = fval(k4, 'e' + (fval(k4, 'epick') || '1'));
+  var rows = [
+    ['Specific intention', fval(k3, 'intent')],
+    ['Opening / hook',     hook],
+    ['Introduction',       fval(k3, 'intro')],
+    ['Point 1',            join(fval(k3, 'p1'), fval(k3, 's1'))],
+    ['Point 2',            join(fval(k3, 'p2'), fval(k3, 's2'))],
+    ['Point 3',            join(fval(k3, 'p3'), fval(k3, 's3'))],
+    ['Conclusion',         fval(k4, 'wrap')],
+    ['Last line',          last],
+    ['Takeaway',           fval(k4, 'take')]
+  ];
+  el.innerHTML = rows.map(function (r){
+    return '<div class="row"><div class="k">' + esc(r[0]) + '</div>' +
+      (r[1] ? '<div class="v">' + esc(r[1]) + '</div>'
+            : '<div class="v empty">— nothing here yet. Go back to that step whenever you get a chance.</div>') + '</div>';
+  }).join('');
+}
+function join(a, b){ a = String(a || '').trim(); b = String(b || '').trim(); return a && b ? a + ' — ' + b : a || b; }
+
+/* ---------- the recording booth (step 5) ---------- */
+function boothHtml(){
+  return '<section><h2 class="sec"><span class="n">Out loud</span> Say it to the microphone</h2>' +
+    '<div class="lead">Stand up. Look at something across the room, not at the screen. Read it the way you would say it ' +
+    'to a person — then stop the recording. You can do it up to ' + MAX_TAKES + ' times and keep them all.</div>' +
+    '<div class="booth">' +
+      '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">' +
+        '<button class="rec" id="recBtn">● Record</button>' +
+        '<span class="clock" id="recClock">0:00</span>' +
+        '<span class="stat" id="recCount">saved <b>0</b>/' + MAX_TAKES + '</span>' +
+      '</div>' +
+      '<div class="meterwrap"><div class="meter" id="recMeter"></div></div>' +
+      '<div id="recList"></div>' +
+      '<div id="recMsg"></div>' +
+    '</div></section>';
+}
+
+function wireBooth(){
+  var saved = (S.recs[CUR.key] || []);
+  TAKES = saved.map(function (r){ return { state:'saved', secs:r.secs, id:r.id, at:r.at, url:null }; });
+  $('recBtn').addEventListener('click', function (){ RECORDING ? stopRec() : startRec(); });
+  paintTakes();
+}
+
+function paintTakes(){
+  var list = $('recList'); if (!list) return;
+  list.innerHTML = TAKES.length ? TAKES.map(function (t, i){
+    var right =
+      t.state === 'saving' ? '<span class="n">saving…</span>' :
+      t.state === 'failed' ? '<span class="n" style="color:var(--red)">not saved</span> ' +
+                             '<button class="small" data-retry="' + i + '">Try saving again</button>' :
+      '<span class="n">✓ saved ' + (t.at ? when(t.at) : '') + '</span>';
+    return '<div class="take"><div><span class="n">Take ' + (i + 1) + ' · ' + mmss(t.secs || 0) + '</span>' +
+      (t.url ? '<div><audio controls src="' + t.url + '"></audio></div>' : '') +
+      (t.err ? '<div class="n" style="color:var(--red)">' + esc(t.err) + '</div>' : '') +
+      '</div><div>' + right + '</div></div>';
+  }).join('') : '<div class="take"><span class="n">No takes yet — press Record when you are standing up.</span></div>';
+  var n = TAKES.filter(function (t){ return t.state === 'saved'; }).length;
+  $('recCount').innerHTML = 'saved <b>' + n + '</b>/' + MAX_TAKES;
+  var btn = $('recBtn');
+  btn.disabled = !RECORDING && TAKES.length >= MAX_TAKES;
+  btn.textContent = RECORDING ? '■ Stop' : '● Record';
+  list.querySelectorAll('[data-retry]').forEach(function (b){
+    b.addEventListener('click', function (){ saveTake(+b.dataset.retry); });
+  });
+  handButton();
+}
+
+var mediaStream = null, rec = null, chunks = [], recFrom = 0, recTick = null, audioCtx = null, rafId = 0;
+
+function pickMime(){
+  var want = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4;codecs=mp4a.40.2', 'audio/mp4', 'audio/aac'];
+  if (!window.MediaRecorder) return null;
+  for (var i = 0; i < want.length; i++) if (MediaRecorder.isTypeSupported(want[i])) return want[i];
+  return null;
+}
+
+function startRec(){
+  if (RECORDING || TAKES.length >= MAX_TAKES) return;
+  if (!window.MediaRecorder || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    boothMsg('err', 'This browser can’t record. Ask a parent to open this page in Chrome or Safari.');
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true } }).then(function (st){
+    mediaStream = st;
+    var mime = pickMime();
+    try { rec = new MediaRecorder(st, mime ? { audioBitsPerSecond:BITRATE, mimeType:mime } : { audioBitsPerSecond:BITRATE }); }
+    catch(e){ rec = new MediaRecorder(st); }
+    chunks = [];
+    rec.ondataavailable = function (e){ if (e.data && e.data.size) chunks.push(e.data); };
+    rec.onstop = doneRec;
+    rec.start();
+    RECORDING = true; recFrom = Date.now();
+    boothMsg('', '');
+    paintTakes();
+    meter();
+    recTick = setInterval(function (){
+      var s = (Date.now() - recFrom) / 1000;
+      $('recClock').textContent = mmss(s);
+      if (s >= MAX_SECS) stopRec();
+    }, 200);
+  }).catch(function (e){
+    boothMsg('err', e && e.name === 'NotAllowedError'
+      ? 'The microphone is blocked. Tap the little icon in the address bar, allow the microphone, then press Record again.'
+      : 'No microphone found. Check that one is plugged in, then try again.');
+  });
+}
+
+function meter(){
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var an = audioCtx.createAnalyser(); an.fftSize = 512;
+    audioCtx.createMediaStreamSource(mediaStream).connect(an);
+    var buf = new Uint8Array(an.fftSize);
+    var draw = function (){
+      if (!RECORDING) { if ($('recMeter')) $('recMeter').style.width = '0'; return; }
+      an.getByteTimeDomainData(buf);
+      var peak = 0;
+      for (var i = 0; i < buf.length; i++) peak = Math.max(peak, Math.abs(buf[i] - 128));
+      if ($('recMeter')) $('recMeter').style.width = Math.min(100, Math.round(peak / 128 * 160)) + '%';
+      rafId = requestAnimationFrame(draw);
+    };
+    draw();
+  } catch(e){ /* the level bar is a nicety; never let it stop a recording */ }
+}
+
+function stopRec(){
+  if (!RECORDING || !rec) return;
+  clearInterval(recTick); recTick = null;
+  cancelAnimationFrame(rafId);
+  try { rec.stop(); } catch(e){ /* already stopped */ }
+}
+
+function doneRec(){
+  var secs = Math.round((Date.now() - recFrom) / 1000);
+  var type = (rec && rec.mimeType) || (chunks[0] && chunks[0].type) || 'audio/webm';
+  var blob = new Blob(chunks, { type: type });
+  RECORDING = false;
+  if (mediaStream){ mediaStream.getTracks().forEach(function (t){ t.stop(); }); mediaStream = null; }
+  if (audioCtx){ try { audioCtx.close(); } catch(e){} audioCtx = null; }
+  TAKES.push({ state:'recorded', blob:blob, url:URL.createObjectURL(blob), secs:secs, err:'' });
+  paintTakes();
+  saveTake(TAKES.length - 1);
+}
+
+function toB64(blob){
+  return new Promise(function (ok, no){
+    var r = new FileReader();
+    r.onload = function (){ ok(String(r.result).split(',')[1] || ''); };
+    r.onerror = function (){ no(new Error('read failed')); };
+    r.readAsDataURL(blob);
+  });
+}
+
+/* One batch, two docs, same id — exactly what the read-aloud studio writes, so
+   the parent console's 朗读录音 tab lists these next to the poems. The row can
+   only carry the fields validRecording() allows, so the lesson rides in poem*. */
+function saveTake(i){
+  var t = TAKES[i];
+  if (!t || !t.blob) return;
+  if (!ME || !FB){
+    t.state = 'failed';
+    t.err = 'You are not signed in, so this can’t be saved. Sign in on My Homework, then press "Try saving again".';
+    paintTakes(); return;
+  }
+  t.state = 'saving'; t.err = ''; paintTakes();
+  toB64(t.blob).then(function (audio){
+    if (audio.length > MAX_B64) throw new Error('too long');
+    var id = (MEKEY || 'kid') + '_speech-L' + CUR.L.n + '_t' + (i + 1) + '_' + Date.now();
+    var batch = FB.db.batch();
+    batch.set(FB.db.collection('recordings').doc(id), {
+      kidId: ME.uid,
+      poemId: 'speech-L' + CUR.L.n,
+      poemTitle: 'Speech · Lesson ' + CUR.L.n + ' · ' + CUR.L.title,
+      poemAuthor: 'Public Speaking · Level 1',
+      take: i + 1, mime: t.blob.type || 'audio/webm', secs: t.secs, bytes: t.blob.size,
+      createdAt: Date.now(), day: ymd(new Date())
+    });
+    batch.set(FB.db.collection('recordingAudio').doc(id), { kidId: ME.uid, audio: audio });
+    return batch.commit().then(function (){
+      t.state = 'saved'; t.id = id; t.at = Date.now();
+      var list = S.recs[CUR.key] || (S.recs[CUR.key] = []);
+      list.push({ id:id, secs:t.secs, at:t.at });
+      save();
+      paintTakes();
+    });
+  }).catch(function (e){
+    t.state = 'failed';
+    t.err = e && e.message === 'too long'
+      ? 'That take is too long to save. Say it a little quicker, or cut a few sentences.'
+      : 'Couldn’t save it — check the Wi-Fi, then press "Try saving again". Your recording is still here, so don’t close the page.';
+    paintTakes();
+  });
+}
+
+function boothMsg(kind, html){
+  var el = $('recMsg'); if (!el) return;
+  el.innerHTML = html ? '<div class="msg ' + kind + '">' + html + '</div>' : '';
+}
+
+/* ---------- the clock (how long today took) ---------- */
+var clockTick = null, clockFrom = 0;
+function startClock(){ clockFrom = Date.now(); stopClockTimer(); clockTick = setInterval(paintClock, 1000); paintClock(); }
+function paintClock(){
+  var el = $('clock'); if (!el) return;
+  el.innerHTML = 'time <b>' + mmss(spent()) + '</b>';
+}
+function spent(){ return (S.spent[CUR.key] || 0) + (clockFrom ? (Date.now() - clockFrom) / 1000 : 0); }
+function stopClockTimer(){ if (clockTick){ clearInterval(clockTick); clockTick = null; } }
+function stopClock(){
+  if (CUR && CUR.key && clockFrom){ S.spent[CUR.key] = spent(); save(); }
+  clockFrom = 0; stopClockTimer();
+}
+
+/* ---------- hand in ---------- */
+function missing(){
+  var spec = CUR.spec, k = CUR.key, out = [];
+  spec.fields.forEach(function (f){
+    var v = String(fval(k, f.id) || '').trim();
+    if (!v) { out.push(f.lab); return; }
+    if (f.min && f.min > 1 && words(v) < f.min) out.push(f.lab + ' (a bit longer)');
+  });
+  (spec.checks || []).forEach(function (c){
+    if (!S.checks[k + ':' + c[0]]) out.push('tick: ' + c[1]);
+  });
+  return out;
+}
+function savedTakes(){ return TAKES.filter(function (t){ return t.state === 'saved'; }).length; }
+
+function handButton(){
+  var btn = $('D-hand'); if (!btn || !CUR) return;
+  btn.textContent = S.sub[CUR.key] ? 'Hand in again (new draft)' : 'Hand it in';
+}
+
+var micOverride = false;
+function handIn(){
+  var spec = CUR.spec, k = CUR.key, L = CUR.L, d = CUR.d;
+  var gaps = missing();
+  if (gaps.length){
+    msg('err', 'Nearly — these still need you:<br>• ' + gaps.slice(0, 6).map(esc).join('<br>• ') +
+        (gaps.length > 6 ? '<br>• …and ' + (gaps.length - 6) + ' more' : ''));
+    return;
+  }
+  if (spec.booth && !savedTakes() && !micOverride){
+    micOverride = true;
+    msg('err', 'You haven’t recorded it yet. Writing a speech you never say out loud is just an essay — ' +
+        'stand up and read it once.<br><br><button class="small" onclick="skipMic()">The microphone isn’t working — hand it in without a recording</button>');
+    return;
+  }
+  if (!ME){
+    msg('err', 'You are not signed in, so this can’t reach Dad or Mom. It is saved on this device — ' +
+        '<a class="back" href="../homework.html">sign in on My Homework</a>, then come back and hand it in.');
+    return;
+  }
+
+  stopClock();
+  var text = assemble(L, d, spec, k);
+  var w = {
+    pid: 'speech-L' + L.n + '-d' + d,
+    prompt: 'Lesson ' + L.n + ' · ' + L.title + ' — Step ' + d + ' · ' + spec.name,
+    promptKind: 'speech',
+    text: text.slice(0, 20000),
+    words: words(text),
+    secs: Math.round(S.spent[k] || 0),
+    pasted: 0,
+    status: 'submitted',
+    draftNo: (S.sub[k] && S.sub[k].n ? S.sub[k].n : 0) + 1,
+    reportVersion: 2
+  };
+
+  solvedFirst = null;              // not marked yet — a parent adds the mark
+  REPORT_WRITING = w;
+  finish();                        // records the attempt, then the writing
+  REPORT_WRITING = null;
+  solvedFirst = 0;
+
+  S.sub[k] = { at: Date.now(), n: w.draftNo, words: w.words };
+  micOverride = false;
+  save();
+
+  $('done-msg').innerHTML = (navigator.onLine === false
+      ? 'You are offline, so it is saved on this device and goes out as soon as the internet is back. ' : '') +
+    'Step ' + d + ' of Lesson ' + L.n + ' is in. ' +
+    (d < 5 ? 'Next, whenever you come back to it: <b>Step ' + (d + 1) + ' · ' + esc(daySpec(L, d + 1).name) + '</b>.'
+           : 'That is the whole lesson — speech written and said out loud. \u{1F3C6}') +
+    '<br><br>Dad or Mom reads it and writes back. When the marks come, they show up here on this day’s page ' +
+    'and on <b>My Homework</b>.';
+  show('done');
+  setTimeout(loadMine, 2500);
+}
+function skipMic(){ msg('', ''); handIn(); }
+
+/* What the parent actually reads. Step 5 carries the lesson's outline above the draft. */
+function assemble(L, d, spec, k){
+  var out = ['LESSON ' + L.n + ' · ' + L.title + ' — STEP ' + d + ' · ' + spec.name,
+             'Topic this week: ' + L.topic, ''];
+  if (d === 5){
+    var k2 = dkey(L.n, 2), k3 = dkey(L.n, 3), k4 = dkey(L.n, 4);
+    out.push('--- YOUR SPEECH ---');
+    out.push('Title: ' + fval(k, 'title'));
+    out.push('Purpose: ' + labelOf(daySpec(L, 3).fields, 'purpose', fval(k3, 'purpose')));
+    out.push('Specific intention: ' + fval(k3, 'intent'));
+    out.push('Opening / hook: ' + fval(k2, 'h' + (fval(k2, 'pick') || '1')));
+    out.push('Introduction: ' + fval(k3, 'intro'));
+    out.push('Point 1: ' + join(fval(k3, 'p1'), fval(k3, 's1')));
+    out.push('Point 2: ' + join(fval(k3, 'p2'), fval(k3, 's2')));
+    out.push('Point 3: ' + join(fval(k3, 'p3'), fval(k3, 's3')));
+    out.push('Conclusion: ' + fval(k4, 'wrap'));
+    out.push('Concluding device: ' + fval(k4, 'e' + (fval(k4, 'epick') || '1')));
+    out.push('Takeaway: ' + fval(k4, 'take'));
+    out.push('Gestures / movement: ' + fval(k, 'gest'));
+    out.push('', '--- THE SPEECH ---', fval(k, 'draft'));
+    out.push('', '--- SAID OUT LOUD ---',
+      savedTakes() ? savedTakes() + ' recording(s) saved — listen under 朗读录音.' : 'No recording (microphone unavailable).');
+    return out.join('\n');
+  }
+  spec.fields.forEach(function (f){
+    var v = fval(k, f.id);
+    if (f.type === 'select') v = labelOf(spec.fields, f.id, v);
+    out.push(f.lab + ': ' + v);
+  });
+  return out.join('\n');
+}
+function labelOf(fields, id, val){
+  var f = fields.filter(function (x){ return x.id === id; })[0];
+  if (!f || !f.opts) return val;
+  var o = f.opts.filter(function (x){ return x[0] === val; })[0];
+  return o ? o[1] : val;
+}
+
+function msg(kind, html){
+  $('D-msg').innerHTML = html ? '<div class="msg ' + (kind || 'wait') + '">' + html + '</div>' : '';
+}
+
+/* ---------- marks coming back ---------- */
+function loadMine(){
+  if (!FB || !ME) return;
+  FB.db.collection('writings').where('kidId', '==', ME.uid).get().then(function (snap){
+    var byPid = {};
+    snap.forEach(function (doc){
+      var w = doc.data(); w.id = doc.id;
+      if (!w.pid || w.pid.indexOf('speech-L') !== 0) return;
+      var have = byPid[w.pid];
+      if (!have || ms(w.submittedAt) > ms(have.submittedAt)) byPid[w.pid] = w;
+    });
+    MINE = byPid;
+    if (CUR && CUR.d) paintMarks(CUR.L, CUR.d);
+    if ($('screen-lesson').classList.contains('on') && CUR) paintLesson(CUR.L);
+    if ($('screen-home').classList.contains('on')) paintHome();
+  }).catch(function (){ /* offline is fine — the page still works */ });
+}
+function ms(t){ return t && t.toMillis ? t.toMillis() : 0; }
+
+function paintMarks(L, d){
+  var el = $('D-marks'); if (!el) return;
+  var w = MINE['speech-L' + L.n + '-d' + d];
+  if (!w){ el.innerHTML = ''; return; }
+  if (!w.review){
+    el.innerHTML = '<div class="msg wait">Handed in' + (w.submittedAt ? ' · ' + when(ms(w.submittedAt)) : '') +
+      '. Waiting for Dad or Mom to read it.</div>';
+    return;
+  }
+  var r = w.review;
+  var notes = (window.WritingReview ? WritingReview.ordered(r.notes || []) : (r.notes || []));
+  el.innerHTML = '<div class="marks"><div class="sum">' + esc(r.summary || '') + '</div>' +
+    notes.map(function (n){
+      var cls = n.kind === 'good' ? 'good' : n.kind === 'fix' ? 'fix' : 'cmt';
+      return '<div class="note ' + cls + '">' + (n.quote ? '<span class="q">“' + esc(n.quote) + '”</span> ' : '') +
+        esc(n.fix || '') + (n.note ? ' <span class="q">' + esc(n.note) + '</span>' : '') + '</div>';
+    }).join('') + '</div>';
+  // tell the parent console she has seen it
+  if (!w.seenAt && FB) FB.db.collection('writings').doc(w.id).update({ seenAt: new Date() }).catch(function (){});
+}
+
+/* ---------- boot ---------- */
+paintHome();
+window.addEventListener('beforeunload', function (){ stopClock(); });
+window.addEventListener('load', function (){
+  if (!window.QuizReport || !QuizReport.ready) return;
+  QuizReport.ready.then(function (fb){
+    FB = fb;
+    fb.auth.onAuthStateChanged(function (u){
+      ME = u && !u.isAnonymous ? u : null;
+      MEKEY = ME ? (KIDS[ME.uid] || 'kid') : '';
+      $('signmsg').innerHTML = ME || PREVIEW ? '' :
+        '<div class="msg wait">You are not signed in yet. You can write here and it stays on this device, but to hand it in, ' +
+        '<a class="back" href="../homework.html">sign in on My Homework</a> first.</div>';
+      loadMine();
+    });
+  }).catch(function (){});
+});
+window.addEventListener('pageshow', function (e){ if (e.persisted) loadMine(); });
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
