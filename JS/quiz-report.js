@@ -92,7 +92,7 @@
   function lastActive() { try { return +localStorage.getItem(ACTIVE_KEY) || 0; } catch (e) { return now(); } }
   var idleAtLoad = now() - lastActive() > IDLE_MS;
   function newSession() {
-    session = { startedAt: now(), lastMark: now(), away: [], awayFrom: null, q: {}, sent: false };
+    session = { startedAt: now(), lastMark: now(), away: [], awayFrom: null, q: {}, sent: false, fixupSent: false };
   }
   newSession();
 
@@ -445,8 +445,12 @@
     if (result.practice) rec.practice = result.practice;
     if (result.writing) rec.writing = result.writing;
 
-    // Stamp the kid who is signed in at the moment of submitting (not when the page opened —
-    // they may have switched); nobody signed in (a parent previewing) → drop it.
+    enqueue(rec);
+  }
+
+  // Stamp the kid who is signed in at the moment of submitting (not when the page opened —
+  // they may have switched); nobody signed in (a parent previewing) → drop it.
+  function enqueue(rec) {
     ready.then(function (fb) {
       var user = signedInKid(fb.auth);
       if (!user) { console.info('[quiz-report] no kid signed in — not recorded'); return; }
@@ -456,6 +460,34 @@
       console.info('[quiz-report] recorded', rec.kind, rec.pct == null ? '' : rec.pct + '%');
       flush();
     }).catch(function (e) { console.warn('[quiz-report] Firebase unavailable — not recorded', e); });
+  }
+
+  /* ---------- the fix round (JS/fix-loop.js) ----------
+     The kid went back through every question they missed and got them all right.
+     That is recorded as its OWN attempt, after the graded one, so that:
+       · the Mistakes notebook can clear — it lists the newest attempt per page that
+         still has wrong[], and this one has none;
+       · the score stays honest — `total: 0` means no pct, so it never touches his
+         average and the kid page shows a plain "✓ Done". He redid the questions he
+         missed, not the paper, and the paper's real score is already recorded.
+     `fixup` keeps the detail: how many he had to fix and how many he got right first go. */
+  function fixup(info) {
+    // One per attempt, however many times he replays the round. Retaking the paper starts a
+    // new session (newSession), so the fix round after that retake is recorded on its own.
+    if (session.fixupSent) return;
+    session.fixupSent = true;
+    var t = now(), secs = Math.max(0, Math.round((info && info.secs) || 0));
+    enqueue({
+      localId: t.toString(36) + Math.random().toString(36).slice(2, 10),
+      itemId: itemId, href: href, t: document.title || file,
+      kind: 'fixup', score: null, total: 0, pct: null, wrong: [],
+      secs: secs, activeSecs: secs,
+      focus: { awayCount: 0, awaySecs: 0, maxAwaySecs: 0, away: [] },
+      qTimes: [],
+      fixup: { of: (info && info.total) || 0, firstTry: (info && info.firstTry) || 0 },
+      startedAtMs: t - secs * 1000, submittedAtMs: t,
+      adapter: adapter ? adapter.name : 'viewed', reportVersion: 2
+    });
   }
 
   // Kids may only create. If an earlier send already landed (and the page closed before the
@@ -510,5 +542,5 @@
   // For checking by hand in the console: QuizReport.adapter, QuizReport.session()
   // ready: Promise<{ db, auth }> on the kid's sign-in — the Writing Lab reads the kid's own writings with it.
   window.QuizReport = { adapter: adapter ? adapter.name : 'viewed', itemId: itemId, session: function () { return session; },
-                        flush: flush, ready: ready };
+                        flush: flush, ready: ready, fixup: fixup };
 })();

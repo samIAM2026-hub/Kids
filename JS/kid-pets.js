@@ -83,7 +83,7 @@
     return catalog(kind, subj).find(b => b.id === id) || null;
   }
 
-  /* att : [{ id, t, pct (null if not scored), wrong (count), date 'YYYY-MM-DD', at (ms) }]
+  /* att : [{ id, t, pct (null if not scored), wrong (count), date 'YYYY-MM-DD', at (ms), kind }]
      days: [{ date, items:[{id, t, subj}], withdrawn:[…same] }]   subj = English subject name
      today: 'YYYY-MM-DD' */
   function compute(att, days, today) {
@@ -125,7 +125,10 @@
           else if (low) { earn('comeback', a.at); low = false; }
           if (a.pct === 100) earn('perfect', a.at);
         }
-        if (prev && prev.wrong > 0 && !a.wrong && a.pct != null && !usedFix.has(id) && !usedPass.has(a)) {
+        // `pct != null` keeps a bare "viewed" record from counting as a fix; a fix round
+        // (kind 'fixup', no score by design) is the real thing and pays the same +10.
+        const cleared = a.pct != null || a.kind === 'fixup';
+        if (prev && prev.wrong > 0 && !a.wrong && cleared && !usedFix.has(id) && !usedPass.has(a)) {
           usedFix.add(id);
           events.push({ at: a.at, xp: XP.fix, kind: 'fix', t: a.t });
         }

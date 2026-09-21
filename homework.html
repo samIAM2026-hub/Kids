@@ -465,6 +465,7 @@ async function load(){
     const when = a.submittedAt && a.submittedAt.toDate ? a.submittedAt.toDate() : null;
     const pct = typeof a.pct==='number' ? a.pct : a.total ? Math.round(100*a.score/a.total) : null;
     return { id:a.itemId, t:a.t||'', href:a.href||'', subj: subjOf(label.get(a.itemId)),
+             kind: a.kind || (pct!=null ? 'scored' : 'viewed'),
              pct, wrong:a.wrong||[], when, date: when?iso(when):'', secs: a.secs||0 };
   }).sort((a,b)=>(b.when||0)-(a.when||0));
   DAYS = days.docs.map(d=>{
@@ -472,7 +473,7 @@ async function load(){
     return { date:d.id, items:(x.items||[]).map(one), withdrawn:(x.withdrawn||[]).map(one), summary: x.summary||null };
   });
   GAME = KidPets.compute(
-    ATT.map(a=>({ id:a.id, t:a.t, pct:a.pct, wrong:a.wrong.length, date:a.date, at:a.when?+a.when:0 })),
+    ATT.map(a=>({ id:a.id, t:a.t, kind:a.kind, pct:a.pct, wrong:a.wrong.length, date:a.date, at:a.when?+a.when:0 })),
     DAYS, iso(today));
 }
 // A pet doc; null if this kid hasn't picked one, undefined if it can't be read right now.
@@ -613,11 +614,16 @@ function viewScores(){
 }
 
 // One entry per page: the most recent attempt that still had wrong answers.
+// Only attempts that actually marked something count. A 'viewed' or 'practice' record
+// carries an empty wrong[] because nothing was graded, not because anything was fixed —
+// letting those decide meant 15 seconds on the page made the page disappear from here.
+// 'fixup' does count: that is the fix round, where he really did get them all right.
+const GRADED = a => a.kind === 'scored' || a.kind === 'fixup';
 function mistakes(){
   const seen = new Set(), out = [];
-  ATT.forEach(a=>{
+  ATT.filter(GRADED).forEach(a=>{
     if(seen.has(a.id)) return;
-    seen.add(a.id);                       // newest attempt per page decides
+    seen.add(a.id);                       // newest graded attempt per page decides
     if(a.wrong.length) out.push(a);
   });
   return out;

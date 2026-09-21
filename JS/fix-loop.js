@@ -51,7 +51,10 @@ window.FixLoop = (function () {
     '  border-radius: 999px; transition: width .25s; }',
     '.fx .count { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px;',
     '  letter-spacing: .8px; color: var(--muted,#7a6a55); }',
+    '.fx .head { font-size: 13.5px; color: var(--accent,#7a4a86); font-weight: bold; margin-top: 11px; }',
     '.fx .stem { font-size: 16.5px; margin: 12px 0 13px; }',
+    '.fx .stem .ctx { font-size: 15px; color: var(--muted,#7a6a55); font-style: italic;',
+    '  border-left: 3px solid rgba(0,0,0,.12); padding-left: 10px; margin-bottom: 8px; }',
     '.fx .fig { margin: 10px 0 14px; text-align: center; }',
     '.fx .fig svg, .fx .fig img { max-width: 100%; height: auto; }',
     '.fx .opts { display: grid; gap: 7px; }',
@@ -79,6 +82,13 @@ window.FixLoop = (function () {
     '.fx .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;',
     '  border-radius: 8px; padding: 8px 11px; }',
     '.fx .btns { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }',
+    // The pages that load this scope their button styles to their own classes, so a bare
+    // <button> in here would come out as the browser default. It styles its own.
+    '.fx .btns button { font-family: inherit; font-size: 15px; font-weight: bold; cursor: pointer;',
+    '  border-radius: 10px; padding: 10px 20px; border: 2px solid var(--accent,#7a4a86);',
+    '  background: var(--accent,#7a4a86); color: #fff; line-height: 1.3; }',
+    '.fx .btns button:hover { filter: brightness(1.08); }',
+    '.fx .btns button:focus-visible { outline: 3px solid rgba(0,0,0,.35); outline-offset: 2px; }',
     '.fx .won { text-align: center; }',
     '.fx .won .tick { font-size: 40px; line-height: 1; }',
     '.fx .tiles { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 10px; margin-top: 16px; }',
@@ -145,7 +155,7 @@ window.FixLoop = (function () {
       tries[it.n] = 0;
     });
 
-    var queue = [], fixed = 0, firstTry = 0, cur = null, perm = null;
+    var queue = [], fixed = 0, firstTry = 0, cur = null, perm = null, startedAt = 0;
 
     function label(n) { return opts.label || ('Question ' + n); }
     function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
@@ -165,7 +175,7 @@ window.FixLoop = (function () {
 
     function begin() {
       queue = items.map(function (it) { return it.n; });
-      fixed = 0; firstTry = 0;
+      fixed = 0; firstTry = 0; startedAt = Date.now();
       items.forEach(function (it) { tries[it.n] = 0; });
       next();
     }
@@ -196,6 +206,7 @@ window.FixLoop = (function () {
             ' &middot; ' + label(cur.n) +
             (done ? ' <span class="verdict ' + (right ? 'r">FIXED' : 'w">NOT YET') + '</span>' : '') +
           '</div>' +
+          (cur.head ? '<div class="head">' + cur.head + '</div>' : '') +
           '<div class="stem">' + cur.stem + '</div>' +
           (cur.fig ? '<div class="fig">' + cur.fig + '</div>' : '') +
           '<div class="opts">';
@@ -267,12 +278,85 @@ window.FixLoop = (function () {
           '</div>' +
         '</div></div>';
       el.querySelector('.fx-start').addEventListener('click', function () { begin(); });
-      if (typeof opts.onFixed === 'function') opts.onFixed({ total: total, firstTry: firstTry });
+      var info = { total: total, firstTry: firstTry, secs: Math.round((Date.now() - startedAt) / 1000) };
+      // Tell quiz-report.js he cleared them, so the Mistakes notebook lets this page go.
+      // Guarded: pages that don't load quiz-report.js (or a parent preview) just skip it.
+      try { if (window.QuizReport && window.QuizReport.fixup) window.QuizReport.fixup(info); }
+      catch (e) { console.warn('[fix-loop] could not record the fix round:', e); }
+      if (typeof opts.onFixed === 'function') opts.onFixed(info);
     }
 
     intro();
     return { restart: begin };
   }
 
-  return { mount: mount, _remapWhy: remapWhy, _permFor: permFor };
+  /* ---------- auto: the one-liner the quiz pages use ----------
+     One-question-per-screen pages (the 'stepper' shape: render → choose/check →
+     showResult) each track their own answers differently, but quiz-report.js already
+     knows which question numbers were wrong on every one of them — it watches `score`
+     rise. So the rollout reads the misses from there instead of from each page.
+
+     Load AFTER quiz-report.js:
+       <script src="../JS/quiz-report.js"></script>
+       <script src="../JS/fix-loop.js"></script>
+       <script>FixLoop.auto();</script>
+
+     Wrapping showResult on the outside means the order is: the page draws its result →
+     quiz-report records the score → this panel appears. The score is already in before
+     the fix round starts, so the fix record can only ever land after it.
+
+     Nothing here may break a page: no questions, no quiz-report, an odd shape or a throw
+     all end the same way — no panel, and the page behaves exactly as it did before. */
+  function peek(name) { try { return (0, eval)(name); } catch (e) { return undefined; } }
+
+  // The pages disagree about field names; they agree about what they mean.
+  // {q|stem|ask, options|opts, answer|ans, why} (+ ch / word / context for the heading).
+  function normalise(it, n) {
+    if (!it || typeof it !== 'object') return null;
+    var opts = it.opts || it.options, ans = (it.ans != null ? it.ans : it.answer);
+    if (!Array.isArray(opts) || typeof ans !== 'number' || !opts[ans]) return null;
+    var stem = it.stem || it.ask || it.q || it.text || '';
+    if (it.context) stem = '<div class="ctx">' + it.context + '</div>' + stem;
+    if (!stem) return null;
+    return { n: n, stem: stem, opts: opts, ans: ans, why: it.why || '', fig: it.fig || '',
+             head: it.ch || it.word || '' };
+  }
+
+  function auto(opts) {
+    opts = opts || {};
+    var orig = window.showResult;
+    if (typeof orig !== 'function') return;
+    var box = null;
+    window.showResult = function () {
+      var r = orig.apply(this, arguments);
+      try { build(opts, function (el) { box = el; }, box); }
+      catch (e) { console.warn('[fix-loop] no fix round on this page:', e); }
+      return r;
+    };
+  }
+
+  function build(opts, keep, box) {
+    var list = peek('questions') || peek('items');
+    if (!Array.isArray(list)) return;
+    var qr = window.QuizReport;                       // absent in a parent preview
+    var marks = qr && typeof qr.session === 'function' && qr.session().q;
+    if (!marks) return;
+    var missed = Object.keys(marks).map(Number)
+      .filter(function (n) { return marks[n] && marks[n].correct === false; })
+      .sort(function (a, b) { return a - b; })
+      .map(function (n) { return normalise(list[n - 1], n); })
+      .filter(Boolean);
+    if (!missed.length) return;                       // nothing missed, or nothing usable
+
+    if (!box) {
+      var anchor = document.querySelector(opts.after || '#resultArea, #result');
+      box = document.createElement('div');
+      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(box, anchor.nextSibling);
+      else document.body.appendChild(box);
+      keep(box);
+    }
+    mount({ el: box, items: missed, label: opts.label });
+  }
+
+  return { mount: mount, auto: auto, _remapWhy: remapWhy, _permFor: permFor, _normalise: normalise };
 })();
