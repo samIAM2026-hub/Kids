@@ -271,6 +271,7 @@
   .b-quiz{background:rgba(91,143,199,.18);color:var(--blue)}
   .b-ref{background:rgba(147,162,189,.15);color:var(--mute)}
   .b-practice{background:rgba(201,162,39,.16);color:var(--gold)}
+  .b-link{background:rgba(75,182,122,.16);color:var(--green)}
   .lock{font-size:11px;color:var(--mute)}
   .b-assigned{background:rgba(75,182,122,.18);color:var(--green);border:1px solid rgba(75,182,122,.45);
               margin-left:4px;vertical-align:1px;cursor:help}
@@ -283,11 +284,28 @@
   .b-arch{background:rgba(147,162,189,.13);color:var(--mute);border:1px solid var(--line)}
   .archnote{font-size:11.5px;color:var(--mute);margin-top:-6px;margin-bottom:10px}
   /* 每行的归档开关：安静地待在类型下面，点一下就归档 / 放回来 */
-  .archbtn{font:inherit;font-size:10.5px;font-weight:600;color:var(--mute);background:none;
+  .archbtn,.linkedit{font:inherit;font-size:10.5px;font-weight:600;color:var(--mute);background:none;
            border:1px solid var(--line);border-radius:5px;padding:2px 7px;cursor:pointer;white-space:nowrap}
-  .archbtn:hover{color:var(--cream);border-color:var(--gold2)}
-  .archbtn:disabled{opacity:.45;cursor:default}
+  .archbtn:hover,.linkedit:hover{color:var(--cream);border-color:var(--gold2)}
+  .archbtn:disabled,.linkedit:disabled{opacity:.45;cursor:default}
   .archline{margin-top:4px;display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap}
+
+  /* ---------- 自定义链接: the little form at the top of 题库 ---------- */
+  .linkform{background:var(--ink2);border:1px solid var(--gold2);border-radius:12px;
+            padding:16px 18px;margin:0 0 16px}
+  .linkform h4{margin:0 0 4px;font-family:'Playfair Display',serif;font-size:17px;color:var(--gold)}
+  .linkform .lfx{display:block;font-size:12px;color:var(--mute);line-height:1.55;margin-bottom:12px}
+  .linkform .lfgrid{display:flex;flex-wrap:wrap;gap:10px 14px}
+  .linkform label{display:flex;flex-direction:column;gap:4px;font-size:10.5px;letter-spacing:1.1px;
+                  text-transform:uppercase;color:var(--mute);flex:1 1 180px;min-width:0}
+  .linkform label.wide{flex:1 1 100%}
+  .linkform input,.linkform select{font-family:inherit;font-size:13px;background:var(--card);
+            color:var(--cream);border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%}
+  .linkform input:focus,.linkform select:focus{outline:none;border-color:var(--gold2)}
+  .linkform .lfhint{font-size:11px;color:var(--mute);text-transform:none;letter-spacing:0}
+  .linkform .lfbtns{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}
+  .linkform .lferr{font-size:12px;color:var(--red);flex:1 1 100%}
+
 
   /* ---------- assign bar ---------- */
   #assignbar{position:fixed;left:0;right:0;bottom:0;z-index:90;background:var(--ink2);
@@ -746,7 +764,7 @@ const KID = {
   warren: { n:'Warren', av:'👦', uid:'paACSAD0W0bBNknKrAf3GfpHy8x1' },
   both:   { n:'共用',   av:'🧒' }
 };
-const LABEL = { quiz:'可判分', practice:'练习', ref:'参考' };
+const LABEL = { quiz:'可判分', practice:'练习', ref:'参考', link:'链接' };
 
   /* ===== SKILLS:BEGIN — 由 homework-system/build-skills.py 从 知识点表.md 生成，别手改 ===== */
   const SKILLS = {
@@ -909,6 +927,13 @@ async function loadDays(){
   });
 }
 
+// 题库的排法：科目 → 书 → 标题。loadAll 之后排一次，加 / 改自定义链接之后再排一次。
+function sortBank(){
+  const col = new Intl.Collator('zh', { numeric:true });
+  BANK.sort((a,b) => col.compare(a.subj,b.subj) || col.compare(a.book||'',b.book||'') || col.compare(a.t,b.t));
+  BANK_BY_ID = Object.fromEntries(BANK.map(b => [b.docId, b]));
+}
+
 async function loadAll(){
   const [bankSnap, attSnap] = await Promise.all([
     db.collection('bank').get(),
@@ -918,10 +943,8 @@ async function loadAll(){
     TD === iso(today) ? null : loadDay(iso(today)),
     loadDays()
   ]);
-  const col = new Intl.Collator('zh', { numeric:true });
-  BANK = bankSnap.docs.map(d => Object.assign({ docId:d.id }, d.data()))
-    .sort((a,b) => col.compare(a.subj,b.subj) || col.compare(a.book||'',b.book||'') || col.compare(a.t,b.t));
-  BANK_BY_ID = Object.fromEntries(BANK.map(b => [b.docId, b]));
+  BANK = bankSnap.docs.map(d => Object.assign({ docId:d.id }, d.data()));
+  sortBank();
   ATT = attSnap.docs.map(toAtt).filter(Boolean);
   buildEst();   // 用时估算要等题库和成绩都到齐才算得出来
 }
@@ -1200,7 +1223,7 @@ function viewDispatch(){
 // 估的终归是估的，所以界面上一律写「约」；鼠标停上去会说清这个数是怎么来的。
 const EST_MIN_SUBJ = 6;                              // 一个科目攒够几次，才配用它自己的速度
 const EST_DEF  = { quiz:60, practice:30, ref:40 };   // 完全没历史时：每题多少秒
-const EST_FLAT = { quiz:20, practice:12, ref:10 };   // 连题数都没有时：整份多少分钟
+const EST_FLAT = { quiz:20, practice:12, ref:10, link:15 };   // 连题数都没有时：整份多少分钟
 const EST_GAP  = 2;                                  // 一批里每换一份，加几分钟的转场
 // 有些页面在描述里自报要多久，那是作者写的，比任何推算都准：
 //   「30 questions · 18 minutes」= 限时分节 ·「45–60 min」= 一节课，取上限往宽了留。
@@ -1266,6 +1289,8 @@ function estOf(item, kid){
   // 在「题库」和「今日作业」会显示成两个时间（真发生过：Reading B 一边 18 分钟一边 5 分钟）。
   const b = BANK_BY_ID[id] || item;
   const ty = b.type || item.type || 'quiz';
+  // 自定义链接指向别的网站，这边没有题数也没有计时，只有家长添加时自己填的那个数 —— 填了就以它为准。
+  if(b.mins) return { mins:+b.mins, src:'set', said:null, n:(SESS.get(id)||[]).length, who:null };
   const said = statedMins(b);
   if(said) return { mins: said, src:'said', said, n:(SESS.get(id)||[]).length, who:null };
   const all = SESS.get(id) || [];
@@ -1283,12 +1308,13 @@ function estOf(item, kid){
 const estRound = m => m < 10 ? Math.max(2, Math.round(m)) : Math.round(m/5)*5;
 const estTxt = m => dur(estRound(m)*60);
 // 卷子自报的时长照原样写 —— 那是个准数，取整反而失真
-const estTxtOf = e => e.src==='said' ? dur(e.mins*60) : estTxt(e.mins);
+const estTxtOf = e => e.src==='said' || e.src==='set' ? dur(e.mins*60) : estTxt(e.mins);
 
 // 鼠标停在 ⏱ 上说清这个数打哪儿来 —— 估算只有讲得出出处才敢用来排时间。
 function estTip(item, kid){
   const b = BANK_BY_ID[item.docId || item.id] || item;   // 同 estOf：今日作业的快照少字段，回题库取
   const e = estOf(item, kid), ty = b.type || item.type || 'quiz';
+  if(e.src==='set') return `你添加这条链接时自己填的：约 ${e.mins} 分钟。改它：题库里这行的「编辑」`;
   if(e.said){
     // 限时卷：台面上写允许的时间，实际比这快就在提示里说一句，免得排得太松
     const id = b.docId || b.id, all = SESS.get(id) || [];
@@ -1317,7 +1343,7 @@ function estTip(item, kid){
 // 题库行、今日作业行共用的那枚 ⏱。
 function estChip(b, kid){
   const e = estOf(b, kid);
-  const solid = e.src==='said' || e.src==='past';
+  const solid = e.src==='said' || e.src==='past' || e.src==='set';
   return `<span class="est${solid?' real':''}" title="${esc(estTip(b,kid))}">⏱ 约 ${estTxtOf(e)}</span>`;
 }
 
@@ -1327,7 +1353,7 @@ function estSum(items, kid){
   const each = items.map(b=>estOf(b, kid));
   const gap = EST_GAP*(items.length-1);
   return { mins: each.reduce((s,e)=>s+e.mins,0) + gap, gap,
-           real: each.filter(e=>e.src==='said'||e.src==='past').length };
+           real: each.filter(e=>e.src==='said'||e.src==='past'||e.src==='set').length };
 }
 // 只选了一份，总数就得跟那一行写的一模一样 —— 行里写 18 分钟、底下那条写 20 分钟，看着就不可信了。
 // 两份以上才取整到 5 分钟：来源混在一起，本来就精确不到分钟。
@@ -1384,9 +1410,12 @@ function kindOf(b){
 
 // Same address homework.html builds (hrefs are relative to Quizzes/), plus ?preview=1:
 // quiz-report.js records nothing on a preview, even if a kid is signed in on this device.
-const previewUrl = href => encodeURI('Quizzes/' + href) + '?preview=1';
+// 自定义链接的 href 是完整网址（别的网站），照原样打开 —— 既不加 Quizzes/ 前缀，也不往别人的网址上挂参数。
+const isUrl = h => /^https?:\/\//i.test(h || '');
+const previewUrl = href => isUrl(href) ? href : encodeURI('Quizzes/' + href) + '?preview=1';
 const openLink = (href, inner) => href
-  ? `<a class="open" href="${esc(previewUrl(href))}" target="_blank" rel="noopener" title="新标签页打开看题 · 家长预览，不记成绩">${inner} <span class="ext">↗</span></a>`
+  ? `<a class="open" href="${esc(previewUrl(href))}" target="_blank" rel="noopener" title="${
+      isUrl(href) ? '新标签页打开这个网站' : '新标签页打开看题 · 家长预览，不记成绩'}">${inner} <span class="ext">↗</span></a>`
   : inner;
 
 function bankRows(kid){
@@ -1453,7 +1482,8 @@ function bankRow(b, withPlace){
     <td class="c crumb" style="width:84px">${b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '—'}
         <div>${estChip(b, F.kid)}</div></td>
     <td class="c" style="width:124px"><span class="badge b-${esc(b.type)}">${LABEL[b.type]||esc(b.type)}</span>
-        <div class="archline">${archCell(b)}</div></td>
+        <div class="archline">${archCell(b)}${b.type==='link'
+          ? `<button class="linkedit" data-edlink="${esc(b.docId)}" title="改标题 / 网址">编辑</button>` : ''}</div></td>
     <td class="c" style="width:90px">${last}</td></tr>`;
 }
 
@@ -1469,6 +1499,135 @@ function kidTabs(){
       <span class="pill${list.length?'':' zero'}">${list.length}${shared?`<span class="sh"> 含共用 ${shared}</span>`:''}</span></button>`;
   };
   return `<div class="kidtabs">${tab('warren',KID.warren.av,'Warren')}${tab('grace',KID.grace.av,'Grace')}${tab('all','📚','全部')}</div>`;
+}
+
+/* ===================== 自定义链接 (custom link) =====================
+   Sam 2026-09-20: 「我要加一个内容，它不在课件里，而是在另一个网站里 —— 写个标题，再加一个网站链接」。
+   做法是把它当题库里正常的一条存起来（type 'link'，href 是完整网址），不另起一套：
+   勾选、派发、撤回、改日期、归档、派发记录、预计用时 —— 全都照旧走同一条路，一行都不用改。
+   只有三处认得出它：打开时不加 Quizzes/ 前缀、孩子那边新标签页打开、做完与否由孩子自己点。
+   完成情况：外站没有 quiz-report.js，没人替孩子记分，所以孩子页上那条给了一颗「✓ I'm done」，
+   写一条没有分数的 attempt（kind 'link'），家长这边就显示「✓ 完成」。 */
+let LF = null;   // 正在填的那张表：null = 收起来；{ docId? } 有 docId 就是在改已有的那条
+const LINK_ICONS = ['🔗','📖','✍️','🎧','🎬','🧮','🔤','🧠','🎨','🌏'];
+function openLinkForm(b){
+  LF = b ? { docId:b.docId, t:b.t||'', href:b.href||'', d:b.d||'', ic:b.ic||'🔗',
+             subj:b.subj||'🍁 More', kid:b.kid||'both', mins:b.mins||'', err:'' }
+         : { docId:'', t:'', href:'', d:'', ic:'🔗',
+             subj:'🍁 More', kid:(F.kid==='grace'||F.kid==='warren')?F.kid:'both', mins:'', err:'' };
+  render();
+  const el = document.getElementById('lf-t'); if(el) el.focus();
+}
+function linkForm(){
+  if(!LF) return '';
+  const f = LF;
+  const opt = (v, l, cur) => `<option value="${esc(v)}"${v===cur?' selected':''}>${esc(l)}</option>`;
+  return `<div class="linkform">
+    <h4>${f.docId?'改这条链接':'加一条自定义链接'}</h4>
+    <span class="lfx">题库里没有的东西 —— 别的网站上的课、读书会、老师的平台。填个标题和网址就行，
+      之后它和别的卷子一样待在题库里：勾选派发、撤回、归档都一样。外站那边判不了分，所以孩子做完在作业页上自己点一下「✓ I'm done」。</span>
+    <div class="lfgrid">
+      <label class="wide">标题<input id="lf-t" value="${esc(f.t)}" maxlength="60" placeholder="Reading club"></label>
+      <label class="wide">网址<input id="lf-h" value="${esc(f.href)}" placeholder="https://…" inputmode="url" spellcheck="false">
+        <span class="lfhint">整条粘进来就行，没写 https:// 会自动补上</span></label>
+      <label>图标<select id="lf-ic">${LINK_ICONS.map(i=>opt(i, i, f.ic)).join('')}</select></label>
+      <label>科目<select id="lf-s">${SUBJ_ORDER.map(x=>opt(x, x, f.subj)).join('')}</select></label>
+      <label>给谁<select id="lf-k">${[['grace','👧 Grace'],['warren','👦 Warren'],['both','🧒 共用']]
+        .map(([v,l])=>opt(v, l, f.kid)).join('')}</select></label>
+      <label>预计用时<input id="lf-m" value="${esc(f.mins)}" inputmode="numeric" placeholder="20">
+        <span class="lfhint">分钟，可不填</span></label>
+      <label class="wide">一行说明<input id="lf-d" value="${esc(f.d)}" maxlength="80" placeholder="可不填，孩子和你都看得到">
+      </label>
+    </div>
+    <div class="lfbtns">
+      <button class="btn solid" id="lf-save">${f.docId?'保存':'加进题库'}</button>
+      <button class="btn ghost" id="lf-cancel">取消</button>
+      ${f.docId?`<button class="btn ghost" id="lf-del" style="margin-left:auto;color:var(--red)">删掉这条</button>`:''}
+      ${f.err?`<div class="lferr">${esc(f.err)}</div>`:''}
+    </div></div>`;
+}
+// 把表里填的读回 LF，再重画（重画会把输入框整个换掉，所以值得先存下来）
+function lfRead(){
+  if(!LF) return;
+  const v = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  Object.assign(LF, { t:v('lf-t').trim(), href:v('lf-h').trim(), d:v('lf-d').trim(),
+                      ic:v('lf-ic'), subj:v('lf-s'), kid:v('lf-k'), mins:v('lf-m').trim() });
+}
+// 网址：没写 https:// 就补上，再交给 URL() 判一次 —— 拼错的网址进了题库，孩子那边就是一条死链接。
+function lfUrl(raw){
+  const t = raw.trim();
+  if(!t) return null;
+  const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(t) ? t : 'https://' + t;
+  let u;
+  try { u = new URL(withScheme); } catch(e){ return null; }
+  if(u.protocol!=='http:' && u.protocol!=='https:') return null;
+  if(!u.hostname.includes('.')) return null;
+  return u.href;
+}
+async function saveLink(btn){
+  lfRead();
+  const f = LF, url = lfUrl(f.href);
+  const mins = f.mins==='' ? null : Number(f.mins);
+  f.err = !f.t ? '标题还没填'
+        : !url ? '网址看着不对，整条粘进来（像 https://…）'
+        : mins!=null && (!Number.isFinite(mins) || mins<1 || mins>240) ? '预计用时填 1 到 240 之间的分钟数，或者留空'
+        : '';
+  if(f.err) return render();
+  const isNew = !f.docId;
+  // 文档 ID 一次定死，跟着网址改的话，改一次网址就等于换了一条，成绩和派发记录全对不上了。
+  const id = f.docId || 'link-' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  const data = { t:f.t, href:url, d:f.d, type:'link', kid:f.kid, subj:f.subj, book:'', kind:'loose',
+                 n:0, ic:f.ic || '🔗', custom:true,
+                 mins: mins==null ? firebase.firestore.FieldValue.delete() : mins };
+  // 自定义链接多半是常年重复派的（读书会、老师的平台），所以新加的默认 📌 钉住 ——
+  // 不然「完成即归档」会在孩子第一次点 Done 之后就把它收进归档。要收随时手动点。
+  if(isNew){ data.added = iso(today); data.archived = false; data.keep = true; }
+  else data.updated = iso(today);
+  btn.disabled = true;
+  try {
+    await db.collection('bank').doc(id).set(data, { merge:true });
+    const local = { ...data, mins: mins==null ? undefined : mins };
+    if(mins==null) delete local.mins;
+    const cur = BANK_BY_ID[id];
+    // 清空「预计用时」时 local 里根本没有 mins 这个键，Object.assign 不会把旧值抹掉 ——
+    // Firestore 那边已经删了，本地这份也得跟着删，不然 ⏱ 还挂着个刷新才消失的旧数。
+    if(cur){ Object.assign(cur, local); if(mins==null) delete cur.mins; }
+    else BANK.push(Object.assign({ docId:id }, local));
+    sortBank();
+    LF = null; render();
+    toast(`${isNew?'已加进题库':'已保存'}「${f.t}」${isNew?' · 勾上它就能派了':''}`);
+  } catch(e){
+    console.error(e); btn.disabled = false;
+    f.err = '没存成：' + (e.code||e.message) + '，题库没变，稍后再试';
+    render();
+  }
+}
+// 删掉一条自定义链接。做过的成绩会变成对不上号的记录，所以有成绩的不给删 —— 归档就行。
+async function delLink(btn){
+  const id = LF.docId, b = BANK_BY_ID[id];
+  if(!b) return;
+  const n = attFor(id).length;
+  if(n){ LF.err = `这条已经有 ${n} 条成绩记录了，删了记录就对不上号。用「归档」把它收起来`; return render(); }
+  // 还派在今天或以后的不给删：题库里删掉了，孩子那边照样显示（派发的那条自带标题和网址），
+  // 而家长再也没法从题库找到它。先去「今天」那页撤回，再回来删。
+  const onDays = ['grace','warren'].flatMap(k => (DAYS[k]||[])
+    .filter(d => d.date >= iso(today) && (d.items||[]).some(i => i.id===id))
+    .map(d => `${KID[k].n} ${d.date}`));
+  if(onDays.length){
+    LF.err = `这条还派在 ${onDays.join('、')}，删了孩子那边还看得见。先去「今天」那页撤回，再回来删`;
+    return render();
+  }
+  if(!confirm(`删掉「${b.t}」？\n\n这条只是个链接，删了就没了（那个网站本身不受影响）。\n如果只是暂时不用，用「归档」收起来更稳。`)) return;
+  btn.disabled = true;
+  try {
+    await db.collection('bank').doc(id).delete();
+    BANK = BANK.filter(x=>x.docId!==id); delete BANK_BY_ID[id]; SEL.delete(id);
+    LF = null; render();
+    toast(`已删掉「${b.t}」`);
+  } catch(e){
+    console.error(e); btn.disabled = false;
+    LF.err = '没删成：' + (e.code||e.message); render();
+  }
 }
 
 function viewBank(){
@@ -1489,6 +1648,9 @@ function viewBank(){
       而且只算<b>人真坐在页面上</b>的时间（页面开着人跑了那段不算，实测差得很远）。
       灰色是还没做过的，按同科目每题多少秒 × 题数推，那个秒数也是从历史成绩里现算的。鼠标停上去看它怎么来的。
       勾几份，<b>底部那条会把总时间加起来</b>（含中间换卷子的零碎时间），换个孩子数也跟着变。</p>
+      <p><b>＋ 自定义链接</b>（右上角）= 加一条题库里没有的东西：别的网站上的课、读书会、老师的平台。
+      填个标题和网址，它就和别的卷子一样待在题库里，勾上就能派。
+      外站那边判不了分，所以孩子在作业页上自己点「✓ I'm done」，这边显示「✓ 完成」。</p>
       <p>归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。
       每行类型下面有 <b>归档</b> 按钮，点一下就收起来；要一次收一批，就勾选后用底部那条的 <b>归档</b>。归档过的按 <b>放回</b> 回到在用列表。</p>`)}</h2>
     ${kidTabs()}
@@ -1498,8 +1660,10 @@ function viewBank(){
         `<span class="seg">${opts.map(([v,l])=>
           `<button class="fchip${F[f]===v?' on':''}" data-f="${f}" data-v="${v}">${l}</button>`).join('')}</span>`).join('<span class="sep">·</span>')}
       <span class="spacer"></span>
+      <button class="fchip" data-act="newlink" title="题库里没有的东西：别的网站上的课、读书会">＋ 自定义链接</button>
       ${F.sort==='time'?'':`<button class="fchip icon" data-act="expand" title="全部展开" aria-label="全部展开"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg><span class="txt">全部展开</span></button>
       <button class="fchip icon" data-act="collapse" title="全部收起" aria-label="全部收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg><span class="txt">全部收起</span></button>`}</div>`;
+  html += linkForm();
   if(!rows.length) return html + `<p class="empty">没有匹配的内容。</p>`;
 
   if(F.sort==='time'){
@@ -2816,6 +2980,7 @@ function render(){
         document.getElementById('asskid').value = c.dataset.v;
       render(); }));
     viewEl.querySelectorAll('.fchip[data-act]').forEach(c=>c.addEventListener('click',()=>{
+      if(c.dataset.act==='newlink'){ LF ? (LF = null, render()) : openLinkForm(null); return; }
       if(c.dataset.act==='expand') BANK.forEach(b=>{ OPEN.add(b.subj); if(b.book) OPEN_SHELF.add(b.subj+'|'+b.book); });   // 书架 key 仍是 科目|book
       else { OPEN.clear(); OPEN_SHELF.clear(); }
       render(); }));
@@ -2836,6 +3001,20 @@ function render(){
     }));
     viewEl.querySelectorAll('input.selall').forEach(cb=>cb.addEventListener('change',()=>{
       cb.dataset.ids.split(' ').forEach(id=>cb.checked?SEL.add(id):SEL.delete(id)); render(); }));
+    viewEl.querySelectorAll('[data-edlink]').forEach(b=>b.addEventListener('click',()=>{
+      openLinkForm(BANK_BY_ID[b.dataset.edlink]); window.scrollTo({ top:0, behavior:'smooth' }); }));
+    if(LF){
+      // 每次重画输入框都是新的，所以填到一半的值先存回 LF；点保存前也再读一次（lfRead）。
+      ['lf-t','lf-h','lf-d','lf-ic','lf-s','lf-k','lf-m'].forEach(id=>{
+        const el = document.getElementById(id); if(el) el.addEventListener('input', lfRead); });
+      const save = document.getElementById('lf-save');
+      save.addEventListener('click', ()=>saveLink(save));
+      document.getElementById('lf-cancel').addEventListener('click', ()=>{ LF = null; render(); });
+      const del = document.getElementById('lf-del');
+      if(del) del.addEventListener('click', ()=>delLink(del));
+      viewEl.querySelectorAll('.linkform input').forEach(el=>el.addEventListener('keydown', e=>{
+        if(e.key==='Enter'){ e.preventDefault(); save.click(); } }));
+    }
     viewEl.querySelectorAll('.shelftog').forEach(b=>b.addEventListener('click',()=>{
       const k = b.dataset.shelf; OPEN_SHELF.has(k)?OPEN_SHELF.delete(k):OPEN_SHELF.add(k); render(); }));
     viewEl.querySelectorAll('details.subj').forEach(d=>d.addEventListener('toggle',()=>{

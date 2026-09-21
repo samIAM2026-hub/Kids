@@ -127,6 +127,9 @@
   .go{flex:0 0 auto;text-decoration:none;font-weight:600;font-size:17px;border-radius:14px;padding:12px 20px;
       background:var(--acc);color:#fff;white-space:nowrap}
   .go.again{background:var(--paper);color:var(--acc);border:2px solid var(--acc)}
+  /* A custom link (parent console → 題库 → ＋ 自定义链接) carries two buttons: open the site, say you're done. */
+  .gos{flex:0 0 auto;display:flex;gap:8px;align-items:center}
+  .gos .go{font-size:16px;padding:11px 16px}
   .empty{text-align:center;color:var(--ink2);background:var(--paper);border:2px dashed var(--line);
          border-radius:18px;padding:34px 20px;margin-top:26px;font-size:19px}
   .empty .e{font-size:44px;display:block;margin-bottom:6px}
@@ -278,6 +281,7 @@
     body{font-size:17px}
     .card{flex-wrap:wrap}
     .card .go{width:100%;text-align:center}
+    .card .gos{width:100%;flex-direction:column;align-items:stretch}
     .hrow h1{font-size:25px}
     .tab{padding:10px 8px;font-size:15px}
     .popcard h2{font-size:26px}
@@ -405,7 +409,7 @@ const KIDS = {
   warren: { n:'Warren', av:'👦', cls:'river', uid:'paACSAD0W0bBNknKrAf3GfpHy8x1' }
 };
 const PASS = 80;
-const KIND = { quiz:'Quiz', practice:'Practice', ref:'Read' };
+const KIND = { quiz:'Quiz', practice:'Practice', ref:'Read', link:'Link' };
 // Subject names on this page are always English, one word. Items carry the hub's label
 // ('📚 中文 Chinese', '🧮 Algebra', …); the first pattern that matches wins, and this is
 // also the order the groups appear in. No label → 'Other' (file names aren't a safe guess:
@@ -434,7 +438,13 @@ const today = new Date(); today.setHours(0,0,0,0);
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // Item hrefs are relative to Quizzes/ (a few step out with ../), same as the hub.
-const pageUrl = href => encodeURI('Quizzes/' + href);
+// A custom link (parent console → 题库 → ＋ 自定义链接) is a whole address on another site instead;
+// it opens as it is, in a new tab, so this page stays where it was underneath.
+const isUrl = h => /^https?:\/\//i.test(h || '');
+const pageUrl = href => isUrl(href) ? href : encodeURI('Quizzes/' + href);
+// 外站一律新标签页：iPad「添加到主屏幕」的快捷方式没有后退键，卷子页靠注入的「📋 My homework」
+// 回得来，别人的网站加不上那颗按钮 —— 同一个标签页跳过去就困在那儿了。
+const extAttr = href => isUrl(href) ? ' target="_blank" rel="noopener"' : '';
 
 let ME = null, ITEMS = [], ATT = [], DAYS = [], V = 'today';
 // Writing Lab pieces Dad or Mom marked that this kid hasn't opened yet (Writing-Lab.html stamps seenAt).
@@ -534,12 +544,18 @@ function viewToday(){
 function card(it, a){
   const scored = a && a.pct!=null;
   const low = scored && a.pct < PASS;
-  let status = '', btn = `<a class="go" href="${esc(pageUrl(it.href))}">Start →</a>`;
+  // A custom link lives on another site: nothing over there can mark it done, so he does it himself.
+  const ext = isUrl(it.href);
+  let status = '', btn = ext
+    ? `<span class="gos"><a class="go" href="${esc(pageUrl(it.href))}"${extAttr(it.href)}
+         data-open="${esc(it.id)}">Open ↗</a>
+       <button class="go again" data-done="${esc(it.id)}">✓ I'm done</button></span>`
+    : `<a class="go" href="${esc(pageUrl(it.href))}">Start →</a>`;
   if(a){
     status = !scored ? `<div class="status ok">✓ Done</div>`
       : low ? `<div class="status ok">✓ Done · ${a.pct}%</div>`
             : `<div class="status ok">✓ Done · ${a.pct}% ⭐ Nice job!</div>`;
-    btn = `<a class="go again" href="${esc(pageUrl(it.href))}">Open again</a>`;
+    btn = `<a class="go again" href="${esc(pageUrl(it.href))}"${extAttr(it.href)}>Open again${ext?' ↗':''}</a>`;
   }
   const size = it.n ? `${it.book?' · ':''}${it.n} ${it.type==='quiz'?'questions':'steps'}` : '';
   return `<div class="card${a?' done':''}">
@@ -551,6 +567,41 @@ function card(it, a){
     </div>
     ${btn}
   </div>`;
+}
+
+/* ---------- custom links: he says when he's done ----------
+   Dad can assign something that lives on another site (parent console → 题库 → ＋ 自定义链接).
+   quiz-report.js isn't over there, so no score and no "viewed" record ever comes back — without
+   this the day could never reach "all done" and the pet would never get its day. So: pressing
+   ✓ I'm done writes an attempt with no score, the same shape a "viewed" page writes.
+   When he opened it is kept on this device only, to fill in how long it took. */
+const LINK_OPEN_KEY = 'kid.linkOpen.v1';
+function linkOpens(){ try { return JSON.parse(localStorage.getItem(LINK_OPEN_KEY) || '{}') || {}; } catch(e){ return {}; } }
+function linkOpened(id){
+  const m = linkOpens(); m[id] = Date.now();
+  try { localStorage.setItem(LINK_OPEN_KEY, JSON.stringify(m)); } catch(e){}
+}
+async function markLinkDone(id, btn){
+  const it = ITEMS.find(x=>x.id===id);
+  if(!it || !ME) return;
+  const opened = linkOpens()[id] || 0;
+  // Opened yesterday and pressed today, or never opened at all: no honest number, so record none.
+  const secs = opened && Date.now()-opened < 3*3600*1000 ? Math.round((Date.now()-opened)/1000) : 0;
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const aid = Date.now().toString(36) + Math.random().toString(36).slice(2,10);
+  try {
+    await db.doc('attempts/'+aid).set({
+      kidId: ME.uid, itemId: id, href: it.href || '', t: it.t || '',
+      kind: 'link', score: null, total: 0, pct: null, wrong: [],
+      secs, activeSecs: secs,
+      submittedAt: firebase.firestore.Timestamp.now(), reportVersion: 2
+    });
+    await load(); render(); await afterLoad('link');
+  } catch(e){
+    console.error('[link done]', e);
+    btn.disabled = false; btn.textContent = '✓ I\'m done';
+    alert("Couldn't save that just now. Check the wifi and try again.");
+  }
 }
 
 /* ---------- My day: what I did each day + Dad's / Mom's daily report ----------
@@ -625,7 +676,7 @@ function viewScores(){
       <div class="body"><div class="t"><span class="subj">${esc(a.subj)}</span>${esc(a.t)}</div>
         <div class="bar"><i style="width:${a.pct==null?100:a.pct}%;background:${col}"></i></div></div>
       <span class="sc" style="color:${col}">${a.pct==null?'✓':a.pct+'%'}</span>
-      ${a.href?`<a class="go again" href="${esc(pageUrl(a.href))}">Redo</a>`:''}</div>`;
+      ${a.href?`<a class="go again" href="${esc(pageUrl(a.href))}"${extAttr(a.href)}>Redo${isUrl(a.href)?' ↗':''}</a>`:''}</div>`;
   });
   return html;
 }
@@ -658,7 +709,7 @@ function viewMistakes(){
       html += `<div class="row"><span class="d">${a.date.slice(5)}</span>
         <div class="body"><div class="t">${esc(a.t)}</div>
           <div class="lead2" style="font-size:14.5px">${a.wrong.length} question${a.wrong.length>1?'s':''} to practise</div></div>
-        ${a.href?`<a class="go" href="${esc(pageUrl(a.href))}">Practise</a>`:''}</div>`;
+        ${a.href?`<a class="go" href="${esc(pageUrl(a.href))}"${extAttr(a.href)}>Practise${isUrl(a.href)?' ↗':''}</a>`:''}</div>`;
     });
   });
   return html;
@@ -1121,6 +1172,10 @@ auth.onAuthStateChanged(async user=>{
 document.getElementById('switch').addEventListener('click',()=>auth.signOut());
 viewEl.addEventListener('click', e=>{
   if(e.target.closest('[data-signout]')) auth.signOut();
+  const op = e.target.closest('[data-open]');
+  if(op) linkOpened(op.dataset.open);
+  const dn = e.target.closest('[data-done]');
+  if(dn) markLinkDone(dn.dataset.done, dn);
   if(e.target.closest('[data-pickpet]')) showPicker();
   const tab = e.target.closest('[data-tab]');
   if(tab) document.querySelector(`.tab[data-v="${tab.dataset.tab}"]`).click();
