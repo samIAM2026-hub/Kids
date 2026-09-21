@@ -65,6 +65,7 @@
        display:flex;flex-direction:column;align-items:center;gap:8px}
   .who:hover{transform:translateY(-3px)}
   .who .nm{font-family:'Fraunces',serif;font-size:26px;font-weight:600;line-height:1.1;color:var(--k)}
+  .who .av{font-size:64px;line-height:1}
   .who .petnm{font-size:15px;color:var(--ink2);margin-top:-6px;line-height:1.3}
   .who .whisper{font-size:15px;font-weight:600;color:var(--k);line-height:1.3}
   .who.peach{--k:#d84315;--kl:#ffb37b;background:#fff4e8;border-color:#ffb37b}
@@ -176,7 +177,6 @@
   .habitat .pet span{display:block;animation:bob 2.6s ease-in-out infinite}
   .habitat .lvl{position:absolute;right:-2px;bottom:4px;background:var(--k2);color:#fff;font-family:'IBM Plex Mono',monospace;
                 font-size:12px;font-weight:600;border-radius:99px;padding:2px 8px;border:2px solid var(--paper)}
-  .habitat .zz{position:absolute;left:2px;top:0;font-size:24px}
   @keyframes bob{50%{transform:translateY(-5px)}}
   .medal{--s:34px;width:var(--s);height:var(--s);border-radius:50%;display:grid;place-items:center;flex:0 0 auto;
          font-size:calc(var(--s)*.5);line-height:1;border:2px solid var(--goldline);box-shadow:inset 0 0 0 2px var(--paper);
@@ -257,6 +257,13 @@
   .bdg .bd{font-size:13px;color:var(--mute);line-height:1.25}
   .bdg.locked{background:transparent;border-style:dashed}
   .bdg.locked .bn{color:var(--mute)}
+  .ptiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+  .ptile{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:12px 10px;
+         display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+  .ptile.me{border-color:var(--accline)}
+  .ptile .e{font-size:40px;line-height:1}
+  .ptile .kn{font-family:'Fraunces',serif;font-size:19px;font-weight:600}
+  .ptile .pn{font-size:14px;color:var(--ink2);line-height:1.3}
   .sib{display:flex;align-items:center;gap:14px;margin-top:22px;background:var(--paper);border:2px solid var(--line);
        border-radius:16px;padding:10px 16px;font-size:16px;line-height:1.35}
   .sib .e{font-size:36px;line-height:1}
@@ -278,6 +285,13 @@
     .out{font-size:14px;padding:7px 10px}
     #signin h1{font-size:32px}
     .sky .orb{width:60px;height:60px}
+    /* Side by side even on a phone: the point of this screen is the two of them next to
+       each other, and stacked cards make that a scroll instead of a glance. */
+    .pick{gap:10px;flex-wrap:nowrap}
+    .who{width:auto;flex:1 1 0;min-width:0;padding:14px 8px 12px}
+    .who .nm{font-size:22px}
+    .who .petnm,.who .whisper{font-size:13px}
+    .habitat{transform:scale(.82);margin:-10px 0}
   }
 </style>
 </head>
@@ -370,8 +384,11 @@
              quiz-report.js uses the same key and rule.
    Pets    : JS/kid-pets.js works out XP, streak and badges from attempts + days.
              pets/{uid} keeps the pet the kid picked and a summary (both kids can
-             read both pets). The sign-in screen can't read the database yet, so
-             it shows this device's last look at both pets (kid.pets.v1).
+             read both pets). The sign-in screen runs before auth, so it reads
+             petCards/{uid} instead — a public copy of pet status only (kind, name,
+             xp, streak, what's left today). No scores, no badges, no homework titles.
+             Each kid writes their own; the rules make it world-readable, which is why
+             nothing sensitive may ever go in it.
 ===================================================================== */
 const firebaseConfig = {
   apiKey: 'AIzaSyDMKUeccjFtMbotXulnMhYcoykWpw4Y7ls',
@@ -497,7 +514,7 @@ function markedCards(){
 function viewToday(){
   const day = iso(today);
   if(!ITEMS.length){
-    return reportCard() + markedCards() + `<div class="empty"><span class="e">🎉</span>No homework today!<br>Enjoy your free time.</div>`;
+    return reportCard() + markedCards() + `<div class="empty"><span class="e">🎉</span>No homework today!<br>Enjoy your free time.</div>` + petsRow();
   }
   const doneToday = it => ATT.find(a=>a.id===it.id && a.date===day);
   const nDone = ITEMS.filter(doneToday).length;
@@ -510,7 +527,7 @@ function viewToday(){
     html += `<h3 class="group">${esc(subj)} <span class="gn">${items.filter(doneToday).length} of ${items.length} done</span></h3>`;
     items.forEach(it=>{ html += card(it, doneToday(it)); });
   });
-  return html;
+  return html + petsRow();
 }
 
 // One homework card; a = today's attempt at it, if any.
@@ -648,7 +665,7 @@ function viewMistakes(){
 }
 
 /* ---------- pets & badges (the rules live in JS/kid-pets.js) ---------- */
-const PETS_KEY = 'kid.pets.v1', NAP_MS = 3*24*3600*1000, RING = 2*Math.PI*58;
+const RING = 2*Math.PI*58;
 const plural = (n, w) => `${n} ${w}${n===1?'':'s'}`;
 const shortDate = ms => new Date(ms).toLocaleDateString('en-US', { month:'short', day:'numeric' });
 // 'YYYY-MM-DD' → what a kid would call that day ("yesterday", "Friday", "Sep 12"). Lower case
@@ -671,8 +688,32 @@ function missedList(list){
 const petOf = p => p && KidPets.PETS[p.kind];
 const stageIc = p => petOf(p).stages[KidPets.stageOf(p.xp)][0];
 const otherKey = () => Object.keys(KIDS).find(k=>k!==ME.key);
-function readPetCache(){ try { return JSON.parse(localStorage.getItem(PETS_KEY)) || {}; } catch(e){ return {}; } }
-function cachePet(key, pet){ try { const c = readPetCache(); c[key] = pet; localStorage.setItem(PETS_KEY, JSON.stringify(c)); } catch(e){} }
+// The other kid's pet, read from the database at sign-in like your own. Siblings have always
+// been able to see each other's pet — never each other's scores.
+function sibCard(){
+  if(!petOf(SIB)) return '';
+  const L = KidPets.level(SIB.xp);
+  return `<div class="sib"><span class="e">${stageIc(SIB)}</span><span><b>${esc(KIDS[otherKey()].n)}'s pet: ${esc(SIB.name)}</b><br>
+    <span class="xpcap">Lv ${L.lv} · ${SIB.streak ? `🔥 ${plural(SIB.streak, 'day')}` : 'no streak yet'} · ${plural((SIB.badges||[]).length, 'badge')}</span></span></div>`;
+}
+
+// One pet, side by side with the other kid's on Today. `g` carries xp/streak: your own comes
+// from this load (freshest there is), the other kid's from their pet doc as of their last visit.
+function petTile(who, p, g, mine){
+  const L = KidPets.level(g.xp||0), st = KidPets.stageOf(g.xp||0);
+  return `<div class="ptile${mine?' me':''}">
+    <span class="e">${petOf(p).stages[st][0]}</span>
+    <span class="kn">${esc(who)}</span>
+    <span class="pn">${esc(p.name)} · Lv ${L.lv}</span>
+    <span class="streak${g.streak?'':' off'}">${g.streak ? `🔥 ${plural(g.streak, 'day')}` : 'No streak yet'}</span>
+  </div>`;
+}
+// Both pets, so the two of them can see how they're doing next to each other.
+function petsRow(){
+  if(!petOf(PET) || !GAME) return sibCard();
+  const mine = petTile(ME.n, PET, GAME, true);
+  return `<div class="ptiles">${mine}${petOf(SIB) ? petTile(KIDS[otherKey()].n, SIB, SIB, false) : ''}</div>`;
+}
 
 // The pet inside a ring that fills up towards the next level.
 function habitat(p, extra){
@@ -683,13 +724,23 @@ function habitat(p, extra){
 }
 
 // What pets/{uid} holds: the pet the kid picked, plus the latest summary.
-// `left` = pages still not done on `day`. The sign-in screen (which can't read the database)
-// needs it: a snapshot saved on a day that still had homework left is a streak that has since
-// gone out, and showing the old number there would shrink in front of the kid at sign-in.
+// `left` = pages still not done on `day`. Kept in the doc (the rules allow it) though nothing
+// reads it now that the sign-in screen shows no numbers at all.
 function petDoc(pet, g){
   return { kind:pet.kind, name:pet.name, chosenAt:pet.chosenAt,
     xp:g.xp, lv:g.lv, streak:g.streak, best:g.best, pages:g.pages, badges:g.badges.map(b=>b.id),
     todayDone:g.todayDone, left:(g.todayLeft||[]).length, day:iso(today), updatedAt:Date.now() };
+}
+
+// petCards/{uid}: what the sign-in screen is allowed to see. Pet status only — the rules make
+// this one world-readable, so nothing else may ever be added to it.
+function cardDoc(p){
+  return { kind:p.kind, name:p.name, xp:p.xp, streak:p.streak,
+           todayDone:p.todayDone, left:p.left, day:p.day, updatedAt:p.updatedAt };
+}
+function saveCard(p){
+  return db.doc(`petCards/${ME.uid}`).set(cardDoc(p))
+    .catch(e=>console.warn('[petCards] save failed:', e.code||e));
 }
 
 const popEl = document.getElementById('pop'), popCard = document.getElementById('popcard');
@@ -714,21 +765,19 @@ function toast(msg){
 // card; XP alone gets a small toast.
 async function afterLoad(from){
   const me = ME;
-  if(SIB!==undefined) cachePet(otherKey(), SIB);
   if(PET===undefined) return;                 // couldn't read it — try again next time
   if(!PET){
-    cachePet(ME.key, null);
     if(from==='signin' && !petSkipped) showPicker();
     return;
   }
   const prev = PET, next = petDoc(PET, GAME);
-  cachePet(ME.key, next);
   const same = ['xp','lv','streak','best','pages','todayDone','left','day'].every(k=>prev[k]===next[k])
     && String(prev.badges)===String(next.badges);
   if(!same){
     try { await db.doc(`pets/${ME.uid}`).set(next); }
     catch(e){ console.warn('[pets] save failed:', e.code||e); }
   }
+  saveCard(next);                             // keep the sign-in screen's copy current
   if(ME!==me) return;                         // signed out meanwhile
   PET = next;
   render();
@@ -831,7 +880,7 @@ function showPicker(){
       hatch.disabled = false; return;
     }
     if(ME!==me) return;
-    PET = doc; cachePet(ME.key, doc); render(); showMeet();
+    PET = doc; saveCard(doc); render(); showMeet();
   });
 }
 
@@ -921,11 +970,7 @@ function viewPet(){
         <span class="bn">${esc(b.n)}</span><span class="bd">${esc(b.hint(g, ctx))}</span></div>`).join('')
     + `</div>`;
 
-  if(petOf(SIB)){
-    const L = KidPets.level(SIB.xp);
-    html += `<div class="sib"><span class="e">${stageIc(SIB)}</span><span><b>${esc(KIDS[otherKey()].n)}'s pet: ${esc(SIB.name)}</b><br>
-      <span class="xpcap">Lv ${L.lv} · ${SIB.streak ? `🔥 ${plural(SIB.streak, 'day')}` : 'no streak yet'} · ${plural((SIB.badges||[]).length, 'badge')}</span></span></div>`;
-  }
+  html += sibCard();
   return html + `<p class="foot">Pets never get sick, and a streak that stops never takes XP or badges away — you keep everything you earned. If you're away for a while, yours just takes a nap.</p>`;
 }
 
@@ -966,43 +1011,46 @@ function showPick(msg){
   pickStep.hidden = false; pinStep.hidden = true;
   if(msg){ pickStep.querySelector('.lead').textContent = msg; }
   renderPick();
+  loadCards();
 }
 
-// Both kids' cards, from what this device last saw of each pet.
+// Both kids' cards, live from petCards/{uid} — read before anyone signs in, so a new iPad or a
+// cleared browser shows the same thing as the one at home. Names paint first; the pets arrive
+// when the read lands, so the screen is never blank waiting on the network.
 const pickCards = document.getElementById('pickcards');
+let CARDS = null;                             // null = not read yet; a value of undefined = read failed
+function loadCards(){
+  return Promise.all(Object.entries(KIDS).map(([key, k])=>
+    db.doc(`petCards/${k.uid}`).get()
+      .then(d=>[key, d.exists ? d.data() : null])
+      .catch(e=>{ console.warn('[petCards] read failed:', e.code||e); return [key, undefined]; })
+  )).then(rows=>{ CARDS = Object.fromEntries(rows); if(!signinEl.hidden) renderPick(); });
+}
 function renderPick(){
-  const cache = readPetCache();
   pickCards.innerHTML = Object.entries(KIDS).map(([key, k])=>{
-    const p = petOf(cache[key]) ? cache[key] : null;
-    if(!p) return `<button class="who ${k.cls}" type="button" data-kid="${key}">${habitat(null)}
+    const c = CARDS && CARDS[key];
+    if(!petOf(c)) return `<button class="who ${k.cls}" type="button" data-kid="${key}">
+      <span class="av">${k.av}</span>
       <span class="nm">${k.n}</span>
-      <span class="whisper">${cache[key]===null ? 'Sign in to pick your pet!' : 'Sign in to see your pet!'}</span></button>`;
-    const L = KidPets.level(p.xp), st = KidPets.stageOf(p.xp);
-    const nap = Date.now() - (p.updatedAt||0) > NAP_MS;
-    // Age the snapshot forward: it was true on p.day, not necessarily today. This screen runs
-    // before sign-in and cannot read the database, so there are only three honest answers:
-    //   saved today            → what today's own load worked out; today can't break it
-    //   saved yesterday, clean → yesterday finished, and today can't break it either → still stands
+      <span class="whisper">${c === null ? 'Sign in to pick your pet!' : 'Sign in →'}</span></button>`;
+    const st = KidPets.stageOf(c.xp);
+    // The card was true on c.day, which may not be today. Same three honest answers as ever:
+    //   saved today            → today can't break it
+    //   saved yesterday, clean → yesterday finished; still stands
     //   saved yesterday, left  → yesterday ended unfinished, the fire is already out → 0
-    //   older than that        → homework days may have gone by unseen → we do NOT know.
-    // Printing p.streak in that last case is how the fire used to shrink in his face right
-    // after sign-in, so say nothing rather than a number that is probably wrong.
+    //   older                  → homework days may have gone by → say nothing, never a guess
     const yest = new Date(today); yest.setDate(yest.getDate() - 1);
-    const fresh = p.day === iso(today), known = fresh || p.day === iso(yest);
-    const left = fresh ? (p.left||0) : 0;
-    const streak = !known ? null : (!fresh && p.left > 0) ? 0 : (p.streak||0);
-    const wh = fresh && p.todayDone ? 'All done today ⭐'
-      : left ? `${plural(left, 'page')} still to do today`
-      : nap ? `${esc(p.name)} is napping. Come say hi!`
-      : `${esc(p.name)} is ${L.need-L.into} XP from Lv ${L.lv+1}`;
-    const medals = (p.badges||[]).slice(-3).reverse().map(id=>KidPets.badgeInfo(id, p.kind)).filter(Boolean)
-      .map(i=>`<span class="medal" title="${esc(i.n)}">${i.ic}</span>`).join('');
+    const fresh = c.day === iso(today), known = fresh || c.day === iso(yest);
+    const streak = !known ? null : (!fresh && c.left > 0) ? 0 : (c.streak||0);
+    const wh = fresh && c.todayDone ? 'All done today ⭐'
+      : fresh && c.left ? `${plural(c.left, 'page')} still to do today`
+      : fresh ? 'No homework today'
+      : `Last homework ${dayName(c.day)}`;
     return `<button class="who ${k.cls}" type="button" data-kid="${key}">
-      ${habitat(p, nap ? '<span class="zz">💤</span>' : '')}
+      ${habitat(c)}
       <span class="nm">${k.n}</span>
-      <span class="petnm">&amp; ${esc(p.name)} the ${esc(petOf(p).stages[st][1].toLowerCase())}</span>
-      <span class="streak${streak?'':' off'}">${streak === null ? 'Sign in to see your 🔥' : streak ? `🔥 ${plural(streak, 'day')}` : 'No streak yet'}</span>
-      ${medals ? `<span class="medals">${medals}</span>` : ''}
+      <span class="petnm">&amp; ${esc(c.name)} the ${esc(petOf(c).stages[st][1].toLowerCase())}</span>
+      ${streak === null ? '' : `<span class="streak${streak?'':' off'}">${streak ? `🔥 ${plural(streak, 'day')}` : 'No streak yet'}</span>`}
       <span class="whisper">${wh}</span></button>`;
   }).join('');
 }
