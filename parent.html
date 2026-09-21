@@ -417,6 +417,10 @@
   .hmet{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px 16px;margin:12px 0 4px;
         padding:11px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
   .hmet .v{font-size:21px;font-weight:600;font-family:'Playfair Display',serif;line-height:1.3}
+  /* 单位（小时/分钟/份）缩一号字，「2 小时 20 分钟」一行放得下；数字和它的单位绑成一组，
+     万一格子真放不下（统计很多天的「学习时长」），也只在两组中间断，不会断出个孤零零的「钟」。Sam, 2026-09-21 */
+  .hmet .v .g{white-space:nowrap}
+  .hmet .v .u{font-size:13px;letter-spacing:.3px;margin-left:1px}
   .hmet .k{font-size:11.5px;font-weight:600;margin-top:1px}
   .hmet .x{font-size:10.5px;color:var(--mute);line-height:1.5;margin-top:2px}
   .prow{padding:11px 0;border-bottom:1px dashed var(--line)}
@@ -1097,7 +1101,7 @@ function viewToday(){
         <div><div class="v">${nq}</div><div class="k">题目数${qm(`${quizzes.length} 份打分卷子加起来一共几道题`)}</div></div>
         <div><div class="v">${list.length-quizzes.length}</div><div class="k">练习/参考${qm(`不是选择题卷子的份数：闯关练习按「一次就对」算分，参考打开看过就算完成`)}</div></div>
         <div><div class="v" style="color:${avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</div><div class="k">平均分${qm(scored.length?`做完的 ${scored.length} 份有分数的（含闯关练习），每份取这天最后一遍的分数再平均`:'这天还没有打分的成绩')}</div></div>
-        <div><div class="v">${list.length?estSumTxt(list, k):'—'}</div><div class="k">预计用时${qm(
+        <div><div class="v">${list.length?tileUnit(estSumTxt(list, k)):'—'}</div><div class="k">预计用时${qm(
             list.length ? estSumTip(list, k) + '。派之前想知道够不够孩子当下的空档，看这个数'
                         : '这天没派东西')}</div>${
             spent?`<div class="x">已经坐了 ${dur(spent)}</div>`:''}</div>
@@ -1993,13 +1997,13 @@ function viewHist(){
         <div class="k">${name}${qm(note)}</div></div>`;
       const none = '这天没有打分的卷子';
       html += `<div class="hmet">
-        ${met(papers.length+' 份', '做了几份', `交卷 ${S.nAtt} 次：同一份做几遍就交几次`)}
+        ${met(tileUnit(papers.length+' 份'), '做了几份', `交卷 ${S.nAtt} 次：同一份做几遍就交几次`)}
         ${met(sc?`${S.firstOk.length}/${sc}`:'—', '第一遍达标', sc?`打分的 ${sc} 份里，第一次做就 ≥ ${PASS}% 的份数`:none,
               !sc?'var(--mute)':S.firstOk.length===sc?'var(--green)':'var(--amber)')}
         ${met(sc?`${S.lastOk.length}/${sc}`:'—', '最后达标', sc?`最后一遍 ≥ ${PASS}% 的份数，看重做后改对没有`:none,
               !sc?'var(--mute)':S.lastOk.length===sc?'var(--green)':'var(--red)')}
-        ${met(S.plain.length+' 份', '不打分', '只记做过、看过的页面，记 ✓')}
-        ${met(dur(S.secs), '用时', '每一遍从打开到交卷加起来，离开页面也算')}
+        ${met(tileUnit(S.plain.length+' 份'), '不打分', '只记做过、看过的页面，记 ✓')}
+        ${met(tileUnit(dur(S.secs)), '用时', '每一遍从打开到交卷加起来，离开页面也算')}
       </div>
       <div class="subhd">每份卷子 · 最近做的在上面</div>
       ${papers.map(histPaper).join('')}`;
@@ -2206,6 +2210,10 @@ const dur = s => {
   return m < 60 ? m+' 分钟' : Math.floor(m/60)+' 小时'+(m%60 ? ' '+(m%60)+' 分钟' : '');
 };
 
+// 统计格子里的大数字：把单位缩一号字。21px 的「2 小时 20 分钟」比一格还宽，会折行。Sam, 2026-09-21
+const tileUnit = t => String(t).replace(/(\d+)\s*(小时|分钟|分|份)/g,
+  (_, n, u) => `<span class="g">${n} <span class="u">${u}</span></span>`);
+
 function readFocus(a){
   const f = a.focus || {};
   const secs = a.secs || 0, awaySecs = f.awaySecs || 0;
@@ -2261,10 +2269,10 @@ function viewFocus(){
           share==null?'—':share+'%'}</b> · 离开 ${T.n} 次`
         : '这段时间没有做题记录') + `
       <div class="hmet">
-        <div><div class="v">${dur(T.secs)}</div><div class="k">学习时长${qm(`${mine.length} 次交卷，每次从打开到交卷加起来`)}</div></div>
+        <div><div class="v">${tileUnit(dur(T.secs))}</div><div class="k">学习时长${qm(`${mine.length} 次交卷，每次从打开到交卷加起来`)}</div></div>
         <div><div class="v" style="color:${shareCol}">${share==null?'—':share+'%'}</div><div class="k">在页面上${qm(share==null?'这段时间没有记录':`页面在前台 ${dur(T.active)}，占学习时长的比例`)}</div></div>
         <div><div class="v" style="color:${T.n?'var(--amber)':'var(--cream)'}">${T.n}</div><div class="k">离开次数${qm(`页面离开前台的次数${T.away?`，一共离开 ${dur(T.away)}`:''}`)}</div></div>
-        <div><div class="v">${T.max?dur(T.max):'—'}</div><div class="k">最长离开${qm('单独一次离开最久的时长')}</div></div>
+        <div><div class="v">${T.max?tileUnit(dur(T.max)):'—'}</div><div class="k">最长离开${qm('单独一次离开最久的时长')}</div></div>
       </div>`;
     if(!mine.length){ html += `<p class="empty">这段时间没有做题记录。</p></details>`; return; }
 
