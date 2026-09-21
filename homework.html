@@ -724,8 +724,9 @@ function habitat(p, extra){
 }
 
 // What pets/{uid} holds: the pet the kid picked, plus the latest summary.
-// `left` = pages still not done on `day`. Kept in the doc (the rules allow it) though nothing
-// reads it now that the sign-in screen shows no numbers at all.
+// `left` = pages still not done on `day`. The sign-in screen reads it (through the petCards copy
+// below): a card saved on a day that still had homework left is a streak that has since gone out,
+// and printing the saved number there would shrink the fire in front of the kid at sign-in.
 function petDoc(pet, g){
   return { kind:pet.kind, name:pet.name, chosenAt:pet.chosenAt,
     xp:g.xp, lv:g.lv, streak:g.streak, best:g.best, pages:g.pages, badges:g.badges.map(b=>b.id),
@@ -1018,7 +1019,11 @@ function showPick(msg){
 // cleared browser shows the same thing as the one at home. Names paint first; the pets arrive
 // when the read lands, so the screen is never blank waiting on the network.
 const pickCards = document.getElementById('pickcards');
-let CARDS = null;                             // null = not read yet; a value of undefined = read failed
+// Three states, and they have to stay apart. CARDS itself is null until the read lands; after that
+// each kid's entry is their card, or null (read fine, no pet picked yet), or undefined (read failed).
+// Folding "not read yet" into "no pet yet" is how a kid who has a pet gets told to go pick one for
+// as long as the network takes — say nothing rather than something wrong.
+let CARDS = null;
 function loadCards(){
   return Promise.all(Object.entries(KIDS).map(([key, k])=>
     db.doc(`petCards/${k.uid}`).get()
@@ -1027,12 +1032,13 @@ function loadCards(){
   )).then(rows=>{ CARDS = Object.fromEntries(rows); if(!signinEl.hidden) renderPick(); });
 }
 function renderPick(){
+  const read = CARDS !== null;                // the read landed; an entry may still be null/undefined
   pickCards.innerHTML = Object.entries(KIDS).map(([key, k])=>{
-    const c = CARDS && CARDS[key];
+    const c = read ? CARDS[key] : undefined;
     if(!petOf(c)) return `<button class="who ${k.cls}" type="button" data-kid="${key}">
       <span class="av">${k.av}</span>
       <span class="nm">${k.n}</span>
-      <span class="whisper">${c === null ? 'Sign in to pick your pet!' : 'Sign in →'}</span></button>`;
+      <span class="whisper">${read && c === null ? 'Sign in to pick your pet!' : 'Sign in →'}</span></button>`;
     const st = KidPets.stageOf(c.xp);
     // The card was true on c.day, which may not be today. Same three honest answers as ever:
     //   saved today            → today can't break it
