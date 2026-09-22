@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Read Aloud · Two Chinese Stories — 《小松鼠找花生》《小白兔和小灰兔》</title>
+<!-- =====================================================================
+  Chinese Read-Aloud Studio — two stories, each read out loud TWICE a day.
+  Four takes a day in total, every take saved on its own.
+
+  Design: HOMEWORK-SYSTEM.md · 2026-09-20「朗读录音」(the BASA studio) and
+  2026-09-20「朗读录音改成按天算」. Same two collections, same daily rule,
+  same named Firebase app ('kid') — nothing new to set up in the console.
+
+  What is different from the BASA studio:
+  - The text IS printed here. These two are our own transcription
+    (_Materials/Chinese/说明.md), not somebody's printed sheet, and a
+    six-year-old reading Chinese needs the characters in front of him.
+  - Two stories on one page, two takes each, instead of one poem × three.
+  - TODAY ONLY. The page shows today's takes and nothing else. Earlier days
+    are not listed here at all (Sam, 2026-09-22) — they stay in Firestore and
+    show up on 家长台 → 朗读录音, grouped by day, where they can be deleted.
+    So anything visible on this page was recorded today: 0 / 4 again tomorrow.
+
+  Audio rides inside Firestore as base64 (there is no Storage bucket). Two
+  documents under the SAME id, written in one batch:
+    recordings/{id}      the light row (who, story, take, length, when, day)
+    recordingAudio/{id}  the base64 itself
+  A Firestore document is capped at 1 MB, hence MAX_SECS × BITRATE.
+
+  Teaching text is ENGLISH (feedback_kids_chinese_explain_in_english) —
+  the story is the thing being learned, not the language of instruction.
+===================================================================== -->
+<style>
+  :root{
+    --cream:#fff6e9; --card:#fffdf7; --ink:#3a2c1e; --muted:#8b7a66;
+    --shell:#a9711f;     /* same accent as the two Chinese quiz pages */
+    --shell-d:#7d5214;
+    --leaf:#3f7d4e;      /* green = done */
+    --leaf-d:#2f5f3b;
+    --red:#c0392b; --softred:#fbeae7;
+    --line:#ecdcc2;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+       background:var(--cream); color:var(--ink); line-height:1.65;
+       padding:18px 12px 70px; -webkit-text-size-adjust:100%;}
+  .zh{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",Georgia,serif;}
+  .wrap{max-width:820px; margin:0 auto;}
+
+  header{background:var(--shell-d); border-radius:18px; padding:22px 20px; text-align:center;
+         color:#fff6e9; box-shadow:0 7px 0 #5c3c0e; margin-bottom:14px;}
+  header .crest{font-size:42px; line-height:1;}
+  header h1{font-size:23px; margin:7px 0 5px; font-style:italic; font-weight:normal;}
+  header p{font-size:15px; opacity:.94;}
+  header .tag{display:inline-block; margin-top:9px; background:rgba(255,255,255,.15);
+              border-radius:999px; padding:5px 14px; font-size:13px; letter-spacing:.3px;}
+
+  .who{display:flex; align-items:center; gap:8px; justify-content:center;
+       font-size:13.5px; color:var(--muted); margin-bottom:14px;}
+  .who b{color:var(--shell-d);} .who a{color:var(--shell);}
+
+  .notice{background:#fdf1de; border:2px solid #ecd6b4; border-left:8px solid var(--shell);
+          border-radius:14px; padding:13px 16px; margin-bottom:15px; font-size:14.5px;}
+  .notice b{color:var(--shell-d);}
+  .notice.bad{background:var(--softred); border-color:var(--red); border-left-color:var(--red);}
+  .notice.bad b{color:var(--red);}
+
+  .bar{display:flex; align-items:center; gap:11px; font-size:14px; color:var(--muted);
+       margin:0 0 16px; flex-wrap:wrap;}
+  .track{flex:1; min-width:120px; height:13px; background:#ecdcc2; border-radius:10px; overflow:hidden;}
+  .fill{height:100%; width:0; background:var(--leaf); border-radius:10px; transition:width .3s;}
+  .bar b{font-family:ui-monospace,Menlo,monospace; color:var(--shell-d);}
+
+  .allgood{background:#eef5ef; border:3px solid var(--leaf); border-radius:14px;
+           padding:15px 18px; text-align:center; font-size:16px; color:var(--leaf-d); margin-bottom:16px;}
+  .allgood .big{font-size:32px; display:block; margin-bottom:4px;}
+
+  section{background:var(--card); border:2px solid var(--line); border-radius:20px;
+          padding:18px 18px 20px; margin-bottom:18px; box-shadow:0 5px 0 #efe0c6;}
+  .eyebrow{font-size:11.5px; color:var(--shell); font-weight:bold;
+           text-transform:uppercase; letter-spacing:.9px;}
+  h2.st{font-size:22px; color:var(--shell-d); margin:5px 0 3px; line-height:1.35;}
+  .byline{font-size:13.5px; color:var(--muted); font-style:italic;}
+
+  .story{margin:14px 0 4px; background:#fffdf7; border:2px dashed #e6d2ae;
+         border-radius:14px; padding:15px 17px;}
+  .story p{font-size:22px; line-height:2.15; letter-spacing:.06em; margin-bottom:10px; color:#2f2417;}
+  .story p:last-child{margin-bottom:0;}
+  .story p .n{display:inline-block; min-width:1.5em; font-family:ui-monospace,Menlo,monospace;
+              font-size:12px; color:#c3a877; vertical-align:.5em; letter-spacing:0;}
+
+  .words{margin-top:12px; border-left:5px solid var(--shell); background:#fdf1de;
+         border-radius:0 10px 10px 0; padding:10px 14px; font-size:14px;}
+  .words .h{font-weight:bold; color:var(--shell-d); margin-bottom:5px;}
+  .words span{display:inline-block; margin:2px 12px 2px 0;}
+  .words i{font-style:normal; font-size:12px; color:var(--muted); margin-left:3px;}
+
+  .tips{margin-top:12px; border-left:5px solid var(--leaf); background:#eef5ef;
+        border-radius:0 10px 10px 0; padding:10px 14px; font-size:14.5px; color:var(--leaf-d);}
+  .tips b{color:var(--leaf-d);}
+  .tips li{margin-left:18px; margin-top:3px;}
+
+  .take{border:2px solid var(--line); border-radius:14px; padding:13px 15px;
+        margin-top:11px; background:#fffef9;}
+  .take.rec{border-color:var(--red); background:#fff8f7;}
+  .take.done{border-color:var(--leaf); background:#f4faf3;}
+  .take .top{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .take .n{background:var(--shell-d); color:#fff6e9; width:29px; height:29px; border-radius:50%;
+           text-align:center; line-height:29px; font-weight:bold; font-size:15px; flex:none;}
+  .take.done .n{background:var(--leaf);}
+  .take .lbl{font-size:16.5px; color:var(--shell-d); font-weight:bold;}
+  .take .stat{margin-left:auto; font-size:13px; color:var(--muted);
+              font-family:ui-monospace,Menlo,monospace;}
+  .take .stat.ok{color:var(--leaf-d); font-weight:bold;}
+  .take .stat.bad{color:var(--red); font-weight:bold;}
+
+  .btn{font-family:inherit; font-size:15.5px; border:none; border-radius:11px; padding:10px 19px;
+       cursor:pointer; background:var(--shell-d); color:#fff6e9; box-shadow:0 4px 0 #5c3c0e; transition:.1s;}
+  .btn:active{transform:translateY(2px); box-shadow:0 2px 0 #5c3c0e;}
+  .btn[disabled]{opacity:.42; cursor:not-allowed;}
+  .btn.red{background:var(--red); box-shadow:0 4px 0 #8c261c;}
+  .btn.ghost{background:#f7f0e2; color:#5c4a33; box-shadow:0 4px 0 #e0cda8; font-size:14px; padding:9px 15px;}
+  .row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:11px;}
+
+  .meter{flex:1; min-width:110px; height:12px; background:#f2e6cf; border-radius:8px; overflow:hidden;}
+  .meter i{display:block; height:100%; width:0; background:var(--red); border-radius:8px; transition:width .06s linear;}
+  .clock{font-family:ui-monospace,Menlo,monospace; font-size:20px; color:var(--red); font-weight:bold; min-width:62px;}
+  audio{width:100%; margin-top:10px; border-radius:8px;}
+
+  .hist{margin-top:8px; font-size:12.5px; color:#9b8a73;}
+  .hist button{font-family:inherit; font-size:12.5px; background:none; border:none;
+               color:var(--shell); text-decoration:underline; cursor:pointer; padding:0;}
+
+  footer{text-align:center; margin-top:18px; font-size:14px;}
+  footer a{color:var(--shell-d);}
+  @media (max-width:430px){
+    .take .stat{margin-left:0; width:100%;}
+    .story p{font-size:20px; line-height:2;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="crest">🎙️</div>
+    <h1>Read Aloud · Two Chinese Stories</h1>
+    <p>Read each story out loud <b>twice</b>. Four recordings, one at a time.</p>
+    <div class="tag">中文课文朗读 · recording studio</div>
+  </header>
+
+  <div class="who" id="who">Checking who's signed in…</div>
+
+  <div id="app" hidden>
+
+    <div class="bar">
+      <span>🎙️ Recorded today</span>
+      <span class="track"><span class="fill" id="fill"></span></span>
+      <b id="count">0 / 4</b>
+    </div>
+
+    <div id="allgood" class="allgood" hidden>
+      <span class="big">🌟</span>
+      Both stories, twice each — that's <b>today</b> finished. Your parents can listen on their page.
+      Come back tomorrow and read them again.
+    </div>
+
+    <div id="stories"></div>
+
+    <div class="notice">
+      <b>How it works.</b> Each take is saved by itself the moment you stop, so read the
+      <b>whole story</b> every time — take 1 and take 2 are two separate readings, not one long one.
+      If a take goes wrong, record it again; the newest one is the one that counts.
+      <br><br>
+      This page only ever shows <b>today</b>. Tomorrow it starts at 0 / 4 and you read both stories again.
+      Yesterday's recordings are not gone — they're on your parents' page, filed under the day you made them.
+    </div>
+  </div>
+
+  <div id="signin" class="notice" hidden>
+    <b>Sign in first.</b> Open <a href="../homework.html">我的作业 · My Homework</a>, tap your name and
+    type your PIN, then come back here — the studio needs to know whose voice it's saving.
+  </div>
+
+  <footer><a href="../homework.html">← 我的作业 My Homework</a></footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+/* ===== the two stories =====
+   Text transcribed in homework-system/_Materials/Chinese/说明.md (人教旧版单篇课文,
+   not in 语文一年级上册). A third story = one more entry here; nothing else changes.
+   `id` is what the parent console groups by — keep it short, stable and ASCII. */
+const STORIES = [
+  {
+    id: 'cn-xiaosongshu-zhao-huasheng',
+    title: '《小松鼠找花生》',
+    en: 'The Little Squirrel Looks for Peanuts',
+    ic: '🥜',
+    paras: [
+      '大树旁边的地里种了许多花生。花生已经开花了，一朵朵金黄色的小花，在阳光下格外鲜艳。',
+      '小松鼠问鼹鼠：“这是什么花呀？”鼹鼠说：“这是花生的花。到了秋天，会结花生，花生可好吃啦！”小松鼠很高兴，他想：等花生结了果，我就把花生摘下来，留着冬天吃。',
+      '小松鼠每天都到地里去，看看结花生了没有。',
+      '他等啊，等啊，等到花都落光了，也没看见一个花生。',
+      '小松鼠感到很奇怪，自言自语地说：“是谁把花生摘走了呢？”'
+    ],
+    words: [
+      ['格外', 'gé wài', 'especially'], ['鲜艳', 'xiān yàn', 'bright'],
+      ['鼹鼠', 'yǎn shǔ', 'mole'], ['结', 'jiē', 'to grow fruit'],
+      ['等', 'děng', 'to wait'], ['摘', 'zhāi', 'to pick'],
+      ['留', 'liú', 'to keep'], ['感到', 'gǎn dào', 'to feel'],
+      ['奇怪', 'qí guài', 'strange']
+    ],
+    tips: [
+      '<b>Two voices to switch between.</b> The squirrel asks the question, the mole answers — make them sound a little different, then go back to your normal telling voice.',
+      '<b>他等啊，等啊</b> — say it slowly, the way waiting feels. Don\'t rush those two.',
+      '<b>Stop at 。and pause at ，</b> — breathe at the punctuation, not wherever you run out of air.',
+      '<b>The last line is a question.</b> Let your voice go up at 呢 — the squirrel really doesn\'t know.'
+    ]
+  },
+  {
+    id: 'cn-xiaobaitu-he-xiaohuitu',
+    title: '《小白兔和小灰兔》',
+    en: 'The Little White Rabbit and the Little Grey Rabbit',
+    ic: '🥬',
+    paras: [
+      '老山羊在地里收白菜，小白兔和小灰兔来帮忙。',
+      '收完白菜，老山羊把一车白菜送给小灰兔。小灰兔收下了，说：“谢谢您！”',
+      '老山羊又把一车白菜送给小白兔。小白兔说：“我不要白菜，请您给我一些菜籽吧。”老山羊送给小白兔一包菜籽。',
+      '小白兔回到家里，把地翻松了，种上菜籽。',
+      '过了几天，白菜长出来了。小白兔常常给白菜浇水，施肥，拔草，捉虫。白菜很快长大了。',
+      '小灰兔把一车白菜拉回家里。他不干活了，饿了就吃老山羊送的白菜。',
+      '过了些日子，小灰兔把白菜吃完了，又到老山羊家里去要白菜。',
+      '这时候，他看见小白兔挑着一担白菜，给老山羊送来了。小灰兔很奇怪，问道：“小白兔，你的菜是哪儿来的？”',
+      '小白兔说：“是我自己种的。只有自己种，才有吃不完的菜。”'
+    ],
+    words: [
+      ['翻松', 'fān sōng', 'to dig loose'], ['菜籽', 'cài zǐ', 'seeds'],
+      ['浇水', 'jiāo shuǐ', 'to water'], ['施肥', 'shī féi', 'to fertilise'],
+      ['拔草', 'bá cǎo', 'to pull weeds'], ['捉虫', 'zhuō chóng', 'to catch bugs'],
+      ['饿', 'è', 'hungry'], ['挑', 'tiāo', 'to carry on a pole'],
+      ['一担', 'yí dàn', 'a shoulder-pole load'], ['问道', 'wèn dào', 'asked'],
+      ['哪儿', 'nǎr', 'where']
+    ],
+    tips: [
+      '<b>This one is longer</b> — nine short paragraphs. Take a breath at the end of each one before you start the next.',
+      '<b>浇水，施肥，拔草，捉虫</b> — four jobs in a row. Say them evenly, like counting on your fingers, with a small pause at every comma.',
+      '<b>Three characters talk.</b> 老山羊 is kind and slow, 小灰兔 is quick, 小白兔 is polite — 请您 is a polite word, say it politely.',
+      '<b>The last line is the point of the story.</b> Slow right down for 只有自己种，才有吃不完的菜。'
+    ]
+  }
+];
+
+/* ===== limits ===== */
+/* A Firestore document tops out at 1 MB and base64 adds a third. 170 s at 24 kbps
+   is ~510 KB of audio → ~680 KB of base64, inside the 740000 the rules allow.
+   《小白兔和小灰兔》is the long one and still reads in about two minutes. */
+const TAKES = 2, MAX_SECS = 170, BITRATE = 24000, MAX_B64 = 700000;
+const TOTAL = STORIES.length * TAKES;
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyDMKUeccjFtMbotXulnMhYcoykWpw4Y7ls',
+  authDomain: 'family-checklist-acc6b.firebaseapp.com',
+  projectId: 'family-checklist-acc6b',
+  appId: '1:127899043154:web:5a49cce9a1913fbc41e68b'
+};
+const app = firebase.initializeApp(firebaseConfig, 'kid');
+const auth = app.auth(), db = app.firestore();
+const KIDS = {
+  grace:  { n:'Grace',  av:'👧', uid:'mbtSDgfFrOOS4xIT3eXr7pETEt33' },
+  warren: { n:'Warren', av:'👦', uid:'paACSAD0W0bBNknKrAf3GfpHy8x1' }
+};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const two = n => String(n).padStart(2,'0');
+const mmss = s => `${Math.floor(s/60)}:${two(Math.floor(s%60))}`;
+const ymd = d => `${d.getFullYear()}-${two(d.getMonth()+1)}-${two(d.getDate())}`;
+const hm  = t => new Date(t).toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit' });
+/* Both stories are read out loud EVERY day, so the four takes are counted per day:
+   a row belongs to today only if its `day` says so (older rows fall back to the
+   date `createdAt` was stamped in — same `dayOf` the BASA studio and 家长台 use). */
+const todayYmd = () => ymd(new Date());
+const dayOf = r => r.day || (r.createdAt ? ymd(new Date(r.createdAt)) : '');
+
+let ME = null;          // { key, n, av, uid }
+let MINE = [];          // this kid's recordings from TODAY only, newest first
+let SLOT = [];          // [storyIndex][takeIndex] = { state, blob, url, secs, err, local }
+let RECORDING = null;   // { s, t } while a take is live, else null
+
+/* ---------- which format this browser records ---------- */
+/* Chrome/Firefox give WebM/Opus; Safari (the iPad) gives MP4/AAC. Both play back
+   in the browser that made them; 家长台 flags which is which. */
+function pickMime(){
+  const want = ['audio/webm;codecs=opus','audio/webm','audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/aac'];
+  if(!window.MediaRecorder) return null;
+  for(const m of want) if(MediaRecorder.isTypeSupported(m)) return m;
+  return '';   // '' = let the browser choose
+}
+
+/* ---------- UI ---------- */
+function freshSlots(){
+  SLOT = STORIES.map(()=>Array.from({ length:TAKES },
+    ()=>({ state:'empty', blob:null, url:'', secs:0, err:'', local:false })));
+}
+
+function savedCount(){
+  return SLOT.reduce((n, row)=>n + row.filter(s=>s.state==='saved').length, 0);
+}
+
+function takeHtml(si, ti){
+  const st = STORIES[si], s = SLOT[si][ti], n = ti + 1;
+  const live = RECORDING && RECORDING.s === si && RECORDING.t === ti;
+  const cls = live ? ' rec' : s.state === 'saved' ? ' done' : '';
+  const stat = live ? '<span class="stat bad">● recording</span>'
+    : s.state === 'saved'    ? `<span class="stat ok">✓ saved${s.secs?` · ${mmss(s.secs)}`:''}</span>`
+    : s.state === 'saving'   ? '<span class="stat">saving…</span>'
+    : s.state === 'failed'   ? '<span class="stat bad">not saved</span>'
+    : s.state === 'recorded' ? `<span class="stat">${mmss(s.secs||0)} · not saved yet</span>`
+    : '<span class="stat">not recorded today</span>';
+
+  let body = '';
+  if(live){
+    body = `<div class="row"><span class="clock" id="clock-${si}-${ti}">0:00</span>
+      <span class="meter"><i id="meter-${si}-${ti}"></i></span>
+      <button class="btn red" data-stop="1">⏹ Stop</button></div>
+      <div class="hist">Stops by itself after ${mmss(MAX_SECS)}.</div>`;
+  } else {
+    const canRec = !RECORDING;
+    body = `<div class="row">
+      <button class="btn" data-rec="${si}-${ti}"${canRec?'':' disabled'}>${
+        s.state==='empty' ? '⏺ Record reading '+n : '⟳ Record it again'}</button>
+      ${s.url ? `<button class="btn ghost" data-dl="${si}-${ti}">⤓ Save to this device</button>` : ''}
+      ${s.state==='failed' ? `<button class="btn ghost" data-retry="${si}-${ti}">↻ Try saving again</button>` : ''}
+    </div>`;
+    if(s.url) body += `<audio controls preload="metadata" src="${s.url}"></audio>`;
+    if(s.err) body += `<div class="hist" style="color:var(--red)">${esc(s.err)}</div>`;
+    // TODAY only, by design — MINE never holds another day.
+    const mine = MINE.filter(r=>r.poemId === st.id && r.take === n);
+    if(mine.length){
+      body += `<div class="hist">${mine.length} recorded today · newest ${esc(hm(mine[0].createdAt))}
+        ${!s.url ? `<button data-play="${si}-${ti}">listen</button>` : ''}</div>`;
+    }
+  }
+  return `<div class="take${cls}"><div class="top"><span class="n">${n}</span>
+    <span class="lbl">Reading ${n}</span>${stat}</div>${body}</div>`;
+}
+
+function paint(){
+  const done = savedCount();
+  $('count').textContent = `${done} / ${TOTAL}`;
+  $('fill').style.width = (done/TOTAL*100) + '%';
+  $('allgood').hidden = done < TOTAL;
+
+  $('stories').innerHTML = STORIES.map((st, si)=>`
+    <section>
+      <div class="eyebrow">Story ${si+1} of ${STORIES.length} · read it twice</div>
+      <h2 class="st zh">${st.ic} ${esc(st.title)}</h2>
+      <div class="byline">${esc(st.en)}</div>
+
+      <div class="story zh">${st.paras.map((p,i)=>
+        `<p><span class="n">${i+1}</span>${esc(p)}</p>`).join('')}</div>
+
+      <div class="words"><div class="h">Words to say carefully</div>${
+        st.words.map(w=>`<span><b class="zh">${esc(w[0])}</b> ${esc(w[1])}<i>· ${esc(w[2])}</i></span>`).join('')}</div>
+
+      <div class="tips"><b>Before you press record</b><ul>${
+        st.tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>
+
+      ${Array.from({ length:TAKES }, (_, ti)=>takeHtml(si, ti)).join('')}
+    </section>`).join('');
+
+  const pair = v => v.split('-').map(Number);
+  $('stories').querySelectorAll('[data-rec]').forEach(b=>
+    b.addEventListener('click', ()=>start.apply(null, pair(b.dataset.rec))));
+  $('stories').querySelectorAll('[data-stop]').forEach(b=>b.addEventListener('click', stop));
+  $('stories').querySelectorAll('[data-dl]').forEach(b=>
+    b.addEventListener('click', ()=>download.apply(null, pair(b.dataset.dl))));
+  $('stories').querySelectorAll('[data-retry]').forEach(b=>
+    b.addEventListener('click', ()=>save.apply(null, pair(b.dataset.retry))));
+  $('stories').querySelectorAll('[data-play]').forEach(b=>
+    b.addEventListener('click', ()=>playSaved.apply(null, pair(b.dataset.play))));
+}
+
+/* ---------- recording ---------- */
+let mediaStream = null, rec = null, chunks = [], startedAt = 0, tick = null, audioCtx = null, rafId = 0;
+
+async function start(si, ti){
+  if(RECORDING) return;
+  const s = SLOT[si][ti];
+  if(!window.MediaRecorder || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    s.err = 'This browser can’t record. Ask a parent to open this page in Safari or Chrome.';
+    paint(); return;
+  }
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true } });
+  } catch(e){
+    s.err = e && e.name === 'NotAllowedError'
+      ? 'The microphone is blocked. Tap the little icon in the address bar, allow the microphone, then try again.'
+      : 'No microphone found. Check that one is plugged in, then try again.';
+    paint(); return;
+  }
+  const mime = pickMime();
+  try { rec = new MediaRecorder(mediaStream, Object.assign({ audioBitsPerSecond: BITRATE }, mime ? { mimeType:mime } : {})); }
+  catch(e){ rec = new MediaRecorder(mediaStream); }
+
+  chunks = [];
+  rec.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
+  rec.onstop = () => finish(si, ti);
+  rec.start();
+  RECORDING = { s:si, t:ti }; startedAt = Date.now();
+  // Keep whatever was played back in this slot (url/local) so stopping mid-way
+  // never strands an object URL — finish() revokes it if it was ours.
+  SLOT[si][ti] = Object.assign({}, s, { state:'empty', blob:null, secs:0, err:'' });
+  paint();
+  meter(si, ti);
+  tick = setInterval(()=>{
+    const secs = (Date.now()-startedAt)/1000;
+    const c = $(`clock-${si}-${ti}`); if(c) c.textContent = mmss(secs);
+    if(secs >= MAX_SECS) stop();
+  }, 200);
+}
+
+function meter(si, ti){
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = audioCtx.createMediaStreamSource(mediaStream);
+    const an = audioCtx.createAnalyser(); an.fftSize = 512;
+    src.connect(an);
+    const buf = new Uint8Array(an.fftSize);
+    const draw = () => {
+      if(!RECORDING) return;
+      an.getByteTimeDomainData(buf);
+      let peak = 0;
+      for(let i=0;i<buf.length;i++) peak = Math.max(peak, Math.abs(buf[i]-128));
+      const el = $(`meter-${si}-${ti}`);
+      if(el) el.style.width = Math.min(100, Math.round(peak/128*160)) + '%';
+      rafId = requestAnimationFrame(draw);
+    };
+    draw();
+  } catch(e){ /* the level meter is a nicety; never let it stop a recording */ }
+}
+
+function stop(){
+  if(!RECORDING || !rec) return;
+  clearInterval(tick); tick = null;
+  cancelAnimationFrame(rafId);
+  try { rec.stop(); } catch(e){ /* already stopped */ }
+}
+
+function finish(si, ti){
+  const secs = Math.round((Date.now()-startedAt)/1000);
+  const type = (rec && rec.mimeType) || (chunks[0] && chunks[0].type) || 'audio/webm';
+  const blob = new Blob(chunks, { type });
+  RECORDING = null;
+  if(mediaStream){ mediaStream.getTracks().forEach(t=>t.stop()); mediaStream = null; }
+  if(audioCtx){ try{ audioCtx.close(); }catch(e){} audioCtx = null; }
+  const old = SLOT[si][ti];
+  if(old.url && old.local) URL.revokeObjectURL(old.url);
+  SLOT[si][ti] = { state:'recorded', blob, url:URL.createObjectURL(blob), local:true, secs, err:'' };
+  paint();
+  save(si, ti);
+}
+
+/* ---------- saving ---------- */
+function toB64(blob){
+  return new Promise((ok, no)=>{
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result).split(',')[1] || '');
+    r.onerror = () => no(new Error('read failed'));
+    r.readAsDataURL(blob);
+  });
+}
+
+async function save(si, ti){
+  const s = SLOT[si][ti], st = STORIES[si], n = ti + 1;
+  if(!s || !s.blob) return;
+  s.state = 'saving'; s.err = ''; paint();
+  try {
+    const audio = await toB64(s.blob);
+    if(audio.length > MAX_B64) throw new Error('too long');
+    const id = `${ME.key}_${st.id}_t${n}_${Date.now()}`;
+    const mime = s.blob.type || 'audio/webm';
+    const day = todayYmd(), createdAt = Date.now();
+    // One batch: the row and its audio arrive together or not at all, so 家长台
+    // never lists a take it can't play.
+    const batch = db.batch();
+    batch.set(db.collection('recordings').doc(id), {
+      kidId: ME.uid, poemId: st.id, poemTitle: st.title, poemAuthor: st.en,
+      take: n, mime, secs: s.secs, bytes: s.blob.size, createdAt, day
+    });
+    batch.set(db.collection('recordingAudio').doc(id), { kidId: ME.uid, audio });
+    await batch.commit();
+    s.state = 'saved';
+    MINE.unshift({ id, poemId: st.id, take:n, secs:s.secs, mime, createdAt, day });
+  } catch(e){
+    console.error(e);
+    s.state = 'failed';
+    s.err = e && e.message === 'too long'
+      ? 'That reading is too long to save. Read it again a little quicker, or ask a parent.'
+      : 'Couldn’t save it — check the Wi-Fi, then tap “Try saving again”. Your recording is still here, so don’t close the page.';
+  }
+  paint();
+}
+
+function download(si, ti){
+  const s = SLOT[si][ti];
+  if(!s || !s.url) return;
+  const ext = /mp4|aac/.test((s.blob && s.blob.type) || '') ? 'm4a' : 'webm';
+  const a = document.createElement('a');
+  a.href = s.url; a.download = `${STORIES[si].id}-reading${ti+1}.${ext}`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* Listening to one already saved: the audio document is fetched only when asked —
+   that's the whole reason it lives apart from the row. Today's only, like everything here. */
+async function playSaved(si, ti){
+  const st = STORIES[si], s = SLOT[si][ti];
+  const r = MINE.find(x=>x.poemId === st.id && x.take === ti + 1);
+  if(!r) return;
+  s.err = ''; s.state = 'saved'; paint();
+  try {
+    const snap = await db.collection('recordingAudio').doc(r.id).get();
+    const d = Object.assign({ mime:r.mime, secs:r.secs }, snap.data() || {});
+    if(!d.audio) throw new Error('gone');
+    if(s.url && s.local) URL.revokeObjectURL(s.url);
+    SLOT[si][ti] = Object.assign({}, s, {
+      url:`data:${d.mime || 'audio/webm'};base64,${d.audio}`, local:false, secs:d.secs||0 });
+  } catch(e){ console.error(e); SLOT[si][ti].err = 'Couldn’t load that one.'; }
+  paint();
+}
+
+/* ---------- start-up ---------- */
+/* Only TODAY's rows are loaded. Yesterday's stay in Firestore for 家长台; this page
+   deliberately doesn't show them, so whatever is on screen was recorded today. */
+async function loadMine(){
+  MINE = [];
+  try {
+    const td = todayYmd(), ids = STORIES.map(s=>s.id);
+    const snap = await db.collection('recordings').where('kidId','==',ME.uid).get();
+    MINE = snap.docs.map(d=>Object.assign({ id:d.id }, d.data()))
+      .filter(r=>ids.indexOf(r.poemId) >= 0 && dayOf(r) === td)
+      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  } catch(e){ console.warn('[recordings]', e.code||e); }
+  MINE.forEach(r=>{
+    const si = STORIES.findIndex(s=>s.id === r.poemId), ti = r.take - 1;
+    if(si < 0 || ti < 0 || ti >= TAKES) return;
+    const s = SLOT[si][ti];
+    if(s && s.state === 'empty'){ s.state = 'saved'; s.secs = r.secs || 0; }
+  });
+}
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){ $('who').textContent = 'Nobody is signed in yet.'; $('app').hidden = true; $('signin').hidden = false; return; }
+  const key = Object.keys(KIDS).find(k=>KIDS[k].uid === user.uid);
+  if(!key){ $('who').textContent = 'This sign-in isn’t Grace’s or Warren’s.'; $('signin').hidden = false; return; }
+  ME = Object.assign({ key }, KIDS[key]);
+  $('who').innerHTML = `${ME.av} <b>${esc(ME.n)}</b> — this is your voice being saved. <a href="../homework.html">Not you?</a>`;
+  $('signin').hidden = true; $('app').hidden = false;
+  freshSlots(); paint();
+  await loadMine();
+  paint();
+});
+
+// Leaving mid-recording would lose the take; stop it cleanly instead.
+window.addEventListener('pagehide', ()=>{ if(RECORDING) stop(); });
+window.addEventListener('beforeunload', e=>{
+  const unsaved = SLOT.some(row=>row.some(s=>s && (s.state === 'failed' || s.state === 'recorded')));
+  if(RECORDING || unsaved){ e.preventDefault(); e.returnValue = ''; }
+});
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
