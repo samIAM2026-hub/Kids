@@ -285,6 +285,11 @@
   tbody tr.arch{opacity:.5}
   tbody tr.arch:hover{opacity:.85}
   .b-arch{background:rgba(147,162,189,.13);color:var(--mute);border:1px solid var(--line)}
+  .b-sug{background:rgba(201,162,77,.14);color:var(--gold);border:1px solid var(--gold2)}
+  .sugbox{margin:10px 0;padding:10px 12px;border:1px solid var(--gold2);border-radius:8px;background:rgba(201,162,77,.07);font-size:13px;line-height:1.6}
+  .sugbox .suglist{display:flex;flex-wrap:wrap;gap:4px 14px;margin:6px 0 8px}
+  .sugbox .suglist i{color:var(--mute);font-style:normal;font-size:11px}
+  .sugbox .fchip{margin-right:6px}
   .archnote{font-size:11.5px;color:var(--mute);margin-top:-6px;margin-bottom:10px}
   /* 每行的归档开关：安静地待在类型下面，点一下就归档 / 放回来 */
   .archbtn,.linkedit{font:inherit;font-size:10.5px;font-weight:600;color:var(--mute);background:none;
@@ -972,9 +977,9 @@ async function loadAll(){
   sortBank();
   ATT = attSnap.docs.map(toAtt).filter(Boolean);
   buildEst();   // 用时估算要等题库和成绩都到齐才算得出来
-  // 完成的派件自动收进归档（Sam 2026-09-20）。写不成也只是没收起来，页面照常用。
-  try { await autoArchiveDone(); }
-  catch(e){ console.error(e); toast('自动归档没写成：' + (e.code||e.message) + '，题库没变', true); }
+  // 做完的派件只「建议归档」，不自己收（Sam 2026-09-22：我不点归档，就别动）
+  const n = archiveSuggestions().length;
+  if(n) toast(`有 ${n} 份派件都做完了，建议归档 —— 去「题库」最上面看，点了才收`);
 }
 
 const attFor = id => ATT.filter(a => a.id===id);   // ATT is already newest-first
@@ -1557,10 +1562,10 @@ function archCell(b){
                b.archivedWhy || ''].filter(Boolean).join(' · ');
   return b.archived
     ? `<span class="badge b-arch"${why?` title="${esc(why)}"`:''}>已归档</span>
-       <button class="archbtn" data-arch="${esc(b.docId)}" data-to="0" title="放回在用列表（放回之后不会再被自动归档，除非又做了一遍）">放回</button>`
-    : `<button class="archbtn" data-arch="${esc(b.docId)}" data-to="1" title="从默认列表里收起来，不删文件、不动成绩">归档</button>
+       <button class="archbtn" data-arch="${esc(b.docId)}" data-to="0" title="放回在用列表（放回之后不会再建议归档，除非又做了一遍）">放回</button>`
+    : `${SUG.has(b.docId)?`<span class="badge b-sug" title="派出去都做完了（完成 ${ymd(SUG.get(b.docId))}），建议归档。不点就不动">建议归档</span> `:''}<button class="archbtn" data-arch="${esc(b.docId)}" data-to="1" title="从默认列表里收起来，不删文件、不动成绩">归档</button>
        <button class="archbtn keep${b.keep?' on':''}" data-keep="${esc(b.docId)}" data-to="${b.keep?'0':'1'}"
-               title="${b.keep?'已钉住：做完也不会自动归档。点一下取消':'钉住：常年重复派的，做完也不自动归档'}">📌${b.keep?' 钉住':''}</button>`;
+               title="${b.keep?'已钉住：做完也不提示归档。点一下取消':'钉住：常年重复派的，做完也不提示归档'}">📌${b.keep?' 钉住':''}</button>`;
 }
 
 // 归档 = 从默认题库列表里收起来。文件留着、历史成绩照样指得到、归档的还能派作业（§三之二）。
@@ -1574,7 +1579,7 @@ async function setArchived(ids, on){
     // 手动归档的也顺手记一笔完成日期（算得出来才记），归档列表里两个日期就是一套的
     ? Object.assign({ archived:true, archivedOn: t, archivedWhy: '家长手动归档' },
                     doneDate(BANK_BY_ID[id]) ? { doneOn: doneDate(BANK_BY_ID[id]) } : {})
-    // 放回 = 「我还要用它」。记下放回的日子：在那之后没有新的完成，就不会被自动归档再收回去。
+    // 放回 = 「我还要用它」。记下放回的日子：在那之后没有新的完成，就不会再建议归档。
     : { archived:false, archivedOn: del, archivedWhy: del, doneOn: del, reopenedOn: t }, { merge:true }));
   await batch.commit();
   // BANK 和 BANK_BY_ID 指的是同一批对象，改一处两边都跟上，不用重新拉一次题库
@@ -1586,7 +1591,7 @@ async function setArchived(ids, on){
   });
 }
 
-// 📌 钉住 = 常年要重复派的那几份（作文本、打字游戏、每周的复习页），做完也不自动归档。
+// 📌 钉住 = 常年要重复派的那几份（作文本、打字游戏、每周的复习页），做完也不提示归档。
 async function setKeep(id, on){
   const del = firebase.firestore.FieldValue.delete();
   await db.collection('bank').doc(id).set({ keep: on ? true : del }, { merge:true });
@@ -1594,8 +1599,10 @@ async function setKeep(id, on){
   if(b){ if(on) b.keep = true; else delete b.keep; }
 }
 
-/* ===================== 完成即归档 (Sam 2026-09-20) =====================
-   「只要派件完成的作业就归档，然后写归档日期和完成日期」。家长台每次读完数据就跑一遍，不用点。
+/* ===================== 完成建议归档 (Sam 2026-09-20，09-22 改成只建议) =====================
+   09-20：「只要派件完成的作业就归档，然后写归档日期和完成日期」。
+   09-22 改口：「布置完毕给我个建议是否归档；我不归档，就不要自动归档」——
+   现在只算出建议、列在题库最上面，家长点「全部归档」或单行「归档」才写。
    完成的口径（Sam 定的）：
    · 派出去、孩子交了卷就算完成 —— 不看分数高低；练习页 / 参考页回传的「完成」也算；
    · 但 quiz 得真交出点东西来（realTry）：判了分、练习游戏跑完一轮、或者写作台交了一篇。
@@ -1609,7 +1616,8 @@ async function setKeep(id, on){
    · 今天或以后还排在派单上的，一份都不收（scheduled）—— 免得上午刚派、孩子做完，下午就找不着了，
      也免得下周要做的东西今天就从「在用」里消失（Grace 的 Class Vocab 一次派到周五）；
    · 「放回在用」写下 reopenedOn，在那之后没有新的完成就不会再被收回去；
-   · 行上那颗 📌 钉住的，做完也不自动归档。 */
+   · 行上那颗 📌 钉住的，做完也不提示归档；
+   · 点过「先不归档，别再提示」的（sugOffOn），完成日期没变晚就不再提。 */
 // 这条记录算不算「真交了」：判了分 / 练习游戏跑完一轮（firstTry 是个数）/ 写作台交了一篇。
 // ref 和自定义链接没有分数可言（孩子自己点「✓ I'm done」），有记录就算，不走这道闸。
 const realTry = a => a.pct!=null || (a.practice && a.practice.firstTry!=null) || a.handin;
@@ -1637,25 +1645,43 @@ function doneDate(b){
   return out;
 }
 
-async function autoArchiveDone(){
-  const t = iso(today), todo = [];
+// 建议归档的那几份：[[b, 完成日期], …]。只算，不写 —— 归不归档由家长点（Sam 2026-09-22）。
+function archiveSuggestions(){
+  const out = [];
   BANK.forEach(b=>{
     if(b.archived || b.keep) return;
-    if(scheduled(b.docId)) return;                      // 今天或以后还排着 → 先不收
-    const d = doneDate(b);                              // 放回之后没有新完成的，这里就返回 ''
-    if(!d) return;
-    todo.push([b, d]);
+    if(scheduled(b.docId)) return;                      // 今天或以后还排着 → 先不提
+    // 点过「先不归档」的，只认那天之后的新成绩（和「放回」一个算法，门槛挪到 sugOffOn 的第二天）
+    let bb = b;
+    if(b.sugOffOn){
+      const next = new Date(b.sugOffOn + 'T12:00'); next.setDate(next.getDate() + 1);
+      if(iso(next) > (b.reopenedOn||'')) bb = Object.assign({}, b, { reopenedOn: iso(next) });
+    }
+    const d = doneDate(bb);                             // 放回 / 先不归档之后没有新完成的，这里就返回 ''
+    if(d) out.push([b, d]);
   });
-  if(!todo.length) return;
-  for(let i=0; i<todo.length; i+=400){                  // Firestore 一批最多 500 个写
-    const batch = db.batch();
-    todo.slice(i, i+400).forEach(([b, d]) => batch.set(db.collection('bank').doc(b.docId),
-      { archived:true, archivedOn:t, doneOn:d, archivedWhy:'派件完成自动归档' }, { merge:true }));
-    await batch.commit();
-  }
-  todo.forEach(([b, d]) => Object.assign(b, { archived:true, archivedOn:t, doneOn:d, archivedWhy:'派件完成自动归档' }));
-  const names = todo.slice(0,3).map(([b]) => b.t).join('、');
-  toast(`做完的派件自动归档 ${todo.length} 份：${names}${todo.length>3?' 等':''} —— 在「归档」里，点「放回」能拿回来`);
+  return out;
+}
+// 「先不归档」= 这一批这次不收，也别再提；记 sugOffOn = 今天。之后「完成日期」变得比它晚
+// （放回后又做了一遍）才会再提。只写这一个字段，归档状态一点不动。
+async function dismissSuggestions(ids){
+  const t = iso(today), batch = db.batch();
+  ids.forEach(id => batch.set(db.collection('bank').doc(id), { sugOffOn: t }, { merge:true }));
+  await batch.commit();
+  ids.forEach(id => { const b = BANK_BY_ID[id]; if(b) b.sugOffOn = t; });
+}
+// 题库最上面那条「建议归档」：列出来，家长点了才动。
+let SUG = new Map();
+function sugBox(){
+  const list = archiveSuggestions();
+  SUG = new Map(list.map(([b, d]) => [b.docId, d]));
+  if(!list.length) return '';
+  const ids = list.map(([b]) => b.docId).join(' ');
+  return `<div class="sugbox"><b>建议归档 ${list.length} 份</b> —— 派出去的都做完了（行上标着 <span class="badge b-sug">建议归档</span>）。不点就不动。
+    <div class="suglist">${list.map(([b, d]) => `<span>${esc(b.ic||'')} ${esc(b.t)} <i>完成 ${ymd(d)}</i></span>`).join('')}</div>
+    <button class="fchip on" data-sug="1" data-ids="${esc(ids)}">全部归档</button>
+    <button class="fchip" data-sug="0" data-ids="${esc(ids)}" title="这一批不收，也不再提示；哪份又做了一遍才会再提">先不归档，别再提示</button>
+    <span class="crumb">只想收其中几份：点那几行的「归档」就行</span></div>`;
 }
 
 // One bank row. withPlace: also say which subject / book it sits in (the by-time list has no groups).
@@ -1845,11 +1871,12 @@ function viewBank(){
       外站那边判不了分，所以孩子在作业页上自己点「✓ I'm done」，这边显示「✓ 完成」。</p>
       <p>归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。
       每行类型下面有 <b>归档</b> 按钮，点一下就收起来；要一次收一批，就勾选后用底部那条的 <b>归档</b>。归档过的按 <b>放回</b> 回到在用列表。</p>
-      <p><b>派出去做完的会自己归档</b>：派给谁就要谁交卷，两个孩子都派过的要<b>两个都交了</b>才收；
+      <p><b>派出去做完的会<u>建议</u>归档，不会自己收</b>（点了才归档）：派给谁就要谁交卷，两个孩子都派过的要<b>两个都交了</b>才收；
       有题的卷子要真做出个分数才算完成（光打开看看不算），参考页和自定义链接点了「✓ I'm done」就算；
-      撤回的不算，<b>今天或以后还排在派单上的一份都不收</b>。归档那行写着 <b>完成 X 月 X 日 · 归档 X 月 X 日</b>。
-      点 <b>放回</b> 就拿回在用列表，而且放回之后不会再被自动收走 —— 除非又做了一遍。
-      常年要重复派的（作文本、打字游戏那种），点行上那颗 <b>📌</b> 钉住，做完也不自动归档。</p>`)}</h2>
+      撤回的不算，<b>今天或以后还排在派单上的一份都不提</b>。建议的那几份列在最上面，点「全部归档」或者单行的「归档」才收；
+      点「先不归档，别再提示」就留在在用里，除非又做了一遍才会再提。归档那行写着 <b>完成 X 月 X 日 · 归档 X 月 X 日</b>。
+      点 <b>放回</b> 就拿回在用列表，放回之后也不会再提 —— 除非又做了一遍。
+      常年要重复派的（作文本、打字游戏那种），点行上那颗 <b>📌</b> 钉住，做完也不提示归档。</p>`)}</h2>
     ${kidTabs()}
     <div class="seclead groupbar slim">${rows.length} 条<span class="sep">·</span>
       ${[['arch',[['active','在用'],['archived','归档']]],
@@ -1860,7 +1887,7 @@ function viewBank(){
       <button class="fchip" data-act="newlink" title="题库里没有的东西：别的网站上的课、读书会">＋ 自定义链接</button>
       ${F.sort==='time'?'':`<button class="fchip icon" data-act="expand" title="全部展开" aria-label="全部展开"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg><span class="txt">全部展开</span></button>
       <button class="fchip icon" data-act="collapse" title="全部收起" aria-label="全部收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg><span class="txt">全部收起</span></button>`}</div>`;
-  html += linkForm();
+  html += sugBox() + linkForm();
   if(!rows.length) return html + `<p class="empty">没有匹配的内容。</p>`;
 
   if(F.sort==='time'){
@@ -3274,7 +3301,7 @@ function render(){
       btn.disabled = true;
       try {
         await setKeep(id, on);
-        toast(on ? `已钉住「${b?b.t:''}」，做完也不自动归档` : `取消钉住「${b?b.t:''}」，做完会自动归档`);
+        toast(on ? `已钉住「${b?b.t:''}」，做完也不提示归档` : `取消钉住「${b?b.t:''}」，做完会提示归档`);
         render();
       } catch(e){
         console.error(e); btn.disabled = false;
@@ -3291,6 +3318,18 @@ function render(){
       } catch(e){
         console.error(e); btn.disabled = false;
         toast('归档没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
+      }
+    }));
+    viewEl.querySelectorAll('button[data-sug]').forEach(btn=>btn.addEventListener('click', async ()=>{
+      const ids = btn.dataset.ids.split(' ').filter(Boolean), on = btn.dataset.sug==='1';
+      viewEl.querySelectorAll('button[data-sug]').forEach(x=>x.disabled = true);
+      try {
+        if(on){ await setArchived(ids, true); toast(`已归档 ${ids.length} 份 —— 在「归档」里，点「放回」能拿回来`); }
+        else { await dismissSuggestions(ids); toast(`这 ${ids.length} 份先不归档，也不再提示`); }
+        render();
+      } catch(e){
+        console.error(e); viewEl.querySelectorAll('button[data-sug]').forEach(x=>x.disabled = false);
+        toast('没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
       }
     }));
     viewEl.querySelectorAll('input.selall').forEach(cb=>cb.addEventListener('change',()=>{
