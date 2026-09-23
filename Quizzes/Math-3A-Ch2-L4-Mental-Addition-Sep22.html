@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3A Lesson 4 &mdash; Mental Addition</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #f3effa 55%, #e6def5 100%);
+    min-height: 100vh; color: #1f1a2e; padding: 22px 14px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header { background: #5b3f99; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f7f3ff; box-shadow: 0 8px 0 #3d2a6b; margin-bottom: 14px; position: relative; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+  .sound { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.35);
+    color: #fff; border-radius: 99px; width: 40px; height: 40px; font-size: 18px; cursor: pointer; }
+
+  .nav { position: sticky; top: 0; z-index: 30; background: rgba(255,253,247,.95); backdrop-filter: blur(4px); border-radius: 12px; padding: 8px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(61,42,107,.12); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav a { text-decoration: none; font-size: 13.5px; font-weight: bold; color: #3d2a6b; background: #ece6f7; border-radius: 99px; padding: 6px 13px; }
+
+  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 6px 0 #d9d0ec; margin-bottom: 16px; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16.5px; line-height: 1.6; }
+  .intro p + p { margin-top: 8px; }
+  .hidden { display: none !important; }
+
+  .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .badge { background: #f3f1f6; border: 3px dashed #cfc6e0; border-radius: 14px; padding: 8px 12px; text-align: center;
+    font-size: 13px; font-weight: bold; color: #a39bb5; min-width: 98px; transition: .25s; }
+  .badge .bi { display: block; font-size: 24px; filter: grayscale(1); opacity: .45; }
+  .badge.on { background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; transform: scale(1.04); }
+  .badge.on .bi { filter: none; opacity: 1; }
+
+  h2.sect { font-size: 20px; color: #3d2a6b; margin: 30px 0 12px; text-align: center; scroll-margin-top: 70px; }
+  h2.sect span { background: #ece6f7; border-radius: 99px; padding: 5px 16px; display: inline-block; }
+  p.body { font-size: 16.5px; line-height: 1.6; color: #3a3350; }
+  p.body + p.body { margin-top: 8px; }
+
+  .btn { background: #5b3f99; color: #fff; border: none; border-radius: 12px; padding: 11px 20px; font-size: 15.5px; font-family: inherit; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #3d2a6b; margin: 4px; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #3d2a6b; }
+  .btn.amber { background: #c9761d; box-shadow: 0 5px 0 #8f5211; }
+  .btn.green { background: #3a7d44; box-shadow: 0 5px 0 #23572c; }
+  .btn.ghost { background: #fff; color: #5d5670; box-shadow: 0 4px 0 #e2dcef; border: 2px solid #e2dcef; }
+  .btn.sm { padding: 8px 14px; font-size: 14px; }
+  .center { text-align: center; }
+
+  .fb { text-align: center; font-size: 16px; font-weight: bold; min-height: 26px; margin-top: 10px; line-height: 1.55; color: #5d5670; }
+  .fb.ok { color: #3a7d44; }
+  .fb.no { color: #c0392b; }
+  .won { display: none; background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; border-radius: 12px; padding: 13px 15px; margin-top: 12px; font-size: 16px; line-height: 1.6; }
+  .won.show { display: block; }
+  .won .lbl, .trap .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; margin-bottom: 4px; }
+  .trap { background: #fbeaea; border: 3px solid #e2a49c; border-radius: 12px; padding: 12px 14px; font-size: 15.5px; line-height: 1.6; margin-top: 10px; color: #7d2b21; }
+  .trap .lbl { color: #a5352a; }
+
+  .gbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .gbar .round { font-size: 13px; font-weight: bold; color: #5d5670; font-family: 'Courier New', monospace; letter-spacing: .5px; }
+  .gbar .stars { font-size: 18px; letter-spacing: 2px; }
+  .target { background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 11px 14px; text-align: center; font-size: 17px; line-height: 1.5; }
+
+  /* ---------- column addition ---------- */
+  .colbox { display: flex; justify-content: center; margin: 14px 0 6px; }
+  .colw { display: inline-grid; gap: 4px 5px; font-family: 'Courier New', monospace; font-weight: bold; font-size: 27px; color: #1f1a2e; align-items: center; justify-items: center; }
+  .colw .c { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+  .colw .cs { height: 32px; }
+  .colw .op { color: #5b3f99; }
+  .colw .line { grid-column: 1 / -1; width: 100%; border-top: 3px solid #1f1a2e; height: 0; }
+  .colw .hi { background: #fff1c9; }
+  .colw .claim { color: #7d2b21; }
+  .colw .cc { font-size: 17px; color: #c9761d; }
+  .colw input { font-family: inherit; font-weight: bold; text-align: center; border-radius: 8px; outline: none; color: #1f1a2e; background: #fbfaff; }
+  .colw input.dg { width: 44px; height: 48px; font-size: 26px; border: 3px solid #cbbfe6; }
+  .colw input.cy { width: 30px; height: 30px; font-size: 16px; border: 2px dashed #e0b064; color: #c9761d; background: #fffaf0; }
+  .colw input:focus { border-color: #5b3f99; box-shadow: 0 0 0 3px #e3dbf6; }
+  .colw input.good { border-color: #3a7d44; background: #e8f5e6; border-style: solid; }
+  .colw input.bad { border-color: #c0392b; background: #fbeaea; border-style: solid; }
+  .colhint { text-align: center; font-size: 13px; color: #8a829c; margin-top: 2px; }
+  .peek { background: #fff; color: #5d5670; border: 2px solid #e2dcef; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-family: inherit; font-weight: bold; cursor: pointer; margin-top: 10px; }
+  .how { background: #f6f3fc; border-left: 5px solid #8f78c9; border-radius: 8px; padding: 10px 13px; margin-top: 8px; font-size: 15.5px; line-height: 1.7; }
+
+  /* ---------- place-value chart ---------- */
+  .watch { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; align-items: flex-start; margin-top: 12px; }
+  table.pv { border-collapse: collapse; font-size: 13px; }
+  table.pv th { padding: 4px 6px; font-size: 12px; color: #fff; }
+  table.pv th.t { background: #2a9d8f; } table.pv th.h { background: #8f78c9; } table.pv th.te { background: #e67e22; } table.pv th.o { background: #e8508a; }
+  table.pv td { border: 2px solid #e2dcef; width: 74px; height: 58px; vertical-align: middle; text-align: center; padding: 3px; }
+  table.pv td.lab { width: auto; border: none; font-family: 'Courier New', monospace; font-weight: bold; font-size: 15px; padding-right: 8px; text-align: right; }
+  table.pv tr.sum td { background: #fbfaff; border-top: 3px solid #1f1a2e; }
+  table.pv td.hi { background: #fff1c9; }
+  .chips { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; }
+  .chip { width: 17px; height: 17px; border-radius: 50%; display: inline-block; }
+  .chip.t { background: #2a9d8f; } .chip.h { background: #8f78c9; } .chip.te { background: #e67e22; } .chip.o { background: #e8508a; }
+  .chip.new { outline: 3px dashed #c9761d; outline-offset: 1px; }
+  .prompt { background: #f6f3fc; border-radius: 12px; padding: 14px; margin-top: 14px; text-align: center; font-size: 17px; line-height: 1.9; }
+  .prompt input, .ansrow input { width: 78px; height: 42px; font-size: 22px; font-family: 'Courier New', monospace; font-weight: bold; text-align: center; border: 3px solid #cbbfe6; border-radius: 10px; margin: 0 4px; }
+  .prompt input.sm { width: 50px; }
+
+  /* ---------- spot the mistake ---------- */
+  .notebook { background: #fffdf2; border: 2px solid #eadfb8; border-radius: 12px; padding: 10px 14px; text-align: center; margin-top: 10px; }
+  .notebook .who { font-size: 16px; line-height: 1.5; }
+  .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .choice { background: #f6f3fc; border: 3px solid #e2dcef; border-radius: 12px; padding: 11px 14px; font-size: 16px; font-family: inherit; text-align: left; cursor: pointer; color: #1f1a2e; }
+  .choice:hover { border-color: #8f78c9; }
+  .choice.good { background: #e8f5e6; border-color: #3a7d44; }
+  .choice.bad { background: #fbeaea; border-color: #c0392b; }
+  .yn { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+
+  /* ---------- test ---------- */
+  .qbar { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: bold; font-size: 15px; color: #3d2a6b; }
+  .qbar .time { font-family: 'Courier New', monospace; font-size: 18px; }
+  .qbar .time.low { color: #c0392b; }
+  .progress { height: 10px; background: #ece6f7; border-radius: 99px; margin: 10px 0 16px; overflow: hidden; }
+  .progress i { display: block; height: 100%; background: #8f78c9; width: 0; transition: width .3s; }
+  .qtext { font-size: 19px; line-height: 1.5; text-align: center; font-weight: bold; }
+  .qtag { display: inline-block; background: #5b3f99; color: #fff; font-size: 12px; font-weight: bold; border-radius: 99px; padding: 3px 12px; margin-bottom: 8px; }
+  .ansrow { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; flex-wrap: wrap; }
+  .ansrow input { width: 130px; height: 50px; font-size: 26px; }
+  .ansrow input.good { border-color: #3a7d44; background: #e8f5e6; }
+  .ansrow input.bad { border-color: #c0392b; background: #fbeaea; }
+  .explain { margin-top: 12px; }
+  .res-top { text-align: center; }
+  .res-top .stars { font-size: 34px; letter-spacing: 4px; }
+  .res-top .pct { font-size: 48px; font-weight: bold; color: #3d2a6b; }
+  .res-top .sub { color: #5d5670; font-size: 15px; margin-top: 4px; }
+  .res-top .verdict { font-size: 22px; font-weight: bold; margin-top: 8px; }
+  .verdict.pass { color: #3a7d44; } .verdict.fail { color: #c0392b; }
+  .miss { border: 3px solid #f0d2cc; border-radius: 12px; padding: 12px 14px; margin-top: 12px; background: #fffafa; }
+  .miss .mh { font-weight: bold; font-size: 16px; }
+  .miss .mh .you { color: #c0392b; } .miss .mh .right { color: #3a7d44; }
+  h3.rv { color: #3d2a6b; margin-top: 22px; text-align: center; font-size: 18px; }
+
+  .confetti { position: fixed; top: -12px; width: 9px; height: 14px; z-index: 99; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(105vh) rotate(720deg); } }
+  .pop { animation: popin .3s ease-out; }
+  @keyframes popin { 0% { transform: scale(.7) } 60% { transform: scale(1.12) } 100% { transform: scale(1) } }
+
+  .foot { text-align: center; margin-top: 26px; font-size: 13px; color: #8a829c; }
+  .foot a { color: #5b3f99; }
+  @media (max-width: 480px) {
+    .colw { font-size: 22px; }
+    .colw .c, .colw input.dg { width: 38px; }
+    table.pv td { width: 56px; }
+  }
+  table.pv td .none { font-size: 13px; color: #8a829c; font-style: italic; }
+  /* ---------- number bonds + mental working ---------- */
+  .mrow { display: flex; gap: 18px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .bond { position: relative; width: 180px; height: 136px; flex: none; }
+  .bond svg { position: absolute; left: 0; top: 0; }
+  .bc { position: absolute; width: 58px; height: 58px; border-radius: 50%; border: 3px solid #8f78c9; background: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: 'Courier New', monospace; font-size: 20px; color: #1f1a2e; }
+  .bc.w { left: 2px; top: 39px; border-color: #5b3f99; background: #f6f3fc; }
+  .bc.t { left: 118px; top: 0; }
+  .bc.b { left: 118px; top: 78px; }
+  .bc.q { color: #a39bb5; }
+  .bc input.mi { width: 46px; height: 38px; font-size: 18px; padding: 0; border-width: 2px; }
+  .mlines { font-family: 'Courier New', monospace; font-weight: bold; font-size: 20px; line-height: 2.4; color: #1f1a2e; }
+  .mlines .done { color: #3a7d44; }
+  input.mi { width: 78px; height: 42px; font-size: 21px; font-family: 'Courier New', monospace; font-weight: bold; text-align: center;
+    border: 3px solid #cbbfe6; border-radius: 10px; background: #fbfaff; color: #1f1a2e; outline: none; }
+  input.mi:focus { border-color: #5b3f99; box-shadow: 0 0 0 3px #e3dbf6; }
+  input.mi.good { border-color: #3a7d44; background: #e8f5e6; }
+  input.mi.bad { border-color: #c0392b; background: #fbeaea; }
+  .echo { display: inline-block; min-width: 58px; border-bottom: 2px solid #cbbfe6; text-align: center; color: #5b3f99; line-height: 1.4; }
+  .sub-h { font-size: 16px; font-weight: bold; color: #3d2a6b; margin-bottom: 6px; }
+  .exname { text-align: center; font-size: 17px; font-weight: bold; color: #3d2a6b; margin-top: 4px; }
+  table.pv td.over { background: #fbeaea; color: #c0392b; }
+  table.pv td.num { font-size: 24px; font-weight: 700; font-family: 'Courier New', monospace; }
+  .claim { color: #7d2b21; }
+  @media (max-width: 480px) {
+    .mlines { font-size: 18px; }
+    input.mi { width: 66px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <button class="sound" id="soundBtn" onclick="toggleSound()" aria-label="Sound on or off">🔊</button>
+  <div class="ic">🧠</div>
+  <h1>Mental Addition</h1>
+  <p>My Pals Are Here! Maths 3A · Chapter 2 · Lesson 4</p>
+</header>
+
+<nav class="nav">
+  <a href="#watch">👀 Watch it</a><a href="#try">✏️ Your turn</a><a href="#spot">🔍 Spot the mistake</a><a href="#test">🏆 Test</a>
+</nav>
+
+<div class="card intro">
+  <p><b>Add in your head with friendly numbers: split a number into tens and ones — or jump to 50 or 100 and take back the extra.</b></p>
+  <p>Warm up, watch, try 12 from the book, catch the mistakes — then a 23-question test (1 minute each · pass = 80%).</p>
+  <div class="badges">
+    <div class="badge" id="b1"><span class="bi">👀</span>Watch it</div>
+    <div class="badge" id="b2"><span class="bi">✏️</span>Your turn</div>
+    <div class="badge" id="b3"><span class="bi">🔍</span>Mistake finder</div>
+    <div class="badge" id="b4"><span class="bi">🏆</span>Test passed</div>
+  </div>
+</div>
+
+<!-- ===================== 1 · WATCH IT ===================== -->
+<h2 class="sect" id="watch"><span>👀 1 · Watch it — Textbook pages 43–44</span></h2>
+<div class="card">
+  <div class="sub-h">🔁 Warm-up · too many in one column</div>
+  <p class="body">A column can hold <b>9 at most</b>. When it has 10 or more, swap 10 of them for <b>1</b> in the next column to the left.
+    (Two questions from your last test were about this.)</p>
+  <div class="watch"><div id="uTbl"></div></div>
+  <div class="prompt" id="uPrompt"></div>
+  <div class="fb" id="uFb"></div>
+  <div class="won" id="uWon"><span class="lbl">✅ Warm-up done</span>
+    <b>10 in a column → 1 in the next column.</b> 13 ones = 1 ten 3 ones · 17 tens = 1 hundred 7 tens · 35 hundreds = 3 thousands 5 hundreds.<br>
+    You'll use this all the time in your head: 86 + 7 → 6 + 7 = 13 ones = 1 ten 3 ones → <b>93</b>.</div>
+</div>
+<div class="card" id="wCard">
+  <div class="sub-h">👀 The book's way · three examples</div>
+  <div id="wName" class="exname"></div>
+  <div class="mrow" id="wShow"></div>
+  <div class="prompt" id="wPrompt"></div>
+  <div class="fb" id="wFb"></div>
+  <div class="won" id="wWon"><span class="lbl">✅ You did it</span>
+    Two ways to add in your head:<br>
+    <b>① Split:</b> 34 + 52 → 34 + 50 = 84, then 84 + 2 = <b>86</b>.<br>
+    <b>② Jump and take back:</b> 86 + 95 → 86 + 100 = 186. 100 is 5 more than 95, so 186 − 5 = <b>181</b>.<br>
+    Numbers ending in 7, 8 or 9 (like 48, 97, 99) are nearly a round number — jump is quickest for those.</div>
+</div>
+
+<!-- ===================== 2 · YOUR TURN ===================== -->
+<h2 class="sect" id="try"><span>✏️ 2 · Your turn — Textbook page 44</span></h2>
+<div class="card">
+  <p class="body">Guided Practice 1–3. Fill in the number bond first, then the two lines.</p>
+  <div class="gbar"><span class="round" id="tRound"></span><span class="stars" id="tStars"></span></div>
+  <div class="target" id="tAsk"></div>
+  <div id="tHost"></div>
+  <div class="fb" id="tFb"></div>
+  <div class="center" id="tNext"></div>
+  <div class="won" id="tWon"><span class="lbl">✅ All 12 done</span>
+    Before you start, look at the second number. <b>Ends in 7, 8 or 9 — or just under 100, like 94 or 96?</b> Jump to the round number and take back the extra. <b>Otherwise</b> split it into tens and ones.</div>
+</div>
+
+<!-- ===================== 3 · SPOT THE MISTAKE ===================== -->
+<h2 class="sect" id="spot"><span>🔍 3 · Spot the mistake — Textbook page 45</span></h2>
+<div class="card">
+  <div class="gbar"><span class="round" id="sRound"></span><span class="stars" id="sStars"></span></div>
+  <div id="sBody"></div>
+  <div class="fb" id="sFb"></div>
+  <div class="center" id="sNext"></div>
+  <div class="won" id="sWon"><span class="lbl">✅ Mistake finder</span>
+    The traps: <b>forgetting to take back</b> the extra, <b>taking back the wrong amount</b> (it's how far to the round number — not the ones digit),
+    and <b>taking away when you split</b> (split → add the rest; jump → take back).</div>
+</div>
+
+<!-- ===================== 4 · TEST ===================== -->
+<h2 class="sect" id="test"><span>🏆 4 · The test — Homework pages 25–28</span></h2>
+<div class="card center" id="gate">
+  <p class="body"><b>23 questions</b> — all of Practice 4 · <b>1 minute each</b> (23 minutes in all) · pass mark <b>80%</b> (19 right).</p>
+  <p class="body">The number-bond questions have a few boxes: <b>every box</b> has to be right to get the point.
+    Type and press <b>Check</b>. One try per question — if it's wrong, you'll see why straight away.</p>
+  <p style="margin-top:12px"><button class="btn amber" onclick="startQuiz()">▶ Start the test</button></p>
+</div>
+<div class="card hidden" id="quiz">
+  <div class="qbar"><span id="qNum"></span><span id="qScore"></span><span class="time" id="qTime"></span></div>
+  <div class="progress"><i id="qProg"></i></div>
+  <div id="qBody"></div>
+</div>
+<div class="card hidden" id="result"></div>
+
+<div class="foot">My Pals Are Here! Maths 3A · Textbook p43–45 · Homework p25–28 ·
+  <a href="../homework.html">← My homework</a></div>
+</div>
+
+<script>
+/* ================= shared helpers (keep in this first script) ================= */
+var PLACE = ['ones', 'tens', 'hundreds', 'thousands'];
+function $(id) { return document.getElementById(id); }
+function onlyDigits(el) { el.value = el.value.replace(/\D/g, ''); }
+
+/* A strategy says how to add b in your head.
+   split: b = F + part  → a + F, then + part.   bond: whole b, top F, bottom part
+   jump:  F = b + part  → a + F, then − part.   bond: whole F, top b, bottom part */
+function mkSt(a, b, kind, F) {
+  var st = { kind: kind, a: a, b: b, F: F, op: kind === 'split' ? '+' : '−', part: kind === 'split' ? b - F : F - b };
+  st.w = kind === 'split' ? b : F; st.t = kind === 'split' ? F : b; st.bb = st.part;
+  st.x = a + F; return st;
+}
+function stratOf(a, b) {               // the friendliest way for a two- or three-digit b
+  if (b > 100 && b < 110) return mkSt(a, b, 'split', 100);
+  if (b >= 94 && b < 100) return mkSt(a, b, 'jump', 100);
+  if (b % 10 >= 7) return mkSt(a, b, 'jump', Math.ceil(b / 10) * 10);
+  return mkSt(a, b, 'split', b - b % 10);
+}
+function onesNote(x, part) {           // e.g. 78 + 6 → 8 + 6 = 14 ones = 1 ten 4 ones
+  var s = x % 10 + part;
+  return s >= 10 ? ' <span style="color:#c9761d">(' + (x % 10) + ' + ' + part + ' = ' + s + ' ones = 1 ten ' + (s - 10) + ' ones)</span>' : '';
+}
+function tensNote(a, F) {              // e.g. 65 + 90 → 6 tens + 9 tens = 15 tens = 1 hundred 5 tens
+  if (F % 100 === 0) return '';
+  var ta = Math.floor(a / 10) % 10, tf = F / 10, s = ta + tf;
+  return s >= 10 ? ' <span style="color:#c9761d">(' + ta + ' tens + ' + tf + ' tens = ' + s + ' tens = 1 hundred ' + (s - 10) + ' tens)</span>' : '';
+}
+function explainMental(st) {
+  var a = st.a, b = st.b, L = [];
+  if (st.kind === 'split') L.push('Split <b>' + b + '</b> into <b>' + st.F + '</b> and <b>' + st.part + '</b>.');
+  else L.push('<b>' + b + '</b> is close to <b>' + st.F + '</b>: ' + b + ' + ' + st.part + ' = ' + st.F + '.');
+  L.push('Add ' + st.F + ' first: ' + a + ' + ' + st.F + ' = <b>' + st.x + '</b>.' + tensNote(a, st.F));
+  if (st.kind === 'split') L.push('Then add the ' + st.part + ': ' + st.x + ' + ' + st.part + ' = <b>' + (a + b) + '</b>.' + onesNote(st.x, st.part));
+  else L.push('You added ' + st.part + ' too many, so take ' + st.part + ' back: ' + st.x + ' − ' + st.part + ' = <b>' + (a + b) + '</b>.');
+  L.push('So <b>' + a + ' + ' + b + ' = ' + (a + b) + '</b>.');
+  return L.join('<br>');
+}
+function noCarry(a, b) {               // added each column but dropped the carried 1s
+  var n = Math.max(String(a).length, String(b).length), s = '';
+  for (var i = n - 1; i >= 0; i--) s += ((Math.floor(a / Math.pow(10, i)) % 10) + (Math.floor(b / Math.pow(10, i)) % 10)) % 10;
+  return +s;
+}
+function wholeSums(a, b) {             // wrote each column's sum side by side
+  var n = Math.max(String(a).length, String(b).length), s = '';
+  for (var i = n - 1; i >= 0; i--) s += String((Math.floor(a / Math.pow(10, i)) % 10) + (Math.floor(b / Math.pow(10, i)) % 10));
+  return +s;
+}
+function diagnoseMental(st, v) {
+  var a = st.a, b = st.b, ans = a + b;
+  if (v === ans) return '';
+  if (st.kind === 'jump') {
+    if (v === st.x) return 'You added ' + st.F + ' but forgot to take back the extra. ' + st.F + ' is ' + st.part + ' more than ' + b + ', so take ' + st.part + ' away.';
+    if (v === st.x + st.part) return 'You added the ' + st.part + ' on. But ' + st.F + ' was already <b>more</b> than ' + b + ' — the extra ' + st.part + ' has to be taken <b>away</b>.';
+    if (b % 10 !== st.part && v === st.x - b % 10) return 'You took back ' + (b % 10) + ' — the ones digit. Take back how far ' + b + ' is from ' + st.F + ': ' + b + ' + ' + st.part + ' = ' + st.F + ', so take back <b>' + st.part + '</b>.';
+  } else {
+    if (v === st.x) return 'You only added the ' + st.F + '. ' + b + ' = ' + st.F + ' + ' + st.part + ' — the ' + st.part + ' has to be added too.';
+    if (v === st.x - st.part) return 'The ' + st.part + ' is part of ' + b + ', so it gets <b>added</b>, not taken away.';
+  }
+  if (v === noCarry(a, b) || v === ans - 10) return 'Your answer is 10 too small. When the ones make 10 or more, that is <b>1 more ten</b> — it goes into the tens column.';
+  if (v === ans + 10) return 'Your answer is 10 too big — check the tens. Only carry a ten when the ones make 10 or more.';
+  if (v === ans - 100) return 'Your answer is 100 too small. When the tens make 10 or more, that is <b>1 more hundred</b>.';
+  if (v === ans + 100) return 'Your answer is 100 too big — check the hundreds.';
+  if (v === wholeSums(a, b)) return 'You wrote each column\'s sum side by side. A column can hold 9 at most — 10 or more swaps into the next column.';
+  if (v === Math.abs(a - b)) return 'You subtracted. The question is an addition.';
+  return 'Do it the friendly way, one step at a time — look at the steps below.';
+}
+
+/* number bond: whole on the left, two parts on the right. cells.w/t/b = html inside each circle */
+function bondHTML(cells) {
+  function c(k) { var v = cells[k]; return '<div class="bc ' + k + (v === '?' ? ' q' : '') + '">' + (v === undefined ? '' : v) + '</div>'; }
+  return '<div class="bond"><svg width="180" height="136" aria-hidden="true">' +
+    '<line x1="58" y1="68" x2="122" y2="30" stroke="#8a829c" stroke-width="4"/>' +
+    '<line x1="58" y1="68" x2="122" y2="106" stroke="#8a829c" stroke-width="4"/></svg>' + c('w') + c('t') + c('b') + '</div>';
+}
+function miInput(key, extra) { return '<input class="mi" data-k="' + key + '" inputmode="numeric" autocomplete="off" maxlength="4" aria-label="answer box"' + (extra || '') + '>'; }
+function wireEchoes(host) {            // spans with data-e="k" copy whatever is typed in the input data-k="k"
+  host.querySelectorAll('input.mi').forEach(function (el) {
+    el.addEventListener('input', function () {
+      onlyDigits(el); el.classList.remove('bad', 'good');
+      host.querySelectorAll('[data-e="' + el.dataset.k + '"]').forEach(function (s) { s.textContent = el.value; });
+    });
+  });
+}
+
+/* ---- sound (WebAudio, no files) ---- */
+var soundOn = true, AC = null;
+try { soundOn = localStorage.getItem('kidsSound') !== 'off'; } catch (e) {}
+function paintSound() { $('soundBtn').textContent = soundOn ? '🔊' : '🔇'; }
+function toggleSound() { soundOn = !soundOn; try { localStorage.setItem('kidsSound', soundOn ? 'on' : 'off'); } catch (e) {} paintSound(); }
+function tone(f, t0, dur, type, vol) {
+  if (!soundOn) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    var o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + t0;
+    o.type = type || 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(vol || .16, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+function sfxOk() { tone(660, 0, .12); tone(880, .1, .18); }
+function sfxNo() { tone(220, 0, .22, 'square', .07); }
+function sfxWin() { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * .11, .25); }); }
+
+/* ---- confetti (pure CSS) ---- */
+function confetti(n) {
+  var colors = ['#5b3f99', '#e8508a', '#e67e22', '#2a9d8f', '#f1c40f', '#3a7d44'];
+  for (var i = 0; i < (n || 70); i++) {
+    var s = document.createElement('span');
+    s.className = 'confetti';
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.background = colors[i % colors.length];
+    s.style.animationDuration = (1.6 + Math.random() * 1.6) + 's';
+    s.style.animationDelay = (Math.random() * .4) + 's';
+    document.body.appendChild(s);
+    setTimeout(function (el) { el.remove(); }.bind(null, s), 3800);
+  }
+}
+function badge(id) { var b = $(id); if (b && !b.classList.contains('on')) { b.classList.add('on', 'pop'); } }
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+/* ---- a step-by-step prompt: each step's ask has {i} boxes; ans, hints (two levels), wrong{value: msg}, ok, apply ---- */
+function Steps(promptId, fbId, steps, redraw, onDone) {
+  var self = this; this.i = 0; this.tries = 0;
+  this.draw = function () {
+    if (self.i >= steps.length) { $(promptId).classList.add('hidden'); onDone(); return; }
+    var st = steps[self.i], k = 0;
+    if (st.pre) { st.pre(); redraw(); }
+    $(promptId).innerHTML = st.ask.replace(/\{i\}/g, function () {
+      return '<input class="' + (st.ans.length > 1 ? 'sm' : '') + '" data-k="' + (k++) + '" inputmode="numeric" autocomplete="off" maxlength="5">';
+    }) + '<div style="margin-top:8px"><button class="btn green sm">Check</button></div>';
+    $(promptId).querySelector('button').onclick = self.check;
+    $(promptId).querySelectorAll('input').forEach(function (el) {
+      el.addEventListener('input', function () { onlyDigits(el); });
+      el.addEventListener('keydown', function (e) { if (e.key === 'Enter') self.check(); });
+    });
+    self.tries = 0;
+  };
+  this.check = function () {
+    var st = steps[self.i], ins = $(promptId).querySelectorAll('input'), ok = true, vals = [], fb = $(fbId);
+    ins.forEach(function (el, i) { vals.push(el.value.trim()); if (+el.value !== st.ans[i]) ok = false; });
+    if (vals.some(function (v) { return v === ''; })) { fb.className = 'fb no'; fb.textContent = 'Type a number in each box.'; return; }
+    if (!ok) {
+      sfxNo(); self.tries++; fb.className = 'fb no';
+      fb.innerHTML = (st.wrong && st.wrong[vals.join(',')]) || st.hints[Math.min(self.tries, st.hints.length) - 1];
+      return;
+    }
+    sfxOk(); fb.className = 'fb ok'; fb.innerHTML = '✓ ' + st.ok;
+    if (st.apply) st.apply();
+    self.i++; redraw(); self.draw();
+  };
+}
+
+/* ---- the practice widget: bond + two lines, checked box by box ---- */
+function MentAdd(host, st, onDone) {
+  var self = this, tries = {}, failed = false, a = st.a, b = st.b, ans = a + b;
+  var cells = { w: st.w, t: st.t, b: miInput('p') };
+  host.innerHTML = '<div class="mrow">' + bondHTML(cells) + '<div class="mlines">' +
+    '<div>' + a + ' + ' + st.F + ' = ' + miInput('x') + '</div>' +
+    '<div><span class="echo" data-e="x"></span> ' + st.op + ' <span class="echo" data-e="p"></span> = ' + miInput('s') + '</div>' +
+    '<div>So, ' + a + ' + ' + b + ' = <span class="echo" data-e="s"></span></div></div></div>' +
+    '<div class="center"><button class="btn green sm" data-go>Check</button> <button class="peek" data-how>👀 Show me how</button></div>' +
+    '<div class="how hidden" data-howbox>' + explainMental(st) + '</div>';
+  wireEchoes(host);
+  var box = {}; host.querySelectorAll('input.mi').forEach(function (el) { box[el.dataset.k] = el; });
+  host.querySelectorAll('input.mi').forEach(function (el) { el.addEventListener('keydown', function (e) { if (e.key === 'Enter') self.check(); }); });
+  host.querySelector('[data-go]').onclick = function () { self.check(); };
+  host.querySelector('[data-how]').onclick = function () { host.querySelector('[data-howbox]').classList.toggle('hidden'); };
+  this.fb = null; this.done = false;
+  function say(msg, ok) { if (self.fb) { self.fb.innerHTML = msg; self.fb.className = 'fb ' + (ok ? 'ok' : 'no'); } }
+  function fail(k, m1, m2) {
+    failed = true; tries[k] = (tries[k] || 0) + 1;
+    box[k].classList.add('bad'); box[k].focus(); box[k].select();
+    say(tries[k] === 1 ? m1 : m2, false); sfxNo();
+  }
+  var order = [
+    { k: 'p', want: st.part,
+      m1: st.kind === 'split' ? 'The bond: ' + st.F + ' and what make ' + b + '?' : 'The bond: how far is ' + b + ' from ' + st.F + '? Count up from ' + b + '.',
+      m2: st.kind === 'split' ? b + ' − ' + st.F + ' = ' + st.part + '.' : b + ' + ' + st.part + ' = ' + st.F + ', so the missing part is ' + st.part + '.' },
+    { k: 'x', want: st.x,
+      m1: st.F === 100 ? 'Add 100 to ' + a + ' — adding 100 changes the hundreds only.' : 'Add ' + st.F + ' to ' + a + '. Count on in tens from ' + a + '.',
+      m2: a + ' + ' + st.F + ' = ' + st.x + '.' + tensNote(a, st.F) },
+    { k: 's', want: ans,
+      m1: st.kind === 'split' ? 'Now add the ' + st.part + ' to ' + st.x + '.' : 'You added ' + st.part + ' too many — take ' + st.part + ' away from ' + st.x + '.',
+      m2: st.x + ' ' + st.op + ' ' + st.part + ' = ' + ans + '.' + (st.kind === 'split' ? onesNote(st.x, st.part) : '') }
+  ];
+  this.check = function () {
+    if (self.done) return;
+    for (var i = 0; i < order.length; i++) {
+      var o = order[i], el = box[o.k];
+      if (el.value === '') { failed = true; el.classList.add('bad'); el.focus(); say('Fill in every box.', false); sfxNo(); return; }
+      if (+el.value !== o.want) {
+        var m1 = o.m1;
+        if (o.k === 's') { var d = diagnoseMental(st, +el.value); if (d && d.indexOf('friendly way') < 0) m1 = d; }
+        fail(o.k, m1, o.m2); return;
+      }
+      el.classList.add('good');
+    }
+    self.done = true; sfxOk();
+    say('✓ ' + a + ' + ' + b + ' = ' + ans + (failed ? '' : ' — first try! ⭐'), true);
+    host.querySelectorAll('input').forEach(function (x) { x.disabled = true; });
+    host.querySelector('[data-go]').classList.add('hidden');
+    if (onDone) onDone(!failed);
+  };
+  // Focus only after the kid has clicked something (Next), never on page load — that would pop the iPad keyboard.
+  var ae = document.activeElement;
+  if (ae && ae !== document.body) setTimeout(function () { try { box.p.focus({ preventScroll: true }); } catch (e) {} }, 50);
+}
+</script>
+
+<script>
+/* ================= 1a · WARM-UP: more than 9 in one column ================= */
+/* rows are [ones, tens, hundreds, thousands]; null = empty cell */
+var U = { before: [13, null, null, null], after: [null, null, null, null], done: false };
+function drawSwap() {
+  function row(label, d) {
+    var r = '<tr><td class="lab">' + label + '</td>';
+    for (var p = 3; p >= 0; p--) r += '<td class="num' + (d[p] > 9 ? ' over' : '') + '">' + (d[p] === null ? '' : d[p]) + '</td>';
+    return r + '</tr>';
+  }
+  $('uTbl').innerHTML = '<table class="pv"><tr><td class="lab"></td><th class="t">Th</th><th class="h">H</th><th class="te">T</th><th class="o">O</th></tr>' +
+    row('before', U.before) + row('after', U.after) + '</table>';
+}
+function uSet(before) { U.before = before; U.after = [null, null, null, null]; }
+var U_STEPS = [
+  { ask: '13 ones is too many for one column.<br>13 ones = {i} ten and {i} ones', ans: [1, 3],
+    hints: ['Take 10 ones and swap them for 1 ten. How many ones are left?', '13 = 10 + 3 → 1 ten and 3 ones.'],
+    ok: '1 ten 3 ones — the 1 moves over to the tens.', apply: function () { U.after = [3, 1, null, null]; } },
+  { pre: function () { uSet([0, 17, null, null]); },
+    ask: 'Now <b>17 tens</b>.<br>17 tens = {i} hundred and {i} tens', ans: [1, 7],
+    hints: ['10 tens make 1 hundred. How many tens are left over?', '17 = 10 + 7 → 1 hundred and 7 tens.'],
+    ok: '1 hundred 7 tens.', apply: function () { U.after = [0, 7, 1, null]; } },
+  { ask: 'So 17 tens = {i}', ans: [170], wrong: { '17': '17 is how many tens there are. Read the <b>after</b> row: 1 hundred 7 tens 0 ones.' },
+    hints: ['Read the after row: 1 hundred, 7 tens, 0 ones.', '100 + 70 = 170.'], ok: '170.' },
+  { pre: function () { uSet([0, 20, 35, null]); },
+    ask: 'From your last test: <b>35 hundreds and 20 tens</b>.<br>35 hundreds = {i} thousands and {i} hundreds', ans: [3, 5],
+    hints: ['10 hundreds = 1 thousand. 35 hundreds has three lots of 10 hundreds.', '35 = 30 + 5 → 3 thousands and 5 hundreds.'],
+    ok: '3 thousands 5 hundreds.', apply: function () { U.after = [0, 20, 5, 3]; } },
+  { ask: 'The tens have 20 — too many too.<br>20 tens = {i} hundreds and {i} tens', ans: [2, 0],
+    hints: ['10 tens = 1 hundred. 20 tens is two lots of 10 tens.', '20 tens = 2 hundreds and 0 tens.'],
+    ok: '2 hundreds join the 5 hundreds: 7 hundreds.', apply: function () { U.after = [0, 0, 7, 3]; } },
+  { ask: 'So 35 hundreds and 20 tens = {i}', ans: [3700],
+    wrong: { '55': 'That\'s 35 + 20 as plain numbers. Read the <b>after</b> row: 3 thousands 7 hundreds 0 tens 0 ones.',
+             '3520': 'The 20 tens don\'t fit in the tens column — they became 2 hundreds.' },
+    hints: ['Read the after row: 3 thousands, 7 hundreds, 0 tens, 0 ones.', '3000 + 700 = 3700.'], ok: '3700. That was question 23 on your last test!' },
+  { pre: function () { uSet([16, 3, 48, null]); },
+    ask: 'One more: <b>48 hundreds 3 tens and 16 ones</b>.<br>16 ones = {i} ten and {i} ones', ans: [1, 6],
+    hints: ['Swap 10 ones for 1 ten. How many ones are left?', '16 = 10 + 6 → 1 ten and 6 ones.'],
+    ok: 'The 1 ten joins the 3 tens: now 4 tens.', apply: function () { U.after = [6, 4, 48, null]; } },
+  { ask: '48 hundreds = {i} thousands and {i} hundreds', ans: [4, 8],
+    hints: ['Every 10 hundreds is 1 thousand.', '48 = 40 + 8 → 4 thousands and 8 hundreds.'],
+    ok: '4 thousands 8 hundreds.', apply: function () { U.after = [6, 4, 8, 4]; } },
+  { ask: 'So the number is {i}', ans: [4846],
+    wrong: { '67': 'That\'s 48 + 3 + 16 as plain numbers. Read the <b>after</b> row instead.' },
+    hints: ['Read the after row from the left: thousands, hundreds, tens, ones.', '4 thousands 8 hundreds 4 tens 6 ones = 4846.'],
+    ok: '4846. That was question 24!' }
+];
+var uSteps = new Steps('uPrompt', 'uFb', U_STEPS, drawSwap, function () {
+  $('uWon').classList.add('show'); U.done = true; sfxWin(); if (W.done) badge('b1');
+});
+drawSwap(); uSteps.draw();
+
+/* ================= 1b · WATCH IT: the book's three examples (Textbook p43–44) ================= */
+var W = { ex: 0, bond: { w: 52, t: '?', b: '?' }, lines: [], done: false };
+var W_EX = ['Add 34 and 52.', 'Find the sum of 86 and 95.', 'Add 48 and 13.'];
+function drawW() {
+  $('wName').textContent = W_EX[W.ex];
+  $('wShow').innerHTML = bondHTML(W.bond) + '<div class="mlines">' + (W.lines.length ? W.lines.join('<br>') : '&nbsp;') + '</div>';
+}
+var W_STEPS = [
+  { ask: '<b>① Split.</b> Break 52 into tens and ones.<br>52 = {i} + {i}', ans: [50, 2],
+    wrong: { '5,2': '52 is 5 <b>tens</b> and 2 ones — 5 tens is 50.' },
+    hints: ['How many tens in 52? Write what they are worth.', '52 = 50 + 2.'],
+    ok: 'The bond: 52 splits into 50 and 2.', apply: function () { W.bond = { w: 52, t: 50, b: 2 }; } },
+  { ask: 'Add the tens part first:<br>34 + 50 = {i}', ans: [84],
+    hints: ['Count on in tens from 34: 44, 54, 64, 74, …', '34 + 50 = 84.'],
+    ok: '84.', apply: function () { W.lines.push('34 + 50 = 84'); } },
+  { ask: 'Now add the ones part:<br>84 + 2 = {i}', ans: [86],
+    hints: ['84, then 2 more.', '84 + 2 = 86.'],
+    ok: '34 + 52 = 86. On to example 2 →',
+    apply: function () { W.lines.push('84 + 2 = <span class="done">86</span>'); } },
+  { ask: '<b>② Jump and take back.</b> 95 is very close to 100.<br>95 + {i} = 100', ans: [5],
+    hints: ['Count up from 95: 96, 97, 98, 99, 100.', '95 + 5 = 100.'],
+    ok: '95 is 5 short of 100.', apply: function () { W.bond = { w: 100, t: 95, b: 5 }; W.lines = []; } },
+  { ask: 'Adding 100 is easy — add 100 instead:<br>86 + 100 = {i}', ans: [186],
+    wrong: { '1086': 'Adding 100 only adds 1 to the <b>hundreds</b>: 86 → 186.' },
+    hints: ['86 has 0 hundreds. Add 1 hundred.', '86 + 100 = 186.'],
+    ok: '186.', apply: function () { W.lines.push('86 + 100 = 186'); } },
+  { ask: 'But 100 is <b>5 more</b> than 95 — we added 5 too many.<br>Take them back: 186 − 5 = {i}', ans: [181],
+    wrong: { '191': 'We added too much, so take 5 <b>away</b> — don\'t add it.' },
+    hints: ['186 back 5: 185, 184, 183, 182, …', '186 − 5 = 181.'],
+    ok: '86 + 95 = 181. On to example 3 →',
+    apply: function () { W.lines.push('186 − 5 = <span class="done">181</span>'); } },
+  { ask: '<b>③ Jump the other number.</b> 48 is close to 50.<br>48 + {i} = 50', ans: [2],
+    hints: ['Count up from 48: 49, 50.', '48 + 2 = 50.'],
+    ok: 'Use 50 in place of 48.', apply: function () { W.bond = { w: 50, t: 48, b: 2 }; W.lines = []; } },
+  { ask: '13 + 50 = {i}', ans: [63],
+    hints: ['13 and 5 more tens: 23, 33, 43, 53, …', '13 + 50 = 63.'],
+    ok: '63.', apply: function () { W.lines.push('13 + 50 = 63'); } },
+  { ask: 'We used 2 too many. Take back 2:<br>63 − 2 = {i}', ans: [61],
+    wrong: { '65': 'We added too much, so take the 2 <b>away</b>.' },
+    hints: ['63 back 2: 62, …', '63 − 2 = 61.'],
+    ok: '48 + 13 = 61.', apply: function () { W.lines.push('63 − 2 = <span class="done">61</span>'); } }
+];
+var wSteps = new Steps('wPrompt', 'wFb', W_STEPS, function () {
+  W.ex = wSteps.i >= 6 ? 2 : wSteps.i >= 3 ? 1 : 0; drawW();
+}, function () {
+  $('wWon').classList.add('show'); W.done = true; sfxWin(); if (U.done) badge('b1');
+});
+drawW(); wSteps.draw();
+
+/* ================= 2 · YOUR TURN (Textbook p44, Guided Practice 1–3) ================= */
+var T_ITEMS = [
+  { a: 45, b: 23, ask: '1 · Add 45 and 23.' },
+  { a: 24, b: 65, ask: '2 · Find the sum of 24 and 65.' },
+  { a: 11, b: 44, ask: '3(a) · Add mentally: 11 + 44' },
+  { a: 37, b: 42, ask: '3(b) · 37 + 42' },
+  { a: 63, b: 23, ask: '3(c) · 63 + 23' },
+  { a: 42, b: 51, ask: '3(d) · 42 + 51' },
+  { a: 52, b: 28, ask: '3(e) · 52 + 28 — 28 ends in 8, so jump to 30.' },
+  { a: 73, b: 28, ask: '3(f) · 73 + 28' },
+  { a: 65, b: 87, ask: '3(g) · 65 + 87' },
+  { a: 99, b: 99, ask: '3(h) · 99 + 99' },
+  { a: 35, b: 57, ask: '3(i) · 35 + 57' },
+  { a: 75, b: 98, ask: '3(j) · 75 + 98' }
+];
+var T = { i: 0, stars: [] };
+function drawTry() {
+  var it = T_ITEMS[T.i];
+  $('tRound').textContent = 'QUESTION ' + (T.i + 1) + ' OF ' + T_ITEMS.length;
+  $('tStars').textContent = T.stars.join('');
+  $('tAsk').innerHTML = it.ask;
+  $('tFb').textContent = ''; $('tFb').className = 'fb'; $('tNext').innerHTML = '';
+  var w = new MentAdd($('tHost'), stratOf(it.a, it.b), function (first) {
+    T.stars.push(first ? '⭐' : '✔️'); $('tStars').textContent = T.stars.join('');
+    if (T.i < T_ITEMS.length - 1) $('tNext').innerHTML = '<button class="btn" onclick="T.i++;drawTry()">Next →</button>';
+    else { $('tWon').classList.add('show'); badge('b2'); sfxWin(); confetti(40); }
+  });
+  w.fb = $('tFb');
+}
+drawTry();
+
+/* ================= 3 · SPOT THE MISTAKE (numbers from Textbook p45, Chapter 2 Review 5) ================= */
+var REASONS = {
+  forgot: 'Forgot to take back the extra',
+  wrongamt: 'Took back the wrong amount',
+  wrongway: 'Took away when it should be added',
+  tensonly: 'Only added the tens'
+};
+var S_ITEMS = [
+  { who: 'Ravi', a: 39, b: 96, said: 139, reason: 'forgot',
+    work: ['39 + 100 = 139', 'So, 39 + 96 = <span class="claim">139</span>'],
+    why: { forgot: 'Yes! Ravi added 100, but 100 is <b>4 more</b> than 96. He had to take back 4: 139 − 4 = 135.',
+           wrongamt: 'Ravi didn\'t take back anything at all — there is no second step.',
+           wrongway: 'Nothing was added or taken away after the 100. What is missing?',
+           tensonly: 'Ravi didn\'t split 96 — he jumped to 100. What should come after the jump?' } },
+  { who: 'Mei Ling', a: 98, b: 95, said: 193, ok: true,
+    work: ['98 + 100 = 198', '198 − 5 = 193', 'So, 98 + 95 = <span class="claim">193</span>'],
+    proof: { ask: 'Check it another way — split 95 into 90 and 5:<br>98 + 90 = 188, then 188 + 5 = {i}', ans: 193 },
+    nohint: 'Check each line. 100 is how much more than 95? Did she take back that much?' },
+  { who: 'Ali', a: 47, b: 86, said: 131, reason: 'wrongamt',
+    work: ['47 + 90 = 137', '137 − 6 = 131', 'So, 47 + 86 = <span class="claim">131</span>'],
+    why: { wrongamt: 'Yes! 86 is only <b>4</b> away from 90 (86 + 4 = 90). Ali took back 6 — the ones digit — instead of 4. 137 − 4 = 133.',
+           forgot: 'Ali did take something back (137 − 6). Was it the right amount?',
+           wrongway: 'Taking away is right here — 90 is more than 86. Check how much he took.',
+           tensonly: 'Ali jumped 86 up to 90; he didn\'t split it. Check the amount he took back.' } },
+  { who: 'Farah', a: 27, b: 62, said: 85, reason: 'wrongway',
+    work: ['27 + 60 = 87', '87 − 2 = 85', 'So, 27 + 62 = <span class="claim">85</span>'],
+    why: { wrongway: 'Yes! Farah split 62 into 60 and 2. 60 is <b>less</b> than 62, so the 2 still has to be <b>added</b>: 87 + 2 = 89.',
+           forgot: 'She did do a second step (87 − 2). Was it the right kind of step?',
+           wrongamt: '2 is the right amount — 62 = 60 + 2. Look at the sign she used.',
+           tensonly: 'She did use the 2 as well — look at what she did with it.' } }
+];
+var SP = { i: 0, stage: 0, first: true, stars: [] };
+function drawSpot() {
+  var it = S_ITEMS[SP.i];
+  $('sRound').textContent = 'MISTAKE HUNT ' + (SP.i + 1) + ' OF ' + S_ITEMS.length;
+  $('sStars').textContent = SP.stars.join('');
+  $('sFb').textContent = ''; $('sFb').className = 'fb'; $('sNext').innerHTML = '';
+  var head = '<div class="notebook"><div class="who">📝 <b>' + it.who + '</b> added <b>' + it.a + ' + ' + it.b + '</b> in her head' +
+    ' <span style="color:#8a829c;font-size:13px">(Textbook page 45)</span></div><div class="mlines">' + it.work.join('<br>') + '</div></div>';
+  if (it.who === 'Ravi' || it.who === 'Ali') head = head.replace('in her head', 'in his head');
+  var body = '';
+  if (SP.stage === 0) {
+    body = '<p class="body center" style="margin-top:12px"><b>Is ' + it.who + ' correct?</b></p>' +
+      '<div class="yn"><button class="btn green" onclick="spotYN(true)">✓ Yes</button><button class="btn amber" onclick="spotYN(false)">✗ No</button></div>';
+  } else if (SP.stage === 1) {
+    var keys = shuffle(Object.keys(REASONS));
+    body = '<p class="body center" style="margin-top:12px"><b>What went wrong?</b></p><div class="choices">' +
+      keys.map(function (k) { return '<button class="choice" data-k="' + k + '" onclick="spotWhy(this)">' + REASONS[k] + '</button>'; }).join('') + '</div>';
+  } else {
+    body = '<div class="prompt">' + (it.ok ? it.proof.ask : 'Now fix it:<br>' + it.a + ' + ' + it.b + ' = {i}')
+      .replace('{i}', '<input id="sIn" inputmode="numeric" autocomplete="off" maxlength="4" style="width:100px">') +
+      '<div style="margin-top:8px"><button class="btn green sm" onclick="spotFix()">Check</button></div></div>';
+  }
+  $('sBody').innerHTML = head + body;
+  var inp = $('sIn');
+  if (inp) {
+    inp.addEventListener('input', function () { onlyDigits(inp); });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') spotFix(); });
+  }
+}
+function spotSay(msg, ok) { $('sFb').innerHTML = msg; $('sFb').className = 'fb ' + (ok ? 'ok' : 'no'); ok ? sfxOk() : sfxNo(); }
+function spotYN(yes) {
+  var it = S_ITEMS[SP.i];
+  if (yes === !!it.ok) {
+    spotSay(it.ok ? '✓ Right — ' + it.who + ' is correct. Let\'s prove it.' : '✓ Right — something\'s wrong. Let\'s find it.', true);
+    SP.stage = it.ok ? 2 : 1; setTimeout(drawSpot, 700);
+  } else {
+    SP.first = false;
+    spotSay(it.ok ? it.nohint : 'Check each line. Split → add the rest. Jump → take back how far the jump went.', false);
+  }
+}
+function spotWhy(btn) {
+  var it = S_ITEMS[SP.i], k = btn.dataset.k;
+  if (k === it.reason) {
+    btn.classList.add('good'); spotSay('✓ ' + it.why[k], true);
+    $('sNext').innerHTML = '<button class="btn" onclick="SP.stage=2;drawSpot()">Fix it →</button>';
+    document.querySelectorAll('.choice').forEach(function (b) { b.disabled = true; });
+  } else { SP.first = false; btn.classList.add('bad'); spotSay(it.why[k], false); }
+}
+function spotFix() {
+  var it = S_ITEMS[SP.i], el = $('sIn'), v = el.value.trim();
+  if (v === '') return;
+  var want = it.ok ? it.proof.ans : it.a + it.b;
+  if (+v === want) {
+    el.style.borderColor = '#3a7d44';
+    spotSay(it.ok ? '✓ 193 both ways — Mei Ling was right!' : '✓ ' + it.a + ' + ' + it.b + ' = ' + want + '.', true);
+    SP.stars.push(SP.first ? '⭐' : '✔️'); $('sStars').textContent = SP.stars.join('');
+    if (SP.i < S_ITEMS.length - 1) $('sNext').innerHTML = '<button class="btn" onclick="SP.i++;SP.stage=0;SP.first=true;drawSpot()">Next →</button>';
+    else { $('sNext').innerHTML = ''; $('sWon').classList.add('show'); badge('b3'); sfxWin(); confetti(40); }
+  } else {
+    SP.first = false; el.style.borderColor = '#c0392b';
+    var st = stratOf(it.a, it.b), d = diagnoseMental(st, +v);
+    if (d.indexOf('friendly way') >= 0) d = 'Not quite. Do it step by step: ' + it.a + ' + ' + st.F + ' first, then ' + (st.kind === 'jump' ? 'take back ' : 'add ') + st.part + '.';
+    spotSay(it.ok ? '98 + 90 = 188. Now add the 5.' : d, false);
+  }
+}
+drawSpot();
+</script>
+
+<script>
+/* ================= 4 · THE TEST (Homework p25–28, Practice 4 — all 23) ================= */
+var SK_M = 'm3a.02.mental';
+/* bond questions: st = 'split' | 'jump', F = the round number, miss = which circles are blank in the book */
+var questions = [
+  { id: '1(a)', src: 25, a: 36, b: 57, ans: 93,  st: 'split', F: 50,  miss: ['b'],      sk: SK_M },
+  { id: '1(b)', src: 25, a: 19, b: 56, ans: 75,  st: 'split', F: 50,  miss: ['t', 'b'], sk: SK_M },
+  { id: '1(c)', src: 25, a: 44, b: 58, ans: 102, st: 'split', F: 50,  miss: ['t', 'b'], sk: SK_M },
+  { id: '2(a)', src: 26, a: 15, b: 48, ans: 63,  st: 'jump',  F: 50,  miss: ['t', 'b'], sk: SK_M },
+  { id: '2(b)', src: 26, a: 26, b: 47, ans: 73,  st: 'jump',  F: 50,  miss: ['t', 'b'], sk: SK_M },
+  { id: '3(a)', src: 26, a: 28, b: 56, ans: 84,  sk: SK_M },
+  { id: '3(b)', src: 26, a: 34, b: 49, ans: 83,  sk: SK_M },
+  { id: '3(c)', src: 26, a: 17, b: 67, ans: 84,  sk: SK_M },
+  { id: '3(d)', src: 26, a: 58, b: 47, ans: 105, sk: SK_M },
+  { id: '3(e)', src: 26, a: 55, b: 59, ans: 114, sk: SK_M },
+  { id: '3(f)', src: 26, a: 67, b: 36, ans: 103, sk: SK_M },
+  { id: '4(a)', src: 27, a: 38, b: 95, ans: 133, st: 'jump',  F: 100, miss: ['b'],      sk: SK_M },
+  { id: '4(b)', src: 27, a: 47, b: 98, ans: 145, st: 'jump',  F: 100, miss: ['t', 'b'], sk: SK_M },
+  { id: '4(c)', src: 27, a: 86, b: 96, ans: 182, st: 'jump',  F: 100, miss: ['t', 'b'], sk: SK_M },
+  { id: '4(d)', src: 27, a: 78, b: 99, ans: 177, st: 'jump',  F: 100, miss: ['t', 'b'], sk: SK_M },
+  { id: '5(a)', src: 28, a: 66, b: 108, ans: 174, st: 'split', F: 100, miss: ['b'],     sk: SK_M },
+  { id: '5(b)', src: 28, a: 44, b: 107, ans: 151, st: 'split', F: 100, miss: ['w', 'b'], sk: SK_M },
+  { id: '6(a)', src: 28, a: 28, b: 96,  ans: 124, sk: SK_M },
+  { id: '6(b)', src: 28, a: 19, b: 94,  ans: 113, sk: SK_M },
+  { id: '6(c)', src: 28, a: 47, b: 98,  ans: 145, sk: SK_M },
+  { id: '6(d)', src: 28, a: 69, b: 99,  ans: 168, sk: SK_M },
+  { id: '6(e)', src: 28, a: 73, b: 109, ans: 182, sk: SK_M },
+  { id: '6(f)', src: 28, a: 88, b: 105, ans: 193, sk: SK_M }
+];
+questions.forEach(function (q) { q.S = q.st ? mkSt(q.a, q.b, q.st, q.F) : stratOf(q.a, q.b); });
+var SECS_PER_Q = 60;
+var QUIZ_SECS = questions.length * SECS_PER_Q;
+var PASS_PCT = 80, PASS_N = Math.ceil(questions.length * PASS_PCT / 100);
+var current = 0, score = 0, answered = false;
+var given = [], got = [], quizOn = false, timerId = null, secsLeft = 0;
+
+function fmtTime(s) { s = Math.max(0, s); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+function tick() {
+  secsLeft--;
+  $('qTime').textContent = '⏱ ' + fmtTime(secsLeft);
+  $('qTime').classList.toggle('low', secsLeft <= 60);
+  if (secsLeft <= 0) { clearInterval(timerId); timerId = null; if (quizOn) showResult(); }
+}
+function startQuiz() {
+  $('gate').classList.add('hidden'); $('result').classList.add('hidden'); $('quiz').classList.remove('hidden');
+  current = 0; score = 0; answered = false; given = []; got = []; quizOn = true;
+  secsLeft = QUIZ_SECS; $('qTime').textContent = '⏱ ' + fmtTime(secsLeft); $('qTime').classList.remove('low');
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(tick, 1000);
+  try { var s = window.QuizReport && QuizReport.session(); if (s) s.lastMark = Date.now(); } catch (e) {}
+  render();
+  $('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function qHTML(q) {
+  if (!q.st) return '<div class="qtext">' + q.a + ' + ' + q.b + ' = ?</div><div class="ansrow">' + miInput('ans', ' id="qIn"') + '</div>';
+  var S = q.S, cells = { w: S.w, t: S.t, b: S.bb };
+  q.miss.forEach(function (k) { cells[k] = miInput(k); });
+  var part = q.miss.indexOf('b') >= 0 ? '<span class="echo" data-e="b"></span>' : S.part;
+  return '<div class="qtext">' + q.a + ' + ' + q.b + ' = ?</div><div class="mrow"><div class="mlines">' +
+    '<div>' + q.a + ' + ' + S.F + ' = ' + miInput('x') + '</div>' +
+    '<div><span class="echo" data-e="x"></span> ' + S.op + ' ' + part + ' = ' + miInput('ans', ' id="qIn"') + '</div>' +
+    '<div>So, ' + q.a + ' + ' + q.b + ' = <span class="echo" data-e="ans"></span></div></div>' + bondHTML(cells) + '</div>';
+}
+function render() {
+  var q = questions[current];
+  answered = false;
+  $('qNum').textContent = 'Question ' + (current + 1) + ' of ' + questions.length;
+  $('qScore').textContent = '✓ ' + score;
+  $('qProg').style.width = (100 * current / questions.length) + '%';
+  $('qBody').innerHTML = '<div class="center"><span class="qtag">Homework p' + q.src + ' · Question ' + q.id + (q.st ? ' · fill in every box' : '') + '</span></div>' +
+    qHTML(q) + '<div class="center"><button class="btn green" id="qGo" onclick="check()">Check</button></div>' +
+    '<div class="fb" id="qFb"></div><div class="explain" id="qExp"></div><div class="center" id="qNext"></div>';
+  var host = $('qBody');
+  wireEchoes(host);
+  host.querySelectorAll('input.mi').forEach(function (el) {
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter') { if (!answered) check(); else nextQ(); } });
+  });
+  var first = host.querySelector('input.mi');
+  setTimeout(function () { try { first.focus({ preventScroll: true }); } catch (e) {} }, 60);
+}
+function grade(q, vals) {             // → { ok, final, bad: [keys] }
+  var S = q.S, bad = [];
+  if (q.st) {
+    var want = { w: S.w, t: S.t, b: S.bb };
+    if (q.miss.length === 2 && q.miss[0] === 't') {   // two blank parts: either order is fine
+      var pair = [vals.t, vals.b].sort(function (x, y) { return x - y; }).join(','), okp = [S.t, S.bb].sort(function (x, y) { return x - y; }).join(',');
+      if (pair !== okp) { if (vals.t !== S.t) bad.push('t'); if (vals.b !== S.bb) bad.push('b'); if (!bad.length) bad.push('t', 'b'); }
+    } else q.miss.forEach(function (k) { if (vals[k] !== want[k]) bad.push(k); });
+    if (vals.x !== S.x) bad.push('x');
+  }
+  if (vals.ans !== q.ans) bad.push('ans');
+  return { ok: bad.length === 0, final: vals.ans, bad: bad };
+}
+function explainQ(q) { return explainMental(q.S); }
+function diagnoseQ(q, r) {
+  var S = q.S, notes = [];
+  if (r.final === q.ans) {
+    if (r.bad.indexOf('t') >= 0 || r.bad.indexOf('b') >= 0 || r.bad.indexOf('w') >= 0)
+      notes.push('The number bond isn\'t right: <b>' + S.w + '</b> splits into <b>' + S.t + '</b> and <b>' + S.bb + '</b>.');
+    if (r.bad.indexOf('x') >= 0) notes.push('The first line should be ' + q.a + ' + ' + S.F + ' = <b>' + S.x + '</b>.');
+    return 'Your final answer is right, but not every box was. ' + notes.join(' ');
+  }
+  var d = diagnoseMental(S, r.final);
+  if (q.st && r.bad.indexOf('x') >= 0) d += ' Also the first line: ' + q.a + ' + ' + S.F + ' = ' + S.x + '.';
+  return d;
+}
+function check() {
+  if (answered || !quizOn) return;
+  var q = questions[current], vals = {}, empty = false;
+  $('qBody').querySelectorAll('input.mi').forEach(function (el) {
+    if (el.value.trim() === '') empty = true; vals[el.dataset.k] = +el.value;
+  });
+  if (empty) { $('qFb').className = 'fb no'; $('qFb').textContent = q.st ? 'Fill in every box first.' : 'Type your answer first.'; return; }
+  var r = grade(q, vals);
+  given[current] = r.final; got[current] = r; answered = true;
+  $('qBody').querySelectorAll('input.mi').forEach(function (el) {
+    el.disabled = true; el.classList.add(r.bad.indexOf(el.dataset.k) >= 0 ? 'bad' : 'good');
+  });
+  $('qGo').classList.add('hidden');
+  if (r.ok) {
+    score++; sfxOk();
+    $('qFb').className = 'fb ok'; $('qFb').textContent = '✓ Correct!';
+  } else {
+    sfxNo();
+    $('qFb').className = 'fb no';
+    $('qFb').innerHTML = r.final === q.ans ? '✗ So close — ' + q.ans + ' is right, but every box has to be right for the point.'
+      : '✗ Not quite — ' + q.a + ' + ' + q.b + ' = <b>' + q.ans + '</b>.';
+    $('qExp').innerHTML = '<div class="trap"><span class="lbl">What happened</span>' + diagnoseQ(q, r) + '</div><div class="how">' + explainQ(q) + '</div>';
+  }
+  $('qScore').textContent = '✓ ' + score;
+  var last = current === questions.length - 1;
+  $('qNext').innerHTML = '<button class="btn" style="margin-top:12px" onclick="nextQ()">' + (last ? 'See my score →' : 'Next →') + '</button>';
+}
+function nextQ() {
+  if (!quizOn) return;
+  if (current < questions.length - 1) { current++; render(); } else showResult();
+}
+function showResult() {
+  if (!quizOn) return;
+  quizOn = false;
+  if (timerId) { clearInterval(timerId); timerId = null; }
+  var used = QUIZ_SECS - Math.max(0, secsLeft), pct = Math.round(100 * score / questions.length), pass = pct >= PASS_PCT;
+  var stars = pct === 100 ? '⭐⭐⭐' : pct >= PASS_PCT ? '⭐⭐' : pct >= 50 ? '⭐' : '';
+  var missed = [];
+  questions.forEach(function (q, i) { if (!got[i] || !got[i].ok) missed.push(i); });
+  var html = '<div class="res-top"><div class="stars">' + (stars || '💪') + '</div><div class="pct">' + pct + '%</div>' +
+    '<div class="sub">' + score + ' right out of ' + questions.length + ' · the pass mark is ' + PASS_PCT + '% (' + PASS_N + ' correct)</div>' +
+    '<div class="sub">Time: ' + Math.floor(used / 60) + ' min ' + (used % 60) + ' s' + (secsLeft <= 0 ? ' — time ran out' : '') + '</div>' +
+    '<div class="verdict ' + (pass ? 'pass' : 'fail') + '">' + (pass ? '🎉 You passed!' : 'Not passed yet — ' + (PASS_N - score) + ' more needed') + '</div></div>';
+  if (missed.length) {
+    html += '<h3 class="rv">Let\'s look at the ' + (missed.length === 1 ? 'one' : missed.length) + ' you missed</h3>';
+    missed.forEach(function (i) {
+      var q = questions[i], r = got[i];
+      html += '<div class="miss"><div class="mh">Question ' + q.id + ': ' + q.a + ' + ' + q.b + '<br>' +
+        (!r ? '<span class="you">Not answered</span>' : 'You wrote <span class="you">' + r.final + '</span>') +
+        ' · Answer: <span class="right">' + q.ans + '</span></div>' +
+        (!r ? '' : '<div class="trap"><span class="lbl">What happened</span>' + diagnoseQ(q, r) + '</div>') +
+        '<div class="how">' + explainQ(q) + '</div></div>';
+    });
+    html += '<div class="center" style="margin-top:16px"><button class="btn amber" onclick="startRedo()">🔁 Practise the ones I missed</button>' +
+      '<button class="btn ghost" onclick="restart()">Take the whole test again</button></div><div id="redo"></div>';
+  } else {
+    html += '<p class="body center" style="margin-top:14px">Every single one right. Amazing! 🌟</p>' +
+      '<div class="center"><button class="btn ghost" onclick="restart()">Take the test again</button></div>';
+  }
+  $('quiz').classList.add('hidden');
+  var res = $('result'); res.innerHTML = html; res.classList.remove('hidden');
+  res.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (pass) { badge('b4'); sfxWin(); confetti(); }
+}
+function restart() { startQuiz(); }
+
+/* ---- practise the missed ones (not scored, hints allowed) ---- */
+var RD = { list: [], i: 0 };
+function startRedo() {
+  RD.list = questions.map(function (q, i) { return i; }).filter(function (i) { return !got[i] || !got[i].ok; });
+  RD.i = 0; drawRedo();
+  $('redo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function drawRedo() {
+  var box = $('redo');
+  if (RD.i >= RD.list.length) {
+    box.innerHTML = '<div class="won show"><span class="lbl">✅ All fixed</span>You worked through every one you missed. Try the whole test again when you\'re ready!</div>';
+    sfxWin(); confetti(40); return;
+  }
+  var q = questions[RD.list[RD.i]];
+  box.innerHTML = '<div class="card" style="margin-top:14px;border:3px solid #e8c489"><div class="gbar"><span class="round">PRACTICE ' + (RD.i + 1) + ' OF ' + RD.list.length +
+    ' · QUESTION ' + q.id + ' · not scored</span></div><div class="target">' + q.a + ' + ' + q.b + ' = ?</div>' +
+    '<div id="rHost"></div><div class="fb" id="rFb"></div><div class="center" id="rNext"></div></div>';
+  var w = new MentAdd($('rHost'), q.S, function () {
+    $('rNext').innerHTML = '<button class="btn" onclick="RD.i++;drawRedo()">Next →</button>';
+  });
+  w.fb = $('rFb');
+}
+paintSound();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
