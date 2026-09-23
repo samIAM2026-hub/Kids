@@ -441,6 +441,7 @@
   .tries .arr{color:var(--gold2);margin-right:4px}
   .pfoot{display:flex;gap:6px 10px;align-items:center;flex-wrap:wrap;margin-top:4px;font-size:11px;color:var(--mute)}
   .st-prac{background:rgba(91,143,199,.16);color:var(--blue)}
+  .st-skip{background:rgba(255,255,255,.06);color:var(--mute)}
   details.wk7>summary{cursor:pointer;list-style:none;display:block}
   details.wk7>summary::-webkit-details-marker{display:none}
   details.wk7>summary::before{content:'▸ ';color:var(--gold2)}
@@ -894,6 +895,7 @@ const HANDIN_IDS = new Set(['../Writing/Writing-Lab.html', '../Writing/Summer-St
                             '../Writing/Speech-Studio.html'].map(encodeURIComponent));
 const essayCol = n => n>=5 ? 'var(--green)' : n>=4 ? 'var(--cream)' : n>=3 ? 'var(--amber)' : 'var(--red)';
 const ess = a => a.essay!=null ? { txt:a.essay+'/6', col:essayCol(a.essay), todo:false }
+               : a.skipped ? { txt:'不批了', col:'var(--mute)', todo:false }
                : a.reviewed ? { txt:'已批改', col:'var(--green)', todo:false } : { txt:'待批改', col:'var(--amber)', todo:true };
 const lastEssay = tries => [...tries].reverse().find(a=>a.handin) || null;   // tries oldest-first
 
@@ -916,6 +918,7 @@ function toAtt(doc){
            pct, score: typeof a.score==='number' ? a.score : null, total: a.total||0, wrong: a.wrong || [],
            practice: a.practice || null,   // { round, firstTry, items } from the Chinese practice games
            essay, reviewed: !!(pr && pr.reviewed), aid: doc.id,   // 写作台：1–6 分 / 批没批过；aid = 那篇文章的 ID
+           skipped: !!(pr && pr.skipped),   // 家长点了「不批了」（有新版之类），不再算待批改
            handin: hand,   // 写作台交上来的一篇（批改前 practice.firstTry 是 null）
            secs:a.secs||0, date: when ? iso(when) : '', at: when,
            activeSecs: typeof a.activeSecs==='number' ? a.activeSecs : null,
@@ -2778,9 +2781,11 @@ function viewEssay(){
   const wk = KV || WR.kid;
   const list = WR.list.filter(w=>wk==='all' || w.kid===wk);
   if(KV && !list.length) return html + `<p class="empty">${KID[KV].n} 还没有作文。在 Writing Lab 写完点「hand it in」就会出现在这里。</p>`;
-  const todo = list.filter(w=>w.status!=='reviewed'), done = list.filter(w=>w.status==='reviewed');
+  const done = list.filter(w=>w.status==='reviewed'), skip = list.filter(w=>w.status!=='reviewed' && w.skipped),
+        todo = list.filter(w=>w.status!=='reviewed' && !w.skipped);
   html += `<div class="subhd">待批改 · ${todo.length} 篇</div>` + (todo.length ? todo.map(essayRow).join('') : `<p class="empty">都批完了。</p>`);
   if(done.length) html += `<div class="subhd">已批改 · ${done.length} 篇</div>` + done.map(essayRow).join('');
+  if(skip.length) html += `<div class="subhd">不批了 · ${skip.length} 篇</div>` + skip.map(essayRow).join('');
   if(WR.list.length >= WR_MAX) html += `<p class="empty">只显示最近 ${WR_MAX} 篇。</p>`;
   return html;
 }
@@ -2853,7 +2858,8 @@ function essayRow(w){
   const r = w.review;
   const dr = WR.drafts[w.id];
   const st = w.status!=='reviewed'
-    ? (dr && dr.by==='claude' ? `<span class="chipst st-prac">Claude 批好了 · 等你发</span>`
+    ? (w.skipped ? `<span class="chipst st-skip">不批了 · 没发</span>`
+       : dr && dr.by==='claude' ? `<span class="chipst st-prac">Claude 批好了 · 等你发</span>`
        : dr ? `<span class="chipst st-open">批了一半</span>` : `<span class="chipst st-open">待批改</span>`)
     : `<span class="chipst st-done">${WHO_ZH[r && r.by]||''}批了${r && r.score ? ' · '+r.score+'/6' : ''}</span><span class="seen">${seenText(w)}</span>`;
   return `<button class="esrow" data-wid="${esc(w.id)}"><span class="who">${KID[w.kid].av}</span>
@@ -2875,6 +2881,8 @@ function viewEssayOne(){
       ? `<button class="mini" data-wdiff>${WR.diff?'收起对比':`和第 ${prev.draftNo||1} 稿对比`}</button> <button class="mini" data-wid="${esc(prev.id)}">打开第 ${prev.draftNo||1} 稿和它的批改</button>
          ${WR.diff?`<div class="esdiff">${WritingReview.diff(prev.text, w.text)}</div><p class="eshint">绿底 = 第 ${w.draftNo||2} 稿新写的，红划线 = 删掉的。</p>`:''}`
       : `<span class="eshint">这是第 ${w.draftNo||2} 稿（上一稿不在最近 ${WR_MAX} 篇里）。</span>`}</div>`;
+  if(!r && w.skipped) html += `<div class="esmeta">这篇标了「不批了」（${WHO_ZH[w.skipped.by]||''}${w.skipped.at?' · '+stamp(tsDate(w.skipped.at)):''}），
+    ${KID[w.kid].n} 那边什么也没收到。 <button class="mini" data-wunskip>放回待批改</button></div>`;
   return html + (r && !WR.editing ? reviewedView(w) : editorView(w));
 }
 
@@ -2923,7 +2931,8 @@ function editorView(w){
     <div class="subhd">总评 · 孩子会看到</div>
     <textarea class="essumin" data-wsum rows="5" placeholder="整体怎么样、最该改的一件事">${esc(ed.summary)}</textarea>
     <div class="esact"><button class="btn solid" data-wsend>批改完，发给 ${KID[w.kid].n}</button>
-      ${w.status==='reviewed' ? '<button class="btn ghost" data-wcancel>不改了</button>' : ''}</div>`;
+      ${w.status==='reviewed' ? '<button class="btn ghost" data-wcancel>不改了</button>'
+        : w.skipped ? '' : '<button class="btn ghost" data-wskip>不批了</button>'}</div>`;
 }
 
 // The marking being edited: the saved draft if there is one, else what was sent, else empty.
@@ -3079,19 +3088,42 @@ async function wrSend(){
     at: firebase.firestore.FieldValue.serverTimestamp() };
   clearTimeout(wrTimer); ed.dirty = false;
   const b = db.batch();
-  b.update(db.doc('writings/'+w.id), { status:'reviewed', review, seenAt: firebase.firestore.FieldValue.delete() });
+  b.update(db.doc('writings/'+w.id), { status:'reviewed', review, seenAt: firebase.firestore.FieldValue.delete(),
+    skipped: firebase.firestore.FieldValue.delete() });
   b.delete(db.doc('reviewDrafts/'+w.id));
   try { await b.commit(); delete WR.drafts[w.id]; }
   catch(e){ console.error(e); ed.dirty = true; toast('没发出去：' + (e.code||e.message) + '，批改还在草稿里', true); return; }
   // The attempt carries the score for 完成记录 / 今日作业. If that fails the marking is still sent.
-  db.doc('attempts/'+w.attemptId).update({ 'practice.firstTry': ed.score, 'practice.reviewed': true })
+  db.doc('attempts/'+w.attemptId).update({ 'practice.firstTry': ed.score, 'practice.reviewed': true,
+      'practice.skipped': firebase.firestore.FieldValue.delete() })
     .catch(e=>console.warn('[作文] attempt not updated:', e.code||e));
   Object.assign(w, { status:'reviewed', review: Object.assign({}, review, { at: firebase.firestore.Timestamp.now() }) });
-  delete w.seenAt;
+  delete w.seenAt; delete w.skipped;
   const a = ATT.find(x=>x.aid===w.attemptId);
-  if(a){ a.reviewed = true; a.essay = ed.score; }
+  if(a){ a.reviewed = true; a.essay = ed.score; a.skipped = false; }
   WR.editing = false; WR.ed = null;
   toast(`已发给 ${KID[w.kid].n}`);
+  render(); window.scrollTo({ top:0 });
+}
+
+// 「不批了」（Sam 2026-09-22）：比如孩子又交了一篇新版，旧的那篇就不用批了。只做个记号 ——
+// writings 上的 skipped 给作文列表看，attempt 上的 practice.skipped 让待批改的数字不算它。
+// 孩子那边什么都不变（Writing Lab 只看 status），作文和 Claude 的草稿都留着，随时能放回去。
+async function wrSkip(on){
+  const w = wrCur();
+  if(!w || w.status==='reviewed') return;
+  if(on && !confirm(`这篇不批了？${KID[w.kid].n} 那边什么也收不到，作文和草稿都留着，以后能放回待批改。`)) return;
+  const FV = firebase.firestore.FieldValue;
+  const b = db.batch();
+  b.update(db.doc('writings/'+w.id), { skipped: on ? { by: meAs(), at: FV.serverTimestamp() } : FV.delete() });
+  if(w.attemptId) b.update(db.doc('attempts/'+w.attemptId), { 'practice.skipped': on ? true : FV.delete() });
+  try { await wrFlush(); await b.commit(); }
+  catch(e){ console.error(e); toast('没存上：' + (e.code||e.message), true); return; }
+  if(on) w.skipped = { by: meAs(), at: firebase.firestore.Timestamp.now() }; else delete w.skipped;
+  const a = ATT.find(x=>x.aid===w.attemptId);
+  if(a) a.skipped = on;
+  if(on){ Object.assign(WR, { cur:'', editing:false, diff:false, ed:null }); toast('这篇不批了，挪到列表最下面'); }
+  else toast('放回待批改了');
   render(); window.scrollTo({ top:0 });
 }
 
@@ -3107,6 +3139,8 @@ function wireEssay(){
   on('[data-wsetup]', 'click', ()=>{ WR.setup = !WR.setup; render(); });
   on('[data-wai]', 'click', aiDraft);
   on('[data-wsend]', 'click', wrSend);
+  on('[data-wskip]', 'click', ()=>wrSkip(true));
+  on('[data-wunskip]', 'click', ()=>wrSkip(false));
   on('[data-wkind]', 'click', el=>{ const [k, x] = el.dataset.wkind.split('|'); WR.ed.notes[k].kind = x; wrSave(); render(); });
   on('[data-wdel]', 'click', el=>{ WR.ed.notes.splice(Number(el.dataset.wdel), 1); wrSave(); render(); });
   on('[data-wscore]', 'click', el=>{ WR.ed.score = el.dataset.wscore ? Number(el.dataset.wscore) : null; wrSave(); render(); });
