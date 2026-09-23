@@ -461,6 +461,9 @@
   .esrow .who,.eshead .who{font-size:22px;line-height:1.2;flex:0 0 auto}
   .esrow .sm{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
   .esrow .p{font-family:Georgia,serif;font-size:14px;line-height:1.45}
+  /* 开头一句：同一个题目写了两遍时，靠它分辨是哪一篇 */
+  .esrow .x{font-family:Georgia,serif;font-size:12.5px;font-style:italic;color:var(--mute);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .esrow .l,.eshead .l{font-size:11px;color:var(--mute)}
   .esrow .l b{color:var(--cream);font-weight:600}
   .esrow .st{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
@@ -2844,6 +2847,8 @@ const promptTypeEN = w => isSpeech(w)
       + SSS_PID[w.pid] + ': the handed-in text is the draft first, then the student\'s planning boxes, then '
       + 'their three "why" answers said out loud. Mark the draft; the notes after it are only context.'
     : (w.promptKind==='story' ? 'SSAT creative story starter — the student continues the opening line' : 'ISEE personal / expository topic');
+// 列表上只显示题目，同一个题目交两篇就分不出来（Sam 2026-09-22），所以再露出正文开头。
+const essayOpening = w => String(w.text||'').replace(/\s+/g,' ').trim().slice(0, 140);
 function essayRow(w){
   const r = w.review;
   const dr = WR.drafts[w.id];
@@ -2853,6 +2858,7 @@ function essayRow(w){
     : `<span class="chipst st-done">${WHO_ZH[r && r.by]||''}批了${r && r.score ? ' · '+r.score+'/6' : ''}</span><span class="seen">${seenText(w)}</span>`;
   return `<button class="esrow" data-wid="${esc(w.id)}"><span class="who">${KID[w.kid].av}</span>
     <span class="sm"><span class="p">${esc(w.prompt)}</span>
+      ${essayOpening(w) ? `<span class="x">“${esc(essayOpening(w))}”</span>` : ''}
       <span class="l">${KID[w.kid].n}${(w.draftNo||1)>1?` · <b>第 ${w.draftNo} 稿</b>`:''} · ${w.at?stamp(w.at):''} 交 · ${w.words||0} 词${w.pasted>20?` · <span style="color:var(--amber)">粘贴 ${w.pasted} 字符</span>`:''}</span></span>
     <span class="st">${st}</span></button>`;
 }
