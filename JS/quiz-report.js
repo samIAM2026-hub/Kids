@@ -53,6 +53,7 @@
   var VIEW_MIN_SECS = 15;    // a page without an adapter counts as viewed after this long on it
   var ACTIVE_KEY = 'kid.lastActive.v1';   // shared with homework.html
   var IDLE_MS = 30 * 60 * 1000;           // nobody used the site this long → sign the kid out
+  var PROG_EVERY_MS = 20000;               // live progress (进行中): at most one write per 20 s while answering
   var KIDS = {                             // same uids as homework.html; for the name badge only
     mbtSDgfFrOOS4xIT3eXr7pETEt33: { n: 'Grace', av: '👧', fg: '#d84315', bg: '#fff4e8', line: '#ffb37b' },
     paACSAD0W0bBNknKrAf3GfpHy8x1: { n: 'Warren', av: '👦', fg: '#35704a', bg: '#eef6f0', line: '#8bb98f' }
@@ -92,7 +93,9 @@
   function lastActive() { try { return +localStorage.getItem(ACTIVE_KEY) || 0; } catch (e) { return now(); } }
   var idleAtLoad = now() - lastActive() > IDLE_MS;
   function newSession() {
-    session = { startedAt: now(), lastMark: now(), away: [], awayFrom: null, q: {}, sent: false, fixupSent: false };
+    if (session && session.progTimer) clearTimeout(session.progTimer);
+    session = { startedAt: now(), lastMark: now(), away: [], awayFrom: null, q: {}, sent: false, fixupSent: false,
+                progAt: 0, progTimer: 0 };
   }
   newSession();
 
@@ -129,6 +132,7 @@
     r.awaySecs += awayBetween(from, t);
     if (correct !== undefined) r.correct = correct;
     session.lastMark = t;
+    progressSoon();
   }
   // Knowledge-point tag (HOMEWORK-SYSTEM.md §三十五; ids in
   // homework-system/_Materials/Math/知识点表.md). Each adapter that can map a question number back to
@@ -136,6 +140,7 @@
   // nothing — those are recorded as a bare { q: n } and the parent page files them under 未标注.
   // Nothing here may throw: a missing sk must never cost the kid their score.
   var skOf = null;
+  var progTotal = null;   // adapters set this: how many questions the page has (live progress, below)
   function skFor(q) {
     if (!skOf) return undefined;
     try {
@@ -174,6 +179,7 @@
             });
         });
         skOf = function (q) { var l = self.list(); var it = l && l[q - 1]; return it && it.sk; };
+        progTotal = function () { return self.list().length; };
         wrap('render', null, turn);
         wrap('restart', null, newSession);
         wrap('showResult', null, function () {
@@ -191,6 +197,7 @@
         wrap('pick', function (i) { return { q: i + 1, locked: peek('locked') }; },
           function (c) { if (!c.locked) answered(c.q); });
         skOf = function (q) { var l = peek('QUIZ'); var it = l && l[q - 1]; return it && it.sk; };
+        progTotal = function () { return peek('QUIZ').length; };
         wrap('resetQuiz', null, newSession);
         wrap('finishQuiz', null, function () {
           if (peek('locked') !== true) return;                // blanks left: the page refused to grade
@@ -214,6 +221,10 @@
       },
       install: function () {
         wrap('start', null, newSession);                      // the clock starts at Start, not page open
+        progTotal = function () {
+          var d = peek('DATA');
+          return d.count || d.items.filter(function (x) { return x.type !== 'passage'; }).length;
+        };
         // Numbers here are the printed SSAT numbers (31-60), not indexes — match on it.n.
         skOf = function (q) {
           var d = peek('DATA'), items = d && d.items;
@@ -257,7 +268,9 @@
       },
       install: function () {
         var p = this.pair();
-        wrap(p[0], null, newSession);                         // time the round, not the menu
+        // Time the round, not the menu. A game has no per-question hook, so starting a round is
+        // what shows 进行中 on the parent page (no x/y count).
+        wrap(p[0], null, function () { newSession(); sendProgress(false); });
         wrap(p[1], null, function () {
           var rounds = peek('ROUNDS'), r = rounds && rounds[peek('round')];
           var first = peek('firstTryOK'), items = peek('total'), lvl = peek('currentLvl');
@@ -462,6 +475,49 @@
     }).catch(function (e) { console.warn('[quiz-report] Firebase unavailable — not recorded', e); });
   }
 
+  /* ---------- live progress: 进行中 on the parent page (HOMEWORK-SYSTEM.md 2026-09-22 · 进行中) ----------
+     progress/{kidUid}__{itemId}: one doc per kid per page, overwritten each time the kid works on it.
+     Written on the first answer, then at most every PROG_EVERY_MS while answering, and once more
+     with done:true when the attempt has landed (see flush). Nothing is written for a page that's
+     only opened: "started" means the first question answered (Sam 2026-09-22). Best-effort only —
+     a failed write never touches the attempt. */
+  function localDay(ms) {
+    var d = new Date(ms);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function putProgress(p) {
+    ready.then(function (fb) {
+      var user = signedInKid(fb.auth);
+      if (!user) return;
+      p.kidId = user.uid;
+      return fb.db.collection('progress').doc(user.uid + '__' + p.itemId).set(p);
+    }).catch(function (e) { console.warn('[quiz-report] progress not sent:', (e && e.code) || e); });
+  }
+  function sendProgress(done) {
+    var s = session;
+    if (s.progTimer) { clearTimeout(s.progTimer); s.progTimer = 0; }
+    s.progAt = now();
+    var total = null;
+    try { var n = progTotal && progTotal(); if (typeof n === 'number' && n > 0) total = n; } catch (e) {}
+    putProgress({ itemId: itemId, t: String(document.title || file).slice(0, 300), day: localDay(s.startedAt),
+                  answered: Object.keys(s.q).length, total: total,
+                  startedAt: s.startedAt, lastAt: now(), done: !!done });
+  }
+  function progressSoon() {
+    var s = session;
+    if (s.sent) return;
+    var wait = PROG_EVERY_MS - (now() - s.progAt);
+    if (!s.progAt || wait <= 0) sendProgress(false);
+    else if (!s.progTimer) s.progTimer = setTimeout(function () {
+      s.progTimer = 0;
+      if (s === session && !s.sent) sendProgress(false);
+    }, wait);
+  }
+  // Leaving mid-way: send the count now rather than lose the last 20 s of it.
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && session.progTimer && !session.sent) sendProgress(false);
+  });
+
   /* ---------- the fix round (JS/fix-loop.js) ----------
      The kid went back through every question they missed and got them all right.
      That is recorded as its OWN attempt, after the graded one, so that:
@@ -517,6 +573,13 @@
           });
           delete data.localId; delete data.startedAtMs; delete data.submittedAtMs; delete data.writing;
           return createOnce(ref, data).then(function () {
+            // The attempt is in: tell the parent page (it re-reads attempts when a progress doc turns done).
+            // Fix rounds are their own tiny attempt after the real one — no need to flip anything for those.
+            if (r.kind !== 'fixup') putProgress({
+              itemId: r.itemId, t: String(r.t || '').slice(0, 300), day: localDay(r.startedAtMs),
+              answered: (r.qTimes || []).length, total: r.total || null,
+              startedAt: r.startedAtMs, lastAt: r.submittedAtMs, done: true
+            });
             if (!r.writing) return;
             // Rules: same ID as the attempt, and that attempt must already be this kid's.
             return createOnce(fb.db.collection('writings').doc(r.localId), Object.assign({}, r.writing, {
