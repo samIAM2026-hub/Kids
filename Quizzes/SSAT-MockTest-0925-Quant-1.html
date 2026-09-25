@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 9.25 · Quantitative 1</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #2f6f5e; --accent-soft: #d5e7e0;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 9.25 &middot; Section 1</div>
+    <h1>Quantitative Skills &mdash; Section 1 (Questions 1&ndash;25)</h1>
+    <div class="meta">25 questions &middot; 30 minutes &middot; 72 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">30:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 9.25 &middot; <a href="SSAT-MockTest-0925-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Quantitative 1",
+ "items": [
+  {
+   "n": 1,
+   "stem": "1<sup>1</sup>&frasl;<sub>2</sub> + 0.750 + 0.3010 = _______.",
+   "opts": [
+    "1.001",
+    "2.051",
+    "2.055",
+    "2.351",
+    "2.551"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.arith",
+   "why": "Turn the mixed number into a decimal first: 1<sup>1</sup>&frasl;<sub>2</sub> = 1.5. Then line the decimal points up: 1.500 + 0.750 + 0.301 = <b>2.551</b>. The trap is (B) 2.051 &mdash; what you get if the ½ is dropped or the columns slip. Rule worth keeping: when decimals are added, pad them to the same number of places so every digit sits in its own column."
+  },
+  {
+   "n": 2,
+   "stem": "Evaluate: <span style=\"display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.2;margin:0 3px;font-size:.95em\"><span style=\"padding:0 4px\">2<sup>11</sup></span><span style=\"border-top:1.5px solid currentColor;padding:0 4px\">2<sup>n</sup></span></span> _______.",
+   "opts": [
+    "2<sup>2n</sup>",
+    "16",
+    "8",
+    "2",
+    "1<sup>2n</sup>"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.algebra",
+   "why": "When you divide powers of the same base, you <b>subtract the exponents</b>: 2<sup>11</sup> &divide; 2<sup>n</sup> = 2<sup>11&minus;n</sup>. The printed key gives (C) 8, which is 2<sup>3</sup> &mdash; that is what you get when the bottom is 2<sup>8</sup>: 2<sup>11&minus;8</sup> = 2<sup>3</sup> = 8. (A) is the trap of adding or multiplying the exponents instead of subtracting. Rule: same base, dividing &rarr; subtract the exponents; multiplying &rarr; add them.",
+   "flag": "The paper prints the bottom as 2<sup>n</sup> without saying what n is, so the question cannot really be finished as written. The printed key says (C) 8, which only works if n = 8. We kept the question and the key exactly as printed."
+  },
+  {
+   "n": 3,
+   "stem": "565.684 &divide; 62.3 = _______.",
+   "opts": [
+    "7.08",
+    "7.68",
+    "9.08",
+    "9.081",
+    "10.08"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.arith",
+   "why": "Estimate first: 565 &divide; 62 is a bit more than 9 (62 &times; 9 = 558). That already rules out (A), (B) and (E). To choose between 9.08 and 9.081, check: 62.3 &times; 9.08 = 565.684 exactly, so the answer is <b>9.08</b>. (D) 9.081 is the trap for students who guess a longer decimal must be more exact. Rule: estimate to throw out the far-off choices, then multiply back to check the close ones."
+  },
+  {
+   "n": 4,
+   "stem": "Evaluate: <span style=\"display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.2;margin:0 3px;font-size:.95em\"><span style=\"padding:0 4px\">1<sup>3</sup>&frasl;<sub>4</sub> &minus; <sup>1</sup>&frasl;<sub>4</sub></span><span style=\"border-top:1.5px solid currentColor;padding:0 4px\"><sup>1</sup>&frasl;<sub>8</sub></span></span> _______.",
+   "opts": [
+    "1",
+    "2",
+    "12",
+    "13",
+    "14"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.frac",
+   "why": "Do the top first: 1<sup>3</sup>&frasl;<sub>4</sub> &minus; <sup>1</sup>&frasl;<sub>4</sub> = 1<sup>2</sup>&frasl;<sub>4</sub> = 1½ = <sup>3</sup>&frasl;<sub>2</sub>. Now divide by <sup>1</sup>&frasl;<sub>8</sub>, which means multiply by 8: <sup>3</sup>&frasl;<sub>2</sub> &times; 8 = <b>12</b>. (B) 2 is what you get if you multiply by ⅛ instead of dividing. Rule: dividing by a fraction smaller than 1 makes the number <i>bigger</i>."
+  },
+  {
+   "n": 5,
+   "stem": "2.01 &divide; 1.02 = _______.",
+   "opts": [
+    "0.507",
+    "1.83",
+    "1.97",
+    "2.0001",
+    "3.03"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.arith",
+   "why": "About 2 &divide; 1 = 2, but the bottom (1.02) is a little more than 1, so the answer must be a little <i>less</i> than 2. Only (C) 1.97 and (B) 1.83 are just under 2; check 1.02 &times; 1.97 = 2.0094 &asymp; 2.01. So <b>1.97</b>. (D) 2.0001 is the trap of multiplying instead of dividing. Rule: if the divisor is slightly bigger than 1, the answer is slightly smaller than the top number."
+  },
+  {
+   "n": 6,
+   "stem": "&minus;3 &minus; [(4 &minus; 3) &minus; (3 + 4)] = _______.",
+   "opts": [
+    "12",
+    "6",
+    "3",
+    "&minus; 6",
+    "&minus; 9"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.arith",
+   "why": "Work from the inside out. (4 &minus; 3) = 1 and (3 + 4) = 7, so the bracket is 1 &minus; 7 = &minus;6. Then &minus;3 &minus; (&minus;6) = &minus;3 + 6 = <b>3</b>. The trap is (E) &minus;9, from forgetting that subtracting a negative means adding. Rule: two minus signs side by side turn into a plus."
+  },
+  {
+   "n": 7,
+   "stem": "3,013 &minus; 699 = _______.",
+   "opts": [
+    "2,294",
+    "2,304",
+    "2,314",
+    "2,404",
+    "2,414"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.arith",
+   "why": "A quick way: 699 is 1 less than 700. 3,013 &minus; 700 = 2,313, then add the 1 back: <b>2,314</b>. (B) and (D) are borrowing slips of 10 and 100. Rule: round the number you subtract to a friendly one, then fix the difference afterwards."
+  },
+  {
+   "n": 8,
+   "stem": "If <i>a</i> = 4 and <i>b</i> = <sup>1</sup>&frasl;<sub>5</sub>, then the value of <i>a</i>, expressed in terms if <i>b</i>, is _______.",
+   "opts": [
+    "25<i>b</i>",
+    "20<i>b</i>",
+    "5<sup>1</sup>&frasl;<sub>5</sub><i>b</i>",
+    "5<i>b</i>",
+    "<sup>1</sup>&frasl;<sub>25</sub><i>b</i>"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.algebra",
+   "why": "Ask: how many <i>b</i>'s make 4? Each <i>b</i> is <sup>1</sup>&frasl;<sub>5</sub>, and 4 &divide; <sup>1</sup>&frasl;<sub>5</sub> = 4 &times; 5 = 20. So <i>a</i> = <b>20<i>b</i></b>. Check: 20 &times; <sup>1</sup>&frasl;<sub>5</sub> = 4. &#10003; (A) 25<i>b</i> is the trap of using 5 &times; 5. Rule: to write a number &ldquo;in terms of <i>b</i>&rdquo;, divide it by <i>b</i> and put <i>b</i> back on."
+  },
+  {
+   "n": 9,
+   "stem": "130 % of 70 is _______.",
+   "opts": [
+    "0.98",
+    "9.8",
+    "91",
+    "150",
+    "9,800"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.arith",
+   "why": "130% is a bit more than the whole, so the answer must be a bit more than 70. 100% of 70 = 70 and 30% of 70 = 21, so 130% = 70 + 21 = <b>91</b>. (E) 9,800 comes from multiplying 130 &times; 70 without turning the percent into 1.3. Rule: over 100% means the answer is bigger than the number you started with."
+  },
+  {
+   "n": 10,
+   "stem": "Subtract:",
+   "opts": [
+    "2 gal. 2 qt. 1 pt.",
+    "2 gal. 6 qt. 2 pt.",
+    "3 gal. 3 qt. 1 pt.",
+    "4 gal. 3 qt. 1 pt.",
+    "4 gal. 9 qt. 1 pt."
+   ],
+   "ans": 2,
+   "sk": "ssat.q.word",
+   "why": "You cannot take 3 quarts from 2 quarts, so borrow one gallon. 1 gallon = <b>4 quarts</b>, so 5 gal 2 qt 1 pt becomes 4 gal 6 qt 1 pt. Now subtract: 4 &minus; 1 = 3 gal, 6 &minus; 3 = 3 qt, and the 1 pt stays. Answer: <b>3 gal. 3 qt. 1 pt.</b> (E) is the trap of borrowing 10 as if these were ordinary digits. Rule: when you borrow a unit, borrow its real size (1 gallon = 4 quarts, 1 quart = 2 pints).",
+   "fig": "<div class=\"ascii\">  5 gallons  2 quarts  1 pint\n&minus; 1 gallon   3 quarts\n&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</div>"
+  },
+  {
+   "n": 11,
+   "stem": "If we double the value of <i>a</i> and <i>c</i> in the fraction <span style=\"display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.2;margin:0 3px;font-size:.95em\"><span style=\"padding:0 4px\"><i>ab</i></span><span style=\"border-top:1.5px solid currentColor;padding:0 4px\"><i>c</i></span></span>, the value of the fraction is _______.",
+   "opts": [
+    "doubled",
+    "tripled",
+    "multiplied by 4",
+    "halved",
+    "unchanged"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.algebra",
+   "why": "<i>a</i> is on top and <i>c</i> is on the bottom. Doubling the top doubles the fraction; doubling the bottom halves it. Together they cancel: 2<i>ab</i> &divide; 2<i>c</i> = <i>ab</i> &divide; <i>c</i>. <b>Unchanged.</b> Try numbers if you are unsure: <i>a</i>=1, <i>b</i>=1, <i>c</i>=1 gives 1; <i>a</i>=2, <i>c</i>=2 gives 2&divide;2 = 1 again. (C) is the trap of doubling both and multiplying the effects. Rule: the same factor on top and bottom cancels."
+  },
+  {
+   "n": 12,
+   "stem": "What percentage of 220 is 26.4?",
+   "opts": [
+    "909%",
+    "99%",
+    "40%",
+    "27%",
+    "12%"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.arith",
+   "why": "26.4 is much smaller than 220, so the answer must be a small percent &mdash; that rules out (A), (B) and (C) straight away. 10% of 220 = 22, and 2% = 4.4, so 12% = 26.4. <b>12%</b>. (A) 909% is the trap of dividing the wrong way (220 &divide; 26.4 &asymp; 8.3). Rule: part &divide; whole &times; 100 &mdash; and check that the answer is sensible in size."
+  },
+  {
+   "n": 13,
+   "stem": "98 reduced by <sup>2</sup>&frasl;<sub>7</sub> is equivalent to _______.",
+   "opts": [
+    "28",
+    "33",
+    "66",
+    "70",
+    "85"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.frac",
+   "why": "&ldquo;Reduced by <sup>2</sup>&frasl;<sub>7</sub>&rdquo; means take away <sup>2</sup>&frasl;<sub>7</sub> <i>of</i> 98. <sup>1</sup>&frasl;<sub>7</sub> of 98 = 14, so <sup>2</sup>&frasl;<sub>7</sub> = 28. 98 &minus; 28 = <b>70</b>. (That is the same as keeping <sup>5</sup>&frasl;<sub>7</sub> of 98.) (A) 28 is the trap &mdash; that is only the amount taken away, not what is left. Rule: &ldquo;reduced by&rdquo; asks for what remains."
+  },
+  {
+   "n": 14,
+   "stem": "How long should an object 6<sup>1</sup>&frasl;<sub>2</sub> feet long be drawn, if according to the scale, <sup>1</sup>&frasl;<sub>4</sub> inch in the drawing equals 1 foot?",
+   "opts": [
+    "1<sup>3</sup>&frasl;<sub>4</sub> inches",
+    "1<sup>5</sup>&frasl;<sub>8</sub> inches",
+    "<sup>7</sup>&frasl;<sub>8</sub> inches",
+    "<sup>5</sup>&frasl;<sub>8</sub> inches",
+    "<sup>17</sup>&frasl;<sub>32</sub> inches"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.ratio",
+   "why": "Each real foot becomes <sup>1</sup>&frasl;<sub>4</sub> inch. So 6<sup>1</sup>&frasl;<sub>2</sub> feet becomes 6<sup>1</sup>&frasl;<sub>2</sub> &times; <sup>1</sup>&frasl;<sub>4</sub> = <sup>13</sup>&frasl;<sub>2</sub> &times; <sup>1</sup>&frasl;<sub>4</sub> = <sup>13</sup>&frasl;<sub>8</sub> = <b>1<sup>5</sup>&frasl;<sub>8</sub> inches</b>. Check: 6 feet &rarr; 1½ inches, and the extra ½ foot &rarr; <sup>1</sup>&frasl;<sub>8</sub> inch; 1<sup>4</sup>&frasl;<sub>8</sub> + <sup>1</sup>&frasl;<sub>8</sub> = 1<sup>5</sup>&frasl;<sub>8</sub>. (A) 1<sup>3</sup>&frasl;<sub>4</sub> is the trap of rounding 6½ up to 7. Rule: scale problems are one multiplication &mdash; real size &times; scale."
+  },
+  {
+   "n": 15,
+   "stem": "12<sup>1</sup>&frasl;<sub>2</sub> &divide; <sup>1</sup>&frasl;<sub>2</sub> + <sup>1</sup>&frasl;<sub>2</sub> &times; 12 &minus; 3 =",
+   "opts": [
+    "1",
+    "4<sup>3</sup>&frasl;<sub>4</sub>",
+    "20",
+    "28",
+    "32<sup>1</sup>&frasl;<sub>2</sub>"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.frac",
+   "why": "Order of operations: multiply and divide first, left to right, then add and subtract. 12½ &divide; ½ = 25 (how many halves in 12½?). ½ &times; 12 = 6. Then 25 + 6 &minus; 3 = <b>28</b>. (E) comes from working straight left to right. Rule: &times; and &divide; before + and &minus;, every time."
+  },
+  {
+   "n": 16,
+   "stem": "If <i>y</i> + 3 &gt; 10, the <i>y</i> may be _______.",
+   "opts": [
+    "larger than 7",
+    "larger than 6",
+    "larger than 0",
+    "equal to 0",
+    "unknown"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.algebra",
+   "why": "Solve it like an equation: take 3 from both sides and <i>y</i> &gt; 7. So <i>y</i> is <b>larger than 7</b>. (B) is the trap: <i>y</i> = 6.5 is larger than 6 but does not work, since 6.5 + 3 = 9.5, not more than 10. Rule: an inequality is solved exactly like an equation (as long as you do not multiply or divide by a negative)."
+  },
+  {
+   "n": 17,
+   "stem": "The shadow of a man six feet tall is 12 feet long. How tall is a tree that casts a 100-foot shadow?",
+   "opts": [
+    "100&prime;",
+    "50&prime;",
+    "25&prime;",
+    "15&prime;",
+    "10&prime;"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.ratio",
+   "why": "At the same time of day, every shadow keeps the same ratio to its object. The man's shadow is <b>twice</b> his height (12 = 2 &times; 6). So the tree is half its shadow: 100 &divide; 2 = <b>50 feet</b>. (A) 100&prime; is the trap of thinking the height equals the shadow. Rule: set up height : shadow and keep it the same for both."
+  },
+  {
+   "n": 18,
+   "stem": "In the fraction <sup>1</sup>&frasl;<sub>&Delta;</sub>, &Delta; could be replaced by all of the following EXCEPT _______.",
+   "opts": [
+    "0",
+    "1",
+    "4.2",
+    "9",
+    "10"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.frac",
+   "why": "The bottom of a fraction can be any number <b>except 0</b>, because you cannot divide by zero. 1, 4.2, 9 and 10 all give real values (1, about 0.24, &frac19; and 0.1). So the one that fails is <b>0</b>. Rule: a zero on the bottom is never allowed."
+  },
+  {
+   "n": 19,
+   "stem": "0.0515 &times; 10 is equivalent to _______.",
+   "opts": [
+    "5,150 &divide; 100",
+    "5.15 &times; 10",
+    "0.00515 &times; 1,000",
+    "510,000 &divide; 10",
+    "5,150 &divide; 10,000"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.arith",
+   "why": "First the target: 0.0515 &times; 10 = 0.515 (the point moves one place right). Now test each choice. (A) = 51.5, (B) = 51.5, (C) = 5.15, (D) = 51,000, (E) 5,150 &divide; 10,000 = <b>0.515</b>. Rule: &times;10 moves the point one place right; &divide;10,000 moves it four places left. Count the places, do not guess."
+  },
+  {
+   "n": 20,
+   "stem": "<b>NOTE:</b> Figure not drawn to scale.<br>Which of the following is true?",
+   "opts": [
+    "m&ang;1 + m&ang;3 &gt; 180&deg;",
+    "m&ang;1 + m&ang;3",
+    "m&ang;1 = m&ang;3",
+    "m&ang;1 &minus; m&ang;3 &gt; m&ang;2",
+    "m&ang;1 + m&ang;3 = 120&deg;"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.geom",
+   "why": "The three angles of any triangle add to 180&deg;. Angle 2 is 60&deg;, so the other two must share 180 &minus; 60 = <b>120&deg;</b>. (C) looks true in the picture, but the figure is <i>not drawn to scale</i>, so you cannot trust how it looks. (B) is printed without an ending, so it cannot be the answer. Rule: when a figure is not to scale, use only facts that are always true (like the 180&deg; rule).",
+   "fig": "<svg width=\"260\" height=\"190\" viewBox=\"0 0 260 190\" role=\"img\" aria-label=\"A triangle with its top corner labelled 1, bottom-left corner labelled 2 and bottom-right corner labelled 3. Below it: m angle 2 equals 60 degrees.\"><polygon points=\"118,14 20,150 240,150\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><text x=\"118\" y=\"40\" text-anchor=\"middle\" font-family=\"Georgia\" font-size=\"15\">1</text><text x=\"46\" y=\"141\" text-anchor=\"middle\" font-family=\"Georgia\" font-size=\"15\">2</text><text x=\"206\" y=\"141\" text-anchor=\"middle\" font-family=\"Georgia\" font-size=\"15\">3</text><text x=\"112\" y=\"176\" text-anchor=\"middle\" font-family=\"Georgia\" font-size=\"15\">m&ang;2 = 60&deg;</text></svg>"
+  },
+  {
+   "n": 21,
+   "stem": "A coat is on sale for $144 after a discount of 20%. Find the original price.",
+   "opts": [
+    "$102.40",
+    "$153.60",
+    "$160",
+    "$180",
+    "$148"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.word",
+   "why": "After a 20% discount you pay 80% of the original price. So 80% of the price = $144, and the full price = 144 &divide; 0.8 = <b>$180</b>. Check: 20% of 180 = 36, and 180 &minus; 36 = 144. &#10003; The trap is adding 20% of 144 back on: 144 + 28.80 = 172.80 &mdash; not a choice here, but a common slip. Rule: working backwards from a sale price, divide by the part you paid."
+  },
+  {
+   "n": 22,
+   "stem": "Rachel worked one Saturday from 8:30 a.m. until 3 p.m. at the rate of $4.65 per hour. How much did she receive?",
+   "opts": [
+    "$19.88",
+    "$22.53",
+    "$19.00",
+    "$22.00",
+    "$30.23"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.word",
+   "why": "First the hours: 8:30 a.m. to 12:00 is 3½ hours, and 12:00 to 3:00 is 3 more, so 6½ hours. 6½ &times; $4.65 = $27.90 + $2.325 = $30.225, which rounds to <b>$30.23</b>. Quick check: about 6½ hours at about $5 is about $32, so only (E) is near. Rule: count time across noon in two pieces &mdash; up to 12, then after 12."
+  },
+  {
+   "n": 23,
+   "stem": "The graph shown above is of which inequality?",
+   "opts": [
+    "&minus; 2&lt;<i>x</i>&lt;3",
+    "&minus; 2&le;<i>x</i>&lt;3",
+    "&minus; 2&le;<i>x</i>&le;3",
+    "&minus; 2&lt;<i>x</i>&le;3",
+    "&minus; 2&lt;<i>x</i>"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.algebra",
+   "why": "Look at the two ends. At &minus;2 the dot is <b>filled in</b>, so &minus;2 is included: &minus;2 &le; <i>x</i>. At 3 the circle is <b>open</b>, so 3 is not included: <i>x</i> &lt; 3. Together: <b>&minus;2 &le; <i>x</i> &lt; 3</b>. (D) swaps the two ends. Rule: filled dot = &le; or &ge; (included); open circle = &lt; or &gt; (not included).",
+   "fig": "<svg width=\"420\" height=\"80\" viewBox=\"0 0 420 80\" role=\"img\" aria-label=\"A number line marked from negative 3 to 4. A solid dot sits on negative 2, an open circle sits on 3, and a heavy segment joins them.\"><line x1=\"30\" y1=\"30\" x2=\"380\" y2=\"30\" stroke=\"#1c1a17\" stroke-width=\"2\"/><line x1=\"30\" y1=\"20\" x2=\"30\" y2=\"40\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"30\" y=\"62\" text-anchor=\"middle\" font-family=\"Georgia\" font-size=\"15\">&minus;3</text><line x1=\"80\" y1=\"20\" x2=\"80\" y2=\"40\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"80\" y=\"62\" text-anchor=\"middle\" font-family=\"Georgia\" font-size=\"15\">&minus;2</text><line x1=\"130\" y1=\"20\" x2=\"130\" y2=\"40\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"130\" y=\"62\" text-anchor=\"middle\" font-family=\"Georgia\" font-size=\"15\">&minus;1</text><line x1=\"180\" y1=\"20\" x2=\"180\" y2=\"40\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"180\" y=\"62\" text-anchor=\"middle\" font-family=\"Georgia\" font-size=\"15\">0</text><line x1=\"230\" y1=\"20\" x2=\"230\" y2=\"40\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"230\" y=\"62\" text-anchor=\"middle\" font-family=\"Georgia\" font-size=\"15\">1</text><line x1=\"280\" y1=\"20\" x2=\"280\" y2=\"40\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"280\" y=\"62\" text-anchor=\"middle\" font-family=\"Georgia\" font-size=\"15\">2</text><line x1=\"330\" y1=\"20\" x2=\"330\" y2=\"40\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"330\" y=\"62\" text-anchor=\"middle\" font-family=\"Georgia\" font-size=\"15\">3</text><line x1=\"380\" y1=\"20\" x2=\"380\" y2=\"40\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"380\" y=\"62\" text-anchor=\"middle\" font-family=\"Georgia\" font-size=\"15\">4</text><line x1=\"80\" y1=\"30\" x2=\"324\" y2=\"30\" stroke=\"#1c1a17\" stroke-width=\"5\"/><circle cx=\"80\" cy=\"30\" r=\"6.5\" fill=\"#1c1a17\"/><circle cx=\"330\" cy=\"30\" r=\"6.5\" fill=\"#fff\" stroke=\"#1c1a17\" stroke-width=\"2.2\"/></svg>"
+  },
+  {
+   "n": 24,
+   "stem": "How many socks would you need to remove from a drawer containing 10 blue socks, 15 black socks, and 5 red socks, to insure that you have at least 2 matching socks?",
+   "opts": [
+    "3",
+    "4",
+    "16",
+    "17",
+    "28"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.logic",
+   "why": "Think about the unluckiest pulls. There are only 3 colours, so the first 3 socks could be one of each colour &mdash; no pair yet. The 4th sock must match one of them. So <b>4</b>. (D) 17 is the trap of thinking about the biggest pile; the numbers of each colour do not matter here. Rule: for &ldquo;make sure you get a pair&rdquo;, take one of every kind, then add 1."
+  },
+  {
+   "n": 25,
+   "stem": "What is the sum of <sup>a</sup>&frasl;<sub>b</sub> and <sup>b</sup>&frasl;<sub>a</sub>?",
+   "opts": [
+    "<span style=\"display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.2;margin:0 3px;font-size:.95em\"><span style=\"padding:0 4px\">a+b</span><span style=\"border-top:1.5px solid currentColor;padding:0 4px\">ab</span></span>",
+    "<span style=\"display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.2;margin:0 3px;font-size:.95em\"><span style=\"padding:0 4px\">a<sup>2</sup>+b<sup>2</sup></span><span style=\"border-top:1.5px solid currentColor;padding:0 4px\">ab</span></span>",
+    "<span style=\"display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.2;margin:0 3px;font-size:.95em\"><span style=\"padding:0 4px\">(a+b)<sup>2</sup></span><span style=\"border-top:1.5px solid currentColor;padding:0 4px\">ab</span></span>",
+    "<span style=\"display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.2;margin:0 3px;font-size:.95em\"><span style=\"padding:0 4px\">a<sup>2</sup>+b<sup>2</sup></span><span style=\"border-top:1.5px solid currentColor;padding:0 4px\">2ab</span></span>",
+    "1"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.algebra",
+   "why": "Use the common bottom <i>ab</i>: <sup>a</sup>&frasl;<sub>b</sub> = <sup>a&middot;a</sup>&frasl;<sub>ab</sub> and <sup>b</sup>&frasl;<sub>a</sub> = <sup>b&middot;b</sup>&frasl;<sub>ab</sub>. Add the tops: (a<sup>2</sup> + b<sup>2</sup>) over ab. That is <b>(B)</b>. Check with numbers: a = 1, b = 2 gives ½ + 2 = 2½, and (1 + 4) &divide; 2 = 2½. &#10003; (C) is the trap of treating a<sup>2</sup> + b<sup>2</sup> as (a + b)<sup>2</sup>. Rule: when you are unsure with letters, try small numbers."
+  }
+ ],
+ "count": 25
+};
+const MINUTES = 30;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
