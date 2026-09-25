@@ -508,6 +508,13 @@
          background:var(--ink2);border:1px solid var(--line);border-radius:6px;padding:7px 9px;margin-top:3px;resize:vertical;outline:none}
   .esnote input:focus,.esnote textarea:focus,.essumin:focus{border-color:var(--gold2)}
   .essumin{margin-top:8px;font-size:13.5px;line-height:1.6}
+  .esnote.ck-fixed{border-left-color:var(--green)}
+  .esnote.ck-partly{border-left-color:var(--amber)}
+  .esnote.ck-not{border-left-color:var(--red)}
+  .esnote.ck-{border-left-color:var(--line)}
+  .esnote .ckst{font-size:12px;font-weight:600}
+  .esfinal{background:rgba(75,182,122,.12);border:1px solid rgba(75,182,122,.4);border-radius:8px;padding:9px 13px;
+           margin-top:12px;font-size:13px;line-height:1.6}
   .estools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
   .estools .saved{font-size:11px;color:var(--mute)}
   .esmeta{font-size:12px;color:var(--mute);margin-top:10px}
@@ -2615,6 +2622,14 @@ let WR = { list:null, drafts:{}, err:'', loading:false, kid:'all', cur:'', editi
 // by 'claude': marked from the chat window on Sam's Mac (homework-system/writing-review.mjs), no API key.
 const WHO_ZH = { dad:'爸爸', mom:'妈妈', claude:'Claude' };
 const WR_KIND = { fix:'要改', good:'写得好', note:'批注' };
+// 批一次、改一次就定稿（Sam 2026-09-24）：第 1 稿逐句批；第 2 稿（及以后）不再从头批，只出一张对照表 ——
+// 上一稿的每条「要改 / 批注」这次改了没有 —— 发出去就是定稿，孩子那边不再有「写下一稿」。
+// 对照表存在 review.checks：[{ quote, fix, status:'fixed'|'partly'|'not', note }]。
+const WR_CK = { fixed:'改好了', partly:'改了一半', not:'没改' };
+// 要有 prevId 才算改稿：演讲工作台同一步交第二次也会写 draftNo 2，但那不是改稿。
+const isRedraft = w => (w.draftNo||1) >= 2 && !!w.prevId;
+const isFinal = w => w.status==='reviewed' && isRedraft(w);
+const prevMarks = prev => WritingReview.ordered(prev && prev.review && prev.review.notes || []).filter(n=>n.kind!=='good');
 const meAs = () => auth.currentUser && auth.currentUser.email === MOM_EMAIL ? 'mom' : 'dad';
 const wrCur = () => (WR.list || []).find(w=>w.id===WR.cur);
 
@@ -2795,7 +2810,7 @@ function viewEssay(){
       <li><b>🤖 让 Claude 先出草稿</b>（按钮）：Claude 读一遍，按 ISEE / SSAT 阅卷人的口径出一版批注、总评和分数，<b>只有你看得到</b>，删改完再发。要这台设备上存过 Claude 的 key（「⚙︎ Claude 设置」里贴一次）。</li>
       <li><b>分数</b> 1–6：6 出色 · 5 强 · 4 扎实 · 3 在进步 · 2 弱 · 1 刚开头。可以不打。不是百分比，也不套 ${PASS}% 的达标线。</li>
       <li>批到一半的会<b>自动存成草稿</b>，爸爸妈妈看到的是同一份，换台设备接着批也行。</li>
-      <li>孩子收到后可以交<b>第 2 稿</b>，第 2 稿会连着上一稿，打开时能看两稿对比。</li>
+      <li><b>批一次、改一次就定稿</b>：孩子收到批改后可以交<b>第 2 稿</b>（连着上一稿，能看两稿对比）。第 2 稿不再逐句批，只出一张<b>对照表</b>（上一稿指出的问题改好了 / 改了一半 / 没改），点「定稿」发出后这篇就结束，孩子不能再写下一稿。</li>
       <li><b>用时</b>从选题算起，30 分钟到了不会强停；<b>粘贴</b>超过 20 个字符会标黄。</li>
     </ul></details>`;
   if(WR.err) return html + `<p class="empty" style="color:var(--red)">${esc(WR.err)}</p>
@@ -2887,9 +2902,9 @@ function essayRow(w){
   const dr = WR.drafts[w.id];
   const st = w.status!=='reviewed'
     ? (w.skipped ? `<span class="chipst st-skip">不批了 · 没发</span>`
-       : dr && dr.by==='claude' ? `<span class="chipst st-prac">Claude 批好了 · 等你发</span>`
-       : dr ? `<span class="chipst st-open">批了一半</span>` : `<span class="chipst st-open">待批改</span>`)
-    : `<span class="chipst st-done">${WHO_ZH[r && r.by]||''}批了${r && r.score ? ' · '+r.score+'/6' : ''}</span><span class="seen">${seenText(w)}</span>`;
+       : dr && dr.by==='claude' ? `<span class="chipst st-prac">${isRedraft(w) ? 'Claude 对照好了 · 等你定稿' : 'Claude 批好了 · 等你发'}</span>`
+       : dr ? `<span class="chipst st-open">批了一半</span>` : `<span class="chipst st-open">${isRedraft(w) ? '待对照 · 定稿' : '待批改'}</span>`)
+    : `<span class="chipst st-done">${isFinal(w) ? '定稿' : (WHO_ZH[r && r.by]||'')+'批了'}${r && r.score ? ' · '+r.score+'/6' : ''}</span><span class="seen">${seenText(w)}</span>`;
   return `<button class="esrow" data-wid="${esc(w.id)}"><span class="who">${KID[w.kid].av}</span>
     <span class="sm"><span class="p">${esc(w.prompt)}</span>
       ${essayOpening(w) ? `<span class="x">“${esc(essayOpening(w))}”</span>` : ''}
@@ -2920,12 +2935,22 @@ function noteStatic(n, k){
     ${n.kind==='fix' && n.fix ? `<div class="fixv">→ ${esc(n.fix)}</div>` : ''}${n.note ? `<div class="nt">${esc(n.note)}</div>` : ''}</div>`;
 }
 
+function checkStatic(c, k){
+  return `<div class="esnote ck-${c.status||''}"><div class="nh"><span class="num">${k+1}</span>
+      <span class="ckst">${WR_CK[c.status]||'还没看'}</span></div>
+    <div class="q">“${esc(c.quote)}”</div>${c.fix ? `<div class="fixv">→ ${esc(c.fix)}</div>` : ''}
+    ${c.note ? `<div class="nt">${esc(c.note)}</div>` : ''}</div>`;
+}
+const ckCount = cs => ['fixed','partly','not'].map(s=>`${WR_CK[s]} ${cs.filter(c=>c.status===s).length}`).join(' · ');
+
 function reviewedView(w){
-  const r = w.review, list = WritingReview.ordered(r.notes);
-  return `<div class="esmeta">${WHO_ZH[r.by]||''}批改${r.at?' · '+stamp(tsDate(r.at)):''} · ${r.score?'打了 '+r.score+'/6':'没打分'} · ${seenText(w)}</div>
+  const r = w.review, list = WritingReview.ordered(r.notes), cs = r.checks || [];
+  return `<div class="esmeta">${WHO_ZH[r.by]||''}${isFinal(w)?'定稿':'批改'}${r.at?' · '+stamp(tsDate(r.at)):''} · ${r.score?'打了 '+r.score+'/6':'没打分'} · ${seenText(w)}</div>
+    ${isFinal(w) ? `<div class="esfinal">✅ 这篇已经定稿，${KID[w.kid].n} 那边不能再写下一稿了。</div>` : ''}
     ${r.summary ? `<div class="essum">${esc(r.summary)}</div>` : ''}
+    ${cs.length ? `<div class="subhd">和上一稿对照 · ${ckCount(cs)}</div>${cs.map(checkStatic).join('')}` : ''}
     <div class="estext">${WritingReview.markup(w.text, list)}</div>
-    <div class="subhd">批注 · ${list.length} 条</div>${list.map(noteStatic).join('') || '<p class="empty">没有批注。</p>'}
+    ${list.length || !cs.length ? `<div class="subhd">批注 · ${list.length} 条</div>${list.map(noteStatic).join('') || '<p class="empty">没有批注。</p>'}` : ''}
     <div class="esact"><button class="btn ghost" data-wedit>修改批改</button></div>`;
 }
 
@@ -2938,10 +2963,39 @@ function noteEdit(n, k){
     <label>说明<textarea data-wnote="${k}" rows="2" placeholder="为什么，或者怎么改（孩子会看到）">${esc(n.note||'')}</textarea></label></div>`;
 }
 
+function checkEdit(c, k){
+  return `<div class="esnote ck-${c.status||''}"><div class="nh"><span class="num">${k+1}</span>
+      <span class="kinds">${['fixed','partly','not'].map(s=>`<button class="mini${c.status===s?' on':''}" data-wckst="${k}|${s}">${WR_CK[s]}</button>`).join('')}</span></div>
+    <div class="q">上一稿：“${esc(c.quote)}”</div>${c.fix ? `<div class="fixv">→ ${esc(c.fix)}</div>` : ''}
+    ${c.why ? `<div class="nt">（当时的说明：${esc(c.why)}）</div>` : ''}
+    <label>这次怎么样<textarea data-wcknote="${k}" rows="2" placeholder="一句话，孩子会看到（可以不写）">${esc(c.note||'')}</textarea></label></div>`;
+}
+
+// 第 2 稿及以后：只对照上一稿的批注，发出去就定稿。
+function checksEditorView(w){
+  const ed = WR.ed, prev = w.prevId && WR.list.find(x=>x.id===w.prevId);
+  const left = ed.checks.filter(c=>!c.status).length;
+  return `<div class="esfinal">这是第 ${w.draftNo} 稿：不再逐句批，只看上一稿${prev?`（第 ${prev.draftNo||1} 稿）`:''}指出的 ${ed.checks.length} 个问题改了没有。
+      点最下面「定稿」之后这篇就结束，${KID[w.kid].n} 那边不能再写下一稿。
+      <span class="saved" id="wrsaved" style="margin-left:6px;font-size:11px;color:var(--mute)">${esc(ed.saved)}</span></div>
+    <div class="estext">${WritingReview.markup(w.text, [])}</div>
+    <div class="subhd">和上一稿对照 · ${ckCount(ed.checks)}${left?` · 还有 ${left} 条没选`:''}</div>
+    ${ed.checks.length ? ed.checks.map(checkEdit).join('') : `<p class="empty">${prev ? '上一稿没有「要改」的批注。' : '上一稿不在最近 '+WR_MAX+' 篇里，读不到它的批注。'}直接写总评、定稿就行。</p>`}
+    <div class="subhd">打分 · 孩子会看到，可以不打</div>
+    <div class="scorepick">${[1,2,3,4,5,6].map(n=>`<button class="fchip${ed.score===n?' on':''}" data-wscore="${n}">${n}</button>`).join('')}
+      <button class="fchip${ed.score==null?' on':''}" data-wscore="">不打分</button></div>
+    <div class="subhd">总评 · 孩子会看到</div>
+    <textarea class="essumin" data-wsum rows="4" placeholder="改好了什么、还差什么（两三句就够）">${esc(ed.summary)}</textarea>
+    <div class="esact"><button class="btn solid" data-wsend>定稿，发给 ${KID[w.kid].n}</button>
+      ${w.status==='reviewed' ? '<button class="btn ghost" data-wcancel>不改了</button>'
+        : w.skipped ? '' : '<button class="btn ghost" data-wskip>不批了</button>'}</div>`;
+}
+
 function editorView(w){
   const ed = WR.ed;
   if(!ed || ed.id!==w.id){ openEditor(w); return `<p class="empty">正在读草稿…</p>`; }
   if(ed.loading) return `<p class="empty">正在读草稿…</p>`;
+  if(isRedraft(w)) return checksEditorView(w);
   return `<div class="estools">
       <button class="btn" data-wai ${WR.aiBusy?'disabled':''}>${WR.aiBusy?'Claude 正在读…（半分钟左右）':'🤖 让 Claude 先出草稿'}</button>
       <button class="mini" data-wsetup>⚙︎ Claude 设置</button>
@@ -2965,12 +3019,16 @@ function editorView(w){
 
 // The marking being edited: the saved draft if there is one, else what was sent, else empty.
 async function openEditor(w){
-  WR.ed = { id:w.id, notes:[], summary:'', score:null, saved:'', loading:true, dirty:false };
+  WR.ed = { id:w.id, notes:[], checks:[], summary:'', score:null, saved:'', loading:true, dirty:false };
   const ed = WR.ed;
   try {
     const d = await db.doc('reviewDrafts/'+w.id).get();
     const src = d.exists ? d.data() : (w.review || {});
-    Object.assign(ed, { notes: WritingReview.ordered(src.notes||[]), summary: src.summary||'',
+    // 对照表：存过的就用存过的，否则把上一稿的「要改 / 批注」列出来，状态空着。
+    const prev = isRedraft(w) && w.prevId && (WR.list||[]).find(x=>x.id===w.prevId);
+    const checks = Array.isArray(src.checks) && src.checks.length ? src.checks
+      : prevMarks(prev).map(n=>({ quote:n.quote, fix:n.fix||'', why:n.note||'', status:'', note:'' }));
+    Object.assign(ed, { notes: WritingReview.ordered(src.notes||[]), checks: isRedraft(w) ? checks : [], summary: src.summary||'',
       score: typeof src.score==='number' ? src.score : null,
       saved: d.exists ? `接着上次的草稿（${WHO_ZH[src.by]||''}${src.updatedAt ? ' · '+stamp(tsDate(src.updatedAt)) : ''}）`
            : w.review ? '在已经发出的批改上修改，改完要再点一次「发给」' : '' });
@@ -2988,7 +3046,7 @@ async function wrFlush(){
   if(!ed || !ed.dirty) return;
   ed.dirty = false;
   try {
-    await db.doc('reviewDrafts/'+ed.id).set({ notes:ed.notes, summary:ed.summary, score:ed.score, by:meAs(),
+    await db.doc('reviewDrafts/'+ed.id).set({ notes:ed.notes, checks:ed.checks, summary:ed.summary, score:ed.score, by:meAs(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
     if(WR.ed===ed) wrSaved('草稿已存 ' + hm(new Date()));
   } catch(e){ ed.dirty = true; if(WR.ed===ed) wrSaved('草稿没存上：' + (e.code||e.message) + '，稍后会再试'); }
@@ -3110,10 +3168,15 @@ async function aiDraft(){
 async function wrSend(){
   const w = wrCur(), ed = WR.ed;
   if(!w || !ed) return;
-  if(!ed.notes.length && !ed.summary.trim() && !confirm('没有批注也没有总评，确定就这样发吗？')) return;
+  const redo = isRedraft(w), left = ed.checks.filter(c=>!c.status).length;
+  if(redo){
+    if(left && !confirm(`对照表还有 ${left} 条没选「改好了 / 改了一半 / 没改」。就这样定稿吗？`)) return;
+    if(!confirm(`定稿后 ${KID[w.kid].n} 不能再写下一稿。确定定稿并发给他？`)) return;
+  } else if(!ed.notes.length && !ed.summary.trim() && !confirm('没有批注也没有总评，确定就这样发吗？')) return;
   const review = { by: meAs(), score: ed.score, summary: ed.summary.trim(),
     notes: ed.notes.map(n=>({ s:n.s, e:n.e, quote:n.quote, kind:n.kind, fix:n.fix||'', note:n.note||'' })),
     at: firebase.firestore.FieldValue.serverTimestamp() };
+  if(redo) review.checks = ed.checks.map(c=>({ quote:c.quote||'', fix:c.fix||'', why:c.why||'', status:c.status||'', note:(c.note||'').trim() }));
   clearTimeout(wrTimer); ed.dirty = false;
   const b = db.batch();
   b.update(db.doc('writings/'+w.id), { status:'reviewed', review, seenAt: firebase.firestore.FieldValue.delete(),
@@ -3130,7 +3193,7 @@ async function wrSend(){
   const a = ATT.find(x=>x.aid===w.attemptId);
   if(a){ a.reviewed = true; a.essay = ed.score; a.skipped = false; }
   WR.editing = false; WR.ed = null;
-  toast(`已发给 ${KID[w.kid].n}`);
+  toast(redo ? `已定稿，发给 ${KID[w.kid].n}` : `已发给 ${KID[w.kid].n}`);
   render(); window.scrollTo({ top:0 });
 }
 
@@ -3176,6 +3239,8 @@ function wireEssay(){
   on('[data-wfix]', 'input', el=>{ WR.ed.notes[el.dataset.wfix].fix = el.value; wrSave(); });
   on('[data-wnote]', 'input', el=>{ WR.ed.notes[el.dataset.wnote].note = el.value; wrSave(); });
   on('[data-wsum]', 'input', el=>{ WR.ed.summary = el.value; wrSave(); });
+  on('[data-wckst]', 'click', el=>{ const [k, s] = el.dataset.wckst.split('|'); WR.ed.checks[k].status = s; wrSave(); render(); });
+  on('[data-wcknote]', 'input', el=>{ WR.ed.checks[el.dataset.wcknote].note = el.value; wrSave(); });
   // A coloured stretch jumps to its note.
   viewEl.querySelectorAll('.estext').forEach(t=>t.addEventListener('click', e=>{
     if(!getSelection().isCollapsed) return;   // finishing a selection, not a tap

@@ -447,7 +447,7 @@ function renderMine(){
     h += MINE.map(function (w){
       var r = w.status === 'reviewed' ? w.review : null;
       var st = !r ? '<span class="st wait">⏳ Waiting to be marked</span>'
-                  : (w.seenAt ? '' : '<span class="st new">✦ New marks</span>');
+                  : (w.seenAt ? (isFinal(w) ? '<span class="st">🏁 Final</span>' : '') : '<span class="st new">✦ New marks</span>');
       return '<div class="hist" onclick="openView(\'' + w.id + '\')">' +
         '<span class="sc" style="color:var(--' + (r && r.score >= 5 ? 'green' : r ? 'rust' : 'soft') + ')">' +
           (r && r.score ? r.score + '/6' : '—') + '</span>' +
@@ -456,16 +456,29 @@ function renderMine(){
     }).join('');
   }
   $('minebox').innerHTML = h;
-  var d = readDraft();
+  var d = readDraft(), open = openPiece();
   $('startBtn').textContent = d && words(d.text) ? 'Keep writing (' + words(d.text) + ' words)'
-                            : (MINE && MINE.length ? 'Start a new draft' : 'Start writing');
+                            : open ? '✏️ Write draft ' + ((open.draftNo || 1) + 1) + ' from your marked draft'
+                            : (MINE && MINE.length ? 'Start a new essay' : 'Start writing');
+}
+// One marking, one rewrite, then it's final (HOMEWORK-SYSTEM.md 2026-09-24 · 批一次改一次就定稿).
+function isFinal(w){ return w.status === 'reviewed' && (w.draftNo || 1) >= 2 && !!w.prevId; }
+// A marked draft 1 nobody has rewritten yet. "Start" goes there, so a rewrite is always chained to it —
+// on 9-21 a rewrite started from scratch here became a second, unlinked "draft 1".
+function openPiece(){
+  return (MINE || []).filter(function (w){
+    return w.status === 'reviewed' && !isFinal(w) && !MINE.some(function (x){ return x.prevId === w.id; });
+  })[0] || null;
 }
 
 /* ---------- writing ---------- */
 function readDraft(){ try{ return JSON.parse(ls(K_DRAFT) || 'null'); }catch(e){ return null; } }
 function saveDraft(){ if (cur) ls(K_DRAFT, JSON.stringify(cur)); }
 
-function startWriting(){ openWrite(readDraft()); }
+function startWriting(){
+  var d = readDraft(), open = openPiece();
+  if (!(d && words(d.text)) && open) reviseFrom(open.id); else openWrite(d);
+}
 
 function openWrite(d){
   cur = d || { text:'', elapsed:0, pasted:0, draftNo:1 };
@@ -572,11 +585,13 @@ function openView(id){
         '<span style="background:#dff0e3">green = this works</span><span style="background:#e3eaf6">blue = a note</span>' +
         ' · tap a mark to jump to its note</p>' : '') +
       '<div class="manuscript marked" id="marked">' + WritingReview.markup(w.text, list) + '</div></section>';
+    if (r.checks && r.checks.length) h += checksHtml(r.checks);
     if (list.length) h += '<section><h2 class="sec"><span class="n">02</span> Notes</h2>' + list.map(noteHtml).join('') + '</section>';
     var next = MINE.filter(function (x){ return x.prevId === w.id; })[0];
     h += '<div class="actions noprint" style="margin-top:24px">' + (next
       ? '<button onclick="openView(\'' + next.id + '\')">You handed in draft ' + (next.draftNo || 2) + ' → see it</button>'
-      : '<button class="primary" onclick="reviseFrom(\'' + w.id + '\')">✏️ Write draft ' + ((w.draftNo || 1) + 1) + '</button>') + '</div>';
+      : isFinal(w) ? '<div class="msg ok" style="margin:0">🏁 This essay is final — no more drafts. Well done.</div>'
+      : '<button class="primary" onclick="reviseFrom(\'' + w.id + '\')">✏️ Write draft ' + ((w.draftNo || 1) + 1) + ' (the last one)</button>') + '</div>';
   }
   if (w.prevId) h += '<p class="lead" style="margin-top:18px"><a class="back" href="#" onclick="openView(\'' + w.prevId +
     '\');return false">← Draft ' + ((w.draftNo || 2) - 1) + ' and its marks</a></p>';
@@ -596,8 +611,19 @@ function openView(id){
     .then(function (){ w.seenAt = true; }).catch(function (e){ console.warn('[essay] seenAt:', e.code || e); });
 }
 
+var CK = { fixed: ['good', '✓ Fixed'], partly: ['work', '◐ Partly fixed'], not: ['cmt', '✗ Not fixed yet'] };
+function checksHtml(cs){
+  return '<section><h2 class="sec"><span class="n">✓</span> What you fixed from last time</h2>' + cs.map(function (c, k){
+    var st = CK[c.status] || ['cmt', 'Not checked'];
+    return '<div class="item ' + st[0] + '"><div class="h"><span class="num">' + (k + 1) + '</span>' + st[1] + '</div>' +
+      (c.quote ? '<div class="q">“' + esc(c.quote) + '”</div>' : '') +
+      (c.fix ? '<div class="fix"><b>Asked for:</b> ' + esc(c.fix) + '</div>' : '') +
+      (c.note ? '<div class="why" style="margin-top:6px">' + esc(c.note) + '</div>' : '') + '</div>';
+  }).join('') + '</section>';
+}
+
 function reviseFrom(id){
-  var w = (MINE || []).filter(function (x){ return x.id === id; })[0]; if (!w) return;
+  var w = (MINE || []).filter(function (x){ return x.id === id; })[0]; if (!w || isFinal(w)) return;
   var d = readDraft();
   openWrite(d && d.prevId === id ? d
     : { text: w.text, elapsed: 0, pasted: 0, prevId: id, draftNo: (w.draftNo || 1) + 1 });

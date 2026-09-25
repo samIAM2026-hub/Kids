@@ -165,6 +165,7 @@
   .msg{ border-radius:9px; padding:13px 16px; margin:16px 0; font-size:.92rem; }
   .msg.err{ background:var(--red-soft); border:1px solid #e6b8b0; color:#8c2d20; }
   .msg.wait{ background:#fdf6e3; border:1px solid #e3d49a; color:#7a5c00; }
+  .msg.ok{ background:#e6f3e9; border:1px solid #a9d3b3; color:#2f6a3e; }
 
   .dots::after{ content:''; animation:d 1.4s steps(4,end) infinite; }
   @keyframes d{ 0%{content:''} 25%{content:'·'} 50%{content:'· ·'} 75%{content:'· · ·'} }
@@ -399,7 +400,7 @@ function renderMine(){
     h += MINE.slice(0, 10).map(function (w){
       var r = w.review, st = w.status !== 'reviewed' ? '<span class="st wait">⏳ Waiting to be marked</span>'
         : !w.seenAt ? '<span class="st new">✨ Marked — new!</span>'
-        : '<span class="st ok">✓ Marked' + (r && r.score ? ' · ' + r.score + '/6' : '') + '</span>';
+        : '<span class="st ok">✓ ' + (isFinal(w) ? 'Final' : 'Marked') + (r && r.score ? ' · ' + r.score + '/6' : '') + '</span>';
       return '<div class="hist" onclick="openView(\'' + w.id + '\')">' +
         '<div class="t">' + esc(String(w.prompt || '').slice(0, 70)) + ((w.draftNo || 1) > 1 ? ' · <b>Draft ' + w.draftNo + '</b>' : '') + '</div>' +
         st + '<div class="d">' + day(w.submittedAt) + '</div></div>';
@@ -528,6 +529,26 @@ function msg(where, cls, html){ $(where).innerHTML = '<div class="msg ' + cls + 
 
 /* ---------- 5. one piece ---------- */
 var KIND = { fix:'Fix this', good:'This works', note:'Note' };
+// One marking, one rewrite, then it's final (HOMEWORK-SYSTEM.md 2026-09-24 · 批一次改一次就定稿): a marked
+// draft 2 has no "write the next draft" button, and its marking is a checklist of what draft 1 asked for.
+// (prevId too: Speech Studio numbers repeat hand-ins of one step as draftNo 2 without it — not a rewrite.)
+function isFinal(w){ return w.status === 'reviewed' && (w.draftNo || 1) >= 2 && !!w.prevId; }
+var CK = { fixed: ['good', '✓ Fixed'], partly: ['work', '◐ Partly fixed'], not: ['cmt', '✗ Not fixed yet'] };
+function checksHtml(cs){
+  return '<section><h2 class="sec"><span class="n">✓</span> What you fixed from last time</h2>' + cs.map(function (c, k){
+    var st = CK[c.status] || ['cmt', 'Not checked'];
+    return '<div class="item ' + st[0] + '"><div class="h"><span class="num">' + (k + 1) + '</span>' + st[1] + '</div>' +
+      (c.quote ? '<div class="q">“' + esc(c.quote) + '”</div>' : '') +
+      (c.fix ? '<div class="fix"><b>Asked for:</b> ' + esc(c.fix) + '</div>' : '') +
+      (c.note ? '<div class="why" style="margin-top:6px">' + esc(c.note) + '</div>' : '') + '</div>';
+  }).join('') + '</section>';
+}
+// A piece from another writing page (the application essay, Speech Studio) is redrafted THERE, never here —
+// here it would pick up this page's first prompt (that's how draft 3 of the public-speaking essay became "Rivals").
+function homePage(w){
+  var f = decodeURIComponent(w.itemId || '').split('/').pop();
+  return f === 'Summer-Story-Studio.html' ? f : '';
+}
 function noteHtml(n, k){
   var cls = n.kind === 'good' ? 'good' : n.kind === 'fix' ? 'work' : 'cmt';
   return '<div class="item ' + cls + '" id="note-' + k + '"><div class="h"><span class="num">' + (k + 1) + '</span>' +
@@ -561,11 +582,15 @@ function openView(id){
         '<span style="background:#dff0e3">green = this works</span><span style="background:#e3eaf6">blue = a note</span>' +
         ' · tap a mark to jump to its note</p>' : '') +
       '<div class="manuscript marked" id="marked">' + WritingReview.markup(w.text, list) + '</div></section>';
+    if (r.checks && r.checks.length) h += checksHtml(r.checks);
     if (list.length) h += '<section><h2 class="sec"><span class="n">02</span> Notes</h2>' + list.map(noteHtml).join('') + '</section>';
-    var next = MINE.filter(function (x){ return x.prevId === w.id; })[0];
+    var next = MINE.filter(function (x){ return x.prevId === w.id; })[0], home = homePage(w);
     h += '<div class="actions noprint" style="margin-top:24px">' + (next
       ? '<button onclick="openView(\'' + next.id + '\')">You handed in draft ' + (next.draftNo || 2) + ' → see it</button>'
-      : '<button class="primary" onclick="reviseFrom(\'' + w.id + '\')">✏️ Write draft ' + ((w.draftNo || 1) + 1) + '</button>') + '</div>';
+      : isFinal(w) ? '<div class="msg ok" style="margin:0">🏁 This piece is final — no more drafts. Well done.</div>'
+      : home ? '<a class="back" href="' + home + '#w=' + encodeURIComponent(w.id) + '">✏️ Write the next draft on its own page →</a>'
+      : !PROMPTS.some(function (p){ return p.id === w.pid; }) ? ''   // e.g. a Speech Studio step: redone there, not here
+      : '<button class="primary" onclick="reviseFrom(\'' + w.id + '\')">✏️ Write draft ' + ((w.draftNo || 1) + 1) + ' (the last one)</button>') + '</div>';
   }
   if (w.prevId) h += '<p class="lead" style="margin-top:18px"><a class="back" href="#" onclick="openView(\'' + w.prevId +
     '\');return false">← Draft ' + ((w.draftNo || 2) - 1) + ' and its marks</a></p>';
@@ -586,8 +611,8 @@ function openView(id){
 }
 
 function reviseFrom(id){
-  var w = MINE.filter(function (x){ return x.id === id; })[0]; if (!w) return;
-  var i = PROMPTS.map(function (p){ return p.id; }).indexOf(w.pid); if (i < 0) i = 0;
+  var w = MINE.filter(function (x){ return x.id === id; })[0]; if (!w || isFinal(w)) return;
+  var i = PROMPTS.map(function (p){ return p.id; }).indexOf(w.pid); if (i < 0) return;   // not one of this page's topics
   var d = readDraft();
   openWrite(i, d && d.prevId === id ? d
     : { pid: w.pid, text: w.text, startedAt: Date.now(), elapsed: 0, pasted: 0, prevId: id, draftNo: (w.draftNo || 1) + 1 });
