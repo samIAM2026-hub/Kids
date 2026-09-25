@@ -276,6 +276,7 @@
 </div>
 
 <script src="../JS/writing-review.js"></script>
+<script src="../JS/writing-kinds.js"></script>
 <script>
 /* =====================================================================
    The Application Essay — Warren / Grace write one whole piece themselves.
@@ -461,9 +462,10 @@ function renderMine(){
                             : open ? '✏️ Write draft ' + ((open.draftNo || 1) + 1) + ' from your marked draft'
                             : (MINE && MINE.length ? 'Start a new essay' : 'Start writing');
 }
-// One marking, one rewrite, then it's final (HOMEWORK-SYSTEM.md 2026-09-24 · 批一次改一次就定稿).
-function isFinal(w){ return w.status === 'reviewed' && (w.draftNo || 1) >= 2 && !!w.prevId; }
-// A marked draft 1 nobody has rewritten yet. "Start" goes there, so a rewrite is always chained to it —
+// Application essays go round as many times as it takes; it's final only when Dad or Mom sends it as final
+// (HOMEWORK-SYSTEM.md 2026-09-25 · 写作按课程分类 — the rule lives in JS/writing-kinds.js).
+var isFinal = WritingKinds.isFinal;
+// A marked draft nobody has rewritten yet. "Start" goes there, so a rewrite is always chained to it —
 // on 9-21 a rewrite started from scratch here became a second, unlinked "draft 1".
 function openPiece(){
   return (MINE || []).filter(function (w){
@@ -591,7 +593,7 @@ function openView(id){
     h += '<div class="actions noprint" style="margin-top:24px">' + (next
       ? '<button onclick="openView(\'' + next.id + '\')">You handed in draft ' + (next.draftNo || 2) + ' → see it</button>'
       : isFinal(w) ? '<div class="msg ok" style="margin:0">🏁 This essay is final — no more drafts. Well done.</div>'
-      : '<button class="primary" onclick="reviseFrom(\'' + w.id + '\')">✏️ Write draft ' + ((w.draftNo || 1) + 1) + ' (the last one)</button>') + '</div>';
+      : '<button class="primary" onclick="reviseFrom(\'' + w.id + '\')">✏️ Write draft ' + ((w.draftNo || 1) + 1) + '</button>') + '</div>';
   }
   if (w.prevId) h += '<p class="lead" style="margin-top:18px"><a class="back" href="#" onclick="openView(\'' + w.prevId +
     '\');return false">← Draft ' + ((w.draftNo || 2) - 1) + ' and its marks</a></p>';

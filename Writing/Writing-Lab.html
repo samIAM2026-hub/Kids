@@ -192,6 +192,10 @@
   }
 
   /* ---------- marked writing (notes from Dad / Mom; JS/writing-review.js draws the marks) ---------- */
+  /* which course a piece is for (JS/writing-kinds.js colours) */
+  .wk{ display:inline-block; font:600 .72rem/1.6 system-ui,-apple-system,sans-serif; letter-spacing:.02em; text-transform:none;
+       color:var(--wk); border:1px solid var(--wk); background:color-mix(in srgb, var(--wk) 12%, #fff);
+       border-radius:999px; padding:0 .55em; margin-right:.45em; vertical-align:.1em; white-space:nowrap; }
   .manuscript.marked mark{ border-radius:3px; padding:1px 0; color:inherit; cursor:pointer; }
   mark.wr-fix{ background:#fbe3c8; border-bottom:2px solid var(--rust); }
   mark.wr-good{ background:#dff0e3; border-bottom:2px solid var(--green); }
@@ -284,6 +288,7 @@
 </div>
 
 <script src="../JS/writing-review.js"></script>
+<script src="../JS/writing-kinds.js"></script>
 <script>
 /* =====================================================================
    Writing Lab — Kids/Writing/Writing-Lab.html
@@ -402,7 +407,7 @@ function renderMine(){
         : !w.seenAt ? '<span class="st new">✨ Marked — new!</span>'
         : '<span class="st ok">✓ ' + (isFinal(w) ? 'Final' : 'Marked') + (r && r.score ? ' · ' + r.score + '/6' : '') + '</span>';
       return '<div class="hist" onclick="openView(\'' + w.id + '\')">' +
-        '<div class="t">' + esc(String(w.prompt || '').slice(0, 70)) + ((w.draftNo || 1) > 1 ? ' · <b>Draft ' + w.draftNo + '</b>' : '') + '</div>' +
+        '<div class="t">' + wkTag(w) + esc(String(w.prompt || '').slice(0, 70)) + ((w.draftNo || 1) > 1 ? ' · <b>Draft ' + w.draftNo + '</b>' : '') + '</div>' +
         st + '<div class="d">' + day(w.submittedAt) + '</div></div>';
     }).join('');
   }
@@ -531,8 +536,10 @@ function msg(where, cls, html){ $(where).innerHTML = '<div class="msg ' + cls + 
 var KIND = { fix:'Fix this', good:'This works', note:'Note' };
 // One marking, one rewrite, then it's final (HOMEWORK-SYSTEM.md 2026-09-24 · 批一次改一次就定稿): a marked
 // draft 2 has no "write the next draft" button, and its marking is a checklist of what draft 1 asked for.
-// (prevId too: Speech Studio numbers repeat hand-ins of one step as draftNo 2 without it — not a rewrite.)
-function isFinal(w){ return w.status === 'reviewed' && (w.draftNo || 1) >= 2 && !!w.prevId; }
+// Application essays can go round as many times as Dad says (2026-09-25) — JS/writing-kinds.js knows which is which.
+var isFinal = WritingKinds.isFinal;
+// Which course a piece is for (Test Essay / Application Essay / BASA / Speech), as a small coloured tag.
+function wkTag(w){ var k = WritingKinds.of(w); return '<span class="wk" style="--wk:' + k.color + '">' + esc(k.en) + '</span>'; }
 var CK = { fixed: ['good', '✓ Fixed'], partly: ['work', '◐ Partly fixed'], not: ['cmt', '✗ Not fixed yet'] };
 function checksHtml(cs){
   return '<section><h2 class="sec"><span class="n">✓</span> What you fixed from last time</h2>' + cs.map(function (c, k){
@@ -562,8 +569,9 @@ function openView(id){
   var w = (MINE || []).filter(function (x){ return x.id === id; })[0];
   if (!w) return;
   var r = w.status === 'reviewed' ? w.review : null, h = '';
-  h += '<div class="eyebrow">' + (w.promptKind === 'story' ? 'SSAT story starter' : 'ISEE topic') +
-       ' · Draft ' + (w.draftNo || 1) + ' · ' + day(w.submittedAt) + ' · ' + (w.words || 0) + ' words</div>';
+  var wk = WritingKinds.of(w);
+  h += '<div class="eyebrow">' + wkTag(w) + (wk.key !== 'exam' ? '' : w.promptKind === 'story' ? 'SSAT story starter · ' : 'ISEE topic · ') +
+       'Draft ' + (w.draftNo || 1) + ' · ' + day(w.submittedAt) + ' · ' + (w.words || 0) + ' words</div>';
   h += '<h1 style="font-size:1.5rem">' + (r ? 'Marked by ' + (WHO[r.by] || 'Dad or Mom') : 'Waiting to be marked') + '</h1>';
   h += '<div class="promptbar" style="margin-top:14px"><div class="k">The prompt</div><div class="v">' + esc(w.prompt) + '</div></div>';
   if (!r){

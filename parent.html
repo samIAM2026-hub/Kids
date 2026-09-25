@@ -472,6 +472,15 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .esrow .l,.eshead .l{font-size:11px;color:var(--mute)}
   .esrow .l b{color:var(--cream);font-weight:600}
+  /* 课程小标签（JS/writing-kinds.js 的颜色）：深底上用那个颜色的边框和淡底 */
+  .wk{display:inline-block;font:600 11px/1.5 -apple-system,system-ui,sans-serif;font-style:normal;color:var(--wk);
+      border:1px solid var(--wk);background:color-mix(in srgb, var(--wk) 16%, transparent);
+      border-radius:999px;padding:0 8px;margin-right:6px;vertical-align:1px;white-space:nowrap}
+  .wksub{font:11px/1.5 -apple-system,system-ui,sans-serif;color:var(--mute);margin-right:6px}
+  .wkchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .wkchips .fchip i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--wk);margin-right:6px;vertical-align:1px}
+  .wkchips .fchip b{color:var(--amber);font-weight:600}
+  .wkchips .fchip.on b{color:inherit}
   .esrow .st{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
   .esrow .seen{font-size:10.5px;color:var(--mute);white-space:nowrap}
   .esback{margin-top:18px}
@@ -732,7 +741,7 @@
       <button class="stab" data-v="skills">知识点</button>
       <button class="stab" data-v="focus">专注情况</button>
       <button class="stab" data-v="reading">阅读写作</button>
-      <button class="stab" data-v="essay">作文 <span class="pill hot" id="essayn" hidden></span></button>
+      <button class="stab" data-v="essay">写作 <span class="pill hot" id="essayn" hidden></span></button>
       <button class="stab" data-v="audio">朗读录音</button>
       <button class="stab assign" id="kidassign">＋ 派题</button>
     </nav>
@@ -764,6 +773,7 @@
 <!-- 作文 tab: the shared Claude key (Claude drafts the marking) and the marks / diff drawing the kid's page uses too -->
 <script src="JS/ai-key.js"></script>
 <script src="JS/writing-review.js"></script>
+<script src="JS/writing-kinds.js"></script>
 <script>
 /* =====================================================================
    家长控制台
@@ -1135,8 +1145,11 @@ addEventListener('resize', closeTip);
 // 今天's strip of what is waiting on a parent. Empty → no strip at all.
 function todoStrip(){
   const items = ['grace','warren'].map(k=>{
-    const n = essaysTodo(k);
-    return n ? `<button data-gokid="${k}" data-gov="essay">${KID[k].av} ${KID[k].n} 作文 ${n} 篇待批改 ›</button>` : '';
+    const todo = ATT.filter(a=>a.kid===k && a.handin && ess(a).todo);
+    if(!todo.length) return '';
+    // 哪门课几篇：「1 篇文书 · 1 篇 ISEE / SSAT 待批」
+    const by = WritingKinds.list.map(wk=>[wk, todo.filter(a=>(WritingKinds.ofPage(a.id)||WritingKinds.byKey.exam)===wk).length]).filter(x=>x[1]);
+    return `<button data-gokid="${k}" data-gov="essay">${KID[k].av} ${KID[k].n} ${by.map(([wk,n])=>`${esc(wk.zh)} ${n} 篇`).join(' · ')}待批 ›</button>`;
   }).filter(Boolean);
   return items.length ? `<div class="todo"><span class="lbl">待你处理</span>${items.join('')}</div>` : '';
 }
@@ -1700,7 +1713,7 @@ function bankRow(b, withPlace){
   const kid = KID[b.kid] || KID.both;
   return `<tr class="${SEL.has(b.docId)?'sel':''}${b.archived?' arch':''}${assignedTo(b.docId).length?' assigned':''}">
     <td class="c" style="width:34px"><input type="checkbox" class="pick" ${SEL.has(b.docId)?'checked':''} data-id="${esc(b.docId)}"></td>
-    <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)} ${bothBadge(b)}${assignedBadge(b.docId)}</div><div class="d">${esc(b.d)}</div>
+    <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)} ${wkTag(WritingKinds.ofPage(b.docId))}${bothBadge(b)}${assignedBadge(b.docId)}</div><div class="d">${esc(b.d)}</div>
       ${withPlace?`<div class="crumb">${esc(b.subj)}${b.book?' · '+esc(b.book):''}</div>`:''}${bankDates(b)}</td>
     ${F.kid==='all'?`<td class="crumb" style="width:92px">${kid.av} ${kid.n}</td>`:''}
     <td class="c crumb" style="width:84px">${b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '—'}
@@ -2030,8 +2043,8 @@ function histSummary(k, papers, S){
     }
   }
   const es = S.essays.flatMap(p=>p.tries.filter(a=>a.handin)), todo = es.filter(a=>ess(a).todo).length;
-  if(es.length) out.push(`${sc?'还':''}写了 <b>${es.length} 篇作文</b>（${es.map(a=>ess(a).txt).join('、')}，满分 6，不算进达标）` +
-    (todo ? `，<b style="color:var(--amber)">${todo} 篇等你批改</b>，到「作文」标签批。` : `，原文和批改到「作文」标签看。`));
+  if(es.length) out.push(`${sc?'还':''}交了 <b>${es.length} 篇写作</b>（${es.map(a=>(WritingKinds.ofPage(a.id)||WritingKinds.byKey.exam).zh+' '+ess(a).txt).join('、')}，满分 6，不算进达标）` +
+    (todo ? `，<b style="color:var(--amber)">${todo} 篇等你批改</b>，到「写作」标签批。` : `，原文和批改到「写作」标签看。`));
   if(S.plain.length){
     const np = S.plain.length;
     out.push(`${sc?`另外 ${np} 份`:np>1?`${np} 份都`:'这份'}不打分（只记做过、看过），记 ✓。`);
@@ -2043,7 +2056,7 @@ function histSummary(k, papers, S){
 function histPaper(p){
   const b = BANK_BY_ID[p.id] || {};
   const fin = p.scored ? p.last.pct : null, many = p.tries.length > 1, le = lastEssay(p.tries);
-  const tag = le ? (ess(le).todo ? `<span class="chipst st-open">作文 · 待批改</span>` : `<span class="chipst st-prac">作文 · 满分 6 · 不算达标</span>`)
+  const tag = le ? wkTag(WritingKinds.ofPage(p.id)) + (ess(le).todo ? `<span class="chipst st-open">待批改</span>` : `<span class="chipst st-prac">满分 6 · 不算达标</span>`)
     : !p.scored ? `<span class="chipst st-prac">${b.type==='practice'?'练习 · ':''}不打分</span>`
     : p.first.pct>=PASS ? `<span class="chipst st-done">第一遍就达标</span>`
     : fin>=PASS ? `<span class="chipst st-open">第一遍没过 · 重做后达标</span>`
@@ -2097,7 +2110,7 @@ function viewHist(){
       <li><b>闯关练习</b>（中文拼音、听句摆字这类）答错可以一直重试，所以<b>按「一次就对」算分</b>：一次就对的句数 ÷ 总句数，也算进达标。
         一份做了好几关就几关合起来算；同一关重做过，「第一遍」看每关第一次、「最后」看每关最近一次。</li>
       <li>只记「看过」的页面（参考、讲解）<b>不打分</b>，记一次 ✓，不算进达标。</li>
-      <li><b>作文</b>（Writing Lab）孩子交稿后由你或妈妈在「作文」标签里批改，按 1–6 分打（也可以不打），写成「4/6」，<b>不算进达标</b>（4/6 是扎实，折成 67% 会被标红）。还没批的写「待批改」，点「去批改 ›」直接过去。</li>
+      <li><b>写作</b>（考试作文、文书、BASA、演讲课）孩子交稿后由你或妈妈在「写作」标签里批改，按 1–6 分打（也可以不打），写成「4/6」，<b>不算进达标</b>（4/6 是扎实，折成 67% 会被标红）。还没批的写「待批改」，点「去批改 ›」直接过去。</li>
       <li><b>实际用时</b> = 页面开在最前面的时间（切到别的 APP、锁屏那段不算）。
         <b>页面开了</b> = 从打开卷子到交卷的全部时间，切走的也算在里面 —— 停在数字上能看到。
         切走了几次、多久，看「专注情况」。这一页里所有时间都是量出来的<b>实际</b>，没有估的数。</li>
@@ -2617,7 +2630,7 @@ const bar = document.getElementById('assignbar');
 // reviewDrafts/{ID}, which kids can't read, so the kid only ever sees what a parent sent.
 // A note is { s, e, quote, kind, fix, note } on characters s..e of the text (JS/writing-review.js draws them).
 const WR_MAX = 60;
-let WR = { list:null, drafts:{}, err:'', loading:false, kid:'all', cur:'', editing:false, diff:false, setup:false,
+let WR = { list:null, drafts:{}, err:'', loading:false, kid:'all', wk:'all', cur:'', editing:false, diff:false, setup:false,
            ed:null, sel:null, aiBusy:false };
 // by 'claude': marked from the chat window on Sam's Mac (homework-system/writing-review.mjs), no API key.
 const WHO_ZH = { dad:'爸爸', mom:'妈妈', claude:'Claude' };
@@ -2625,10 +2638,14 @@ const WR_KIND = { fix:'要改', good:'写得好', note:'批注' };
 // 批一次、改一次就定稿（Sam 2026-09-24）：第 1 稿逐句批；第 2 稿（及以后）不再从头批，只出一张对照表 ——
 // 上一稿的每条「要改 / 批注」这次改了没有 —— 发出去就是定稿，孩子那边不再有「写下一稿」。
 // 对照表存在 review.checks：[{ quote, fix, status:'fixed'|'partly'|'not', note }]。
+// 文书例外（Sam 2026-09-25）：改几稿都行。改稿先对照上一稿、再照样逐句批；每次发出去是
+// 「再改一稿」还是「定稿」由家长点（review.final）。哪门课、几稿的规矩都在 JS/writing-kinds.js。
 const WR_CK = { fixed:'改好了', partly:'改了一半', not:'没改' };
 // 要有 prevId 才算改稿：演讲工作台同一步交第二次也会写 draftNo 2，但那不是改稿。
-const isRedraft = w => (w.draftNo||1) >= 2 && !!w.prevId;
-const isFinal = w => w.status==='reviewed' && isRedraft(w);
+const { isRedraft, isFinal } = WritingKinds;
+const wrMany = w => WritingKinds.many(w);
+// 课程小标签：「🟪 文书」那种，列表、单篇、完成记录、题库都用这一个。
+const wkTag = k => k ? `<span class="wk" style="--wk:${k.color}">${esc(k.zh)}</span>` : '';
 const prevMarks = prev => WritingReview.ordered(prev && prev.review && prev.review.notes || []).filter(n=>n.kind!=='good');
 const meAs = () => auth.currentUser && auth.currentUser.email === MOM_EMAIL ? 'mom' : 'dad';
 const wrCur = () => (WR.list || []).find(w=>w.id===WR.cur);
@@ -2803,27 +2820,37 @@ function viewAudio(){
 
 function viewEssay(){
   if(WR.cur && WR.list) return viewEssayOne();
-  let html = `<h2 class="sec">作文 · Writing Lab${qm('孩子在 Writing Lab 里写完交上来的作文。点一篇进去批改：在原文里选中一段写批注，最后打分、写总评，点「发给他」孩子才看得到。Reading Club 那边的作文在「阅读写作」。')}</h2>
+  let html = `<h2 class="sec">写作${qm('孩子在各个写作页里写完交上来的：考试作文（Writing Lab）、文书、BASA、演讲课。每篇前面的彩色小标签是哪门课，上面一排按钮只看一门。点一篇进去批改：在原文里选中一段写批注，最后打分、写总评，点「发给他」孩子才看得到。Reading Club 那边的作文在「阅读写作」。')}</h2>
     <details class="hguide" data-guide="essay"${guideOpen('essay')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li><b>批改</b>：在原文里<b>选中一段 → 点「＋ 批注」</b>，选「要改 / 写得好 / 批注」，写「改成」和说明。孩子那边看到的是他自己的原文，被批的地方标颜色，点一下跳到批注。</li>
       <li><b>不用 API key 的办法</b>：在 Mac 上的 Claude 对话里说「<b>批改 Warren 的作文</b>」，Claude 批好会放到这里，那篇写着「Claude 批好了 · 等你发」，点开看一眼、点「发给」就行。</li>
       <li><b>🤖 让 Claude 先出草稿</b>（按钮）：Claude 读一遍，按 ISEE / SSAT 阅卷人的口径出一版批注、总评和分数，<b>只有你看得到</b>，删改完再发。要这台设备上存过 Claude 的 key（「⚙︎ Claude 设置」里贴一次）。</li>
       <li><b>分数</b> 1–6：6 出色 · 5 强 · 4 扎实 · 3 在进步 · 2 弱 · 1 刚开头。可以不打。不是百分比，也不套 ${PASS}% 的达标线。</li>
       <li>批到一半的会<b>自动存成草稿</b>，爸爸妈妈看到的是同一份，换台设备接着批也行。</li>
-      <li><b>批一次、改一次就定稿</b>：孩子收到批改后可以交<b>第 2 稿</b>（连着上一稿，能看两稿对比）。第 2 稿不再逐句批，只出一张<b>对照表</b>（上一稿指出的问题改好了 / 改了一半 / 没改），点「定稿」发出后这篇就结束，孩子不能再写下一稿。</li>
+      <li><b>按课程分</b>：${WritingKinds.list.map(k=>wkTag(k)).join(' ')}。看的是从哪一页交上来的，新加一门课改 <b>JS/writing-kinds.js</b> 一处。</li>
+      <li><b>批一次、改一次就定稿</b>（ISEE / SSAT、BASA、演讲课）：孩子收到批改后可以交<b>第 2 稿</b>（连着上一稿，能看两稿对比）。第 2 稿不再逐句批，只出一张<b>对照表</b>（上一稿指出的问题改好了 / 改了一半 / 没改），点「定稿」发出后这篇就结束，孩子不能再写下一稿。</li>
+      <li><b>文书改几稿都行</b>：每一稿都逐句批；第 2 稿起上面多一张对照表。发的时候二选一 ——「发给他，再改一稿」或「定稿」，点了定稿才结束。</li>
       <li><b>用时</b>从选题算起，30 分钟到了不会强停；<b>粘贴</b>超过 20 个字符会标黄。</li>
     </ul></details>`;
   if(WR.err) return html + `<p class="empty" style="color:var(--red)">${esc(WR.err)}</p>
     <p style="text-align:center"><button class="btn" data-wrretry>重试</button></p>`;
   if(!WR.list) return html + `<p class="empty">正在读作文…</p>`;
-  if(!WR.list.length) return html + `<p class="empty">还没有作文。孩子在 Writing Lab 写完点「hand it in」就会出现在这里。</p>`;
+  if(!WR.list.length) return html + `<p class="empty">还没有交上来的写作。孩子在写作页写完点「hand it in」就会出现在这里。</p>`;
   // On a kid's page the list is that kid's; the 全部 / per-kid chips only show without one.
   const kids = ['grace','warren'].filter(k=>WR.list.some(w=>w.kid===k));
   if(!KV && kids.length > 1) html += `<div style="margin-top:12px">${[['all','全部'], ...kids.map(k=>[k, KID[k].av+' '+KID[k].n])]
     .map(([v,l])=>`<button class="fchip${WR.kid===v?' on':''}" data-wk="${v}">${l}</button>`).join(' ')}</div>`;
   const wk = KV || WR.kid;
-  const list = WR.list.filter(w=>wk==='all' || w.kid===wk);
-  if(KV && !list.length) return html + `<p class="empty">${KID[KV].n} 还没有作文。在 Writing Lab 写完点「hand it in」就会出现在这里。</p>`;
+  const mine = WR.list.filter(w=>wk==='all' || w.kid===wk);
+  if(KV && !mine.length) return html + `<p class="empty">${KID[KV].n} 还没有交上来的写作。在写作页写完点「hand it in」就会出现在这里。</p>`;
+  // 按课程筛（Sam 2026-09-25）：只列这个孩子交过的课，后面带待批几篇。
+  const wkTodo = ws => ws.filter(w=>w.status!=='reviewed' && !w.skipped).length;
+  const kinds = WritingKinds.list.filter(k=>mine.some(w=>wkOf(w)===k));
+  if(!kinds.some(k=>k.key===WR.wk)) WR.wk = 'all';
+  if(kinds.length > 1) html += `<div class="wkchips">${[{ key:'all', zh:'全部' }, ...kinds].map(k=>{
+      const ws = k.key==='all' ? mine : mine.filter(w=>wkOf(w)===k), n = wkTodo(ws);
+      return `<button class="fchip${WR.wk===k.key?' on':''}" data-wkind-f="${k.key}"${k.color?` style="--wk:${k.color}"`:''}>${k.color?'<i></i>':''}${esc(k.zh)} ${ws.length}${n?` <b>· 待批 ${n}</b>`:''}</button>`; }).join('')}</div>`;
+  const list = mine.filter(w=>WR.wk==='all' || wkOf(w).key===WR.wk);
   const done = list.filter(w=>w.status==='reviewed'), skip = list.filter(w=>w.status!=='reviewed' && w.skipped),
         todo = list.filter(w=>w.status!=='reviewed' && !w.skipped);
   html += `<div class="subhd">待批改 · ${todo.length} 篇</div>` + (todo.length ? todo.map(essayRow).join('') : `<p class="empty">都批完了。</p>`);
@@ -2835,15 +2862,10 @@ function viewEssay(){
 
 const seenText = w => w.seenAt ? `孩子 ${stamp(tsDate(w.seenAt))} 看过` : '孩子还没看';
 
-// 这篇作文是哪一页交的。Writing Lab 的 SSAT 故事是 promptKind:'story'，ISEE 题目和
-// 文书页的申请文书都是 'essay'，所以先看 pid 再看 promptKind。
-//
-// 文书页 Writing/Summer-Story-Studio.html 2026-09-20 改版，pid 也跟着换了：
-//   'app-essay'              改版后：一篇写完整的真事，没有盒子也没有 why
-//   'story-cps' / 'story-res' 改版前交的，正文后面还跟着准备材料
-// 两种都是申请文书，批的口径一样（不是 ISEE/SSAT 那套），所以都得认出来。
+// 这篇作文是哪门课的（JS/writing-kinds.js 按交上来的页面认）。同一门课里再细分：
+// Writing Lab 的 SSAT 故事是 promptKind:'story'，ISEE 题目是 'essay'；
+// 文书页 2026-09-20 改版前交的 pid 是 'story-cps' / 'story-res'，正文后面还跟着准备材料。
 const SSS_PID = { 'story-cps':'creative problem solver', 'story-res':'resilience' };
-const isAppEssay = w => w.pid==='app-essay' || !!SSS_PID[w.pid];
 // 演讲课（Writing/Speech-Studio.html）：一课拆成五天，每天单独交一次，pid 是 speech-L<课>-d<天>。
 // 手批，不按 ISEE/SSAT 判分口径走 —— 见 HOMEWORK-SYSTEM.md 2026-09-20 演讲工作台。
 // 五个格子是「步骤」不是「天」（Sam 2026-09-21：用 Day 会逼着孩子当天做完；
@@ -2851,50 +2873,21 @@ const isAppEssay = w => w.pid==='app-essay' || !!SSS_PID[w.pid];
 const SPEECH_DAY = { 1:'用自己的话复述技术点', 2:'三个开场白', 3:'骨架 · 意图 + 三个论点',
                      4:'结尾 · 三种收尾 + takeaway', 5:'成稿 + 朗读录音' };
 const speechAt = w => /^speech-L(\d+)-d([1-5])$/.exec(w && w.pid || '');
-const isSpeech = w => !!speechAt(w);
-const promptLabel = w => isSpeech(w)
-  ? (m => `演讲课 · Lesson ${m[1]} · 第 ${m[2]} 步 ${SPEECH_DAY[+m[2]]||''}`)(speechAt(w))
-  : w.pid==='app-essay'
-  ? '申请文书'
-  : SSS_PID[w.pid]
-    ? `申请文书 · ${SSS_PID[w.pid]}`
-    : (w.promptKind==='story' ? 'SSAT 故事开头' : 'ISEE 题目');
+const wkOf = w => WritingKinds.of(w);
+const promptLabel = w => { const k = wkOf(w).key;
+  return k==='speech' ? (m => m ? `Lesson ${m[1]} · 第 ${m[2]} 步 ${SPEECH_DAY[+m[2]]||''}` : '')(speechAt(w))
+    : k==='app' ? (SSS_PID[w.pid] ? `改版前的故事卡 · ${SSS_PID[w.pid]}` : '')
+    : k==='exam' ? (w.promptKind==='story' ? 'SSAT 故事开头' : 'ISEE 题目') : ''; };
 
-// 申请文书不按 ISEE/SSAT 的判分口径走：招生官两分钟读完，看的是这孩子像不像个真人，
-// 不是语法。页面上写给孩子的五条标准（RUBRIC）就是下面这段。
-const APP_ESSAY_EN =
-  'Private-school application essay — ONE complete true personal story, 250–350 words, on a topic the '
-  + 'student chose themselves. This is NOT an ISEE/SSAT timed writing sample: there is no time limit and no '
-  + 'set prompt to answer. Mark it the way an admissions officer would — they read a few hundred of these a '
-  + 'season, most in under two minutes, and they are deciding one thing: can they picture this student in '
-  + 'their classroom. The five things that count: (1) it is true and only this student could have written it; '
-  + '(2) real sensory detail instead of adjectives — something the reader can see, hear or feel; (3) a quality '
-  + 'comes through without being named — no "I learned to never give up"; (4) a real thought at the end, in a '
-  + '12-year-old\'s size, not a slogan; (5) their own voice all the way through — flag any sentence that sounds '
-  + 'like an adult wrote it. Spelling and grammar get a LIGHT pass only: mention them once if they get in the '
-  + 'way, but spend your fix notes on the storytelling and the voice. A clean essay that says nothing scores '
-  + 'LOWER here than a rough one that says something real.';
-
-const SPEECH_EN =
-  'Public-speaking homework (Leaders of Tomorrow, Level 1). One course lesson is built in five steps and '
-  + 'each step is handed in on its own: step 1 the technique in her own words, step 2 three different opening hooks, '
-  + 'step 3 the skeleton (purpose, specific intention, three main points each with support), step 4 three possible '
-  + 'last lines plus the takeaway, step 5 the whole speech written out (150-250 words) with the lesson\'s outline above '
-  + 'it, then read out loud and recorded. This is a SPOKEN piece, not an essay: mark it by how it would land on a '
-  + 'room of listeners. What counts: would the opening make someone look up; is the intention one clear sentence; '
-  + 'are the three points genuinely separate, about the same thing, and roughly the same size; does each point have '
-  + 'something real behind it; does the ending leave them with one thing. Short sentences and plain words are a '
-  + 'virtue here, not a weakness. Spelling and grammar get a light pass only.';
-
-const promptTypeEN = w => isSpeech(w)
-  ? SPEECH_EN
-  : w.pid==='app-essay'
-  ? APP_ESSAY_EN
-  : SSS_PID[w.pid]
-    ? APP_ESSAY_EN + ' This one was written on the older version of the page, to show '
-      + SSS_PID[w.pid] + ': the handed-in text is the draft first, then the student\'s planning boxes, then '
-      + 'their three "why" answers said out loud. Mark the draft; the notes after it are only context.'
-    : (w.promptKind==='story' ? 'SSAT creative story starter — the student continues the opening line' : 'ISEE personal / expository topic');
+// 每门课的批改口径（给 🤖 按钮用）在 JS/writing-kinds.js 的 rubric 里，writing-review.mjs 也读同一份。
+const promptTypeEN = w => { const k = wkOf(w).key;
+  return k==='exam' ? (w.promptKind==='story' ? 'SSAT creative story starter — the student continues the opening line'
+                                              : 'ISEE personal / expository topic')
+    : k==='app' && SSS_PID[w.pid]
+      ? WritingKinds.rubric.app + ' This one was written on the older version of the page, to show '
+        + SSS_PID[w.pid] + ': the handed-in text is the draft first, then the student\'s planning boxes, then '
+        + 'their three "why" answers said out loud. Mark the draft; the notes after it are only context.'
+    : WritingKinds.rubric[k]; };
 // 列表上只显示题目，同一个题目交两篇就分不出来（Sam 2026-09-22），所以再露出正文开头。
 const essayOpening = w => String(w.text||'').replace(/\s+/g,' ').trim().slice(0, 140);
 function essayRow(w){
@@ -2902,11 +2895,12 @@ function essayRow(w){
   const dr = WR.drafts[w.id];
   const st = w.status!=='reviewed'
     ? (w.skipped ? `<span class="chipst st-skip">不批了 · 没发</span>`
-       : dr && dr.by==='claude' ? `<span class="chipst st-prac">${isRedraft(w) ? 'Claude 对照好了 · 等你定稿' : 'Claude 批好了 · 等你发'}</span>`
-       : dr ? `<span class="chipst st-open">批了一半</span>` : `<span class="chipst st-open">${isRedraft(w) ? '待对照 · 定稿' : '待批改'}</span>`)
+       : dr && dr.by==='claude' ? `<span class="chipst st-prac">${isRedraft(w) && !wrMany(w) ? 'Claude 对照好了 · 等你定稿' : 'Claude 批好了 · 等你发'}</span>`
+       : dr ? `<span class="chipst st-open">批了一半</span>` : `<span class="chipst st-open">${isRedraft(w) && !wrMany(w) ? '待对照 · 定稿' : '待批改'}</span>`)
     : `<span class="chipst st-done">${isFinal(w) ? '定稿' : (WHO_ZH[r && r.by]||'')+'批了'}${r && r.score ? ' · '+r.score+'/6' : ''}</span><span class="seen">${seenText(w)}</span>`;
+  const sub = promptLabel(w);
   return `<button class="esrow" data-wid="${esc(w.id)}"><span class="who">${KID[w.kid].av}</span>
-    <span class="sm"><span class="p">${esc(w.prompt)}</span>
+    <span class="sm"><span class="p">${wkTag(wkOf(w))}${sub?`<span class="wksub">${esc(sub)}</span>`:''} ${esc(w.prompt)}</span>
       ${essayOpening(w) ? `<span class="x">“${esc(essayOpening(w))}”</span>` : ''}
       <span class="l">${KID[w.kid].n}${(w.draftNo||1)>1?` · <b>第 ${w.draftNo} 稿</b>`:''} · ${w.at?stamp(w.at):''} 交 · ${w.words||0} 词${w.pasted>20?` · <span style="color:var(--amber)">粘贴 ${w.pasted} 字符</span>`:''}</span></span>
     <span class="st">${st}</span></button>`;
@@ -2914,12 +2908,12 @@ function essayRow(w){
 
 function viewEssayOne(){
   const w = wrCur();
-  if(!w) return `<div class="esback"><button class="fchip" data-wback>‹ 全部作文</button></div><p class="empty">找不到这篇作文。</p>`;
+  if(!w) return `<div class="esback"><button class="fchip" data-wback>‹ 全部写作</button></div><p class="empty">找不到这篇作文。</p>`;
   const prev = w.prevId && WR.list.find(x=>x.id===w.prevId);
   const r = w.status==='reviewed' ? w.review : null;
-  let html = `<div class="esback"><button class="fchip" data-wback>‹ 全部作文</button></div>
+  let html = `<div class="esback"><button class="fchip" data-wback>‹ 全部写作</button></div>
     <div class="eshead"><span class="who">${KID[w.kid].av}</span><div><h2>${esc(w.prompt)}</h2>
-      <div class="l">${KID[w.kid].n} · ${promptLabel(w)} · 第 ${w.draftNo||1} 稿 · ${w.at?stamp(w.at)+' 交':''} · ${w.words||0} 词 · 用时 ${dur(w.secs||0)}${(w.draftNo||1)===1 && w.secs>30*60?'（超过 30 分钟）':''}${w.pasted>20?` · <span style="color:var(--amber)">粘贴 ${w.pasted} 字符</span>`:''}</div></div></div>`;
+      <div class="l">${wkTag(wkOf(w))} ${KID[w.kid].n}${promptLabel(w)?' · '+promptLabel(w):''} · 第 ${w.draftNo||1} 稿 · ${w.at?stamp(w.at)+' 交':''} · ${w.words||0} 词 · 用时 ${dur(w.secs||0)}${(w.draftNo||1)===1 && wkOf(w).key==='exam' && w.secs>30*60?'（超过 30 分钟）':''}${w.pasted>20?` · <span style="color:var(--amber)">粘贴 ${w.pasted} 字符</span>`:''}</div></div></div>`;
   if(w.prevId) html += `<div class="esprev">${prev
       ? `<button class="mini" data-wdiff>${WR.diff?'收起对比':`和第 ${prev.draftNo||1} 稿对比`}</button> <button class="mini" data-wid="${esc(prev.id)}">打开第 ${prev.draftNo||1} 稿和它的批改</button>
          ${WR.diff?`<div class="esdiff">${WritingReview.diff(prev.text, w.text)}</div><p class="eshint">绿底 = 第 ${w.draftNo||2} 稿新写的，红划线 = 删掉的。</p>`:''}`
@@ -2946,7 +2940,8 @@ const ckCount = cs => ['fixed','partly','not'].map(s=>`${WR_CK[s]} ${cs.filter(c
 function reviewedView(w){
   const r = w.review, list = WritingReview.ordered(r.notes), cs = r.checks || [];
   return `<div class="esmeta">${WHO_ZH[r.by]||''}${isFinal(w)?'定稿':'批改'}${r.at?' · '+stamp(tsDate(r.at)):''} · ${r.score?'打了 '+r.score+'/6':'没打分'} · ${seenText(w)}</div>
-    ${isFinal(w) ? `<div class="esfinal">✅ 这篇已经定稿，${KID[w.kid].n} 那边不能再写下一稿了。</div>` : ''}
+    ${isFinal(w) ? `<div class="esfinal">✅ 这篇已经定稿，${KID[w.kid].n} 那边不能再写下一稿了。</div>`
+      : wrMany(w) ? `<div class="esmeta">发出去的是「再改一稿」：${KID[w.kid].n} 可以接着写第 ${(w.draftNo||1)+1} 稿。要就此定稿，点「修改批改」再点「定稿」。</div>` : ''}
     ${r.summary ? `<div class="essum">${esc(r.summary)}</div>` : ''}
     ${cs.length ? `<div class="subhd">和上一稿对照 · ${ckCount(cs)}</div>${cs.map(checkStatic).join('')}` : ''}
     <div class="estext">${WritingReview.markup(w.text, list)}</div>
@@ -2995,12 +2990,17 @@ function editorView(w){
   const ed = WR.ed;
   if(!ed || ed.id!==w.id){ openEditor(w); return `<p class="empty">正在读草稿…</p>`; }
   if(ed.loading) return `<p class="empty">正在读草稿…</p>`;
-  if(isRedraft(w)) return checksEditorView(w);
+  if(isRedraft(w) && !wrMany(w)) return checksEditorView(w);
+  const prev = isRedraft(w) && WR.list.find(x=>x.id===w.prevId), left = ed.checks.filter(c=>!c.status).length;
+  const ckBlock = !isRedraft(w) ? '' : `<div class="subhd">先对照上一稿${prev?`（第 ${prev.draftNo||1} 稿）`:''} · ${ckCount(ed.checks)}${left?` · 还有 ${left} 条没选`:''}</div>
+    ${ed.checks.length ? ed.checks.map(checkEdit).join('') : `<p class="empty">${prev ? '上一稿没有「要改」的批注。' : '上一稿不在最近 '+WR_MAX+' 篇里，读不到它的批注。'}</p>`}
+    <div class="subhd">再逐句批这一稿</div>`;
   return `<div class="estools">
       <button class="btn" data-wai ${WR.aiBusy?'disabled':''}>${WR.aiBusy?'Claude 正在读…（半分钟左右）':'🤖 让 Claude 先出草稿'}</button>
       <button class="mini" data-wsetup>⚙︎ Claude 设置</button>
       <span class="saved" id="wrsaved">${esc(ed.saved)}</span></div>
     ${WR.setup ? '<div class="kaipbox" id="kaipbox"></div>' : ''}
+    ${ckBlock}
     <p class="eshint">在原文里<b>选中一段 → 点「＋ 批注」</b>。黄 = 要改，绿 = 写得好，蓝 = 批注；点颜色跳到那条批注。
       改动自动存成草稿，只有家长看得到，点最下面「发给 ${KID[w.kid].n}」他才看得到。</p>
     <div class="estext" id="wrtext">${WritingReview.markup(w.text, ed.notes)}</div>
@@ -3012,7 +3012,10 @@ function editorView(w){
       <span class="eshint">6 出色 · 5 强 · 4 扎实 · 3 在进步 · 2 弱 · 1 刚开头</span></div>
     <div class="subhd">总评 · 孩子会看到</div>
     <textarea class="essumin" data-wsum rows="5" placeholder="整体怎么样、最该改的一件事">${esc(ed.summary)}</textarea>
-    <div class="esact"><button class="btn solid" data-wsend>批改完，发给 ${KID[w.kid].n}</button>
+    <div class="esact">${wrMany(w)
+        ? `<button class="btn solid" data-wsend="more">发给 ${KID[w.kid].n}，再改一稿</button>
+           <button class="btn" data-wsend="final">定稿，发给 ${KID[w.kid].n}</button>`
+        : `<button class="btn solid" data-wsend>批改完，发给 ${KID[w.kid].n}</button>`}
       ${w.status==='reviewed' ? '<button class="btn ghost" data-wcancel>不改了</button>'
         : w.skipped ? '' : '<button class="btn ghost" data-wskip>不批了</button>'}</div>`;
 }
@@ -3099,8 +3102,9 @@ window.addEventListener('scroll', ()=>{ if(!wrAdd.hidden) wrSelSoon(); }, { pass
 
 /* Claude's first draft of the marking: only the parent sees it, and edits it before sending. */
 const WR_AI_SYS = [
-'You are an experienced ISEE and SSAT writing-sample reader who also tutors middle-school students.',
-'You are drafting the marking of a practice writing sample by a Grade 7 boy (about 12) preparing for ISEE and SSAT Middle Level.',
+'You are an experienced writing teacher who tutors middle-school students (Grade 3 to Grade 7).',
+'You are drafting the marking of a piece of writing a child handed in. The PROMPT TYPE line says which course it is for',
+'and how that course is marked — follow it (an admissions essay is not marked like a timed test essay).',
 'A parent will check and edit your draft before the student sees it. Write every note and the summary TO the student ("you"),',
 'warm but honest — do not inflate the score to be nice.',
 '',
@@ -3133,10 +3137,11 @@ async function aiDraft(){
   if((ed.notes.length || ed.summary.trim()) && !confirm('用 Claude 的草稿替换现在的批注、总评和分数？')) return;
   const prev = w.prevId && (WR.list||[]).find(x=>x.id===w.prevId);
   const user = [
+    'STUDENT: ' + KID[w.kid].n,
     'PROMPT TYPE: ' + promptTypeEN(w),
     'PROMPT: ' + w.prompt, '',
     // 申请文书是在家慢慢写的，没有 30 分钟这回事，别让 Claude 拿考试的时间标准去评。
-    'CONDITIONS: ' + ((w.draftNo||1) > 1 ? `draft ${w.draftNo}, rewritten after marking` : (isAppEssay(w) || isSpeech(w)) ? `written in ${Math.round((w.secs||0)/60)} minutes, untimed` : `written in ${Math.round((w.secs||0)/60)} minutes (the test allows 30)`) +
+    'CONDITIONS: ' + ((w.draftNo||1) > 1 ? `draft ${w.draftNo}, rewritten after marking` : wkOf(w).key!=='exam' ? `written in ${Math.round((w.secs||0)/60)} minutes, untimed` : `written in ${Math.round((w.secs||0)/60)} minutes (the test allows 30)`) +
       `, ${w.words||0} words` + (w.pasted > 20 ? `, ${w.pasted} characters were pasted in rather than typed` : '') + '.',
     ...(prev && prev.review ? ['', 'WHAT WAS MARKED ON THE DRAFT BEFORE:',
       ...WritingReview.ordered(prev.review.notes).map(n=>`- [${n.kind}] "${n.quote}"${n.fix?' -> '+n.fix:''}${n.note?' ('+n.note+')':''}`)] : []),
@@ -3165,17 +3170,23 @@ async function aiDraft(){
   if(V==='essay') render();
 }
 
-async function wrSend(){
+// final: 文书那两颗键里点的是哪一颗（'final' / 'more'）；别的课不看它，改稿发出去就是定稿。
+async function wrSend(how){
   const w = wrCur(), ed = WR.ed;
   if(!w || !ed) return;
+  const many = wrMany(w), final = many ? how==='final' : isRedraft(w);
   const redo = isRedraft(w), left = ed.checks.filter(c=>!c.status).length;
-  if(redo){
+  if(many){
+    if(!ed.notes.length && !ed.summary.trim() && !confirm('没有批注也没有总评，确定就这样发吗？')) return;
+    if(final && !confirm(`定稿后 ${KID[w.kid].n} 不能再写下一稿。确定这是最后一稿？`)) return;
+  } else if(redo){
     if(left && !confirm(`对照表还有 ${left} 条没选「改好了 / 改了一半 / 没改」。就这样定稿吗？`)) return;
     if(!confirm(`定稿后 ${KID[w.kid].n} 不能再写下一稿。确定定稿并发给他？`)) return;
   } else if(!ed.notes.length && !ed.summary.trim() && !confirm('没有批注也没有总评，确定就这样发吗？')) return;
   const review = { by: meAs(), score: ed.score, summary: ed.summary.trim(),
     notes: ed.notes.map(n=>({ s:n.s, e:n.e, quote:n.quote, kind:n.kind, fix:n.fix||'', note:n.note||'' })),
     at: firebase.firestore.FieldValue.serverTimestamp() };
+  if(many) review.final = final;
   if(redo) review.checks = ed.checks.map(c=>({ quote:c.quote||'', fix:c.fix||'', why:c.why||'', status:c.status||'', note:(c.note||'').trim() }));
   clearTimeout(wrTimer); ed.dirty = false;
   const b = db.batch();
@@ -3193,7 +3204,7 @@ async function wrSend(){
   const a = ATT.find(x=>x.aid===w.attemptId);
   if(a){ a.reviewed = true; a.essay = ed.score; a.skipped = false; }
   WR.editing = false; WR.ed = null;
-  toast(redo ? `已定稿，发给 ${KID[w.kid].n}` : `已发给 ${KID[w.kid].n}`);
+  toast(final ? `已定稿，发给 ${KID[w.kid].n}` : many ? `已发给 ${KID[w.kid].n}，他可以再改一稿` : `已发给 ${KID[w.kid].n}`);
   render(); window.scrollTo({ top:0 });
 }
 
@@ -3229,7 +3240,8 @@ function wireEssay(){
   on('[data-wcancel]', 'click', ()=>{ wrFlush(); WR.editing = false; WR.ed = null; render(); });
   on('[data-wsetup]', 'click', ()=>{ WR.setup = !WR.setup; render(); });
   on('[data-wai]', 'click', aiDraft);
-  on('[data-wsend]', 'click', wrSend);
+  on('[data-wsend]', 'click', el=>wrSend(el.dataset.wsend));
+  on('[data-wkind-f]', 'click', el=>{ WR.wk = el.dataset.wkindF; render(); });
   on('[data-wskip]', 'click', ()=>wrSkip(true));
   on('[data-wunskip]', 'click', ()=>wrSkip(false));
   on('[data-wkind]', 'click', el=>{ const [k, x] = el.dataset.wkind.split('|'); WR.ed.notes[k].kind = x; wrSave(); render(); });
