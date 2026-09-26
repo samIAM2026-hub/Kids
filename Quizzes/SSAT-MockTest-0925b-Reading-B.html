@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 9.25b · Reading B</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 9.25b &middot; Section 2, part 2</div>
+    <h1>Reading Comprehension &mdash; Part B (Questions 21&ndash;40)</h1>
+    <div class="meta">20 questions &middot; 20 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">20:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 9.25b &middot; <a href="SSAT-MockTest-0925b-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading B",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 5 &middot; Questions 21&ndash;26",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Thomas, Chess, and Checkers stayed quiet for a long time. After a while, Chess</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>and Checkers started to sing a Flathead song of mourning. For a wake, for a wake.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Samuel was still alive, but Thomas sang along without hesitation. That mourning song</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>was B-7 on every reservation jukebox.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span style=\"text-indent:26px;display:inline-block\">After the song, Thomas stood and walked away from the table where his father</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>lay as flat as a paper plate. He walked outside and cried. Not because he needed to be</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>alone; not because he was afraid to cry in front of women. He just wanted his tears to</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>be individual, not tribal. Those tribal teas collected and fermented in huge BIA [Bureau</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>of Indian Affairs] barrels. Then the BIA poured those tears into beer and Pepsi cans and</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>distributed them back onto the reservation. Thomas wanted his tears to be selfish and</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>fresh.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">&ldquo;Hello,&rdquo; be said to the night sky. He wanted to say the first word of a prayer or</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>a joke. A prayer or a joke often sound alike on the reservation.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">&ldquo;Help,&rdquo; he said to the ground. He knew the words to a million songs: Indian,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span>European, African, Mexican, Asian. He sang &ldquo;Stairway to Heaven&rdquo; in four different</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>languages but never knew where that staircase stood. He sang the same Indian songs</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>continually but never sang them correctly. He wanted to make his guitar sound like a</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>waterfall, like a spear striking salmon, but his guitar only sounded like a guitar. He</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>wanted the songs, the stories, to save everybody.</span></div></div>"
+  },
+  {
+   "n": 21,
+   "stem": "Thomas, Chess, and Checkers are _______.",
+   "opts": [
+    "Mexican",
+    "European",
+    "Asian",
+    "African",
+    "Native American"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "The clues pile up: a &ldquo;Flathead song&rdquo; (the Flathead are a Native American people), &ldquo;every <b>reservation</b> jukebox&rdquo;, the &ldquo;BIA [Bureau of Indian Affairs]&rdquo;, &ldquo;tribal&rdquo; tears. They are <b>Native American</b>. The traps come from line 15, where Thomas knows songs from many places &mdash; knowing a song does not tell you where someone is from."
+  },
+  {
+   "n": 22,
+   "stem": "In line 2, a wake means _______.",
+   "opts": [
+    "the turbulence left behind by something moving through water",
+    "no longer asleep",
+    "a viewing of a dead person before burial",
+    "aftermath",
+    "celebration"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.vocab",
+   "why": "The sentence is about &ldquo;a Flathead song of <b>mourning</b>&rdquo; &mdash; sadness for a death. So <i>wake</i> here is the gathering to <b>watch over a dead person before burial</b>. (A) and (B) are real meanings of <i>wake</i>, but not in a sentence about mourning. Rule: for a word with several meanings, let the sentence choose."
+  },
+  {
+   "n": 23,
+   "stem": "The fact that Thomas, Chess, and Checkers sing a song of mourning while Samuel is still alive suggests that _______.",
+   "opts": [
+    "Samuel is afraid to die",
+    "Samuel doesn&rsquo;t belong on the reservation",
+    "Samuel&rsquo;s life is tragic",
+    "they believe the song has healing powers",
+    "Samuel is a ghost"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.infer",
+   "why": "They mourn Samuel before he has died &mdash; as if his life is already a loss worth grieving. His father lies &ldquo;as flat as a paper plate&rdquo;, and the passage links the tribe&rsquo;s tears to beer cans, a hint about how he has come to this. That points to a <b>tragic life</b>. (D) is the trap: a mourning song is for loss, not for healing. (E) is ruled out by line 3: &ldquo;Samuel was still alive.&rdquo;"
+  },
+  {
+   "n": 24,
+   "stem": "Thomas wants his tears to &ldquo;selfish and fresh&rdquo; (line 10-11) because _______.",
+   "opts": [
+    "it is difficult for him to share his feelings with other",
+    "he wants to mourn his father as an individual, not just another dying Indian",
+    "he feels guilty mourning his father before his father has died",
+    "he doesn&rsquo;t think the tribe will mourn his father&rsquo;s passing",
+    "tribal tears were meaningless"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.infer",
+   "why": "Line 7&ndash;8 says it: &ldquo;He just wanted his tears to be <b>individual, not tribal</b>.&rdquo; He wants to grieve for <i>his</i> father, not shed the same tears everyone has cried for years. (A) is ruled out by lines 6&ndash;7: he did <i>not</i> go outside because he needed to be alone or was afraid to cry. (E) is too strong &mdash; the passage is sad about tribal tears, not calling them meaningless."
+  },
+  {
+   "n": 25,
+   "stem": "The sentence &ldquo;Then the BIA poured those tears into beer and Pepsi cans and distributed them back onto the reservation&rdquo; (lines 9-10) is an example of _______.",
+   "opts": [
+    "a paradox",
+    "dramatic irony",
+    "onomatopoeia",
+    "flashback",
+    "figurative language"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.tone",
+   "why": "Nobody can really pour tears into cans. The writer is using a picture to say something true: the government handed back sorrow in the form of drink. Saying something that is not literally true to make a point is <b>figurative language</b>. (C) onomatopoeia is a word that sounds like its meaning (buzz, crash); (D) flashback jumps back in time. Neither fits."
+  },
+  {
+   "n": 26,
+   "stem": "In line 14, Thomas asks for help because _______.",
+   "opts": [
+    "he can&rsquo;t stop crying",
+    "he wants to be a better guitar player",
+    "he wants to be able to rescue people with his music",
+    "he can&rsquo;t remember the words to the song",
+    "no one wants to listen to him play"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.infer",
+   "why": "Read to the end of the paragraph that begins with &ldquo;Help&rdquo;: &ldquo;He wanted the songs, the stories, <b>to save everybody</b>.&rdquo; He asks for help because his music is not strong enough to rescue the people he loves. (B) is the trap: the guitar only &ldquo;sounded like a guitar&rdquo;, but being a better player is a step toward his real wish, not the wish itself. (D) is ruled out: &ldquo;He knew the words to a million songs.&rdquo;"
+  },
+  {
+   "type": "passage",
+   "label": "Passage 6 &middot; Questions 27&ndash;31",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">An excerpt from a Dead Sea Scroll describing Abraham&rsquo;s sojourn in Egypt and</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>the beauty of Sarah, his wife, was recently made public for the first time. The 2,000-</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>year-old scroll, badly preserved and extremely brittle, is the last of seven scrolls found</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>in 1947 in the caves of the Judean desert south of Jericho. Scholars say that this scroll</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>enlarges on the hitherto known Biblical tales of Lamech, Enoch, Noah, and Abraham.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">This document of Hebrew University yielded decipherable contents only after</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>months of exposure to controlled humidity. The centuries had compressed the leather</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>scroll into a brittle, glued-together mass. After it had been rendered flexible, the scroll</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>was folded into pages. Four complete pages, each with 34 lines of writing, resulted.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>Besides this, scholars had for their studies large sections of the decipherable writing on</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>five other pages, and readable lines and words on additional pages. Scholars were</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>delighted, for they had almost despaired of recovering the scroll as a readable</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>document. The work of giving new life to desiccated parchment and of unrolling it was</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>done by an old German expert on ancient materials, under the supervision of two Israeli</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span>scholar.</span></div></div>"
+  },
+  {
+   "n": 27,
+   "stem": "The word <i>sojourn</i> means _______.",
+   "opts": [
+    "are found in peanuts",
+    "can be eaten in unrestricted amounts",
+    "raise the level of cholesterol in the blood",
+    "may aid in having good vision",
+    "lower cholesterol levels"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.vocab",
+   "why": "This question was misprinted: its five choices belong to a different passage (about fats and cholesterol), so none of them can be right. The word itself is worth learning: a <b>sojourn</b> is a <b>temporary stay</b> somewhere &mdash; &ldquo;Abraham&rsquo;s sojourn in Egypt&rdquo; is the time Abraham spent living in Egypt. If you meet a broken question on a real test, do not lose time on it &mdash; skip it and move on.",
+   "flag": "Misprinted question: the choices come from another passage and none means <i>sojourn</i>. The printed key says (C); this page keeps (C) so the score matches the answer sheet, but a miss here says nothing about Warren&rsquo;s reading."
+  },
+  {
+   "n": 28,
+   "stem": "<i>Decipherable</i> as used in the second paragraph means _______.",
+   "opts": [
+    "durable",
+    "intelligible",
+    "practical",
+    "exciting",
+    "scholarly"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.vocab",
+   "why": "To <i>decipher</i> is to work out writing that is hard to read (a <i>cipher</i> is a code). So <b>decipherable</b> means able to be read and understood &mdash; <b>intelligible</b>. The passage backs this up by pairing it with &ldquo;readable lines and words&rdquo;. (A) durable is the trap: the scroll was brittle, and the passage is about reading it, not about how strong it was."
+  },
+  {
+   "n": 29,
+   "stem": "The scroll _______.",
+   "opts": [
+    "gives new details about people already known of",
+    "is limited to an account of Abraham and Sarah",
+    "was found in Egypt",
+    "is the first of seven found in 1947",
+    "tells of Abraham&rsquo;s life in the Judean desert"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.detail",
+   "why": "Lines 4&ndash;5: the scroll &ldquo;<b>enlarges on the hitherto known</b> Biblical tales of Lamech, Enoch, Noah, and Abraham&rdquo; &mdash; it adds details to stories people already knew. (B) is wrong because it covers four figures. (C) mixes up where Abraham stayed (Egypt) with where the scroll was found (the Judean desert). (D) says <i>first</i>; the passage says <i>last</i>. Rule: detail questions love to swap one fact for a nearby one."
+  },
+  {
+   "n": 30,
+   "stem": "The scroll _______.",
+   "opts": [
+    "is in Germany",
+    "was deciphered by a German specialist",
+    "was beautifully preserved",
+    "belongs to an Israeli university",
+    "was taken to Jericho"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.detail",
+   "why": "Line 6: &ldquo;This document <b>of Hebrew University</b>&rdquo; &mdash; the scroll belongs to an Israeli university. (B) is the trap: the German expert <i>unrolled and restored</i> the parchment (lines 13&ndash;14); nothing says he deciphered the writing. (C) is the opposite of &ldquo;badly preserved and extremely brittle&rdquo;."
+  },
+  {
+   "n": 31,
+   "stem": "The writing on the scroll _______.",
+   "opts": [
+    "was legible on only four pages",
+    "could be read on several pages",
+    "was too damaged by age to be deciphered",
+    "was irreparable",
+    "was finally legible throughout the document"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "Four complete pages, plus large readable sections on five more pages, plus lines and words on others (lines 9&ndash;11): the writing <b>could be read on several pages</b>. (A) &ldquo;only four&rdquo; ignores the other pages; (E) &ldquo;throughout&rdquo; goes too far, since some pages had only bits. Rule: the right answer to a detail question is often the one that is simply, modestly true."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 7 &middot; Questions 32&ndash;35",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Thousands of species of birds exist today, and nearly every species has its own</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>special courtship procedures and &ldquo;identification checks&rdquo;. Identifications checks are</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>important, because if birds of different species mate, any offspring will usually be sterile</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>or badly adapted to their surroundings.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span style=\"text-indent:26px;display:inline-block\">Plumage often plays a key role in both identification and courtship. In breeding</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>season, male birds often acquire distinctive plumage which they use to attract females</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>who will, in turn, only respond to males with the correct markings. In some species, the</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>females are more brightly colored, and the courtship roles are reversed. Distinctive</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>behavioral, changes can also be important aspects of courtship and breeding activity.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>Aggressiveness between males, and sometimes between females, is quite common. Some</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>birds, like whooping cranes and trumpeter swans, perform wonderfully elaborate</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>courtship dances in which both sexes are enthusiastic participants.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span style=\"text-indent:26px;display:inline-block\">Bird sounds are often a very central part of identification and courtship behavior</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>between individual in a given species. When a female migrates in the spring to her</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span>breeding region, she often encounters numerous birds of different species. By its singing,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>the male of a species both identifies itself and communicates to females of that species it</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>is in breeding condition. This information allows a female to predict a male&rsquo;s response to</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>her approach. Later, after mating has taken place, the note patterns of a particular male&rsquo;s</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>song enable a nesting female to continue to identify her own partner.</span></div></div>"
+  },
+  {
+   "n": 32,
+   "stem": "The author implies that a bird engages in identification and courtship procedures mainly in order to _______.",
+   "opts": [
+    "try to dominate the bird population of a given area",
+    "find a better nesting spot",
+    "find the most colorful partner it can",
+    "attract a mate of its own species",
+    "increase its control over its nesting partner"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.main",
+   "why": "Lines 2&ndash;4 give the reason: identification checks matter because if birds of <b>different species</b> mate, the young are sterile or poorly adapted. So the point is to <b>find a mate of its own species</b>. (C) is the trap: plumage matters, but because it shows the <i>right</i> markings, not because brighter is better."
+  },
+  {
+   "n": 33,
+   "stem": "According to the passage, a feature of the male song bird is its ability to _______.<div style=\"margin:8px 0 0 14px\">I.&ensp;attract a female of its own species<br>II.&ensp;intimidate rival males<br>III.&ensp;communicate its identity to its mate</div>",
+   "opts": [
+    "I only",
+    "III only",
+    "I and II only",
+    "I and III only",
+    "I, II, and III"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.detail",
+   "why": "Check each numeral against the last paragraph. I: his song tells females of his species he is ready to breed &mdash; yes. III: after mating, the song lets the female &ldquo;continue to identify her own partner&rdquo; &mdash; yes. II: aggression between males is mentioned in paragraph 2, but <b>not</b> as something song does. So <b>I and III only</b>. Rule: a numeral must be true <i>for the thing asked about</i> (here, the song), not just somewhere in the passage."
+  },
+  {
+   "n": 34,
+   "stem": "The author uses the whooping crane as an example of a bird that _______.",
+   "opts": [
+    "acquires a distinctive breeding plumage",
+    "reverses the normal male and female courtship roles",
+    "displays unusual aggressiveness while courting",
+    "seldom participates in courtship procedures",
+    "behaves in an unusual and noteworthy way during courtship"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.detail",
+   "why": "Whooping cranes and trumpeter swans &ldquo;perform <b>wonderfully elaborate courtship dances</b>&rdquo; (lines 11&ndash;12) &mdash; a striking, unusual behaviour. (C) is the trap: aggressiveness is in the sentence just before, but about other birds. (B) role reversal is also nearby, but the cranes&rsquo; dances have <i>both</i> sexes as keen participants."
+  },
+  {
+   "n": 35,
+   "stem": "According to the passage, mating between birds of different species _______.",
+   "opts": [
+    "may help to establish a permanent new species",
+    "are quite common",
+    "have never happened",
+    "produce more sturdy offspring",
+    "do not usually result in healthy offspring"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.detail",
+   "why": "Lines 3&ndash;4: any offspring &ldquo;will usually be <b>sterile or badly adapted</b> to their surroundings&rdquo; &mdash; not healthy. (D) says the opposite. (C) &ldquo;never happened&rdquo; is too extreme; the passage says <i>if</i> they mate, which means it can happen."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 8 (printed as a second &ldquo;Passage 7&rdquo;) &middot; Questions 36&ndash;40",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Live thy Life,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Young and old,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Like yon oak,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Bright in spring,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5</span><span>Living gold;</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Summer-rich,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Then and then,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Autumn-changed,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Soberer-hued,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10</span><span>Gold again.</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>All his leaves,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Fall&rsquo;n at length,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Look, he stands,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"></span><span>Trunk and bough,</span></div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15</span><span>Naked strength.</span></div></div>",
+   "src": "&ldquo;The Oak&rdquo; by Alfred Lord Tennyson."
+  },
+  {
+   "n": 36,
+   "stem": "In this poem, the seasons represent different _______.",
+   "opts": [
+    "periods of history",
+    "kinds of trees",
+    "times of day",
+    "stages of life",
+    "styles of dress"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.main",
+   "why": "The first line tells you how to read the rest: &ldquo;Live thy Life, / Young and old, / Like yon oak.&rdquo; The oak&rsquo;s spring, summer, autumn and bare winter stand for the <b>stages of a life</b>, from young to old. (B) is the trap: there is only one tree, the oak, seen through the year."
+  },
+  {
+   "n": 37,
+   "stem": "The &ldquo;he&rdquo; mentioned in line 13 refers to _______.",
+   "opts": [
+    "autumn",
+    "the oak",
+    "life",
+    "the reader",
+    "the poet"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "&ldquo;All his leaves, / Fall&rsquo;n at length, / Look, he stands, / Trunk and bough&rdquo; &mdash; only a tree has leaves, a trunk and boughs. &ldquo;He&rdquo; is <b>the oak</b>. Rule: for a pronoun question, look for the nouns right around it that describe the same thing."
+  },
+  {
+   "n": 38,
+   "stem": "What does &ldquo;Gold again&rdquo; in line 10 signify?",
+   "opts": [
+    "The richness of summer.",
+    "The color of oak trees.",
+    "The revival of the past",
+    "The arrival of autumn",
+    "The increased wealth of the narrator."
+   ],
+   "ans": 3,
+   "sk": "ssat.r.infer",
+   "why": "Lines 8&ndash;10 are about autumn: &ldquo;Autumn-changed, / Soberer-hued, / Gold again.&rdquo; The leaves turn gold as autumn comes, so &ldquo;gold again&rdquo; marks <b>the arrival of autumn</b>. (C) is the trap: <i>again</i> refers back to the spring gold of line 5, but the poem is moving forward, not reviving the past. (E) takes &ldquo;gold&rdquo; as money."
+  },
+  {
+   "n": 39,
+   "stem": "During which season is the oak referred to as &ldquo;Living gold&rdquo;?",
+   "opts": [
+    "Autumn.",
+    "Spring.",
+    "This description does not refer to a season.",
+    "Summer.",
+    "Winter."
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "Read the lines together: &ldquo;Bright in <b>spring</b>, / Living gold.&rdquo; New oak leaves in spring are a bright yellow-green. (A) autumn is the trap, because line 10 also says &ldquo;gold&rdquo; &mdash; but that is gold <i>again</i>, the second time."
+  },
+  {
+   "n": 40,
+   "stem": "With which of the following statements about life would the speaker be most likely to agree?",
+   "opts": [
+    "It is important to try to accomplish something during one&rsquo;s lifetime.",
+    "Life is too short to spend time doing unpleasant things.",
+    "The seasons are unpredictable",
+    "Trees ate an integral part of enjoyment of life.",
+    "People should live very period of their lives to the fullest."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "The oak is splendid in every season: bright in spring, rich in summer, gold in autumn, and even bare in winter it shows &ldquo;naked strength&rdquo;. &ldquo;Live thy Life &hellip; like yon oak&rdquo; means <b>make the most of every stage</b>. (A) sounds wise but the poem is about living fully, not achieving. (D) takes the tree literally instead of as a picture of a life."
+  }
+ ],
+ "count": 20
+};
+const MINUTES = 20;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
