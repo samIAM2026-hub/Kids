@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mock Test 9.25b · English Mistake Review</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #eceff6 55%, #dde3ef 100%);
+    min-height: 100vh; color: #1e2433; padding: 22px 16px 60px;
+  }
+  .wrap { max-width: 830px; margin: 0 auto; }
+
+  header { background: #2c3e63; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f2f5fb; box-shadow: 0 8px 0 #1a2745; margin-bottom: 18px; }
+  header .ic { font-size: 44px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+  header .who { display:inline-block; margin-top:10px; font-size:13px; letter-spacing:.6px; text-transform:uppercase; background:rgba(255,255,255,.14); padding:4px 12px; border-radius:999px; }
+
+  .card { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 6px 0 #ccd4e6; margin-bottom: 18px; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16px; line-height: 1.58; }
+  .intro p + p { margin-top: 10px; }
+
+  /* ---- score strip ---- */
+  .scores { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 12px; margin: 16px 0 4px; }
+  .sbox { background:#f4f6fb; border:2px solid #ccd4e6; border-radius: 12px; padding: 13px 14px; text-align:center; }
+  .sbox .lbl { font-size:11px; text-transform:uppercase; letter-spacing:.7px; color:#6b7690; font-weight:bold; }
+  .sbox .big { font-size:26px; font-weight:bold; color:#2c3e63; margin:3px 0 1px; }
+  .sbox .sm { font-size:12px; color:#7d879e; }
+  .sbox.good .big { color:#2e6b34; }
+  .sbox.bad .big { color:#c0392b; }
+
+  table.pass { width:100%; border-collapse: collapse; font-size:15px; margin-top:12px; }
+  table.pass th { text-align:left; background:#eef1f7; color:#5b6580; font-size:11px; text-transform:uppercase; letter-spacing:.5px; padding:8px 10px; }
+  table.pass td { padding:8px 10px; border-top:1px solid #e6e9f1; vertical-align:top; line-height:1.4; }
+  table.pass td.sc { font-weight:bold; white-space:nowrap; }
+  table.pass tr.hurt td { background:#fbeaea; }
+  table.pass tr.hurt td.sc { color:#a5352a; }
+  table.pass tr.fine td.sc { color:#2e6b34; }
+
+  h2.sect { font-size: 22px; color: #1a2745; margin: 30px 0 6px; text-align:center; }
+  p.sectsub { text-align:center; font-size:14px; color:#6b7690; margin-bottom:14px; }
+
+  /* ---- question cards ---- */
+  .q { border-left: 6px solid #c0392b; }
+  .q.done { border-left-color: #3a7d44; }
+  .qhead { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+  .qnum { background:#2c3e63; color:#fff; font-size:12px; font-weight:bold; letter-spacing:.5px; padding:4px 10px; border-radius:999px; }
+  .chip { font-size:11px; font-weight:bold; letter-spacing:.5px; text-transform:uppercase; padding:3px 9px; border-radius:999px; }
+  .chip.blank { background:#f0ece2; color:#8a6d3b; }
+  .chip.miss  { background:#fbeaea; color:#a5352a; }
+  .chip.kind  { background:#e4ebf7; color:#3d5480; }
+
+  .qtext { font-size: 19px; line-height:1.45; font-weight:bold; margin-bottom: 4px; }
+  .qword { font-size: 24px; letter-spacing:1px; }
+  .quote { background:#f4f6fb; border-left:5px solid #7d90b8; border-radius:8px; padding:10px 14px; margin:10px 0 12px; font-size:15px; line-height:1.55; color:#3b4560; font-style:italic; }
+  .quote b { font-style: normal; color:#1a2745; }
+
+  .opt { display:block; width:100%; text-align:left; background:#f7f9fc; border:3px solid #dbe1ee; border-radius:11px; padding:10px 15px; font-size:16px; font-family:inherit; color:#1e2433; margin-bottom:8px; cursor:pointer; transition: transform .1s, background .15s, border-color .15s; }
+  .opt:hover:not(:disabled) { transform: translateX(4px); border-color:#7d90b8; }
+  .opt:disabled { cursor: default; }
+  .opt.correct { background:#d7f0d3; border-color:#3a7d44; font-weight:bold; }
+  .opt.wrong { background:#fbeaea; border-color:#c0392b; }
+  .opt .mark { float:right; font-size:12px; font-weight:bold; letter-spacing:.4px; text-transform:uppercase; opacity:.85; }
+  .opt.correct .mark { color:#2e6b34; }
+  .opt.wrong .mark { color:#a5352a; }
+
+  .reveal { display:none; margin-top:10px; }
+  .reveal.show { display:block; }
+  .why  { background:#e8f5e6; border-left:5px solid #3a7d44; border-radius:9px; padding:12px 14px; font-size:15.5px; line-height:1.58; color:#23572c; }
+  .trap { background:#fbeaea; border-left:5px solid #c0392b; border-radius:9px; padding:12px 14px; font-size:15.5px; line-height:1.58; color:#7d2b21; margin-top:9px; }
+  .rule { background:#fff8ec; border:2px solid #e8c489; border-radius:9px; padding:11px 14px; font-size:15px; line-height:1.55; color:#7a5518; margin-top:9px; }
+  .why b, .trap b, .rule b { color: inherit; }
+  .lbl { display:block; font-size:11px; font-weight:bold; letter-spacing:.7px; text-transform:uppercase; opacity:.75; margin-bottom:4px; }
+
+  .btn { background:#2c3e63; color:#fff; border:none; border-radius:11px; padding:10px 20px; font-size:15px; font-family:inherit; font-weight:bold; cursor:pointer; box-shadow:0 5px 0 #1a2745; transition: transform .1s; }
+  .btn:active { transform: translateY(3px); box-shadow:0 2px 0 #1a2745; }
+  .btn.ghost { background:#fff; color:#4a5872; box-shadow:0 4px 0 #ccd4e6; border:2px solid #dbe1ee; }
+  .btn.amber { background:#c9761d; box-shadow:0 5px 0 #8f5211; }
+  .toolbar { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin: 4px 0 20px; }
+  .center { text-align:center; }
+
+  /* ---- word list ---- */
+  table.words { width:100%; border-collapse:collapse; font-size:15px; }
+  table.words th { text-align:left; background:#eef1f7; color:#5b6580; font-size:11px; text-transform:uppercase; letter-spacing:.5px; padding:8px 10px; }
+  table.words td { padding:9px 10px; border-top:1px solid #e6e9f1; vertical-align:top; line-height:1.45; }
+  table.words td.w { font-weight:bold; color:#2c3e63; white-space:nowrap; }
+  table.words td.m { font-weight:bold; color:#2e6b34; white-space:nowrap; }
+  table.words td.h { color:#6b7690; font-size:14px; }
+
+  ol.tips { padding-left: 22px; }
+  ol.tips li { font-size:16px; line-height:1.6; margin-bottom:11px; }
+  ol.tips li b { color:#1a2745; }
+
+  a.home { display:inline-block; margin-top:16px; color:#5b6580; text-decoration:none; font-size:14px; }
+  a.home:hover { text-decoration: underline; }
+  footer { text-align:center; font-size:12px; color:#8791a8; margin-top:18px; }
+
+  @media (max-width: 520px) {
+    .qtext { font-size:17px; } .qword { font-size:21px; }
+    .opt { font-size:15px; }
+  }
+  .chip.twice { background:#c0392b; color:#fff; }
+  .toolkit { background:#fff; border:3px solid #cfd8ea; border-radius:16px; padding:18px 20px; margin-bottom:18px; }
+  .toolkit h3 { font-size:17px; color:#1a2745; margin-bottom:10px; }
+  .toolkit ol { padding-left:22px; }
+  .toolkit li { font-size:15.5px; line-height:1.58; margin-bottom:9px; }
+  .toolkit li .ex { display:block; font-size:14px; color:#6b7690; margin-top:2px; }
+  .tip { background:#eef3fd; border-left:5px solid #3d5480; border-radius:9px; padding:11px 14px; font-size:15px; line-height:1.55; color:#2c3e63; margin-top:9px; }
+  .tip b { color: inherit; }
+  @media (max-width: 520px) { table.words td.w, table.words td.m { white-space: normal; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="ic">🧭</div>
+    <h1>Mock Test 9.25b · English Mistake Review</h1>
+    <p>Synonyms · Analogies · Reading A — every miss explained, with the trick that would have saved it</p>
+    <div class="who">Warren · 26 September</div>
+  </header>
+
+  <div class="card intro">
+    <p><strong>Warren — read this before you start.</strong></p>
+    <p>Yesterday’s English mock was hard, and you lost a lot of points. I looked at every question you got wrong, and the good news is this: <b>the mistakes are not random.</b> They come from three problems, and all three can be fixed.</p>
+    <ol class="tips" style="margin-top:10px;">
+      <li><b>Synonyms — you didn’t know the words yet.</b> 11 words were wrong on both tries, so doing the test again didn’t help. You also went very fast: many answers took 2–3 seconds, even on words you only half-knew. <b>FRUGAL</b> was on your last review page, and it came back.</li>
+      <li><b>Analogies — the bridge was loose.</b> Up to Q55 you did well. Q56, Q59 and Q60 were the same mistake: you picked a pair that goes the wrong way (“full of” vs “lacking”).</li>
+      <li><b>Reading — one passage, two question types.</b> In the history passage you got 1 out of 5. Two were “what does this word mean” questions and two were EXCEPT questions, and there is a step-by-step method for each one.</li>
+    </ol>
+    <p><strong>Why do them again?</strong> This isn’t a punishment, and it isn’t a new test. <b>Nothing on this page is scored.</b> Each question gets one fresh try so you find out which ones you already understand and which ones you really don’t. Guessing again doesn’t help. Think about each one properly, then pick.</p>
+    <p><strong>What happens after you pick.</strong> The answer shows straight away and the explanation opens under it, in three parts:
+      <span style="color:#23572c;font-weight:bold;">why the answer is right</span> ·
+      <span style="color:#a5352a;font-weight:bold;">the trap that caught you</span> ·
+      <span style="color:#3d5480;font-weight:bold;">💡 a tip you can use on new questions</span>.
+      The tips matter most. The same words won’t come back on the real test, but the same tricks will.</p>
+    <p>Each section starts with a short note on what went wrong there and a toolbox. Read the toolbox first, then do the questions. At the end there is a list of 20 words to learn, five a day. — Dad</p>
+
+    <div class="scores">
+      <div class="sbox bad"><div class="lbl">Synonyms</div><div class="big">12 → 17</div><div class="sm">of 30 · first try → second try</div></div>
+      <div class="sbox"><div class="lbl">Analogies</div><div class="big">21 / 30</div><div class="sm">5 of the 9 misses were Q56–60</div></div>
+      <div class="sbox"><div class="lbl">Reading A</div><div class="big">13 / 20</div><div class="sm">4 misses in one passage</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="sect" style="margin-top:0;">🔍 Where the points went</h2>
+    <table class="pass">
+      <tr><th>Where</th><th>What happened</th></tr>
+      <tr class="hurt"><td>Synonyms</td><td><b>11 words were wrong on both tries.</b> Trying again without learning the words only moves the guesses around. These 20 words need to be learned — the list is at the bottom. <b>FRUGAL</b> was on your last review page too.</td></tr>
+      <tr class="hurt"><td>Synonyms speed</td><td>You finished all 30 in about 6 minutes, many in 2–3 seconds. When you know the word, fast is fine. When you <em>half</em>-know it, those are the questions to spend 20 seconds on.</td></tr>
+      <tr class="fine"><td>Analogies</td><td>Q31–55 went well. The last five are the hardest on the page, and three of them (56, 59, 60) were the same kind of mistake: <b>“full of” versus “lacking”</b>.</td></tr>
+      <tr class="hurt"><td>Reading</td><td>The history passage (Union League, Q6–10) was 1 out of 5. Two word-in-context questions and two EXCEPT questions. Both have a method — see the tips below.</td></tr>
+    </table>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn" onclick="revealAll()">Show every explanation</button>
+    <button class="btn ghost" onclick="resetAll()">Reset · let me try again</button>
+  </div>
+
+  <!-- ==================== SYNONYMS ==================== -->
+  <h2 class="sect">🔤 Synonyms</h2>
+  <p class="sectsub">20 different words missed across two tries · red chip = missed both times</p>
+
+  <div class="rule" style="margin-bottom:14px;">
+    <span class="lbl">Why this section · where it went wrong</span>
+    First try 12/30, second try 17/30. The problem isn’t how you answer — it’s that <b>these words were new to you</b>, and the fast guesses on half-known words cost the rest. So this section does two jobs: it <b>teaches the 20 words</b>, and it shows you the six moves for when you meet a word you don’t know. Try each one; if you honestly don’t know it, use the toolkit moves instead of guessing.
+  </div>
+  <div class="toolkit">
+    <h3>🧰 Synonym toolkit — six moves, in this order</h3>
+    <ol>
+      <li><b>Say your own meaning first.</b> Cover the choices. “Deter = put off.” Then look for that.<span class="ex">If you read the choices first, the traps choose for you.</span></li>
+      <li><b>Put it in a phrase you have heard.</b> “Expedited shipping”, “business acumen”, “the tide recedes”, “ratify a treaty”.<span class="ex">Most hard words live in one or two common phrases. The phrase remembers the meaning for you.</span></li>
+      <li><b>Break it into parts.</b> <i>re-</i> back · <i>de-</i> away/down · <i>ex-</i> out · <i>un-</i> not · <i>pre-</i> before · <i>ten</i> hold · <i>ced</i> go · <i>ped</i> foot.<span class="ex">recede = go back → retreat. deplete = un-fill → exhaust.</span></li>
+      <li><b>Same part of speech.</b> An action word needs an action word; a describing word needs a describing word.<span class="ex">UTILIZE ≠ utilities · FRUGAL ≠ poverty · REPUTABLE ≠ fame. All three are noun traps.</span></li>
+      <li><b>Spot the opposite.</b> The test almost always puts the opposite in the list. If you see it, you know you have the right idea — the answer is its partner.<span class="ex">TENACIOUS: timid ↔ unyielding · PERTINENT: irrelevant ↔ applicable · EXPEDITE: hinder ↔ hasten.</span></li>
+      <li><b>Close is not enough — pick the exact one.</b> When two choices feel right, ask which one matches <em>every</em> part of the meaning.<span class="ex">corroborate = confirm (with proof), not just agree · deplete = use <em>up</em>, not just use.</span></li>
+    </ol>
+  </div>
+  <div id="syn"></div>
+
+  <!-- ==================== ANALOGIES ==================== -->
+  <h2 class="sect">🔗 Analogies</h2>
+  <p class="sectsub">8 to learn from · Q33 was a printing mistake (its choices were copied from Q34) — not your fault</p>
+
+  <div class="rule" style="margin-bottom:14px;">
+    <span class="lbl">Why this section · where it went wrong</span>
+    21/30 — Q31–55 were mostly right. The misses are at the end, where the test is hardest: <b>tricky words + a bridge that wasn’t specific enough</b>. Three of them (Q56, Q59, Q60) are one mistake: the “full of / lacking” direction. Learn that one check and those points come back.
+  </div>
+  <div class="toolkit">
+    <h3>🧰 Analogy toolkit</h3>
+    <ol>
+      <li><b>Build the bridge before you look.</b> Turn the first pair into one sentence: “A <b>lecture</b> is an <b>event</b> held in an <b>auditorium</b>.” Then drop each choice into the same sentence.</li>
+      <li><b>Make the bridge tight.</b> “Related to” and “part of” are too loose — two choices will survive. Add the key word: <i>event</i>, <i>facial expression</i>, <i>bad habit</i>, <i>extreme</i>.</li>
+      <li><b>Check the direction: full of or lacking?</b> Ravenous = <em>full of</em> hunger. Spurious = <em>lacking</em> authenticity. The test puts the reversed pair in the choices on purpose.<span class="ex">This one trick would have saved Q56, Q59 and Q60.</span></li>
+      <li><b>Match the type of word.</b> Event with event (lecture/concert), person with person (liar/toady), feeling with feeling.</li>
+      <li><b>Don't know a word in a choice? Test the others.</b> If four choices fail the bridge, the one with the strange word wins — even if you have never seen it (toady!).</li>
+    </ol>
+  </div>
+  <div id="ana"></div>
+
+  <!-- ==================== READING ==================== -->
+  <h2 class="sect">📖 Reading A</h2>
+  <p class="sectsub">7 missed of 20 · the lines you need are quoted on each card</p>
+
+  <div class="rule" style="margin-bottom:14px;">
+    <span class="lbl">Why this section · where it went wrong</span>
+    13/20. <b>Four of the seven misses were in the history passage (Union League).</b> On two of them you spent a long time and still missed; on the two EXCEPT questions you went too fast and answered from memory. Each card shows the lines from the passage you need. Read the quote, use the method for that question type, then pick.
+  </div>
+  <div class="toolkit">
+    <h3>🧰 Reading toolkit — one method per question type</h3>
+    <ol>
+      <li><b>Word in context (“most nearly means”).</b> Cover the word. Read its sentence plus one before and one after. Put <em>your own</em> word in the gap. Then find the choice that matches yours.<span class="ex">The clue is often a few lines away: “enfranchised” in line 17 explains “franchise” in line 27.</span></li>
+      <li><b>EXCEPT / NOT questions.</b> Turn it into a checklist. For each choice, find the line that proves it and write ✓. The choice you cannot prove is the answer. Never answer an EXCEPT question from memory.</li>
+      <li><b>Watch absolute words.</b> <i>only, always, never, all, none</i> — one counter-example makes the statement false.</li>
+      <li><b>“Probably” / “most likely” questions.</b> Use the passage’s own reasoning on the new case. Don’t bring in an idea the passage never mentioned, even if it sounds scientific.</li>
+      <li><b>Tone of a named part.</b> Read only the lines the question names. A poem can change mood at the end — the tone of the ending is the trap for a question about the beginning.</li>
+    </ol>
+  </div>
+  <div id="read"></div>
+
+  <!-- ==================== WORD LIST ==================== -->
+  <h2 class="sect">📔 The 20 words to own</h2>
+  <p class="sectsub">★ = missed on both tries · learn five a day, say each one in a sentence out loud</p>
+  <div class="card">
+    <table class="words">
+      <tr><th>Word</th><th>Means</th><th>Hook to remember it</th></tr>
+      <tr><td class="w">deter</td><td class="m">hinder, put off</td><td class="h">A barking dog deters burglars.</td></tr>
+      <tr><td class="w">utilize</td><td class="m">make use of</td><td class="h"><i>use</i> is hiding inside it.</td></tr>
+      <tr><td class="w">corroborate</td><td class="m">confirm</td><td class="h">A second witness corroborates the first — adds proof.</td></tr>
+      <tr><td class="w">ratify</td><td class="m">approve</td><td class="h">Countries ratify a treaty = officially say yes.</td></tr>
+      <tr><td class="w">expedite ★</td><td class="m">hasten, speed up</td><td class="h">Expedited shipping = fast shipping.</td></tr>
+      <tr><td class="w">tenacious ★</td><td class="m">unyielding</td><td class="h"><i>ten</i> = hold. A tenacious dog won’t let go of the stick.</td></tr>
+      <tr><td class="w">pertinent ★</td><td class="m">relevant, applicable</td><td class="h">Pertinent ↔ irrelevant. “Stick to the pertinent facts.”</td></tr>
+      <tr><td class="w">dogmatic ★</td><td class="m">opinionated</td><td class="h">From <i>dogma</i> (fixed belief). Nothing to do with dogs!</td></tr>
+      <tr><td class="w">unscrupulous</td><td class="m">unprincipled</td><td class="h">Scruples stop you cheating; un-scrupulous = no scruples.</td></tr>
+      <tr><td class="w">pretext ★</td><td class="m">excuse (a fake reason)</td><td class="h">“He went back on the pretext of getting his coat.”</td></tr>
+      <tr><td class="w">acumen ★</td><td class="m">keenness, sharpness</td><td class="h">Same root as <i>acute</i> (sharp). “Business acumen.”</td></tr>
+      <tr><td class="w">recede ★</td><td class="m">retreat, go back</td><td class="h"><i>re</i> back + <i>cede</i> go. The tide recedes.</td></tr>
+      <tr><td class="w">fastidious</td><td class="m">precise, fussy</td><td class="h">Fussy about every detail. Opposite: unkempt.</td></tr>
+      <tr><td class="w">surly</td><td class="m">rude, grumpy</td><td class="h">A surly waiter grunts at you.</td></tr>
+      <tr><td class="w">frugal</td><td class="m">careful with money</td><td class="h">Second time on a review page! Frugal = thrifty.</td></tr>
+      <tr><td class="w">deplete ★</td><td class="m">exhaust, use up</td><td class="h"><i>de</i> + <i>plete</i> (fill) = un-fill. The drought depleted the lake.</td></tr>
+      <tr><td class="w">force ★</td><td class="m">power</td><td class="h">An easy word — take its most common meaning.</td></tr>
+      <tr><td class="w">thwart ★</td><td class="m">frustrate, block</td><td class="h">The goalkeeper thwarted every shot.</td></tr>
+      <tr><td class="w">stipend ★</td><td class="m">payment</td><td class="h">A regular sum paid to a student or intern.</td></tr>
+      <tr><td class="w">reputable</td><td class="m">honest, trusted</td><td class="h">Has a good <i>reputation</i>.</td></tr>
+    </table>
+    <div class="rule" style="margin-top:14px;">
+      <span class="lbl">Also from Analogies &amp; Reading</span>
+      <b>ravenous</b> extremely hungry · <b>indignation</b> anger at something unfair · <b>bolster</b> make stronger · <b>philanthropic</b> generous to others · <b>benevolence</b> goodwill · <b>spurious</b> fake · <b>toady</b> a crawling flatterer · <b>trivia</b> unimportant details · <b>franchise</b> the right to vote · <b>catechize</b> teach the basics by question and answer
+    </div>
+  </div>
+
+  <!-- ==================== HABITS ==================== -->
+  <h2 class="sect">🎯 Four habits for the next mock</h2>
+  <div class="card">
+    <ol class="tips">
+      <li><b>Your meaning first, then the choices.</b> On every synonym, say a meaning in your head before you read A–E. It takes one second and it switches off most traps.</li>
+      <li><b>Never pick a look-alike.</b> DOGMATIC → canine, PRETEXT → preface, RECEDE → requite, UTILIZE → utilities. If the only reason you like a choice is that it <em>looks</em> like the word, that is the trap.</li>
+      <li><b>Bridge + direction on analogies.</b> Say the bridge sentence out loud, and check “full of” or “lacking” before you pick.</li>
+      <li><b>Prove it with a line.</b> On reading, every answer — especially EXCEPT questions — should have a line number you could point to.</li>
+    </ol>
+  </div>
+
+  <div class="center">
+    <a class="home" href="../homework.html">← 我的作业 My Homework</a>
+  </div>
+  <footer>Answers checked against the answer key for Mock Test 9.25b · Q29 (STIPEND): the printed key says “plant”, which is a misprint — the answer is “payment”.</footer>
+</div>
+
+<script>
+/* ============================================================
+   DATA
+   miss = which try it was missed on: 1, 2, or "both"
+   ans  = correct index
+   ============================================================ */
+
+const SYN = [
+{ n:1, w:"DETER", o:["hinder","halt","steer","sting","turn"], ans:0, miss:2,
+  why:"To <b>deter</b> is to put someone off doing something: <i>a fence deters burglars.</i> It gets in the way — it <b>hinders</b>.",
+  trap:"<b>Halt</b> means stop completely. Deterring doesn’t stop anything for certain; it just makes it less likely. Close, but too strong.",
+  tip:"<b>Check the strength.</b> Many wrong choices are the right idea turned up too high (halt) or too low. Ask: is it <em>this</em> strong?" },
+
+{ n:3, w:"UTILIZE", o:["utilities","sing","undo","make use of","modernize"], ans:3, miss:1,
+  why:"<i>Utilize</i> has <i>use</i> hiding in it: to utilize something is to <b>make use of</b> it.",
+  trap:"<b>Utilities</b> shares the root but it is a <em>noun</em> (water, electricity). UTILIZE is an action.",
+  tip:"<b>Same part of speech.</b> Ask “can I do it?” If the capital word is an action, the answer must be an action too. That removes utilities at once." },
+
+{ n:9, w:"CORROBORATE", o:["understand","disagree","confirm","cooperate","agree"], ans:2, miss:1,
+  why:"To <b>corroborate</b> a story is to back it up with more evidence — to <b>confirm</b> it. <i>The video corroborated what the witness said.</i>",
+  trap:"<b>Agree</b> is close, but you can agree without adding any proof. <b>Cooperate</b> is a look-alike (co- … -ate).",
+  tip:"<b>Two choices close? Pick the exact one.</b> Corroborate always involves <em>proof</em>. Confirm has proof in it; agree doesn’t." },
+
+{ n:10, w:"RATIFY", o:["assess","approve","delete","consider","examine"], ans:1, miss:1,
+  why:"When a country <b>ratifies</b> a treaty, it officially <b>approves</b> it.",
+  trap:"<b>Assess, consider, examine</b> are three ways of <em>looking at</em> something before deciding. Three choices that mean the same thing can’t all be right — so none of them is.",
+  tip:"<b>Group the choices.</b> When three choices are basically the same meaning, cross them all out. The answer is the one that stands alone." },
+
+{ n:11, w:"EXPEDITE", o:["hasten","hinder","block","harm","send"], ans:0, miss:"both",
+  why:"To <b>expedite</b> is to speed up — <b>hasten</b>. <i>ex-</i> (out) + <i>ped</i> (foot): the feet are free, so you go faster. An <i>expedition</i> is a journey.",
+  trap:"<b>Send</b> comes from “expedited shipping” — but that phrase means <em>fast</em> shipping. <b>Hinder</b> and <b>block</b> are opposites.",
+  tip:"<b>Use the phrase, but read it carefully.</b> In “expedited shipping”, the word you already know is <i>shipping</i>. The new word must be the other part: fast." },
+
+{ n:13, w:"TENACIOUS", o:["divisive","timid","stranded","thin","unyielding"], ans:4, miss:"both",
+  why:"<b>Tenacious</b> means holding on and never giving up — <b>unyielding</b>. <i>ten</i> = hold (tenant, retain).",
+  trap:"<b>Timid</b> is the opposite. <b>Thin</b> is a sound-alike (t…n…).",
+  tip:"<b>Spot the opposite.</b> If you know timid is the opposite of brave-and-stubborn, you know the answer is on the other side: unyielding." },
+
+{ n:14, w:"PERTINENT", o:["truthful","irreverent","prudent","irrelevant","applicable"], ans:4, miss:"both",
+  why:"<b>Pertinent</b> means connected to the subject — relevant, <b>applicable</b>. <i>Please keep your questions pertinent.</i>",
+  trap:"<b>Irrelevant</b> is the exact opposite, and it is there to catch you. <b>Truthful</b>: a fact can be true but still off the point.",
+  tip:"<b>Opposite spotted = answer nearby.</b> pertinent ↔ irrelevant. The choice that means “relevant” is the one: applicable." },
+
+{ n:15, w:"DOGMATIC", o:["opinionated","bovine","traditional","canine","individualistic"], ans:0, miss:"both",
+  why:"A <b>dogmatic</b> person insists they are right and won’t listen — <b>opinionated</b>. From <i>dogma</i>, a fixed belief.",
+  trap:"<b>Canine</b> (dog-like) and <b>bovine</b> (cow-like) are pure look-alike traps. The test is betting you’ll see “dog”.",
+  tip:"<b>Never pick a look-alike.</b> If a choice only attracts you because it looks or sounds like part of the word, cross it out. The SSAT does this every test." },
+
+{ n:16, w:"UNSCRUPULOUS", o:["unresolved","filthy","honest","austere","unprincipled"], ans:4, miss:1,
+  why:"<i>Scruples</i> are the feelings that stop you doing wrong. <b>Un-scrupulous</b> = without them = <b>unprincipled</b>, willing to cheat.",
+  trap:"<b>Honest</b> is the opposite. <b>Unresolved</b> has <i>un-</i> too, but that’s all it shares.",
+  tip:"<b>Positive or negative?</b> Unscrupulous feels negative. Cross out every positive choice (honest), then match meaning, not just the prefix." },
+
+{ n:19, w:"PRETEXT", o:["fit","excuse","reason","doubt","preface"], ans:1, miss:"both",
+  why:"A <b>pretext</b> is a <em>fake</em> reason that hides the real one: <i>he went back on the pretext of getting his coat.</i> That is an <b>excuse</b>.",
+  trap:"<b>Preface</b>: pre- + text looks like “text before”, but that’s not what it means. <b>Reason</b> is close but misses the pretending.",
+  tip:"<b>Word parts are a clue, not a proof.</b> If your word-parts answer is a word you’ve never heard used that way, check the others first." },
+
+{ n:20, w:"ACUMEN", o:["keenness","beauty","courtesy","poise","illness"], ans:0, miss:"both",
+  why:"<b>Acumen</b> is sharpness of mind: <i>business acumen</i>. The closest is <b>keenness</b> (a keen mind is a sharp one).",
+  trap:"The other four are just random nouns. If you didn’t know the word, this was a guess.",
+  tip:"<b>Find a word cousin.</b> acumen ↔ <i>acute</i> (sharp) ↔ <i>acupuncture</i> (needles). Sharp → keen." },
+
+{ n:21, w:"RECEDE", o:["requite","surrender","retreat","decline","lose"], ans:2, miss:"both",
+  why:"<i>re-</i> (back) + <i>cede</i> (go) = go back — <b>retreat</b>. <i>The flood waters receded. His hairline is receding.</i>",
+  trap:"<b>Decline</b> means go down, not go back. <b>Surrender</b> is a different <i>cede</i> word (concede). <b>Requite</b> is a look-alike.",
+  tip:"<b>Break it into parts.</b> re + cede = back + go. Four more <i>cede</i> words: proceed (go forward), exceed (go beyond), precede (go before), recede (go back)." },
+
+{ n:22, w:"FASTIDIOUS", o:["classify","precise","unkempt","sanitary","chaos"], ans:1, miss:2,
+  why:"A <b>fastidious</b> person is very careful about every detail — <b>precise</b>, fussy.",
+  trap:"<b>Sanitary</b> is tempting because fastidious people are often very clean — but the word is about fussiness. <b>Unkempt</b> (messy) is the opposite.",
+  tip:"<b>Part of speech kills two for free.</b> Classify is an action and chaos is a thing; fastidious describes a person. Down to three before you even think." },
+
+{ n:23, w:"SURLY", o:["wily","anticipate","rude","strong","prodigal"], ans:2, miss:1,
+  why:"<b>Surly</b> means bad-tempered and unfriendly — <b>rude</b>. <i>A surly waiter grunts at you.</i>",
+  trap:"<b>Wily</b> was the capital word in Q17 — a word you just saw pulls at you. <b>Anticipate</b> is an action, so it’s out anyway.",
+  tip:"<b>Positive or negative?</b> “Surly” sounds grumpy. Only one choice is a negative way to behave: rude." },
+
+{ n:24, w:"FRUGAL", o:["poverty","facility","increase","careful","wealth"], ans:3, miss:1,
+  why:"<b>Frugal</b> means <b>careful</b> with money, never wasting it.",
+  trap:"<b>Poverty</b>: a frugal person may or may not be poor — frugal is about habits. And poverty is a noun.",
+  tip:"<b>This word was on your last review page too.</b> A word you’ve been taught once and missed again needs to go on a flashcard you see every day this week." },
+
+{ n:25, w:"DEPLETE", o:["proceed","continue","guide","exhaust","utilize"], ans:3, miss:"both",
+  why:"To <b>deplete</b> is to use up almost all of something — <b>exhaust</b> it. <i>The drought depleted the reservoir.</i>",
+  trap:"<b>Utilize</b>: using something is not using it <em>up</em>.",
+  tip:"<b>Word parts:</b> <i>de-</i> (away) + <i>plete</i> (fill, as in com<i>plete</i>, re<i>plete</i>) = un-fill. Things that get depleted: batteries, savings, energy." },
+
+{ n:26, w:"FORCE", o:["might","soldier","military","power","requirement"], ans:3, miss:"both",
+  why:"Force here means strength — <b>power</b>.",
+  trap:"<b>Soldier</b> and <b>military</b> come from “armed forces”, the less common meaning. (<b>Might</b> is honestly close too — this one is a judgement call; the key says power.)",
+  tip:"<b>Easy word, hard question?</b> When the capital word is simple, the test is checking whether you use its <em>most common</em> meaning. Go with that first." },
+
+{ n:28, w:"THWART", o:["grow","love","advanced","frustrate","defend"], ans:3, miss:"both",
+  why:"To <b>thwart</b> a plan is to block it — to <b>frustrate</b> it. <i>The goalkeeper thwarted every shot.</i>",
+  trap:"<b>Defend</b>: you might thwart an attack while defending, but thwart means stopping <em>someone else’s</em> plan.",
+  tip:"<b>Frustrate has an older meaning:</b> to block. On the SSAT, a familiar word in an unusual sense is often the answer." },
+
+{ n:29, w:"STIPEND", o:["payment","fluid","financier","plant","bank"], ans:0, miss:"both",
+  why:"A <b>stipend</b> is a fixed regular sum of money — a student’s or intern’s stipend. It’s a <b>payment</b>.",
+  trap:"<b>Financier</b> (a person) and <b>bank</b> (a place) are money words too — but stipend is an <em>amount</em> of money.",
+  tip:"<b>Know it’s about money? Ask what kind of thing.</b> Person, place or amount? Only one choice is an amount." },
+
+{ n:30, w:"REPUTABLE", o:["honest","star","significant","capable","fame"], ans:0, miss:1,
+  why:"<b>Reputable</b> comes from <i>reputation</i>: a reputable shop has a good name because it deals fairly — <b>honest</b>.",
+  trap:"<b>Fame</b>: a good reputation is not the same as being famous, and fame is a noun. <b>Capable</b> is about skill, not trust.",
+  tip:"<b>Same part of speech again.</b> Reputable describes; fame and star are nouns. Gone." }
+];
+
+const ANA = [
+{ n:39, q:"Grin is to delight as", o:["laugh is to happiness","resignation is to confusion","anxiety is to confusion","frown is to dismay","perspiration is to exhaustion"], ans:3,
+  bridge:"A <b>grin</b> is the <b>look on your face</b> that shows <b>delight</b>.",
+  why:"A <b>frown</b> is the look on your face that shows <b>dismay</b>. Both first words are facial expressions; both second words are feelings.",
+  trap:"<b>Laugh / happiness</b> is honestly close — but a laugh is a sound, not a face. (E) sweat isn’t a feeling on your face. (B) and (C) are two feelings with no expression.",
+  tip:"<b>Tighten the bridge until only one survives.</b> “Shows a feeling” lets two through. “The <em>facial</em> expression of a feeling” leaves one." },
+
+{ n:48, q:"Kernel is to central as trivia is to", o:["productive","controversial","unimportant","unleavened","harvested"], ans:2,
+  bridge:"A <b>kernel</b> (the core of an idea) is, by definition, <b>central</b>.",
+  why:"<b>Trivia</b> is, by definition, <b>unimportant</b>. Kernel = the most important part; trivia = the least.",
+  trap:"<b>Unleavened</b> and <b>harvested</b> come from the other meaning of kernel — a grain of corn. The test is hoping you’ll think about farming.",
+  tip:"<b>When a word has two meanings, look at the other pair.</b> “Trivia” has nothing to do with farming, so the farming meaning of kernel can’t be the one." },
+
+{ n:49, q:"Fib is to liar as", o:["campaign is to politician","perform is to crew","tally is to banker","convict is to attorney","flatter is to toady"], ans:4,
+  bridge:"A <b>liar</b> is a person named after a <b>bad habit</b>: he tells fibs.",
+  why:"A <b>toady</b> is a person named after a bad habit: he <b>flatters</b> people to get favours.",
+  trap:"<b>Campaign / politician</b>: politicians do campaign, but that’s their job, not a bad habit that gives them their name.",
+  tip:"<b>Don’t know a word? Test the others.</b> If A–D all fail “named after a bad habit”, E wins even if you’ve never met the word <i>toady</i>." },
+
+{ n:56, q:"Ravenous is to hunger as", o:["agitated is to placidity","concerned is to apathy","smart is to tenacity","furious is to indignation","pliable is to obstinacy"], ans:3,
+  bridge:"<b>Ravenous</b> means <b>full of</b> extreme <b>hunger</b>.",
+  why:"<b>Furious</b> means full of extreme <b>indignation</b> (anger at something unfair). Same direction, same strength.",
+  trap:"(A), (B) and (E) are all reversed: an agitated person <em>lacks</em> placidity (calm); a concerned person <em>lacks</em> apathy; a pliable person <em>lacks</em> obstinacy.",
+  tip:"<b>Full of or lacking?</b> Decide the direction before you look. Here, three of the five choices were the reversed direction — once you see that, only D is left." },
+
+{ n:57, q:"Amplify is to sound as bolster is to", o:["courage","silence","smell","insomnia","light"], ans:0,
+  bridge:"To <b>amplify</b> is to <b>make</b> a <b>sound stronger</b>.",
+  why:"To <b>bolster</b> is to make something stronger — you bolster <b>courage</b>. <i>The cheering bolstered her courage.</i>",
+  trap:"<b>Light</b> and <b>smell</b> are sense-words like “sound”, so they look like a match. But you don’t bolster light.",
+  tip:"<b>Match the relationship, not the topic.</b> The right answer doesn’t have to be about the senses. It has to fit “make ___ stronger”." },
+
+{ n:58, q:"Auditorium is to lecture as", o:["attic is to large","temple is to religion","target is to arrow","theater is to concert","cafeteria is to food"], ans:3,
+  bridge:"A <b>lecture</b> is an <b>event held in</b> an <b>auditorium</b>.",
+  why:"A <b>concert</b> is an event held in a <b>theater</b>.",
+  trap:"<b>Temple / religion</b>: religion isn’t an event. <b>Cafeteria / food</b>: food is a thing, not an event.",
+  tip:"<b>Match the type of word.</b> Event goes with event. Ask “is the second word the same kind of thing?”" },
+
+{ n:59, q:"Philanthropic is to benevolence as", o:["devout is to malice","realistic is to plan","smooth is to surface","ostentatious is to reserve","miserly is to stinginess"], ans:4,
+  bridge:"Someone <b>philanthropic</b> is <b>full of benevolence</b> (goodwill, giving).",
+  why:"Someone <b>miserly</b> is full of <b>stinginess</b>. Same direction: the person is full of that quality.",
+  trap:"<b>Ostentatious / reserve</b> is reversed: showy people <em>lack</em> reserve. <b>Devout / malice</b> doesn’t fit either way.",
+  tip:"<b>Full of or lacking? — again.</b> Also: <i>phil-</i> = love (philosophy, Philadelphia) + <i>anthrop</i> = people → loves people." },
+
+{ n:60, q:"Spurious is to authenticity as", o:["abject is to subjectivity","affluent is to character","laughable is to seriousness","totalitarian is to completeness","lavish is to expense"], ans:2,
+  bridge:"Something <b>spurious</b> (fake) <b>lacks authenticity</b>.",
+  why:"Something <b>laughable</b> lacks <b>seriousness</b>.",
+  trap:"<b>Lavish / expense</b> is reversed — lavish things are <em>full</em> of expense. <b>Totalitarian</b> sounds like “total”, but it’s about a government with total control.",
+  tip:"<b>Full of or lacking — three times in five questions.</b> Q56, Q59 and Q60 were all this. Make it the second thing you ask on every hard analogy." }
+];
+
+const READ = [
+{ n:2, psg:"Passage 1 · Ice Age Europe", q:"From the context of the passage, “aurochs” most likely refers to", o:["an animal that became extinct","an animal that left Europe","a type of bird","an animal that survived in Europe","the name of one of the hunting societies"], ans:3,
+  quote:"“The mammoth, rhinoceros, and reindeer disappeared from western Europe … great forests spread, stocked with the appropriate forest animals — <b>red deer, aurochs, and wild pigs</b>.”",
+  why:"The aurochs is in a list with red deer and wild pigs — the forest animals that <b>arrived and lived</b> in the new Europe.",
+  trap:"(A) and (B) describe the mammoth and reindeer in the <em>sentence before</em>. Same paragraph, wrong list.",
+  tip:"<b>An unknown word in a list is the same kind of thing as the words around it.</b> Deer, ___, pigs → an animal living in the forest." },
+
+{ n:6, psg:"Passage 2 · The Union League", q:"In line 13, “catechized them” most nearly means", o:["advised","pledged to secrecy","administered an oath of loyalty","warned","instructed in important basic principles"], ans:4,
+  quote:"“As a protective and benevolent society, it welcomed black members and <b>catechized them on political activity</b>.”",
+  why:"To catechize is to teach the basics by question and answer. The League <b>taught</b> its new members the basics of politics.",
+  trap:"(B) and (C) come from later in the passage (“ritual, secrecy”). True things in the passage, wrong place. (A) advised is too light — this is teaching.",
+  tip:"<b>Cover the word and fill the gap yourself.</b> “Welcomed members and ___ them on political activity” → <i>taught</i>. Now look — only E means taught. You spent four minutes here; this method takes thirty seconds." },
+
+{ n:7, psg:"Passage 2 · The Union League", q:"In line 27, “exercise the franchise” most nearly means", o:["run for government office","be members of the Republican party","vote to elect government officials","participate in political activities","take an oath to become full-fledged American citizens"], ans:2,
+  quote:"Line 17: “black males were the most numerous <b>enfranchised</b> group.” … Line 27: “The fact that only men could <b>exercise the franchise</b> did not at all mean that women were not involved.”",
+  why:"The <b>franchise</b> is the right to vote. Exercising it means <b>voting</b>.",
+  trap:"(D) is the trap: the sentence says women <em>were involved</em> even though they couldn’t exercise the franchise — so the franchise must be something narrower than being involved.",
+  tip:"<b>The clue is often a few lines away.</b> Look for the same word in another form (enfranchised). Also use the sentence’s logic: “couldn’t do X, but were still involved” means X ≠ involved." },
+
+{ n:9, psg:"Passage 2 · The Union League", q:"All of the following wanted to build up the Republican party in the South EXCEPT", o:["missionary groups and teachers from the North","many officials of the Freedman’s Bureau","the Union League of America","many Union troops in the South","many Federal officials in the South"], ans:3,
+  quote:"“With Union troops in the South and an increasing number of federal officials, most of whom were loyal Republicans, <b>the latter</b> sought to build a strong Southern wing of their party.”",
+  why:"Officials ✓ · Freedmen’s Bureau ✓ · missionaries and teachers ✓ · Union League ✓. The troops are only <em>mentioned</em>; the passage never says what they wanted.",
+  trap:"“<b>The latter</b>” means the <em>last</em> one named — the officials, not the troops.",
+  tip:"<b>EXCEPT = checklist.</b> Find a line for each choice and write ✓. The one with no line is the answer. Also learn: <i>the former</i> = the first one, <i>the latter</i> = the last one." },
+
+{ n:10, psg:"Passage 2 · The Union League", q:"All of the following are true about the Union League of America EXCEPT", o:["it did not exist before the war","it was organized in the North","it worked to increase support for the war","it attracted many blacks as members","it was the only organizing black support for the Republican party during Reconstruction"], ans:4,
+  quote:"“During most of Reconstruction, the Union League <b>and such smaller organizations as the Lincoln Brotherhood and the Red Strings</b> delivered the black vote to the Republican party …”",
+  why:"The last sentence names two other groups doing the same work. So the League was <em>not</em> the only one — (E) is false.",
+  trap:"The other four are all true, which is exactly why they feel safe to skip past. You answered this in 12 seconds.",
+  tip:"<b>Absolute words are red flags.</b> <i>only, always, never, all, none</i>. When a choice has one, look for a single counter-example — here, “and such smaller organizations”." },
+
+{ n:12, psg:"Passage 3 · Cicadas", q:"Magicicada tredecim probably has a 13-year life cycle rather than a 17-year one because", o:["it is a less advanced species than Magicada septendecim","two species of cicada having the same life cycle would create unnecessary competition for both species, so one evolved a different long prime number life cycle","its parasite is still extant, so it cannot evolve a life cycle lasting so long","its parasite became extinct so it had no need to evolve a life cycle lasting longer prime number of years","it has a parasite with a 16-year life cycle, which means that it will meet its parasite only once every 208 years"], ans:3,
+  quote:"“The parasite probably kept extending its life cycle until it hit the 16-year hurdle. Then it failed to coincide for 272 years, by which time … it <b>[was driven] to extinction</b>. The result is a cicada with a 17-year life cycle, which it <b>no longer needs</b> because its parasite no longer exists.”",
+  why:"Use the passage’s own story on the 13-year cicada: its parasite died out earlier, so there was no push to go past 13.",
+  trap:"(B) sounds scientific, but the passage never mentions competition between cicadas. A smart-sounding idea from outside the passage is still wrong.",
+  tip:"<b>“Probably” questions: reuse the passage’s reasoning.</b> Ask “what would the author say?” — not “what might be true in real life?”" },
+
+{ n:16, psg:"Passage 4 · “One Perfect Rose”", q:"What is the tone of the first two stanzas?", o:["Ironic","Angry","Irritated","Serious","Sarcastic"], ans:3,
+  quote:"“All tenderly his messenger he chose; / Deep-hearted, pure, with scented dew still wet — / One perfect rose.”",
+  why:"The first two stanzas are sincere and romantic: <i>tenderly, deep-hearted, pure</i>. Nothing is being mocked yet — <b>serious</b>.",
+  trap:"<b>Ironic</b> and <b>sarcastic</b> describe the <em>last</em> stanza (“One perfect limousine, do you suppose?”). The joke at the end colours the whole poem if you let it.",
+  tip:"<b>Read only the part the question names.</b> Circle the line numbers, then pick three words from those lines and ask what mood they share." }
+];
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const L = ["A","B","C","D","E"];
+const FLAT = SYN.concat(ANA).concat(READ);
+const KIND = FLAT.map(function(x){ return SYN.indexOf(x) >= 0 ? "syn" : ANA.indexOf(x) >= 0 ? "ana" : "read"; });
+
+function missChip(item) {
+  if (item.miss === "both") return '<span class="chip twice">missed both tries</span>';
+  if (item.miss === 1) return '<span class="chip miss">missed on try 1</span>';
+  if (item.miss === 2) return '<span class="chip miss">missed on try 2</span>';
+  return '<span class="chip miss">missed today</span>';
+}
+
+function card(item, idx) {
+  const kind = KIND[idx], id = "q" + idx;
+  const chipKind = kind === "syn" ? "Synonym" : kind === "ana" ? "Analogy" : item.psg;
+  let html = '<div class="card q" id="c' + id + '">';
+  html += '<div class="qhead"><span class="qnum">Q' + item.n + '</span>';
+  html += '<span class="chip kind">' + chipKind + '</span>' + missChip(item) + '</div>';
+  html += kind === "syn"
+    ? '<div class="qtext qword">' + item.w + ':</div>'
+    : '<div class="qtext">' + item.q + '</div>';
+  if (item.quote) html += '<div class="quote">' + item.quote + '</div>';
+  item.o.forEach(function(t, i) {
+    html += '<button class="opt" data-i="' + i + '" onclick="pick(' + idx + ',' + i + ')">(' + L[i] + ') ' + t + '</button>';
+  });
+  html += '<div class="reveal" id="r' + id + '">';
+  if (item.bridge) html += '<div class="rule"><span class="lbl">The bridge</span>' + item.bridge + '</div>';
+  html += '<div class="why"><span class="lbl">Why (' + L[item.ans] + ') is right</span>' + item.why + '</div>';
+  html += '<div class="trap"><span class="lbl">The trap</span>' + item.trap + '</div>';
+  html += '<div class="tip"><span class="lbl">💡 Tip for next time</span>' + item.tip + '</div>';
+  html += '</div></div>';
+  return html;
+}
+
+function render() {
+  const out = { syn: "", ana: "", read: "" };
+  FLAT.forEach(function(item, idx) { out[KIND[idx]] += card(item, idx); });
+  document.getElementById("syn").innerHTML = out.syn;
+  document.getElementById("ana").innerHTML = out.ana;
+  document.getElementById("read").innerHTML = out.read;
+}
+
+function pick(idx, i) { open(idx, i); }
+
+function open(idx, chosen) {
+  const item = FLAT[idx], id = "q" + idx;
+  const c = document.getElementById("c" + id);
+  c.querySelectorAll(".opt").forEach(function(b) {
+    const i = parseInt(b.dataset.i, 10);
+    b.disabled = true;
+    if (i === item.ans) {
+      b.classList.add("correct");
+      b.innerHTML += '<span class="mark">correct answer</span>';
+    } else if (chosen !== null && i === chosen) {
+      b.classList.add("wrong");
+      b.innerHTML += '<span class="mark">you picked this now</span>';
+    }
+  });
+  if (chosen === item.ans) c.classList.add("done");
+  document.getElementById("r" + id).classList.add("show");
+}
+
+function revealAll() {
+  FLAT.forEach(function(item, idx) {
+    if (!document.getElementById("rq" + idx).classList.contains("show")) open(idx, null);
+  });
+  window.scrollTo({ top: document.getElementById("syn").offsetTop - 20, behavior: "smooth" });
+}
+
+function resetAll() {
+  render();
+  window.scrollTo({ top: document.getElementById("syn").offsetTop - 20, behavior: "smooth" });
+}
+
+render();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
