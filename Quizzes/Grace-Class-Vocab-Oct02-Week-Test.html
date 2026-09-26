@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Vocab (Oct 2) · Week test</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #f0f2fb 55%, #e3e6f6 100%);
+    min-height: 100vh; color: #1f2233; padding: 22px 14px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  button { font-family: inherit; }
+
+  header { background: #3d4a9c; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f3f4ff; box-shadow: 0 8px 0 #28316e; margin-bottom: 14px; position: relative; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+  .sound { position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.35);
+    color: #fff; border-radius: 99px; padding: 5px 11px; font-size: 18px; cursor: pointer; }
+  .sound:hover { background: rgba(255,255,255,.3); }
+
+  .nav { position: sticky; top: 0; z-index: 30; background: rgba(255,253,247,.95); backdrop-filter: blur(4px); border-radius: 12px; padding: 8px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(40,49,110,.12); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav a { text-decoration: none; font-size: 13.5px; font-weight: bold; color: #28316e; background: #e3e6f6; border-radius: 99px; padding: 6px 13px; }
+  .nav a:hover { background: #cfd4f0; }
+
+  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 6px 0 #d5d9ef; margin-bottom: 16px; position: relative; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16px; line-height: 1.55; }
+  .intro p + p { margin-top: 10px; }
+  h2.sect { font-size: 20px; color: #28316e; margin: 30px 0 12px; text-align: center; scroll-margin-top: 70px; }
+  h2.sect span { background: #e3e6f6; border-radius: 99px; padding: 5px 16px; display: inline-block; }
+  h3.day { font-size: 16px; color: #5d6384; margin: 18px 0 8px; }
+  .note { text-align: center; font-size: 14.5px; color: #5d6384; margin-bottom: 12px; line-height: 1.5; }
+
+  .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .badge { background: #f3f4fa; border: 3px dashed #c8cde6; border-radius: 14px; padding: 8px 14px; text-align: center;
+    font-size: 13px; font-weight: bold; color: #5d6384; min-width: 92px; transition: .25s; }
+  .badge .bi { display: block; font-size: 24px; filter: grayscale(1); opacity: .45; }
+  .badge.on { background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; transform: scale(1.04); }
+  .badge.on .bi { filter: none; opacity: 1; }
+
+  /* ---------- flip cards ---------- */
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .fc { border: 3px solid #cfd4f0; border-radius: 16px; background: #fdfdff; min-height: 230px; cursor: pointer;
+    transition: transform .16s ease-in, border-color .2s; position: relative; }
+  .fc.turn { transform: scaleX(0.02); }
+  .fc.seen { border-color: #8f9ad8; }
+  .fc .face { padding: 16px; }
+  .fc .back { display: none; }
+  .fc.flipped .front { display: none; }
+  .fc.flipped .back { display: block; }
+  .fc .front { text-align: center; padding-top: 22px; }
+  .fc .em { font-size: 44px; line-height: 1; }
+  .fc .word { font-size: 30px; font-weight: bold; color: #28316e; margin: 10px 0 4px; }
+  .fc .pos { display: inline-block; background: #3d4a9c; color: #fff; font-size: 12px; font-weight: bold; border-radius: 99px; padding: 2px 10px; }
+  .fc .sayit { font-size: 15px; color: #5d6384; margin-top: 10px; }
+  .fc .sayit b { color: #c9761d; letter-spacing: .5px; }
+  .fc .hint { font-size: 12.5px; color: #9aa0bd; margin-top: 12px; }
+  .fc .bw { font-size: 21px; font-weight: bold; color: #28316e; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .fc .row { font-size: 15px; line-height: 1.5; margin-top: 8px; color: #3a3f5c; }
+  .fc .row .lbl { display: block; font-size: 11.5px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; color: #8a8fa8; margin-bottom: 1px; }
+  .fc .row.teach { background: #eef0fb; border-left: 5px solid #3d4a9c; border-radius: 8px; padding: 7px 10px; font-weight: bold; color: #28316e; }
+  .fc .row.trick { background: #fff8ec; border-left: 5px solid #e8c489; border-radius: 8px; padding: 7px 10px; }
+  .fc .row.ex em { color: #28316e; }
+  .say { background: #eef0fb; border: 2px solid #b9c0e8; color: #28316e; border-radius: 99px; padding: 5px 12px; font-size: 14.5px; font-weight: bold; cursor: pointer; }
+  .say:hover { background: #dde1f6; }
+  .say.sm { padding: 4px 9px; font-size: 13px; }
+  .say.big { font-size: 19px; padding: 10px 20px; }
+  .btnrow { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .peekw { display: inline-block; margin-top: 8px; background: none; border: none; color: #8a8fa8; font-size: 12.5px; text-decoration: underline; cursor: pointer; }
+  span.peekw { text-decoration: none; font-weight: bold; color: #c9761d; font-size: 15px; }
+
+  /* ---------- games ---------- */
+  .game { border: 4px solid #a9b2ee; }
+  .gbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .gbar .how { font-size: 15px; color: #454b6e; line-height: 1.45; flex: 1; min-width: 200px; }
+  .gbar .stars { font-size: 19px; letter-spacing: 2px; white-space: nowrap; }
+  .tiles { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; }
+  .tile { background: #fafbfe; border: 3px solid #cfd4f0; border-radius: 12px; padding: 10px 14px; font-size: 16.5px; font-weight: bold;
+    color: #28316e; cursor: pointer; transition: .12s; user-select: none; -webkit-user-select: none; }
+  .tile:hover { border-color: #6b77c7; }
+  .tile.sel { border-color: #3d4a9c; background: #e3e6f6; transform: translateY(-2px); }
+  .tile.ok { border-color: #3a7d44; background: #e8f5e6; color: #23572c; cursor: default; }
+  .tile.used { visibility: hidden; }
+  .tile.hintme { border-color: #c9761d; background: #fff1dc; animation: glow 1s ease-in-out infinite; }
+  @keyframes glow { 50% { box-shadow: 0 0 0 5px rgba(201,118,29,.25); } }
+  .shake { animation: shake .4s; }
+  @keyframes shake { 20%, 60% { transform: translateX(-7px) } 40%, 80% { transform: translateX(7px) } }
+  .fb { text-align: center; font-size: 16px; font-weight: bold; min-height: 26px; margin-top: 12px; line-height: 1.55; color: #5d6384; }
+  .fb.ok { color: #3a7d44; }
+  .fb.no { color: #c0392b; }
+  .won { display: none; background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; border-radius: 12px; padding: 13px 15px; margin-top: 12px; font-size: 16px; line-height: 1.6; }
+  .won.show { display: block; }
+  .won .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; color: #3a7d44; margin-bottom: 5px; }
+  .gbtn { background: #3d4a9c; color: #fff; border: none; border-radius: 12px; padding: 10px 20px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #28316e; }
+  .gbtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #28316e; }
+  .gbtn.ghost { background: #fff; color: #5d6384; box-shadow: 0 3px 0 #e1e4f3; border: 2px solid #e1e4f3; }
+
+  .matchgrid { display: grid; grid-template-columns: 2fr 3fr; gap: 10px; }
+  .matchgrid .col { display: flex; flex-direction: column; gap: 9px; }
+  .matchgrid .tile { text-align: center; }
+  .matchgrid .col.defs .tile { font-size: 14.5px; font-weight: normal; text-align: left; line-height: 1.4; }
+
+  .memgrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; }
+  .mem { min-width: 0; overflow-wrap: anywhere; }
+  .mem { aspect-ratio: 1 / 1.05; border-radius: 12px; border: 3px solid #3d4a9c; background: repeating-linear-gradient(45deg, #5a67bd, #5a67bd 8px, #4f5cb3 8px, #4f5cb3 16px);
+    display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer; font-size: 13.5px; font-weight: bold; color: #28316e;
+    padding: 5px; line-height: 1.25; transition: transform .15s; user-select: none; -webkit-user-select: none; }
+  .mem .q { font-size: 26px; color: #dfe3ff; }
+  .mem.open { background: #fff; }
+  .mem.open.word { background: #eef0fb; font-size: 15px; }
+  .mem.ok { background: #e8f5e6; border-color: #3a7d44; color: #23572c; cursor: default; }
+  .mem .me { display: block; font-size: 22px; margin-bottom: 3px; }
+
+  .sentence { font-size: 19px; line-height: 1.55; text-align: center; background: #f6f7fd; border-radius: 12px; padding: 16px; color: #1f2233; }
+  .sentence b { color: #3d4a9c; }
+  .count { text-align: center; font-size: 13px; color: #8a8fa8; margin-bottom: 8px; }
+  .clue { display: flex; gap: 14px; align-items: center; background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 13px 15px; margin-bottom: 12px; }
+  .clue .ce { font-size: 38px; line-height: 1; }
+  .clue .ct { font-size: 17px; line-height: 1.5; }
+  .defbox { font-size: 18px; line-height: 1.5; text-align: center; background: #eef0fb; border-left: 6px solid #3d4a9c; border-radius: 10px; padding: 14px; margin-bottom: 12px; font-weight: bold; color: #28316e; }
+
+  .slots { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 12px 0 14px; align-items: center; }
+  .slot { width: 34px; height: 42px; border-bottom: 4px solid #6b77c7; font-size: 26px; font-weight: bold; color: #28316e; text-align: center; line-height: 40px; font-family: 'Courier New', monospace; }
+  .slot.fixed { border-bottom-color: transparent; color: #8a8fa8; }
+  .slot.gap { width: 16px; border-bottom-color: transparent; }
+  .slot.pre { width: auto; border-bottom-color: transparent; font-size: 20px; color: #8a8fa8; padding-right: 8px; font-family: inherit; }
+  .spelltiles .tile { min-width: 46px; text-align: center; font-size: 22px; font-family: 'Courier New', monospace; }
+  .spellhead { text-align: center; }
+  .spellhead .se { font-size: 38px; }
+  .spellhead .sm { font-size: 15.5px; color: #454b6e; margin: 4px 0 10px; }
+
+  .story { font-size: 17.5px; line-height: 2.1; background: #fdfcf7; border: 2px solid #efe6cf; border-radius: 12px; padding: 14px 16px; }
+  .story .bl { display: inline-block; min-width: 120px; border: 2px dashed #9aa3dc; border-radius: 9px; padding: 0 10px; line-height: 1.6; text-align: center;
+    color: #28316e; font-weight: bold; cursor: pointer; background: #f3f4fc; vertical-align: middle; }
+  .story .bl.act { border-color: #c9761d; border-style: solid; background: #fff1dc; }
+  .story .bl.full { border-style: solid; }
+  .story .bl.ok { border-color: #3a7d44; background: #e8f5e6; color: #23572c; cursor: default; }
+  .story .bl.no { border-color: #c0392b; background: #fbeaea; }
+  .story .bl i { font-style: normal; font-size: 12px; color: #8a8fa8; }
+
+  /* confetti */
+  .confetti { position: absolute; inset: 0; pointer-events: none; z-index: 6; overflow: hidden; border-radius: inherit; }
+  .confetti i { position: absolute; top: -14px; width: 9px; height: 15px; border-radius: 2px; animation: fall 1.5s linear forwards; }
+  @keyframes fall { to { transform: translateY(460px) rotate(560deg); opacity: 0 } }
+
+  /* ---------- the test ---------- */
+  .btn { background: #3d4a9c; color: #fff; border: none; border-radius: 12px; padding: 11px 20px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #28316e; transition: transform .1s; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #28316e; }
+  .btn.amber { background: #c9761d; box-shadow: 0 5px 0 #8f5211; }
+  .btn.ghost { background: #fff; color: #5d6384; box-shadow: 0 4px 0 #e1e4f3; border: 2px solid #e1e4f3; }
+  .btn.sm { padding: 8px 14px; font-size: 14px; }
+  .center { text-align: center; }
+  .blank { display: inline-block; min-width: 70px; border-bottom: 2px solid currentColor; }
+  .qcard { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 5px 0 #d5d9ef; margin-bottom: 14px; }
+  .qcard .n { display: inline-block; background: #3d4a9c; color: #fff; font-size: 13px; font-weight: bold; border-radius: 99px; padding: 3px 12px; margin-bottom: 8px; }
+  .opts { display: grid; grid-template-columns: repeat(2,1fr); gap: 9px; margin-top: 10px; }
+  .opt { background: #fafbfe; border: 3px solid #e1e4f3; border-radius: 11px; padding: 11px 13px; font-size: 16px; cursor: pointer; text-align: center; font-weight: bold; color: #28316e; transition: .12s; line-height: 1.4; }
+  .opt:hover { border-color: #6b77c7; }
+  .opt.pick { border-color: #3d4a9c; background: #e6e9f8; }
+  .opt.right { border-color: #3a7d44; background: #e8f5e6; color: #23572c; }
+  .opt.wrong { border-color: #c0392b; background: #fbeaea; color: #a5352a; }
+  .opt.locked { cursor: default; }
+  .why { display: none; margin-top: 10px; background: #f3f4fc; border-left: 5px solid #6b77c7; border-radius: 8px; padding: 10px 13px; font-size: 15px; line-height: 1.55; color: #454b6e; }
+  .why.show { display: block; }
+  .scorebox { display: none; background: #3d4a9c; color: #f3f4ff; border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 7px 0 #28316e; margin-top: 8px; position: relative; overflow: hidden; }
+  .scorebox.show { display: block; }
+  .scorebox.fail { background: #a5352a; box-shadow: 0 7px 0 #7d2b21; }
+  .scorebox .pct { font-size: 46px; font-weight: bold; line-height: 1; }
+  .scorebox .sub { font-size: 16px; margin-top: 8px; opacity: .95; line-height: 1.5; }
+  .scorebox .verdict { font-size: 22px; font-weight: bold; margin-top: 12px; }
+  .missed { background: #fff; color: #1f2233; border-radius: 12px; padding: 12px 14px; margin-top: 14px; text-align: left; font-size: 15px; line-height: 1.5; }
+  .missed div + div { margin-top: 8px; }
+  .missed b { color: #28316e; }
+
+  a.home { display: inline-block; margin-top: 16px; color: #5d6384; text-decoration: none; font-size: 14px; }
+  a.home:hover { text-decoration: underline; }
+  footer { text-align: center; font-size: 12px; color: #8a8fa8; margin-top: 18px; }
+
+  .timerbar { display: none; position: sticky; top: 0; z-index: 40; margin: 0 0 14px; padding: 10px 14px;
+    background: #28316e; color: #eef0ff; border-radius: 12px; box-shadow: 0 4px 0 #1b2150; align-items: center; gap: 12px; }
+  .timerbar.on { display: flex; }
+  body.testing .nav { position: static; }
+  .timerbar .clock { font-family: 'Courier New', monospace; font-size: 26px; font-weight: bold; letter-spacing: 1px; min-width: 86px; }
+  .timerbar .tlab { font-size: 13px; opacity: .85; }
+  .timerbar .tprog { flex: 1; height: 10px; background: rgba(255,255,255,.22); border-radius: 99px; overflow: hidden; }
+  .timerbar .tprog i { display: block; height: 100%; width: 100%; background: #a9b2ee; border-radius: 99px; transition: width 1s linear; }
+  .timerbar.low { background: #a5352a; box-shadow: 0 4px 0 #7d2b21; animation: tpulse 1s ease-in-out infinite; }
+  .timerbar.low .tprog i { background: #ffd9d4; }
+  .timerbar.done { background: #5d6384; box-shadow: 0 4px 0 #454b6e; animation: none; }
+  @keyframes tpulse { 0%,100% { opacity: 1 } 50% { opacity: .74 } }
+  .timenote { background: #fbeaea; border: 3px solid #e8b4ae; border-radius: 12px; padding: 12px 14px; color: #a5352a; font-size: 15px; font-weight: bold; margin-bottom: 12px; }
+
+  @media (max-width: 640px) {
+    .cards { grid-template-columns: 1fr; }
+    .opts { grid-template-columns: 1fr; }
+    .memgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .mem, .mem.open.word { font-size: 12px; }
+    .matchgrid { grid-template-columns: 1fr 1.6fr; gap: 7px; }
+    .matchgrid .tile { padding: 8px 8px; font-size: 14.5px; }
+    .matchgrid .col.defs .tile { font-size: 13px; }
+    .slot { width: 26px; font-size: 22px; }
+    .spelltiles .tile { min-width: 40px; font-size: 20px; padding: 8px 10px; }
+    .timerbar .clock { font-size: 22px; min-width: 72px; } .timerbar .tlab { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <button class="sound" id="soundBtn" title="Sound effects on" onclick="toggleSound(this)">🔔</button>
+    <div class="ic">🏆</div>
+    <h1>Class vocabulary — week test</h1>
+    <p>All 25 words · warm-up, then the test · Friday class · Homework for October 2, 2026</p>
+  </header>
+
+  <div class="nav">
+    <a href="#cards">📇 Cards</a>
+    <a href="#g1">🔁 Review</a>
+    <a href="#test">🎯 Test</a>
+  </div>
+
+  <div class="card intro">
+    <p><strong>Hi Grace!</strong> This is all 25 words from Monday to Friday — the ones your teacher will quiz at the start of class.</p><p>Tap through the cards for any word you're not sure of, do the warm-up, then take the test: <strong>25 questions</strong>, and you need <strong>all 25 right</strong> to pass.</p>
+    <div class="badges" id="badges"></div>
+  </div>
+
+  <h2 class="sect" id="cards"><span>📇 The word cards</span></h2>
+  <p class="note">Tap a card to flip it. Tap 🔊 to hear the word, 🐢 to hear it slowly.</p>
+  <div id="cardZone"></div>
+
+  <h2 class="sect" id="g1"><span>🔁 Warm-up · Review: what's the word?</span></h2>
+  <div class="card game" id="game1">
+    <div class="gbar"><span class="how">Read the teacher's meaning and tap the word. These are words from earlier days.</span><span class="stars" id="st1"></span></div>
+    <div id="stage1"></div>
+    <div class="fb" id="fb1"></div>
+    <div class="won" id="won1"><span class="lbl">🏅 Badge won</span>The earlier words are still in your head. Great — that's how they get ready for Friday's class quiz.</div>
+  </div>
+
+  <!-- ============ TEST ============ -->
+  <h2 class="sect" id="test"><span>🎯 The test — all right to pass</span></h2>
+
+  <div class="card intro" id="preTest">
+    <p><strong>25 questions</strong>. You need <strong>all 25 right</strong> to pass. Missed one? No problem — read the cards for that word and try again.</p>
+    <p>⏱️ <strong>The clock is on for this part: 25 minutes, one minute a question.</strong> It starts when you
+       press the button below and it does not stop.</p>
+    <div class="center" style="margin-top:14px;">
+      <button class="btn" id="startBtn" onclick="startQuiz()">▶️ Start the test — 25 minutes</button>
+    </div>
+  </div>
+
+  <div class="timerbar" id="timerBar">
+    <span class="clock" id="clock">--:--</span>
+    <span class="tlab">time left</span>
+    <div class="tprog"><i id="tprog"></i></div>
+  </div>
+
+  <div class="timenote" id="timeNote" hidden></div>
+
+  <div id="quizZone" hidden>
+    <div id="quiz"></div>
+    <div class="center" style="margin: 6px 0 16px;">
+      <button class="btn amber" id="submitBtn" onclick="finishQuiz()">Finish the test</button>
+      <button class="btn ghost sm" style="margin-left:8px;" onclick="resetQuiz()">Start over</button>
+    </div>
+  </div>
+
+  <div class="scorebox" id="scorebox"></div>
+
+  <div class="center"><a class="home" href="index.html">← back to all quizzes</a></div>
+
+  <footer>Made for Grace · Friday class vocabulary · Homework for October 2, 2026 · Week test</footer>
+</div>
+
+<script>
+/* ================= data ================= */
+var WORDS = {"subordinate": {"slug": "subordinate", "w": "subordinate", "pos": "adj.", "day": 1, "emoji": "🎖️", "say": "suh-BOR-dih-nit", "d": "of less or secondary importance, supporting, junior", "kid": "Lower in rank or less important — the helper or the junior, not the boss. A subordinate follows the orders of someone above them.", "trick": "<b>sub-</b> means <b>under</b> (a <b>sub</b>marine goes under the water). Someone <b>sub</b>ordinate is <b>under</b> someone else — the junior helper, not the boss.", "ex": "The general gave the orders, and his subordinate officers carried them out.", "short": "lower, less important, junior", "spell": "subordinate", "heavy": false}, "covet": {"slug": "covet", "w": "covet", "pos": "v.", "day": 1, "emoji": "🤩", "say": "KUV-it", "d": "to wish for what someone else has, to desire what others have", "kid": "To really, really want something that belongs to someone else.", "trick": "Covet sounds a bit like <b>“cover it”</b>: you stare at your friend's toy and wish you could <b>cover it</b> with your own name sticker. Just wishing, not grabbing! (Say it KUV-it.)", "ex": "Leo coveted his cousin's shiny new skateboard and wished it were his.", "short": "want what someone else has", "spell": "covet", "heavy": false}, "placidly": {"slug": "placidly", "w": "placidly", "pos": "adv.", "day": 1, "emoji": "😌", "say": "PLASS-id-lee", "d": "calmly and peacefully", "kid": "In a calm, peaceful, not-bothered way.", "trick": "Think of a <b>placid lake</b>: flat and still, not one wave. A cow chewing grass <b>placidly</b> is calm like that lake.", "ex": "The cows chewed their grass placidly while the storm clouds rolled past.", "short": "calmly, peacefully", "spell": "placidly", "heavy": false}, "remote": {"slug": "remote", "w": "remote", "pos": "adj.", "day": 1, "emoji": "🏝️", "say": "rih-MOHT", "d": "far, distant, far off", "kid": "Far away from other places or people — hard to get to.", "trick": "Your TV <b>remote</b> lets you change the channel from <b>far away</b> on the sofa. A remote island is far, far away from everything.", "ex": "They sailed for five days to reach a remote island with no roads or shops.", "short": "far away", "spell": "remote", "heavy": false}, "sparingly": {"slug": "sparingly", "w": "sparingly", "pos": "adv.", "day": 1, "emoji": "🤏", "say": "SPAIR-ing-lee", "d": "in small quantities", "kid": "Using only a little bit at a time, so it doesn't run out.", "trick": "<b>Spare</b> = extra that you save. Use something <b>sparingly</b> and you'll still have some to <b>spare</b> later.", "ex": "Mom told us to use the glue sparingly — just one small drop for each sticker.", "short": "a little at a time", "spell": "sparingly", "heavy": false}, "plaintively": {"slug": "plaintively", "w": "plaintively", "pos": "adv.", "day": 2, "emoji": "😿", "say": "PLAYN-tiv-lee", "d": "sounding sad and mournful", "kid": "In a sad, crying way — like a sound that is asking for help or comfort.", "trick": "A <b>plaint</b> is an old word for a sad cry — it's hiding inside com<b>plaint</b>. Plaintively = sounding like a sad complaint.", "ex": "The lost kitten meowed plaintively outside our door in the rain.", "short": "in a sad, mournful way", "spell": "plaintively", "heavy": false}, "irritation": {"slug": "irritation", "w": "irritation", "pos": "n.", "day": 2, "emoji": "😒", "say": "ir-ih-TAY-shun", "d": "annoyance, the state of feeling annoyed", "kid": "The feeling of being annoyed — a little bit angry because something keeps bugging you.", "trick": "Something <b>irritating</b> bugs you like an itchy tag in your shirt. That itchy, annoyed feeling = <b>irritation</b>.", "ex": "To Grace's irritation, her little brother kept humming the same song over and over.", "short": "feeling annoyed", "spell": "irritation", "heavy": false}, "odd": {"slug": "odd", "w": "odd", "pos": "adj.", "day": 2, "emoji": "🦄", "say": "ODD", "d": "strange, weird", "kid": "Strange or weird — not what you would expect.", "trick": "<b>Odd</b> numbers (1, 3, 5) always have one left over that doesn't fit into a pair. Something <b>odd</b> doesn't fit in either — it's strange.", "ex": "Grace heard an odd noise coming from inside the closet.", "short": "strange, weird", "spell": "odd", "heavy": false}, "twine": {"slug": "twine", "w": "twine", "pos": "n.", "day": 2, "emoji": "🧵", "say": "TWYN", "d": "strong thread, rope", "kid": "Strong string made of threads twisted together — for tying packages, plants or bundles.", "trick": "<b>TW</b>ine starts like <b>TW</b>ist and <b>TW</b>o: <b>two</b> threads <b>twisted</b> together make strong twine.", "ex": "Grandpa tied the tomato plants to the sticks with green twine.", "short": "strong string", "spell": "twine", "heavy": false}, "clamour": {"slug": "clamour", "w": "clamour", "pos": "n.", "day": 2, "emoji": "📣", "say": "KLAM-er", "d": "a loud and confused noise, shouting, loud noise", "kid": "A loud, confused noise — lots of people shouting at the same time. (In America it's often spelled <b>clamor</b>; your teacher uses the British spelling <b>clamour</b>. Both are right.)", "trick": "<b>CLAM</b>our — imagine a hundred <b>clams</b> clapping their shells and shouting all at once. What a clamour!", "ex": "We couldn't hear the teacher over the clamour in the lunchroom.", "short": "loud, confused shouting", "spell": "clamour", "heavy": false}, "forbidding": {"slug": "forbidding", "w": "forbidding", "pos": "adj.", "day": 3, "emoji": "🏰", "say": "fer-BID-ing", "d": "hostile, unwelcoming, unfriendly", "kid": "Looking unfriendly, scary or unwelcoming — as if it's saying “Stay away!”", "trick": "A forbidding place looks like it's <b>forbidding</b> you to come in: “Keep out!” Dark, cold and unfriendly.", "ex": "The forbidding old castle had dark windows and a heavy iron gate.", "short": "unfriendly, unwelcoming", "spell": "forbidding", "heavy": false}, "rustle": {"slug": "rustle", "w": "rustle", "pos": "n./v.", "day": 3, "emoji": "🍂", "say": "RUSS-ul (the T is silent!)", "d": "whisper, the noise that leaves or paper make", "kid": "A soft, dry, whispery sound — like leaves blowing or paper moving. It can be the sound (<i>a rustle</i>) or the action (<i>the leaves rustle</i>).", "trick": "Say it slowly: <b>rrrusss-le</b>… it even sounds like leaves! The <b>T</b> is silent, just like in <i>castle</i> and <i>whistle</i>.", "ex": "We heard a rustle in the bushes, and a little rabbit hopped out.", "short": "a soft, whispery sound", "spell": "rustle", "heavy": false}, "abundance": {"slug": "abundance", "w": "abundance", "pos": "n.", "day": 3, "emoji": "🍎", "say": "uh-BUN-dunss", "d": "a very large quantity of something", "kid": "A very large amount of something — more than enough.", "trick": "A<b>BUN</b>dance: picture a bakery with <b>buns</b> piled up to the ceiling. An abundance of buns — more than anyone could eat!", "ex": "In autumn, the orchard had an abundance of apples — more than we could ever eat.", "short": "a very large amount", "spell": "abundance", "heavy": false}, "ignorant": {"slug": "ignorant", "w": "ignorant", "pos": "adj.", "day": 3, "emoji": "🤷", "say": "IG-ner-unt", "d": "lacking knowledge", "kid": "Not knowing about something because you haven't learned it (yet). Everyone is ignorant about something until they learn it. Careful: calling a person “ignorant” can sound rude.", "trick": "<b>Ignor</b>ant starts like <b>ignore</b>: if you ignore the lesson, you stay ignorant — without the knowledge.", "ex": "Before the trip, I was ignorant about how bees make honey, but the beekeeper taught us.", "short": "not knowing", "spell": "ignorant", "heavy": false}, "array": {"slug": "array", "w": "array", "pos": "n.", "day": 3, "emoji": "🖍️", "say": "uh-RAY", "d": "an impressive amount, line-up, formation", "kid": "A big, impressive group of things — often set out in a line-up or in neat rows.", "trick": "You know <b>arrays</b> from math: dots lined up in neat rows and columns! An array of markers is a whole rainbow of them lined up.", "ex": "The art store had a dazzling array of markers in every color of the rainbow.", "short": "an impressive line-up", "spell": "array", "heavy": false}, "delicate": {"slug": "delicate", "w": "delicate", "pos": "adj.", "day": 4, "emoji": "🦋", "say": "DEL-ih-kit", "d": "elegant, very fine, easily breakable, fragile", "kid": "Very fine, thin and pretty — and easily broken, so you have to be gentle.", "trick": "Delicate things need delicate fingers: a butterfly wing, a soap bubble, a glass ornament. <b>Handle with care!</b>", "ex": "The butterfly's wings were so delicate that Grace didn't dare to touch them.", "short": "fine and easily broken", "spell": "delicate", "heavy": false}, "commune": {"slug": "commune", "w": "commune", "pos": "n./v.", "day": 4, "emoji": "🏡", "say": "KOM-yoon (noun) · kuh-MYOON (verb)", "d": "a group of people living together, to share with others", "kid": "① (noun) A group of people who live together and share their homes, food and work. ② (verb) To share with others.", "trick": "<b>Commune</b>, <b>common</b>, <b>community</b> — all about sharing. On a commune, everything is <b>common</b>: it belongs to everybody.", "ex": "On the commune, twenty families grew vegetables together and shared every meal.", "short": "people living and sharing together", "spell": "commune", "heavy": false}, "intricate": {"slug": "intricate", "w": "intricate", "pos": "adj.", "day": 4, "emoji": "🕸️", "say": "IN-trih-kit", "d": "complex, elaborate, very complicated", "kid": "Full of lots of small parts and details that fit together — very complicated.", "trick": "In-<b>TRIC</b>-ate — so many tiny twists that it looks like a magic <b>trick</b>. Spider webs, snowflakes and the gears inside a watch are intricate.", "ex": "The snowflake had an intricate pattern of tiny icy branches.", "short": "detailed, complicated", "spell": "intricate", "heavy": false}, "consult": {"slug": "consult", "w": "consult", "pos": "v.", "day": 4, "emoji": "📖", "say": "kun-SULT", "d": "to seek information or advice from someone", "kid": "To go to a person (or a book, or a map) to get information or advice.", "trick": "Stuck? <b>Consult!</b> Ask a doctor, check a dictionary, look at a map. Consult = go and ask so you can find out.", "ex": "Before our hike, we consulted a park ranger about the safest trail.", "short": "ask for advice or information", "spell": "consult", "heavy": false}, "wry": {"slug": "wry", "w": "wry", "pos": "adj.", "day": 4, "emoji": "😏", "say": "RYE (the W is silent!)", "d": "mocking", "kid": "Mocking in a dry, half-joking way — like a crooked little smile when something annoying happens.", "trick": "The <b>W</b> is silent: say “rye”. Picture a <b>wry</b> smile twisted to one side: it's joking, but it's also making fun a little.", "ex": "When it started to rain on sports day, Coach gave a wry smile and said, “Lovely weather!”", "short": "mocking, half-joking", "spell": "wry", "heavy": false}, "pagoda": {"slug": "pagoda", "w": "pagoda", "pos": "n.", "day": 5, "emoji": "🛕", "say": "puh-GOH-duh", "d": "a small temple (Indian word)", "kid": "A temple building, usually a tower with many curved roofs stacked one on top of another. Your teacher's note says it's an Indian word; you can see pagodas in India, China, Japan and many other parts of Asia.", "trick": "Pa-<b>GO</b>-da: <b>go</b> up, up, up the stacked roofs! It's like the tall tower temples (塔) you may have seen in China.", "ex": "We climbed to the top of the old pagoda and saw the whole city below.", "short": "a temple tower", "spell": "pagoda", "heavy": false}, "pounded": {"slug": "pounded", "w": "pounded", "pos": "v.", "day": 5, "emoji": "🥁", "say": "POWN-did", "d": "hit heavily and strongly", "kid": "Hit something hard and heavily, usually again and again.", "trick": "<b>POUND</b>ed sounds like what it does: <b>POUND! POUND! POUND!</b> — a hammer, a heavy drum, big waves.", "ex": "The waves pounded the rocks all night during the storm.", "short": "hit hard, again and again", "spell": "pounded", "heavy": false}, "uproar": {"slug": "uproar", "w": "uproar", "pos": "n.", "day": 5, "emoji": "📢", "say": "UP-ror", "d": "loud noise", "kid": "A loud noise — lots of people shouting or yelling because they are excited or upset.", "trick": "When a crowd's voices go <b>UP</b>, up, up and they <b>ROAR</b> like lions — that's an <b>uproar</b>!", "ex": "The stadium was in an uproar when our team scored in the last second.", "short": "loud noise from a crowd", "spell": "uproar", "heavy": false}, "gust": {"slug": "gust", "w": "gust", "pos": "n.", "day": 5, "emoji": "🌬️", "say": "GUST", "d": "a sudden rush of wind", "kid": "A sudden, strong push of wind that comes and goes quickly.", "trick": "Say “<b>gust</b>!” fast — it's short and sharp, just like a sudden puff of wind. Whoosh… gone!", "ex": "A gust of wind blew Grace's hat right off her head.", "short": "a sudden rush of wind", "spell": "gust", "heavy": false}, "luminously": {"slug": "luminously", "w": "luminously", "pos": "adv.", "day": 5, "emoji": "✨", "say": "LOO-mih-nus-lee", "d": "giving off light, bright, shining", "kid": "In a bright, glowing way — giving off light.", "trick": "<b>Lumi</b> means light — like <b>lum</b>inous glow-in-the-dark stars on a bedroom ceiling. Luminously = glowing with light.", "ex": "The full moon shone luminously over the quiet lake.", "short": "brightly, glowing", "spell": "luminously", "heavy": false}};
+var CFG = {"week": true, "today": ["subordinate", "covet", "placidly", "remote", "sparingly", "plaintively", "irritation", "odd", "twine", "clamour", "forbidding", "rustle", "abundance", "ignorant", "array", "delicate", "commune", "intricate", "consult", "wry", "pagoda", "pounded", "uproar", "gust", "luminously"], "pool": ["subordinate", "covet", "placidly", "remote", "sparingly", "plaintively", "irritation", "odd", "twine", "clamour", "forbidding", "rustle", "abundance", "ignorant", "array", "delicate", "commune", "intricate", "consult", "wry", "pagoda", "pounded", "uproar", "gust", "luminously"], "games": ["review"], "audio": "audio/vocab-oct02/", "sense": [], "story": null, "detective": []};
+
+var QUIZ = [
+  { q: "What does <strong>subordinate</strong> (adj.) mean?",
+    options: ["of less or secondary importance, supporting, junior", "of the highest or first importance, leading, senior", "complex, elaborate, very complicated", "hostile, unwelcoming, unfriendly"], answer: 0, slug: "subordinate",
+    why: "<strong>subordinate</strong> means “of less or secondary importance, supporting, junior.” For example: <em>The general gave the orders, and his subordinate officers carried them out.</em>" },
+
+  { q: "Which word fits the blank?<br><span style=\"font-weight:normal\">Mia tried not to <span class=\"blank\">&nbsp;</span> her best friend&#x27;s new puppy, but she really wished it were hers.</span>",
+    options: ["covet", "consult", "misplace", "rustle"], answer: 0, slug: "covet",
+    why: "<strong>covet</strong> means “to wish for what someone else has, to desire what others have,” so it fits: <em>Mia tried not to <strong>covet</strong> her best friend&#x27;s new puppy, but she really wished it were hers.</em>" },
+
+  { q: "What does <strong>placidly</strong> (adv.) mean?",
+    options: ["calmly and peacefully", "loudly and angrily", "sounding sad and mournful", "in small quantities"], answer: 0, slug: "placidly",
+    why: "<strong>placidly</strong> means “calmly and peacefully.” For example: <em>The cows chewed their grass placidly while the storm clouds rolled past.</em>" },
+
+  { q: "Which word fits the blank?<br><span style=\"font-weight:normal\">The weather station is on a <span class=\"blank\">&nbsp;</span> mountain, three days&#x27; walk from the nearest town.</span>",
+    options: ["remote", "delicate", "wry", "subordinate"], answer: 0, slug: "remote",
+    why: "<strong>remote</strong> means “far, distant, far off,” so it fits: <em>The weather station is on a <strong>remote</strong> mountain, three days&#x27; walk from the nearest town.</em>" },
+
+  { q: "What does <strong>sparingly</strong> (adv.) mean?",
+    options: ["in small quantities", "in very large amounts", "giving off light, bright, shining", "calmly and peacefully"], answer: 0, slug: "sparingly",
+    why: "<strong>sparingly</strong> means “in small quantities.” For example: <em>Mom told us to use the glue sparingly — just one small drop for each sticker.</em>" },
+
+  { q: "Which word fits the blank?<br><span style=\"font-weight:normal\">The lonely owl hooted <span class=\"blank\">&nbsp;</span> all night, as if it were crying for a lost friend.</span>",
+    options: ["plaintively", "placidly", "sparingly", "luminously"], answer: 0, slug: "plaintively",
+    why: "<strong>plaintively</strong> means “sounding sad and mournful,” so it fits: <em>The lonely owl hooted <strong>plaintively</strong> all night, as if it were crying for a lost friend.</em>" },
+
+  { q: "What does <strong>irritation</strong> (n.) mean?",
+    options: ["annoyance, the state of feeling annoyed", "happiness, the state of feeling pleased", "a very large quantity of something", "a sudden rush of wind"], answer: 0, slug: "irritation",
+    why: "<strong>irritation</strong> means “annoyance, the state of feeling annoyed.” For example: <em>To Grace&#x27;s irritation, her little brother kept humming the same song over and over.</em>" },
+
+  { q: "Which word fits the blank?<br><span style=\"font-weight:normal\">It&#x27;s <span class=\"blank\">&nbsp;</span> that the dog didn&#x27;t bark at the stranger — he always barks at everyone!</span>",
+    options: ["odd", "remote", "delicate", "intricate"], answer: 0, slug: "odd",
+    why: "<strong>odd</strong> means “strange, weird,” so it fits: <em>It&#x27;s <strong>odd</strong> that the dog didn&#x27;t bark at the stranger — he always barks at everyone!</em>" },
+
+  { q: "What does <strong>twine</strong> (n.) mean?",
+    options: ["strong thread, rope", "soft cloth, blanket", "a small temple (Indian word)", "a sudden rush of wind"], answer: 0, slug: "twine",
+    why: "<strong>twine</strong> means “strong thread, rope.” For example: <em>Grandpa tied the tomato plants to the sticks with green twine.</em>" },
+
+  { q: "Which word fits the blank?<br><span style=\"font-weight:normal\">The <span class=\"blank\">&nbsp;</span> of honking horns and shouting drivers filled the busy street.</span>",
+    options: ["clamour", "twine", "pagoda", "commune"], answer: 0, slug: "clamour",
+    why: "<strong>clamour</strong> means “a loud and confused noise, shouting, loud noise,” so it fits: <em>The <strong>clamour</strong> of honking horns and shouting drivers filled the busy street.</em>" },
+
+  { q: "What does <strong>forbidding</strong> (adj.) mean?",
+    options: ["hostile, unwelcoming, unfriendly", "friendly, welcoming, warm", "complex, elaborate, very complicated", "far, distant, far off"], answer: 0, slug: "forbidding",
+    why: "<strong>forbidding</strong> means “hostile, unwelcoming, unfriendly.” For example: <em>The forbidding old castle had dark windows and a heavy iron gate.</em>" },
+
+  { q: "Which word fits the blank?<br><span style=\"font-weight:normal\">Grace heard the dry leaves <span class=\"blank\">&nbsp;</span> as a squirrel ran through the bushes.</span>",
+    options: ["rustle", "pound", "covet", "consult"], answer: 0, slug: "rustle",
+    why: "<strong>rustle</strong> means “whisper, the noise that leaves or paper make,” so it fits: <em>Grace heard the dry leaves <strong>rustle</strong> as a squirrel ran through the bushes.</em>" },
+
+  { q: "What does <strong>abundance</strong> (n.) mean?",
+    options: ["a very large quantity of something", "a very small amount of something", "annoyance, the state of feeling annoyed", "a group of people living together, to share with others"], answer: 0, slug: "abundance",
+    why: "<strong>abundance</strong> means “a very large quantity of something.” For example: <em>In autumn, the orchard had an abundance of apples — more than we could ever eat.</em>" },
+
+  { q: "Which word fits the blank?<br><span style=\"font-weight:normal\">Before the class trip, Max was <span class=\"blank\">&nbsp;</span> about volcanoes — he didn&#x27;t even know that lava is hot.</span>",
+    options: ["ignorant", "forbidding", "wry", "delicate"], answer: 0, slug: "ignorant",
+    why: "<strong>ignorant</strong> means “lacking knowledge,” so it fits: <em>Before the class trip, Max was <strong>ignorant</strong> about volcanoes — he didn&#x27;t even know that lava is hot.</em>" },
+
+  { q: "What does <strong>array</strong> (n.) mean?",
+    options: ["an impressive amount, line-up, formation", "a single thing standing alone, all by itself", "strong thread, rope", "hit heavily and strongly"], answer: 0, slug: "array",
+    why: "<strong>array</strong> means “an impressive amount, line-up, formation.” For example: <em>The art store had a dazzling array of markers in every color of the rainbow.</em>" },
+
+  { q: "Which word fits the blank?<br><span style=\"font-weight:normal\">The old map was so <span class=\"blank\">&nbsp;</span> that it would tear if you touched it roughly.</span>",
+    options: ["delicate", "remote", "wry", "ignorant"], answer: 0, slug: "delicate",
+    why: "<strong>delicate</strong> means “elegant, very fine, easily breakable, fragile,” so it fits: <em>The old map was so <strong>delicate</strong> that it would tear if you touched it roughly.</em>" },
+
+  { q: "What does <strong>commune</strong> (n./v.) mean?",
+    options: ["a group of people living together, to share with others", "a person who lives all alone, keeping things to himself", "a small temple (Indian word)", "to seek information or advice from someone"], answer: 0, slug: "commune",
+    why: "<strong>commune</strong> means “a group of people living together, to share with others.” For example: <em>On the commune, twenty families grew vegetables together and shared every meal.</em>" },
+
+  { q: "Which word fits the blank?<br><span style=\"font-weight:normal\">The spider&#x27;s web was <span class=\"blank\">&nbsp;</span>, with hundreds of tiny threads woven into a perfect pattern.</span>",
+    options: ["intricate", "ignorant", "remote", "wry"], answer: 0, slug: "intricate",
+    why: "<strong>intricate</strong> means “complex, elaborate, very complicated,” so it fits: <em>The spider&#x27;s web was <strong>intricate</strong>, with hundreds of tiny threads woven into a perfect pattern.</em>" },
+
+  { q: "What does <strong>consult</strong> (v.) mean?",
+    options: ["to seek information or advice from someone", "to give away everything you own to someone", "to wish for what someone else has, to desire what others have", "hit heavily and strongly"], answer: 0, slug: "consult",
+    why: "<strong>consult</strong> means “to seek information or advice from someone.” For example: <em>Before our hike, we consulted a park ranger about the safest trail.</em>" },
+
+  { q: "Which word fits the blank?<br><span style=\"font-weight:normal\">“Great, another flat tire,” Mom said with a <span class=\"blank\">&nbsp;</span> laugh.</span>",
+    options: ["wry", "delicate", "remote", "sturdy"], answer: 0, slug: "wry",
+    why: "<strong>wry</strong> means “mocking,” so it fits: <em>“Great, another flat tire,” Mom said with a <strong>wry</strong> laugh.</em>" },
+
+  { q: "What does <strong>pagoda</strong> (n.) mean?",
+    options: ["a small temple (Indian word)", "a small boat (Italian word)", "a small house (Spanish word)", "a small garden (French word)"], answer: 0, slug: "pagoda",
+    why: "<strong>pagoda</strong> means “a small temple (Indian word).” For example: <em>We climbed to the top of the old pagoda and saw the whole city below.</em>" },
+
+  { q: "Which word fits the blank?<br><span style=\"font-weight:normal\">The giant <span class=\"blank\">&nbsp;</span> on the castle door with his huge fists: BANG! BANG! BANG!</span>",
+    options: ["pounded", "rustled", "coveted", "consulted"], answer: 0, slug: "pounded",
+    why: "<strong>pounded</strong> means “hit heavily and strongly,” so it fits: <em>The giant <strong>pounded</strong> on the castle door with his huge fists: BANG! BANG! BANG!</em>" },
+
+  { q: "What does <strong>uproar</strong> (n.) mean?",
+    options: ["loud noise", "soft light", "deep sleep", "light rain"], answer: 0, slug: "uproar",
+    why: "<strong>uproar</strong> means “loud noise.” For example: <em>The stadium was in an uproar when our team scored in the last second.</em>" },
+
+  { q: "Which word fits the blank?<br><span style=\"font-weight:normal\">A sudden <span class=\"blank\">&nbsp;</span> of wind blew all of Grace&#x27;s papers off the table.</span>",
+    options: ["gust", "pagoda", "commune", "twine"], answer: 0, slug: "gust",
+    why: "<strong>gust</strong> means “a sudden rush of wind,” so it fits: <em>A sudden <strong>gust</strong> of wind blew all of Grace&#x27;s papers off the table.</em>" },
+
+  { q: "What does <strong>luminously</strong> (adv.) mean?",
+    options: ["giving off light, bright, shining", "giving off smoke, dark, gloomy", "sounding sad and mournful", "calmly and peacefully"], answer: 0, slug: "luminously",
+    why: "<strong>luminously</strong> means “giving off light, bright, shining.” For example: <em>The full moon shone luminously over the quiet lake.</em>" }
+];
+</script>
+
+<script>
+/* ================= helpers: shuffle, sound effects, confetti, word audio ================= */
+function shuffle(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function $(id){ return document.getElementById(id); }
+function W(s){ return WORDS[s]; }
+
+var SOUND = true, actx = null;
+function beep(freqs, dur, type, vol){
+  if (!SOUND) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    freqs.forEach(function(f, i){
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = type || 'sine'; o.frequency.value = f;
+      o.connect(g); g.connect(actx.destination);
+      var t0 = actx.currentTime + i * dur;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol || 0.16, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.start(t0); o.stop(t0 + dur + 0.03);
+    });
+  } catch (e) {}
+}
+var sfx = {
+  pop:  function(){ beep([680], 0.06, 'triangle', 0.10); },
+  flip: function(){ beep([520, 700], 0.05, 'triangle', 0.08); },
+  good: function(){ beep([523, 784], 0.12, 'sine'); },
+  bad:  function(){ beep([220, 175], 0.12, 'sawtooth', 0.09); },
+  win:  function(){ beep([523, 659, 784, 1047], 0.13, 'sine'); }
+};
+function toggleSound(btn){
+  SOUND = !SOUND;
+  btn.textContent = SOUND ? '🔔' : '🔕';
+  btn.title = SOUND ? 'Sound effects on (the words always speak)' : 'Sound effects off (the words still speak)';
+  if (SOUND) sfx.pop();
+}
+function confetti(host){
+  var colors = ['#a9b2ee','#f0c079','#8fcbb4','#c9761d','#3d4a9c','#e8c489','#7fd3bd'];
+  var box = document.createElement('div');
+  box.className = 'confetti';
+  for (var i = 0; i < 38; i++){
+    var s = document.createElement('i');
+    s.style.left = (Math.random() * 100) + '%';
+    s.style.background = colors[i % colors.length];
+    s.style.animationDelay = (Math.random() * 0.3).toFixed(2) + 's';
+    box.appendChild(s);
+  }
+  host.appendChild(box);
+  setTimeout(function(){ if (box.parentNode) box.parentNode.removeChild(box); }, 1900);
+}
+function starRow(done, total){ var s = ''; for (var i = 0; i < total; i++) s += (i < done ? '⭐' : '☆'); return s; }
+function shakeEl(el){ if (!el) return; el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+
+/* Word audio: real recordings, one mp3 per word and per example sentence. HTML audio (not WebAudio),
+   so it still plays with the iPad's silent switch on. slow = 70% speed, same pitch. */
+var AUD = {}, playing = null;
+function say(slug, slow, ex){
+  var key = slug + (ex ? '-ex' : '');
+  var a = AUD[key];
+  if (!a) { a = AUD[key] = new Audio(CFG.audio + key + '.mp3'); a.preload = 'auto'; }
+  try { if (playing && playing !== a) playing.pause(); a.pause(); a.currentTime = 0; } catch (e) {}
+  a.defaultPlaybackRate = a.playbackRate = slow ? 0.7 : 1;
+  playing = a;
+  var p = a.play(); if (p && p.catch) p.catch(function(){});
+}
+function sayBtns(slug){
+  return '<button class="say" onclick="event.stopPropagation();say(\'' + slug + '\')">🔊 Hear it</button> '
+       + '<button class="say sm" onclick="event.stopPropagation();say(\'' + slug + '\',1)">🐢 Slow</button>';
+}
+
+/* ================= badges ================= */
+var BADGE = {}, BADGE_META = [];
+function paintBadges(){
+  $('badges').innerHTML = BADGE_META.map(function(b){
+    return '<div class="badge' + (BADGE[b.k] ? ' on' : '') + '"><span class="bi">' + b.ic + '</span>' + b.t
+      + '<div style="font-size:11px;font-weight:normal;margin-top:2px">' + (BADGE[b.k] ? 'done ✓' : 'not yet') + '</div></div>';
+  }).join('');
+}
+function earnBadge(k){ if (BADGE[k]) return; BADGE[k] = true; paintBadges(); }
+</script>
+
+<script>
+/* ================= flip cards ================= */
+var CARD_LIST = CFG.today, seenCards = {};
+function cardHTML(s, i){
+  var w = W(s);
+  return '<div class="fc" id="fc' + i + '" onclick="flip(' + i + ')">'
+    + '<div class="face front">'
+    +   '<div class="em">' + w.emoji + '</div><div class="word">' + w.w + '</div><span class="pos">' + w.pos + '</span>'
+    +   '<div class="sayit">Say it: <b>' + w.say + '</b></div>'
+    +   '<div class="btnrow">' + sayBtns(s) + '</div>'
+    +   '<div class="hint">tap the card to see what it means ↻</div>'
+    + '</div>'
+    + '<div class="face back">'
+    +   '<div class="bw">' + w.emoji + ' ' + w.w + ' <span class="pos">' + w.pos + '</span> ' + sayBtns(s) + '</div>'
+    +   '<div class="row teach"><span class="lbl">📘 Teacher\'s meaning — learn this one</span>' + w.d + '</div>'
+    +   '<div class="row"><span class="lbl">💬 In plain words</span>' + w.kid + '</div>'
+    +   '<div class="row trick"><span class="lbl">🧠 Memory trick</span>' + w.trick + '</div>'
+    +   '<div class="row ex"><span class="lbl">✏️ Example</span><em>' + w.ex + '</em> '
+    +     '<button class="say sm" onclick="event.stopPropagation();say(\'' + s + '\',0,1)">🔊 sentence</button></div>'
+    +   '<div class="hint" style="text-align:center">tap to flip back ↻</div>'
+    + '</div></div>';
+}
+function renderCards(){
+  if (!CFG.week) { $('cardZone').innerHTML = '<div class="cards">' + CARD_LIST.map(cardHTML).join('') + '</div>'; return; }
+  var html = '', names = { 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday' };
+  for (var d = 1; d <= 5; d++){
+    html += '<h3 class="day">Day ' + d + ' · ' + names[d] + '</h3><div class="cards">';
+    CARD_LIST.forEach(function(s, i){ if (W(s).day === d) html += cardHTML(s, i); });
+    html += '</div>';
+  }
+  $('cardZone').innerHTML = html;
+}
+function flip(i){
+  var el = $('fc' + i);
+  if (el.classList.contains('turn')) return;
+  sfx.flip();
+  el.classList.add('turn');
+  setTimeout(function(){
+    el.classList.toggle('flipped');
+    el.classList.remove('turn');
+    if (el.classList.contains('flipped')) {
+      seenCards[i] = true; el.classList.add('seen');
+      if (Object.keys(seenCards).length === CARD_LIST.length && !BADGE.cards) {
+        earnBadge('cards'); sfx.win(); confetti(el);
+      }
+    }
+  }, 170);
+}
+
+/* ================= games ================= */
+var G = {};   /* per-game state, keyed by game number */
+function fb(n, cls, html){ var f = $('fb' + n); f.className = 'fb' + (cls ? ' ' + cls : ''); f.innerHTML = html || ''; }
+function stars(n, done, total){ $('st' + n).textContent = starRow(done, total); }
+function winGame(n){
+  var g = G[n];
+  if (g.won) return;
+  g.won = true;
+  $('won' + n).classList.add('show');
+  sfx.win(); confetti($('game' + n));
+  earnBadge('g' + n);
+}
+function nextBtn(n, label){ return '<div class="btnrow"><button class="gbtn" onclick="G[' + n + '].next()">' + (label || 'Next ▶') + '</button></div>'; }
+
+/* ---- 🔗 match: tap a word, then its teacher's meaning ---- */
+function gameMatch(n, list){
+  var g = G[n] = { sel: null, done: {}, miss: {}, words: shuffle(list), defs: shuffle(list) };
+  function paint(){
+    $('stage' + n).innerHTML = '<div class="matchgrid"><div class="col">'
+      + g.words.map(function(s){ return '<div class="tile' + (g.done[s] ? ' ok' : g.sel && g.sel.side === 'w' && g.sel.s === s ? ' sel' : '') + '" id="m' + n + 'w' + s + '" onclick="G[' + n + '].tap(\'w\',\'' + s + '\')">' + W(s).w + '</div>'; }).join('')
+      + '</div><div class="col defs">'
+      + g.defs.map(function(s){ return '<div class="tile' + (g.done[s] ? ' ok' : g.sel && g.sel.side === 'd' && g.sel.s === s ? ' sel' : '') + '" id="m' + n + 'd' + s + '" onclick="G[' + n + '].tap(\'d\',\'' + s + '\')">' + W(s).d + '</div>'; }).join('')
+      + '</div></div>';
+    stars(n, list.filter(function(s){ return g.done[s] && !g.miss[s]; }).length, list.length);
+  }
+  g.tap = function(side, s){
+    if (g.done[s]) return;
+    if (!g.sel || g.sel.side === side) { g.sel = { side: side, s: s }; sfx.pop(); if (side === 'w') say(s); paint(); return; }
+    var w = side === 'w' ? s : g.sel.s, d = side === 'd' ? s : g.sel.s;
+    g.sel = null;
+    if (w === d) {
+      g.done[w] = true; sfx.good(); say(w);
+      fb(n, 'ok', '✅ <b>' + W(w).w + '</b> — ' + W(w).d);
+      paint();
+      if (Object.keys(g.done).length === list.length) winGame(n);
+    } else {
+      g.miss[w] = true; sfx.bad();
+      paint();
+      shakeEl($('m' + n + 'w' + w)); shakeEl($('m' + n + 'd' + d));
+      fb(n, 'no', 'Not a pair. That meaning belongs to a different word — try again!');
+    }
+  };
+  paint();
+}
+
+/* ---- 👂 listen: hear a word, tap it ---- */
+function gameListen(n, list){
+  var g = G[n] = { order: shuffle(list), tiles: shuffle(list), i: -1, miss: {}, right: 0, locked: false };
+  function paint(){
+    var s = g.order[g.i];
+    $('stage' + n).innerHTML = '<div class="count">Word ' + (g.i + 1) + ' of ' + list.length + '</div>'
+      + '<div class="btnrow" style="margin:0 0 14px"><button class="say big" onclick="say(\'' + s + '\')">🔊 Play the word</button> '
+      + '<button class="say" onclick="say(\'' + s + '\',1)">🐢 Slow</button></div>'
+      + '<div class="tiles">' + g.tiles.map(function(t){ return '<div class="tile" id="l' + n + t + '" onclick="G[' + n + '].tap(\'' + t + '\')">' + W(t).w + '</div>'; }).join('') + '</div>'
+      + '<div id="ln' + n + '"></div>';
+  }
+  g.next = function(){
+    g.i++; g.locked = false; fb(n);
+    if (g.i >= list.length) { $('stage' + n).innerHTML = ''; winGame(n); return; }
+    paint(); say(g.order[g.i]);
+  };
+  g.tap = function(t){
+    if (g.locked) return;
+    var s = g.order[g.i];
+    if (t === s) {
+      g.locked = true; if (!g.miss[s]) g.right++;
+      $('l' + n + t).classList.add('ok'); sfx.good();
+      fb(n, 'ok', '✅ <b>' + W(s).w + '</b> — ' + W(s).d);
+      stars(n, g.right, list.length);
+      $('ln' + n).innerHTML = nextBtn(n, g.i + 1 < list.length ? 'Next word ▶' : 'Finish ▶');
+    } else {
+      g.miss[s] = true; sfx.bad(); shakeEl($('l' + n + t));
+      fb(n, 'no', 'Not that one — that is <b>' + W(t).w + '</b> (' + W(t).short + '). Press 🔊 and listen again.');
+    }
+  };
+  $('stage' + n).innerHTML = '<div class="btnrow"><button class="gbtn" onclick="G[' + n + '].next()">▶ Start — turn your sound on</button></div>';
+  stars(n, 0, list.length);
+}
+
+/* ---- 🃏 memory: word cards and meaning cards, face down ---- */
+function gameMemory(n, list){
+  var deck = shuffle(list.map(function(s){ return { s: s, k: 'w' }; }).concat(list.map(function(s){ return { s: s, k: 'm' }; })));
+  var g = G[n] = { deck: deck, open: [], done: {}, moves: 0, busy: false };
+  function face(c, i){
+    var cls = 'mem', inner = '<span class="q">?</span>';
+    var up = g.done[c.s] || g.open.indexOf(i) >= 0;
+    if (up) {
+      cls += ' open' + (c.k === 'w' ? ' word' : '') + (g.done[c.s] ? ' ok' : '');
+      inner = c.k === 'w' ? '<div><span class="me">' + W(c.s).emoji + '</span>' + W(c.s).w + '</div>' : '<div>' + W(c.s).short + '</div>';
+    }
+    return '<div class="' + cls + '" id="mm' + n + '_' + i + '" onclick="G[' + n + '].tap(' + i + ')">' + inner + '</div>';
+  }
+  function paint(){
+    $('stage' + n).innerHTML = '<div class="count">Moves: ' + g.moves + ' · pairs found: ' + Object.keys(g.done).length + ' of ' + list.length + '</div>'
+      + '<div class="memgrid">' + g.deck.map(face).join('') + '</div>';
+    stars(n, Object.keys(g.done).length, list.length);
+  }
+  g.tap = function(i){
+    var c = g.deck[i];
+    if (g.busy || g.done[c.s] || g.open.indexOf(i) >= 0) return;
+    g.open.push(i); sfx.flip();
+    if (c.k === 'w') say(c.s);
+    paint();
+    if (g.open.length < 2) return;
+    g.moves++;
+    var a = g.deck[g.open[0]], b = g.deck[g.open[1]];
+    if (a.s === b.s) {
+      g.done[a.s] = true; g.open = []; sfx.good();
+      fb(n, 'ok', '✅ <b>' + W(a.s).w + '</b> — ' + W(a.s).d);
+      paint();
+      if (Object.keys(g.done).length === list.length) { fb(n, 'ok', 'All pairs found in ' + g.moves + ' moves! (The best possible is ' + list.length + '.)'); winGame(n); }
+    } else {
+      g.busy = true;
+      fb(n, 'no', a.k === b.k ? 'Two ' + (a.k === 'w' ? 'words' : 'meanings') + ' — find a word and its meaning.' : 'Not a match. Remember where they are!');
+      setTimeout(function(){ g.open = []; g.busy = false; paint(); }, 1100);
+    }
+  };
+  paint();
+}
+
+/* ---- 🤔 sense or nonsense ---- */
+function gameSense(n, items){
+  var g = G[n] = { items: shuffle(items), i: -1, right: 0, locked: false };
+  g.next = function(){
+    g.i++; g.locked = false; fb(n);
+    if (g.i >= g.items.length) { $('stage' + n).innerHTML = ''; winGame(n); return; }
+    $('stage' + n).innerHTML = '<div class="count">Sentence ' + (g.i + 1) + ' of ' + g.items.length + '</div>'
+      + '<div class="sentence">' + g.items[g.i][0] + '</div>'
+      + '<div class="btnrow" style="margin-top:14px"><button class="tile" id="sy' + n + '" onclick="G[' + n + '].tap(true)">✅ Makes sense</button>'
+      + '<button class="tile" id="sn' + n + '" onclick="G[' + n + '].tap(false)">❌ Nonsense</button></div><div id="sx' + n + '"></div>';
+  };
+  g.tap = function(yes){
+    if (g.locked) return;
+    g.locked = true;
+    var it = g.items[g.i], ok = yes === it[1];
+    $(yes ? 'sy' + n : 'sn' + n).classList.add(ok ? 'ok' : 'sel');
+    if (ok) { g.right++; sfx.good(); fb(n, 'ok', '✅ Right! ' + it[2]); }
+    else { sfx.bad(); shakeEl($(yes ? 'sy' + n : 'sn' + n)); fb(n, 'no', '❌ Not quite. ' + (it[1] ? 'It makes sense: ' : 'It\'s nonsense: ') + it[2]); }
+    stars(n, g.right, g.items.length);
+    $('sx' + n).innerHTML = nextBtn(n, g.i + 1 < g.items.length ? 'Next sentence ▶' : 'Finish ▶');
+  };
+  stars(n, 0, items.length);
+  g.next();
+}
+
+/* ---- 🔤 spell it: letter tiles, in order ---- */
+function gameSpell(n, list){
+  var g = G[n] = { order: shuffle(list), i: -1, clean: 0, locked: false };
+  function target(s){ return W(s).spell; }
+  function paint(){
+    var s = g.order[g.i], t = target(s), w = W(s);
+    var pre = w.w.toLowerCase().indexOf(t.toLowerCase()) > 0 ? w.w.slice(0, w.w.toLowerCase().indexOf(t.toLowerCase())) : '';
+    var slots = (pre ? '<span class="slot pre">' + pre.trim() + '</span>' : '')
+      + t.split('').map(function(ch, k){
+          if (ch === ' ') return '<span class="slot gap"></span>';
+          if (ch === '-') return '<span class="slot fixed">-</span>';
+          return '<span class="slot" id="sl' + n + '_' + k + '">' + (k < g.pos ? ch : '') + '</span>';
+        }).join('');
+    $('stage' + n).innerHTML = '<div class="count">Word ' + (g.i + 1) + ' of ' + list.length + '</div>'
+      + '<div class="spellhead"><div class="se">' + w.emoji + '</div><div class="sm">It means: <b>' + w.short + '</b></div>'
+      + '<div class="btnrow" style="margin:0"><button class="say big" onclick="say(\'' + s + '\')">🔊 Hear it</button> <button class="say" onclick="say(\'' + s + '\',1)">🐢 Slow</button></div></div>'
+      + '<div class="slots">' + slots + '</div>'
+      + '<div class="tiles spelltiles">' + g.tiles.map(function(c, k){
+          return '<div class="tile' + (g.used[k] ? ' used' : '') + '" id="tt' + n + '_' + k + '" onclick="G[' + n + '].tap(' + k + ')">' + c + '</div>'; }).join('') + '</div>'
+      + '<div id="sp' + n + '"></div>';
+  }
+  function skip(){ var t = target(g.order[g.i]); while (g.pos < t.length && (t[g.pos] === ' ' || t[g.pos] === '-')) g.pos++; }
+  g.next = function(){
+    g.i++; g.locked = false; fb(n);
+    if (g.i >= list.length) { $('stage' + n).innerHTML = ''; winGame(n); return; }
+    var t = target(g.order[g.i]), letters = t.replace(/[ -]/g, '').split('');
+    var abc = 'aeioulnrstmdcbhpgk';
+    for (var d = 0; d < 2; d++) letters.push(abc[Math.floor(Math.random() * abc.length)]);
+    g.tiles = shuffle(letters); g.used = {}; g.pos = 0; g.miss = 0; g.slotMiss = 0;
+    skip(); paint();
+    if (g.i > 0) say(g.order[g.i]);   /* round 1 waits for a tap: browsers block sound before one */
+  };
+  g.tap = function(k){
+    if (g.locked || g.used[k]) return;
+    var s = g.order[g.i], t = target(s);
+    if (g.tiles[k] === t[g.pos]) {
+      g.used[k] = true; g.pos++; g.slotMiss = 0; sfx.pop(); skip(); paint();
+      if (g.pos >= t.length) {
+        g.locked = true; if (!g.miss) g.clean++;
+        sfx.good(); say(s); stars(n, g.clean, list.length);
+        fb(n, 'ok', '✅ <b>' + W(s).w + '</b> — ' + W(s).d);
+        $('sp' + n).innerHTML = nextBtn(n, g.i + 1 < list.length ? 'Next word ▶' : 'Finish ▶');
+      }
+    } else {
+      g.miss++; g.slotMiss++; sfx.bad(); shakeEl($('tt' + n + '_' + k));
+      if (g.slotMiss >= 2) {
+        for (var j = 0; j < g.tiles.length; j++) if (!g.used[j] && g.tiles[j] === t[g.pos]) { $('tt' + n + '_' + j).classList.add('hintme'); break; }
+        fb(n, 'no', 'Here\'s a hint — the glowing letter comes next.');
+      } else fb(n, 'no', 'Not that letter. Say the word slowly and listen for the next sound.');
+    }
+  };
+  stars(n, 0, list.length);
+  g.next();
+}
+
+/* ---- 📖 story fill ---- */
+function gameStory(n, story){
+  var parts = story.text.split(/\{([a-z-]+)\}/), blanks = [];
+  for (var i = 1; i < parts.length; i += 2) blanks.push(parts[i]);
+  var g = G[n] = { fill: blanks.map(function(){ return null; }), ok: {}, act: null, chips: shuffle(blanks), checks: 0, firstRight: null };
+  function paint(){
+    var h = '', b = 0;
+    parts.forEach(function(p, i){
+      if (i % 2 === 0) { h += p; return; }
+      var k = b++, v = g.fill[k];
+      h += '<span class="bl' + (g.ok[k] ? ' ok' : v ? ' full' : '') + (g.act === k ? ' act' : '') + '" id="bl' + n + '_' + k + '" onclick="G[' + n + '].blank(' + k + ')">'
+        + (v ? story.forms[v] : '<i>' + (k + 1) + '</i>') + '</span>';
+    });
+    var placed = g.fill.filter(Boolean);
+    $('stage' + n).innerHTML = '<div class="count">📖 ' + story.title + '</div><div class="story">' + h + '</div>'
+      + '<div class="tiles" style="margin-top:14px">' + g.chips.map(function(s){
+          return placed.indexOf(s) >= 0 ? '' : '<div class="tile" onclick="G[' + n + '].chip(\'' + s + '\')">' + story.forms[s] + '</div>'; }).join('') + '</div>'
+      + (placed.length === blanks.length && !g.won ? '<div class="btnrow"><button class="gbtn" onclick="G[' + n + '].check()">✔ Check my story</button></div>' : '');
+  }
+  g.chip = function(s){
+    var k = g.act !== null && !g.fill[g.act] ? g.act : g.fill.indexOf(null);
+    if (k < 0) return;
+    g.fill[k] = s; g.act = null; sfx.pop(); fb(n); paint();
+  };
+  g.blank = function(k){
+    if (g.ok[k]) return;
+    if (g.fill[k]) { g.fill[k] = null; sfx.pop(); } else g.act = g.act === k ? null : k;
+    paint();
+  };
+  g.check = function(){
+    var wrong = [];
+    g.fill.forEach(function(s, k){ if (s === blanks[k]) g.ok[k] = true; else wrong.push(k); });
+    g.checks++;
+    if (g.firstRight === null) g.firstRight = blanks.length - wrong.length;
+    stars(n, g.firstRight, blanks.length);
+    if (!wrong.length) { sfx.good(); paint(); fb(n, 'ok', '✅ Every word is in the right place!'); winGame(n); return; }
+    sfx.bad();
+    var msg = wrong.map(function(k){ var s = g.fill[k]; return '“' + story.forms[s] + '” means <i>' + W(s).d + '</i> — does that fit blank ' + (k + 1) + '?'; });
+    wrong.forEach(function(k){ g.fill[k] = null; });
+    paint();
+    fb(n, 'no', (blanks.length - wrong.length) + ' of ' + blanks.length + ' are right (they are green now). The others went back:<br>' + msg.join('<br>'));
+  };
+  stars(n, 0, blanks.length);
+  paint();
+}
+
+/* ---- 🕵️ detective (clue → word) and 🔁 review (teacher's meaning → word) share one engine ---- */
+function gameChoose(n, rounds, pool){
+  var g = G[n] = { rounds: rounds, i: -1, right: 0, locked: false, miss: false };
+  g.next = function(){
+    g.i++; g.locked = false; g.miss = false; fb(n);
+    if (g.i >= rounds.length) { $('stage' + n).innerHTML = ''; winGame(n); return; }
+    var r = rounds[g.i];
+    var opts = pool.length <= 5 ? shuffle(pool) : shuffle([r.s].concat(shuffle(pool.filter(function(x){ return x !== r.s; })).slice(0, 3)));
+    $('stage' + n).innerHTML = '<div class="count">' + (g.i + 1) + ' of ' + rounds.length + '</div>'
+      + (r.clue ? '<div class="clue"><span class="ce">' + r.e + '</span><span class="ct">' + r.clue + '</span></div>'
+                : '<div class="defbox">“' + W(r.s).d + '”</div>')
+      + '<div class="tiles">' + opts.map(function(t){ return '<div class="tile" id="c' + n + t + '" onclick="G[' + n + '].tap(\'' + t + '\')">' + W(t).w + '</div>'; }).join('') + '</div>'
+      + '<div id="cx' + n + '"></div>';
+  };
+  g.tap = function(t){
+    if (g.locked) return;
+    var s = rounds[g.i].s;
+    if (t === s) {
+      g.locked = true; if (!g.miss) g.right++;
+      $('c' + n + t).classList.add('ok'); sfx.good(); say(s);
+      fb(n, 'ok', '✅ <b>' + W(s).w + '</b> — ' + W(s).d);
+      stars(n, g.right, rounds.length);
+      $('cx' + n).innerHTML = nextBtn(n, g.i + 1 < rounds.length ? 'Next ▶' : 'Finish ▶');
+    } else {
+      g.miss = true; sfx.bad(); shakeEl($('c' + n + t));
+      fb(n, 'no', 'Not quite — <b>' + W(t).w + '</b> means <i>' + W(t).d + '</i>. Read it again.');
+    }
+  };
+  stars(n, 0, rounds.length);
+  g.next();
+}
+
+/* ---- set up the page ---- */
+var ICON = { match: '🔗', listen: '👂', memory: '🃏', sense: '🤔', spell: '🔤', story: '📖', detective: '🕵️', review: '🔁' };
+var NAME = { match: 'Match-up', listen: 'Listen', memory: 'Memory', sense: 'Sense?', spell: 'Spell it', story: 'Story', detective: 'Detective', review: CFG.week ? 'Warm-up' : 'Review' };
+BADGE_META.push({ k: 'cards', ic: '📇', t: CFG.week ? 'All 25 cards' : 'Word cards' });
+CFG.games.forEach(function(k, i){ BADGE_META.push({ k: 'g' + (i + 1), ic: ICON[k], t: NAME[k] }); });
+paintBadges();
+renderCards();
+CFG.games.forEach(function(k, i){
+  var n = i + 1;
+  if (k === 'match') gameMatch(n, CFG.today);
+  else if (k === 'listen') gameListen(n, CFG.today);
+  else if (k === 'memory') gameMemory(n, CFG.today);
+  else if (k === 'sense') gameSense(n, CFG.sense);
+  else if (k === 'spell') gameSpell(n, CFG.today);
+  else if (k === 'story') gameStory(n, CFG.story);
+  else if (k === 'detective') gameChoose(n, shuffle(CFG.detective.map(function(d){ return { s: d[0], e: d[1], clue: d[2] }; })), CFG.today);
+  else if (k === 'review') gameChoose(n, shuffle(CFG.pool).slice(0, CFG.week ? 10 : 5).map(function(s){ return { s: s }; }), CFG.pool);
+});
+</script>
+
+<script>
+/* ================= the test (quiz-report.js "picks" format) ================= */
+function shuffleOptions(){
+  QUIZ.forEach(function(it){
+    var correct = it.options[it.answer];
+    it.options = shuffle(it.options);
+    it.answer = it.options.indexOf(correct);
+  });
+}
+shuffleOptions();
+
+var picks = QUIZ.map(function(){ return -1; });
+var locked = false;
+
+var SECS_PER_Q = 60;
+var QUIZ_SECS = QUIZ.length * SECS_PER_Q;
+var tLeft = QUIZ_SECS, tId = null, timedOut = false, started = false;
+
+function fmtT(s){ var m = Math.floor(s/60), x = s % 60; return m + ':' + (x < 10 ? '0' : '') + x; }
+function paintClock(){
+  $('clock').textContent = fmtT(tLeft);
+  $('tprog').style.width = (100 * tLeft / QUIZ_SECS) + '%';
+  $('timerBar').classList.toggle('low', tLeft <= 120 && tLeft > 0);
+}
+function stopClock(){ if (tId) { clearInterval(tId); tId = null; } }
+function renderQuiz(){
+  $('quiz').innerHTML = QUIZ.map(function(it, i){
+    var opts = it.options.map(function(o, j){
+      return '<div class="opt" id="o' + i + '_' + j + '" onclick="pick(' + i + ',' + j + ')">' + o + '</div>';
+    }).join('');
+    return '<div class="qcard"><span class="n">Question ' + (i + 1) + '</span>'
+      + '<div style="font-size:17px;line-height:1.6;">' + it.q + '</div>'
+      + '<div class="opts">' + opts + '</div><div class="why" id="w' + i + '"></div></div>';
+  }).join('');
+}
+renderQuiz();
+
+function startQuiz(){
+  if (started) return;
+  started = true;
+  $('preTest').hidden = true;
+  $('quizZone').hidden = false;
+  $('timerBar').className = 'timerbar on';
+  document.body.classList.add('testing');
+  paintClock();
+  tId = setInterval(function(){
+    tLeft--;
+    if (tLeft <= 0) { tLeft = 0; paintClock(); stopClock(); timedOut = true; finishQuiz(); return; }
+    paintClock();
+  }, 1000);
+  /* the clock on question 1 starts now, not when the page opened */
+  try { var s = window.QuizReport && QuizReport.session(); if (s) s.lastMark = Date.now(); } catch (e) {}
+  $('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function pick(i, j){
+  if (locked) return;
+  picks[i] = j;
+  for (var k = 0; k < QUIZ[i].options.length; k++) $('o' + i + '_' + k).classList.toggle('pick', k === j);
+}
+
+function finishQuiz(){
+  if (locked || !started) return;
+  var blank = [];
+  picks.forEach(function(p, i){ if (p < 0) blank.push(i + 1); });
+  if (blank.length && !timedOut){
+    alert('You still have ' + blank.length + ' question(s) with no answer: ' + blank.join(', ') + '.\n\nEvery blank counts as wrong, so go back and pick something first.');
+    return;
+  }
+  locked = true;
+  stopClock();
+  $('timerBar').className = 'timerbar on done';
+  var score = 0, missed = [];
+  QUIZ.forEach(function(it, i){
+    for (var k = 0; k < it.options.length; k++){
+      var el = $('o' + i + '_' + k);
+      el.classList.remove('pick'); el.classList.add('locked');
+      if (k === it.answer) el.classList.add('right');
+      else if (k === picks[i]) el.classList.add('wrong');
+    }
+    var w = $('w' + i);
+    w.classList.add('show');
+    var hear = ' <button class="say sm" onclick="say(\'' + it.slug + '\')">🔊</button>';
+    if (picks[i] === it.answer){ score++; w.innerHTML = '<strong>✅ Correct.</strong> ' + it.why + hear; }
+    else { w.innerHTML = '<strong>❌ The right answer is in green.</strong> ' + it.why + hear; if (missed.indexOf(it.slug) < 0) missed.push(it.slug); }
+  });
+
+  var pass = score === QUIZ.length;
+  var used = QUIZ_SECS - tLeft;
+  if (timedOut && blank.length) {
+    var note = $('timeNote');
+    note.hidden = false;
+    note.textContent = '⏰ Time was up, so the test was handed in for you. ' + blank.length + ' question(s) were still blank (' + blank.join(', ') + ') and those count as wrong.';
+  }
+  var box = $('scorebox');
+  box.className = 'scorebox show' + (pass ? '' : ' fail');
+  box.innerHTML = '<div class="pct">' + score + ' / ' + QUIZ.length + '</div>'
+    + '<div class="sub">You need all ' + QUIZ.length + ' right to pass · ⏱ ' + fmtT(used) + ' used of ' + fmtT(QUIZ_SECS) + (timedOut ? ' · the clock ran out' : '') + '</div>'
+    + '<div class="verdict">' + (pass ? '🎉 Perfect — you passed!' : 'Almost! ' + (QUIZ.length - score) + ' to fix') + '</div>'
+    + '<div class="sub">' + (pass
+        ? 'Well done Grace — these words are yours now. Use a few of them in your writing paragraph today!'
+        : 'Read these words again (tap 🔊 and say each one out loud), then press “Try again”. The answers get shuffled.') + '</div>'
+    + (pass ? '' : '<div class="missed">' + missed.map(function(s){
+        return '<div>' + W(s).emoji + ' <b>' + W(s).w + '</b> <button class="say sm" onclick="say(\'' + s + '\')">🔊</button><br>' + W(s).d + '<br><i>' + W(s).trick + '</i></div>';
+      }).join('') + '</div><div style="margin-top:14px"><button class="btn amber" onclick="resetQuiz()">🔁 Try again</button></div>');
+  if (pass) { sfx.win(); confetti(box); } else sfx.bad();
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  $('submitBtn').textContent = 'Test finished';
+}
+
+function resetQuiz(){
+  locked = false;
+  started = false;
+  timedOut = false;
+  stopClock();
+  tLeft = QUIZ_SECS;
+  $('timerBar').className = 'timerbar';
+  document.body.classList.remove('testing');
+  $('timeNote').hidden = true;
+  $('preTest').hidden = false;
+  $('quizZone').hidden = true;
+  shuffleOptions();
+  picks = QUIZ.map(function(){ return -1; });
+  renderQuiz();
+  $('scorebox').className = 'scorebox';
+  $('submitBtn').textContent = 'Finish the test';
+  $('preTest').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+</script>
+
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
