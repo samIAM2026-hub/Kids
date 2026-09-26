@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3A Chapter 3 Lesson 1 &mdash; Simple Subtraction</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #f3effa 55%, #e6def5 100%);
+    min-height: 100vh; color: #1f1a2e; padding: 22px 14px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header { background: #5b3f99; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f7f3ff; box-shadow: 0 8px 0 #3d2a6b; margin-bottom: 14px; position: relative; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+  .sound { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.35);
+    color: #fff; border-radius: 99px; width: 40px; height: 40px; font-size: 18px; cursor: pointer; }
+
+  .nav { position: sticky; top: 0; z-index: 30; background: rgba(255,253,247,.95); backdrop-filter: blur(4px); border-radius: 12px; padding: 8px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(61,42,107,.12); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav a { text-decoration: none; font-size: 13.5px; font-weight: bold; color: #3d2a6b; background: #ece6f7; border-radius: 99px; padding: 6px 13px; }
+
+  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 6px 0 #d9d0ec; margin-bottom: 16px; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16.5px; line-height: 1.6; }
+  .intro p + p { margin-top: 8px; }
+  .hidden { display: none !important; }
+
+  .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .badge { background: #f3f1f6; border: 3px dashed #cfc6e0; border-radius: 14px; padding: 8px 12px; text-align: center;
+    font-size: 13px; font-weight: bold; color: #a39bb5; min-width: 98px; transition: .25s; }
+  .badge .bi { display: block; font-size: 24px; filter: grayscale(1); opacity: .45; }
+  .badge.on { background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; transform: scale(1.04); }
+  .badge.on .bi { filter: none; opacity: 1; }
+
+  h2.sect { font-size: 20px; color: #3d2a6b; margin: 30px 0 12px; text-align: center; scroll-margin-top: 70px; }
+  h2.sect span { background: #ece6f7; border-radius: 99px; padding: 5px 16px; display: inline-block; }
+  p.body { font-size: 16.5px; line-height: 1.6; color: #3a3350; }
+  p.body + p.body { margin-top: 8px; }
+
+  .btn { background: #5b3f99; color: #fff; border: none; border-radius: 12px; padding: 11px 20px; font-size: 15.5px; font-family: inherit; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #3d2a6b; margin: 4px; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #3d2a6b; }
+  .btn.amber { background: #c9761d; box-shadow: 0 5px 0 #8f5211; }
+  .btn.green { background: #3a7d44; box-shadow: 0 5px 0 #23572c; }
+  .btn.ghost { background: #fff; color: #5d5670; box-shadow: 0 4px 0 #e2dcef; border: 2px solid #e2dcef; }
+  .btn.sm { padding: 8px 14px; font-size: 14px; }
+  .center { text-align: center; }
+
+  .fb { text-align: center; font-size: 16px; font-weight: bold; min-height: 26px; margin-top: 10px; line-height: 1.55; color: #5d5670; }
+  .fb.ok { color: #3a7d44; }
+  .fb.no { color: #c0392b; }
+  .won { display: none; background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; border-radius: 12px; padding: 13px 15px; margin-top: 12px; font-size: 16px; line-height: 1.6; }
+  .won.show { display: block; }
+  .won .lbl, .trap .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; margin-bottom: 4px; }
+  .trap { background: #fbeaea; border: 3px solid #e2a49c; border-radius: 12px; padding: 12px 14px; font-size: 15.5px; line-height: 1.6; margin-top: 10px; color: #7d2b21; }
+  .trap .lbl { color: #a5352a; }
+
+  .gbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .gbar .round { font-size: 13px; font-weight: bold; color: #5d5670; font-family: 'Courier New', monospace; letter-spacing: .5px; }
+  .gbar .stars { font-size: 18px; letter-spacing: 2px; }
+  .target { background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 11px 14px; text-align: center; font-size: 17px; line-height: 1.5; }
+
+  /* ---------- column addition ---------- */
+  .colbox { display: flex; justify-content: center; margin: 14px 0 6px; }
+  .colw { display: inline-grid; gap: 4px 5px; font-family: 'Courier New', monospace; font-weight: bold; font-size: 27px; color: #1f1a2e; align-items: center; justify-items: center; }
+  .colw .c { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+  .colw .cs { height: 32px; }
+  .colw .op { color: #5b3f99; }
+  .colw .line { grid-column: 1 / -1; width: 100%; border-top: 3px solid #1f1a2e; height: 0; }
+  .colw .hi { background: #fff1c9; }
+  .colw .claim { color: #7d2b21; }
+  .colw .cc { font-size: 17px; color: #c9761d; }
+  .colw input { font-family: inherit; font-weight: bold; text-align: center; border-radius: 8px; outline: none; color: #1f1a2e; background: #fbfaff; }
+  .colw input.dg { width: 44px; height: 48px; font-size: 26px; border: 3px solid #cbbfe6; }
+  .colw input.cy { width: 30px; height: 30px; font-size: 16px; border: 2px dashed #e0b064; color: #c9761d; background: #fffaf0; }
+  .colw input:focus { border-color: #5b3f99; box-shadow: 0 0 0 3px #e3dbf6; }
+  .colw input.good { border-color: #3a7d44; background: #e8f5e6; border-style: solid; }
+  .colw input.bad { border-color: #c0392b; background: #fbeaea; border-style: solid; }
+  .colhint { text-align: center; font-size: 13px; color: #8a829c; margin-top: 2px; }
+  .peek { background: #fff; color: #5d5670; border: 2px solid #e2dcef; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-family: inherit; font-weight: bold; cursor: pointer; margin-top: 10px; }
+  .how { background: #f6f3fc; border-left: 5px solid #8f78c9; border-radius: 8px; padding: 10px 13px; margin-top: 8px; font-size: 15.5px; line-height: 1.7; }
+
+  /* ---------- place-value chart ---------- */
+  .watch { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; align-items: flex-start; margin-top: 12px; }
+  table.pv { border-collapse: collapse; font-size: 13px; }
+  table.pv th { padding: 4px 6px; font-size: 12px; color: #fff; }
+  table.pv th.t { background: #2a9d8f; } table.pv th.h { background: #8f78c9; } table.pv th.te { background: #e67e22; } table.pv th.o { background: #e8508a; }
+  table.pv td { border: 2px solid #e2dcef; width: 74px; height: 58px; vertical-align: middle; text-align: center; padding: 3px; }
+  table.pv td.lab { width: auto; border: none; font-family: 'Courier New', monospace; font-weight: bold; font-size: 15px; padding-right: 8px; text-align: right; }
+  table.pv tr.sum td { background: #fbfaff; border-top: 3px solid #1f1a2e; }
+  table.pv td.hi { background: #fff1c9; }
+  .chips { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; }
+  .chip { width: 17px; height: 17px; border-radius: 50%; display: inline-block; }
+  .chip.t { background: #2a9d8f; } .chip.h { background: #8f78c9; } .chip.te { background: #e67e22; } .chip.o { background: #e8508a; }
+  .chip.new { outline: 3px dashed #c9761d; outline-offset: 1px; }
+  .prompt { background: #f6f3fc; border-radius: 12px; padding: 14px; margin-top: 14px; text-align: center; font-size: 17px; line-height: 1.9; }
+  .prompt input, .ansrow input { width: 78px; height: 42px; font-size: 22px; font-family: 'Courier New', monospace; font-weight: bold; text-align: center; border: 3px solid #cbbfe6; border-radius: 10px; margin: 0 4px; }
+  .prompt input.sm { width: 50px; }
+
+  /* ---------- spot the mistake ---------- */
+  .notebook { background: #fffdf2; border: 2px solid #eadfb8; border-radius: 12px; padding: 10px 14px; text-align: center; margin-top: 10px; }
+  .notebook .who { font-size: 16px; line-height: 1.5; }
+  .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .choice { background: #f6f3fc; border: 3px solid #e2dcef; border-radius: 12px; padding: 11px 14px; font-size: 16px; font-family: inherit; text-align: left; cursor: pointer; color: #1f1a2e; }
+  .choice:hover { border-color: #8f78c9; }
+  .choice.good { background: #e8f5e6; border-color: #3a7d44; }
+  .choice.bad { background: #fbeaea; border-color: #c0392b; }
+  .yn { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+
+  /* ---------- test ---------- */
+  .qbar { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: bold; font-size: 15px; color: #3d2a6b; }
+  .qbar .time { font-family: 'Courier New', monospace; font-size: 18px; }
+  .qbar .time.low { color: #c0392b; }
+  .progress { height: 10px; background: #ece6f7; border-radius: 99px; margin: 10px 0 16px; overflow: hidden; }
+  .progress i { display: block; height: 100%; background: #8f78c9; width: 0; transition: width .3s; }
+  .qtext { font-size: 19px; line-height: 1.5; text-align: center; font-weight: bold; }
+  .qtag { display: inline-block; background: #5b3f99; color: #fff; font-size: 12px; font-weight: bold; border-radius: 99px; padding: 3px 12px; margin-bottom: 8px; }
+  .ansrow { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; flex-wrap: wrap; }
+  .ansrow input { width: 130px; height: 50px; font-size: 26px; }
+  .ansrow input.good { border-color: #3a7d44; background: #e8f5e6; }
+  .ansrow input.bad { border-color: #c0392b; background: #fbeaea; }
+  .explain { margin-top: 12px; }
+  .res-top { text-align: center; }
+  .res-top .stars { font-size: 34px; letter-spacing: 4px; }
+  .res-top .pct { font-size: 48px; font-weight: bold; color: #3d2a6b; }
+  .res-top .sub { color: #5d5670; font-size: 15px; margin-top: 4px; }
+  .res-top .verdict { font-size: 22px; font-weight: bold; margin-top: 8px; }
+  .verdict.pass { color: #3a7d44; } .verdict.fail { color: #c0392b; }
+  .miss { border: 3px solid #f0d2cc; border-radius: 12px; padding: 12px 14px; margin-top: 12px; background: #fffafa; }
+  .miss .mh { font-weight: bold; font-size: 16px; }
+  .miss .mh .you { color: #c0392b; } .miss .mh .right { color: #3a7d44; }
+  h3.rv { color: #3d2a6b; margin-top: 22px; text-align: center; font-size: 18px; }
+
+  .confetti { position: fixed; top: -12px; width: 9px; height: 14px; z-index: 99; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(105vh) rotate(720deg); } }
+  .pop { animation: popin .3s ease-out; }
+  @keyframes popin { 0% { transform: scale(.7) } 60% { transform: scale(1.12) } 100% { transform: scale(1) } }
+
+  .foot { text-align: center; margin-top: 26px; font-size: 13px; color: #8a829c; }
+  .foot a { color: #5b3f99; }
+  @media (max-width: 480px) {
+    .colw { font-size: 22px; }
+    .colw .c, .colw input.dg { width: 38px; }
+    table.pv td { width: 56px; }
+  }
+
+  /* ---------- subtraction extras ---------- */
+  .chip.x { opacity: .35; position: relative; }
+  .chip.x::after { content: '✕'; position: absolute; inset: 0; color: #7d2b21; font-size: 14px; font-weight: bold; line-height: 17px; text-align: center; }
+  .take { font-size: 12px; font-weight: bold; color: #8a829c; }
+  .circles { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .circles span { width: 64px; height: 64px; border-radius: 50%; border: 3px solid #8f78c9; background: #fbfaff; display: flex; align-items: center; justify-content: center;
+    font-family: 'Courier New', monospace; font-weight: bold; font-size: 20px; }
+  .ansrow input.md { width: 96px; }
+  .ansrow .unit { font-size: 15px; font-weight: bold; color: #5d5670; }
+  table.food { border-collapse: collapse; margin: 10px auto 14px; font-size: 15px; }
+  table.food th { background: #ece6f7; color: #3d2a6b; padding: 6px 12px; border: 2px solid #d9d0ec; }
+  table.food td { padding: 5px 12px; border: 2px solid #e2dcef; }
+  table.food td + td { text-align: center; font-family: 'Courier New', monospace; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <button class="sound" id="soundBtn" onclick="toggleSound()" aria-label="Sound on or off">🔊</button>
+  <div class="ic">➖</div>
+  <h1>Simple Subtraction within 10 000</h1>
+  <p>My Pals Are Here! Maths 3A · Chapter 3 · Lesson 1</p>
+</header>
+
+<nav class="nav">
+  <a href="#watch">👀 Watch it</a><a href="#try">✏️ Your turn</a><a href="#spot">🔍 Spot the mistake</a><a href="#test">🏆 Test</a>
+</nav>
+
+<div class="card intro">
+  <p><b>Bigger number on top, ones under ones. Then take away column by column, starting at the ones: top digit − bottom digit.</b></p>
+  <p>Watch one example, try 9 from the book, catch the mistakes — then take the 17-question test (1 minute each · pass = 80%).</p>
+  <div class="badges">
+    <div class="badge" id="b1"><span class="bi">👀</span>Watch it</div>
+    <div class="badge" id="b2"><span class="bi">✏️</span>Your turn</div>
+    <div class="badge" id="b3"><span class="bi">🔍</span>Mistake finder</div>
+    <div class="badge" id="b4"><span class="bi">🏆</span>Test passed</div>
+  </div>
+</div>
+
+<!-- ===================== 1 · WATCH IT ===================== -->
+<h2 class="sect" id="watch"><span>👀 1 · Watch it — book page 50</span></h2>
+<div class="card">
+  <p class="body">Find the <b>difference</b> between <b>5987</b> and <b>864</b>. &nbsp;5987 − 864 = ?</p>
+  <div class="watch">
+    <div id="pv"></div>
+    <div id="wcol"></div>
+  </div>
+  <div class="prompt" id="wPrompt"></div>
+  <div class="fb" id="wFb"></div>
+  <div class="won" id="wWon"><span class="lbl">✅ You did it</span>
+    5987 − 864 = <b>5123</b>. The difference between 5987 and 864 is 5123.<br>
+    <b>The rules:</b> bigger number on top, ones under ones. Start at the ones and take the bottom digit away from the top digit.
+    If nothing is underneath, the digit comes <b>straight down</b>.<br>
+    A 0 in the middle must still be written: 2432 − 1331 = 11<b>0</b>1 (book page 51).</div>
+</div>
+
+<!-- ===================== 2 · YOUR TURN ===================== -->
+<h2 class="sect" id="try"><span>✏️ 2 · Your turn — book pages 52–53</span></h2>
+<div class="card">
+  <div class="gbar"><span class="round" id="tRound"></span><span class="stars" id="tStars"></span></div>
+  <div class="target" id="tAsk"></div>
+  <div id="tHost"></div>
+  <div class="fb" id="tFb"></div>
+  <div class="center" id="tNext"></div>
+  <div class="won" id="tWon"><span class="lbl">✅ All 9 done</span>
+    Bigger number on top. Start at the <b>ones</b>: top − bottom. Nothing underneath? The digit comes straight down.
+    To check, add your answer to the bottom number — you should get the top number.</div>
+</div>
+
+<!-- ===================== 3 · SPOT THE MISTAKE ===================== -->
+<h2 class="sect" id="spot"><span>🔍 3 · Spot the mistake</span></h2>
+<div class="card">
+  <div class="gbar"><span class="round" id="sRound"></span><span class="stars" id="sStars"></span></div>
+  <div id="sBody"></div>
+  <div class="fb" id="sFb"></div>
+  <div class="center" id="sNext"></div>
+  <div class="won" id="sWon"><span class="lbl">✅ Mistake finder</span>
+    Three mistakes to watch for: <b>leaving out digits that have nothing under them</b>, <b>adding in a column instead of taking away</b>,
+    and <b>not lining up the ones</b>. To check a subtraction, add: answer + bottom number = top number.</div>
+</div>
+
+<!-- ===================== 4 · TEST ===================== -->
+<h2 class="sect" id="test"><span>🏆 4 · The test — Homework pages 31–34</span></h2>
+<div class="card center" id="gate">
+  <p class="body"><b>17 questions</b> — all of Homework Practice 1 (pages 31–34) · <b>1 minute each</b> (17 minutes in all) · pass mark <b>80%</b> (14 right).</p>
+  <p class="body">Type your answer and press <b>Check</b>. You get one try per question — if it's wrong, you'll see why straight away.</p>
+  <p style="margin-top:12px"><button class="btn amber" onclick="startQuiz()">▶ Start the test</button></p>
+</div>
+<div class="card hidden" id="quiz">
+  <div class="qbar"><span id="qNum"></span><span id="qScore"></span><span class="time" id="qTime"></span></div>
+  <div class="progress"><i id="qProg"></i></div>
+  <div id="qBody"></div>
+</div>
+<div class="card hidden" id="result"></div>
+
+<div class="foot">My Pals Are Here! Maths 3A · Pupil's Book p49–53 · Homework p31–34 ·
+  <a href="../homework.html">← My homework</a></div>
+</div>
+<script>
+/* ================= shared helpers (keep in this first script) ================= */
+var PLACE = ['ones', 'tens', 'hundreds', 'thousands', 'ten thousands'];
+function $(id) { return document.getElementById(id); }
+function digitsOf(x, n) {            // index 0 = ones; null past the number's length
+  var s = String(x), out = [];
+  for (var i = 0; i < n; i++) out.push(i < s.length ? +s[s.length - 1 - i] : null);
+  return out;
+}
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function needsRegroup(a, b) {         // some column has a smaller top digit (that's Lesson 2)
+  var n = String(a).length, da = digitsOf(a, n), db = digitsOf(b, n);
+  for (var i = 0; i < n; i++) if (da[i] < (db[i] || 0)) return true;
+  return false;
+}
+function flipSub(a, b) {              // took the smaller digit from the bigger one in every column
+  var n = String(a).length, da = digitsOf(a, n), db = digitsOf(b, n), s = '';
+  for (var i = n - 1; i >= 0; i--) s += Math.abs(da[i] - (db[i] || 0));
+  return +s;
+}
+function hopsUp(b, a) {               // count up from b to a: to the next ten, next hundred, …, then to a
+  var hops = [], cur = b;
+  [10, 100, 1000].forEach(function (p) {
+    var nx = Math.ceil(cur / p) * p;
+    if (nx > cur && nx <= a) { hops.push([cur, nx]); cur = nx; }
+  });
+  if (cur < a) hops.push([cur, a]);
+  return hops;
+}
+function explainCountUp(a, b) {
+  var h = hopsUp(b, a), lines = [];
+  lines.push('A top digit is smaller than the one under it, so a column can\'t be taken away yet (that\'s Lesson 2). Count up from <b>' + b + '</b> to <b>' + a + '</b> instead:');
+  h.forEach(function (x) { lines.push(x[0] + ' → ' + x[1] + ' is <b>' + (x[1] - x[0]) + '</b>'); });
+  lines.push('Add the jumps: ' + h.map(function (x) { return x[1] - x[0]; }).join(' + ') + ' = <b>' + (a - b) + '</b>. So <b>' + a + ' − ' + b + ' = ' + (a - b) + '</b>.');
+  return lines.join('<br>');
+}
+function explainSub(a, b) {
+  if (needsRegroup(a, b)) return explainCountUp(a, b);
+  var n = String(a).length, da = digitsOf(a, n), db = digitsOf(b, n), ans = a - b, lines = [];
+  for (var i = 0; i < n; i++) {
+    var d = da[i] - (db[i] || 0);
+    if (db[i] === null) lines.push('<b>' + cap(PLACE[i]) + ':</b> nothing to take away → <b>' + da[i] + '</b> comes straight down.');
+    else lines.push('<b>' + cap(PLACE[i]) + ':</b> ' + da[i] + ' − ' + db[i] + ' = <b>' + d + '</b>' + (d === 0 && i === n - 1 ? ' (a 0 at the front isn\'t written)' : '') + '.');
+  }
+  lines.push('So <b>' + a + ' − ' + b + ' = ' + ans + '</b>. Check: ' + ans + ' + ' + b + ' = ' + a + ' ✓');
+  return lines.join('<br>');
+}
+function diagnoseSub(a, b, v) {
+  var ans = a - b, n = String(a).length;
+  if (v === a + b) return 'You added. "Difference", "how many more" and "how many fewer" all mean take away: bigger − smaller.';
+  if (needsRegroup(a, b)) {
+    if (v === flipSub(a, b)) return 'Where the top digit was smaller, you took the top away from the bottom instead. You can\'t flip a column! Count up from ' + b + ' to ' + a + ' instead.';
+    return 'Count up from ' + b + ' to ' + a + ' in jumps — to the next ten, the next hundred, then to ' + a + '.';
+  }
+  for (var k = 1; k < n; k++) {
+    var m = Math.pow(10, k);
+    if (v === ans % m && ans >= m) return 'You left out the digits on the left that had nothing under them. They come straight down.';
+  }
+  for (k = 1; k <= 3; k++) {
+    var bb = b * Math.pow(10, k);
+    if (bb < a && v === a - bb) return 'The numbers weren\'t lined up — ' + b + ' was written too far to the left. Ones under ones: line them up from the <b>right</b>.';
+  }
+  var da = digitsOf(a, n), db = digitsOf(b, n), dr = digitsOf(ans, n), dv = digitsOf(v, n), bad = [];
+  if (String(v).length <= n) {
+    for (var i = 0; i < n; i++) if ((dv[i] || 0) !== (dr[i] || 0)) bad.push(i);
+    if (bad.length === 1) {
+      i = bad[0];
+      if (db[i] !== null && dv[i] === (da[i] + db[i]) % 10) return 'In the ' + PLACE[i] + ' you added (' + da[i] + ' + ' + db[i] + '). Take away: ' + da[i] + ' − ' + db[i] + ' = ' + dr[i] + '.';
+      if (db[i] === null) return 'Nothing is under the ' + PLACE[i] + ' digit — the ' + da[i] + ' comes straight down.';
+      return 'Check the ' + PLACE[i] + ': ' + da[i] + ' − ' + db[i] + ' = ' + dr[i] + '.';
+    }
+  }
+  return 'Go column by column, starting at the ones: top digit − bottom digit.';
+}
+
+/* ---- sound (WebAudio, no files) ---- */
+var soundOn = true, AC = null;
+try { soundOn = localStorage.getItem('kidsSound') !== 'off'; } catch (e) {}
+function paintSound() { $('soundBtn').textContent = soundOn ? '🔊' : '🔇'; }
+function toggleSound() { soundOn = !soundOn; try { localStorage.setItem('kidsSound', soundOn ? 'on' : 'off'); } catch (e) {} paintSound(); }
+function tone(f, t0, dur, type, vol) {
+  if (!soundOn) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    var o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + t0;
+    o.type = type || 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(vol || .16, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+function sfxOk() { tone(660, 0, .12); tone(880, .1, .18); }
+function sfxNo() { tone(220, 0, .22, 'square', .07); }
+function sfxWin() { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * .11, .25); }); }
+
+/* ---- confetti (pure CSS) ---- */
+function confetti(n) {
+  var colors = ['#5b3f99', '#e8508a', '#e67e22', '#2a9d8f', '#f1c40f', '#3a7d44'];
+  for (var i = 0; i < (n || 70); i++) {
+    var s = document.createElement('span');
+    s.className = 'confetti';
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.background = colors[i % colors.length];
+    s.style.animationDuration = (1.6 + Math.random() * 1.6) + 's';
+    s.style.animationDelay = (Math.random() * .4) + 's';
+    document.body.appendChild(s);
+    setTimeout(function (el) { el.remove(); }.bind(null, s), 3800);
+  }
+}
+function badge(id) { var b = $(id); if (b && !b.classList.contains('on')) { b.classList.add('on', 'pop'); } }
+
+/* ---- static column display: rows are right-aligned strings ---- */
+function colGrid(n, rows) {           // rows: [{op, cells:[...n], cls}] or 'line'
+  var html = '<div class="colw" style="grid-template-columns:30px repeat(' + n + ',auto)">';
+  rows.forEach(function (r) {
+    if (r === 'line') { html += '<div class="line"></div>'; return; }
+    html += '<div class="c ' + (r.small ? 'cs' : '') + ' op">' + (r.op || '') + '</div>';
+    r.cells.forEach(function (x, p) {
+      var extra = (r.cls && r.cls[p]) || '';
+      html += '<div class="c ' + (r.small ? 'cs cc ' : '') + extra + '">' + (x === null || x === undefined ? '' : x) + '</div>';
+    });
+  });
+  return html + '</div>';
+}
+function padCells(str, n, shift) {    // right-align str into n cells, optionally shifted left by `shift`
+  var cells = [], s = String(str) + ' '.repeat(shift || 0);
+  for (var p = 0; p < n; p++) { var k = s.length - n + p; var ch = k >= 0 ? s[k] : ''; cells.push(ch === ' ' ? '' : ch); }
+  return cells;
+}
+
+/* ---- the interactive column subtractor (lesson + practice), no regrouping ---- */
+function ColSub(host, a, b, onDone) {
+  var n = String(a).length, da = digitsOf(a, n), db = digitsOf(b, n), ansN = a - b, dr = digitsOf(ansN, n);
+  var self = this, tries = {}, failed = false;
+  var html = '<div class="colbox"><div class="colw" style="grid-template-columns:30px repeat(' + n + ',auto)">';
+  html += '<div class="c"></div>';
+  for (var p = 0; p < n; p++) html += '<div class="c">' + da[n - 1 - p] + '</div>';
+  html += '<div class="c op">−</div>';
+  for (p = 0; p < n; p++) html += '<div class="c">' + (db[n - 1 - p] === null ? '' : db[n - 1 - p]) + '</div>';
+  html += '<div class="line"></div><div class="c"></div>';
+  for (p = 0; p < n; p++) html += '<div class="c"><input class="dg" data-a="' + (n - 1 - p) + '" inputmode="numeric" maxlength="1" aria-label="' + PLACE[n - 1 - p] + ' digit of the answer"></div>';
+  html += '</div></div><div class="colhint">Start at the ones (right). Top digit − bottom digit.</div>' +
+    '<div class="center"><button class="btn green sm" data-go>Check</button> <button class="peek" data-how>👀 Show me how</button></div>' +
+    '<div class="how hidden" data-howbox>' + explainSub(a, b) + '</div>';
+  host.innerHTML = html;
+  var ans = [];
+  host.querySelectorAll('input.dg').forEach(function (el) { ans[+el.dataset.a] = el; });
+  host.querySelectorAll('input').forEach(function (el) {
+    el.addEventListener('input', function () {
+      el.value = el.value.replace(/\D/g, '').slice(-1);
+      el.classList.remove('bad', 'good');
+      if (el.value) { var nx = ans[+el.dataset.a + 1]; if (nx) nx.focus(); }
+    });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter') self.check(); });
+  });
+  host.querySelector('[data-go]').onclick = function () { self.check(); };
+  host.querySelector('[data-how]').onclick = function () { host.querySelector('[data-howbox]').classList.toggle('hidden'); };
+  this.fb = null; this.done = false;
+  function say(msg, ok) { if (self.fb) { self.fb.innerHTML = msg; self.fb.className = 'fb ' + (ok ? 'ok' : 'no'); } }
+  this.check = function () {
+    if (self.done) return;
+    for (var i = 0; i < n; i++) {
+      var el = ans[i], v = el.value, want = dr[i];
+      if (want === null) {                               // leading place of a shorter answer: blank or 0 both fine
+        if (v !== '' && v !== '0') { fail(el, i, 'The answer has no ' + PLACE[i] + ' — leave this box empty.', 'Leave the ' + PLACE[i] + ' box empty.'); return; }
+        continue;
+      }
+      if (v === '' || +v !== want) {
+        var first = v === '' ? 'Fill in the ' + PLACE[i] + ' box.'
+          : db[i] === null ? 'Nothing is under the ' + PLACE[i] + ' digit — what comes straight down?'
+          : (+v === (da[i] + db[i]) % 10 && da[i] + db[i] !== want) ? 'That\'s adding! Take away: ' + da[i] + ' − ' + db[i] + '.'
+          : 'Look at the ' + PLACE[i] + ' column. Take ' + db[i] + ' away from ' + da[i] + '.';
+        var second = db[i] === null ? 'Nothing to take away — write <b>' + da[i] + '</b>.' : da[i] + ' − ' + db[i] + ' = <b>' + want + '</b>.';
+        fail(el, i, first, second); return;
+      }
+      el.classList.add('good');
+    }
+    self.done = true; sfxOk();
+    say('✓ ' + a + ' − ' + b + ' = ' + ansN + (failed ? '' : ' — first try! ⭐'), true);
+    host.querySelectorAll('input').forEach(function (x) { x.disabled = true; });
+    host.querySelector('[data-go]').classList.add('hidden');
+    if (onDone) onDone(!failed);
+  };
+  function fail(el, key, msg1, msg2) {
+    failed = true; tries[key] = (tries[key] || 0) + 1;
+    el.classList.add('bad'); el.focus(); el.select && el.select();
+    say(tries[key] === 1 ? msg1 : msg2, false); sfxNo();
+  }
+  // Focus only after the kid has clicked something (Next), never on page load — that would pop the iPad keyboard.
+  var start = ans[0], ae = document.activeElement;
+  if (start && ae && ae !== document.body) setTimeout(function () { try { start.focus({ preventScroll: true }); } catch (e) {} }, 50);
+}
+
+/* ---- count up from b to a in jumps (for the few that need regrouping — Lesson 2 teaches the column way) ---- */
+function CountUp(host, a, b, onDone) {
+  var hops = hopsUp(b, a), k = 0, self = this, tries = 0;
+  this.fb = null;
+  function say(msg, ok) { if (self.fb) { self.fb.innerHTML = msg; self.fb.className = 'fb ' + (ok ? 'ok' : 'no'); } }
+  function draw() {
+    var done = hops.slice(0, k).map(function (x) { return x[0] + ' + <b>' + (x[1] - x[0]) + '</b> = ' + x[1]; }).join('<br>');
+    var ask = k < hops.length ? hops[k][0] + ' + {i} = ' + hops[k][1]
+      : 'Add the jumps: ' + hops.map(function (x) { return x[1] - x[0]; }).join(' + ') + ' = {i}';
+    host.innerHTML = '<div class="prompt"><div style="font-size:15px;color:#5d5670">Count up from ' + b + ' to ' + a + '</div>' +
+      (done ? '<div>' + done + '</div>' : '') + ask.replace('{i}', '<input data-cu inputmode="numeric" maxlength="4">') +
+      '<div style="margin-top:8px"><button class="btn green sm" data-go>Check</button></div></div>';
+    var inp = host.querySelector('[data-cu]');
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+    host.querySelector('[data-go]').onclick = go;
+    setTimeout(function () { try { inp.focus({ preventScroll: true }); } catch (e) {} }, 50);
+  }
+  function go() {
+    var inp = host.querySelector('[data-cu]'), v = inp.value.trim();
+    if (v === '') return;
+    var want = k < hops.length ? hops[k][1] - hops[k][0] : a - b;
+    if (+v !== want) {
+      tries++; sfxNo();
+      say(k < hops.length ? (tries === 1 ? 'How far is it from ' + hops[k][0] + ' up to ' + hops[k][1] + '?' : hops[k][1] + ' − ' + hops[k][0] + ' = ' + want + '.') : 'Add the jumps together.', false);
+      return;
+    }
+    tries = 0; sfxOk(); k++;
+    if (k <= hops.length) { say('✓', true); draw(); return; }
+    host.innerHTML = '<div class="prompt">' + hops.map(function (x) { return x[0] + ' + <b>' + (x[1] - x[0]) + '</b> = ' + x[1]; }).join('<br>') + '</div>';
+    say('✓ ' + a + ' − ' + b + ' = ' + (a - b), true);
+    if (onDone) onDone();
+  }
+  draw();
+}
+</script>
+
+<script>
+/* ================= 1 · WATCH IT (book p50: 5987 − 864) ================= */
+var W = { a: 5987, b: 864, step: 0, res: {}, gone: {}, tries: 0 };
+var W_STEPS = [
+  { hi: -1, ask: 'First, set it up. Which number goes on <b>top</b>?<br>{i}', ans: [5987],
+    wrong: { 864: 'We take 864 <i>away</i>, so it goes underneath. The number you start with — the bigger one — goes on top.' },
+    hints: ['You start with 5987 and take 864 away. The number you start with goes on top.', 'Type 5987.'],
+    ok: '5987 on top, 864 underneath — ones under ones.' },
+  { hi: 0, ask: '<b>Step 1 · Subtract the ones.</b> Cross out 4 of the 7 pink ones.<br>7 − 4 = {i}', ans: [3],
+    wrong: { 11: 'That\'s 7 + 4. We are taking away!' },
+    hints: ['7 ones, take away 4. How many are left?', '7 − 4 = 3.'],
+    ok: '3 ones left.', apply: function () { W.gone[0] = 4; W.res[0] = 3; } },
+  { hi: 1, ask: '<b>Step 2 · Subtract the tens.</b><br>8 − 6 = {i}', ans: [2],
+    wrong: { 14: 'That\'s 8 + 6. Take away!' },
+    hints: ['8 orange tens, take away 6.', '8 − 6 = 2.'],
+    ok: '2 tens left.', apply: function () { W.gone[1] = 6; W.res[1] = 2; } },
+  { hi: 2, ask: '<b>Step 3 · Subtract the hundreds.</b><br>9 − 8 = {i}', ans: [1],
+    wrong: { 17: 'That\'s 9 + 8. Take away!' },
+    hints: ['9 purple hundreds, take away 8.', '9 − 8 = 1.'],
+    ok: '1 hundred left.', apply: function () { W.gone[2] = 8; W.res[2] = 1; } },
+  { hi: 3, ask: '<b>Step 4 · Subtract the thousands.</b> 864 has <b>no</b> thousands — nothing to take away.<br>5 − 0 = {i}', ans: [5],
+    wrong: { 0: 'Nothing is taken away, so all 5 thousands are still there. The 5 comes straight down.' },
+    hints: ['Nothing is under the 5. How many thousands are still there?', '5 − 0 = 5.'],
+    ok: '5 thousands — it came straight down.', apply: function () { W.res[3] = 5; } },
+  { hi: -1, ask: '<b>Check!</b> Add the answer and the bottom number. You should get the top number back.<br>5123 + 864 = {i}', ans: [5987],
+    hints: ['Add column by column: 3 + 4, 2 + 6, 1 + 8, 5 + 0.', '5123 + 864 = 5987.'],
+    ok: '5987 — the number we started with, so 5123 is right!' }
+];
+function chips(n, cls, crossed) {
+  var s = '<div class="chips">';
+  for (var i = 0; i < n; i++) s += '<span class="chip ' + cls + (i >= n - (crossed || 0) ? ' x' : '') + '"></span>';
+  return s + '</div>';
+}
+function drawWatch() {
+  var hi = W.step < W_STEPS.length ? W_STEPS[W.step].hi : -1;
+  var cls = ['o', 'te', 'h', 't'], da = digitsOf(W.a, 4), db = digitsOf(W.b, 4);
+  var head = '<tr><td class="lab"></td><th class="t">Th</th><th class="h">H</th><th class="te">T</th><th class="o">O</th></tr>';
+  var top = '<tr><td class="lab">' + W.a + '</td>', take = '<tr><td class="lab">− ' + W.b + '</td>', left = '<tr class="sum"><td class="lab">';
+  left += [3, 2, 1, 0].map(function (p) { return W.res[p] === undefined ? '?' : W.res[p]; }).join('') + '</td>';
+  for (var p = 3; p >= 0; p--) {
+    var h = p === hi ? ' class="hi"' : '';
+    top += '<td' + h + '>' + chips(da[p], cls[p], W.gone[p]) + '</td>';
+    take += '<td' + h + '><span class="take">' + (db[p] === null ? 'nothing' : 'take ' + db[p]) + '</span></td>';
+    left += '<td' + h + '>' + (W.res[p] === undefined ? '' : chips(W.res[p], cls[p])) + '</td>';
+  }
+  $('pv').innerHTML = '<table class="pv">' + head + top + '</tr>' + take + '</tr>' + left + '</tr></table>';
+  var hic = [3, 2, 1, 0].map(function (i) { return i === hi ? 'hi' : ''; });
+  $('wcol').innerHTML = colGrid(4, [
+    { cells: padCells(W.a, 4), cls: hic },
+    { op: '−', cells: padCells(W.b, 4), cls: hic },
+    'line',
+    { cells: [3, 2, 1, 0].map(function (i) { return W.res[i] === undefined ? '' : W.res[i]; }), cls: hic }
+  ]);
+}
+function drawWatchPrompt() {
+  if (W.step >= W_STEPS.length) {
+    $('wPrompt').classList.add('hidden'); $('wWon').classList.add('show'); badge('b1'); sfxWin(); return;
+  }
+  var st = W_STEPS[W.step], k = 0;
+  $('wPrompt').innerHTML = st.ask.replace(/\{i\}/g, function () {
+    return '<input data-k="' + (k++) + '" inputmode="numeric" maxlength="5"' + (st.ans[0] > 99 ? ' style="width:100px"' : '') + '>';
+  }) + '<div style="margin-top:8px"><button class="btn green sm" onclick="checkWatch()">Check</button></div>';
+  $('wPrompt').querySelectorAll('input').forEach(function (el) {
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter') checkWatch(); });
+  });
+  W.tries = 0;
+}
+function checkWatch() {
+  var st = W_STEPS[W.step], ins = $('wPrompt').querySelectorAll('input'), ok = true, vals = [];
+  ins.forEach(function (el, i) { vals.push(el.value.trim()); if (+el.value !== st.ans[i] || el.value.trim() === '') ok = false; });
+  var fb = $('wFb');
+  if (vals.some(function (v) { return v === ''; })) { fb.className = 'fb no'; fb.textContent = 'Type a number in each box.'; return; }
+  if (!ok) {
+    sfxNo(); W.tries++;
+    fb.className = 'fb no';
+    fb.innerHTML = (st.wrong && st.wrong[vals[0]]) || st.hints[Math.min(W.tries, st.hints.length) - 1];
+    return;
+  }
+  sfxOk(); fb.className = 'fb ok'; fb.innerHTML = '✓ ' + st.ok;
+  if (st.apply) st.apply();
+  W.step++; drawWatch(); drawWatchPrompt();
+}
+drawWatch(); drawWatchPrompt();
+
+/* ================= 2 · YOUR TURN (book p52–53 Guided Practice) ================= */
+var T_ITEMS = [
+  { a: 2687, b: 1435, ask: '1 · The difference between 2687 and 1435 is …' },
+  { a: 5639, b: 1405, ask: '2 · What is the difference between 1405 and 5639?' },
+  { a: 1745, b: 21, ask: '3(a) · Subtract. (Ones under ones!)' },
+  { a: 2950, b: 30, ask: '3(c) · Subtract.' },
+  { a: 5698, b: 386, ask: '3(e) · Subtract.' },
+  { a: 9832, b: 7512, ask: '3(g) · Subtract.' },
+  { a: 3996, b: 75, ask: '4(a) · Find the difference between 3996 and 75.' },
+  { a: 4997, b: 1895, order: true, ask: '4(c) · Find the difference between <b>1895</b> and <b>4997</b>.' },
+  { star: true, ask: '5 · What is the value of ★?&nbsp; 2670 − ★ = 670' }
+];
+var T = { i: 0, stars: [], first: true, tries: 0 };
+function drawTry() {
+  var it = T_ITEMS[T.i];
+  $('tRound').textContent = 'QUESTION ' + (T.i + 1) + ' OF ' + T_ITEMS.length;
+  $('tStars').textContent = T.stars.join('');
+  $('tAsk').innerHTML = it.ask;
+  $('tFb').textContent = ''; $('tFb').className = 'fb'; $('tNext').innerHTML = '';
+  T.first = true; T.tries = 0;
+  if (it.star) {
+    $('tHost').innerHTML = '<div class="prompt">2670 − ★ = 670<br>★ = <input id="tStar" inputmode="numeric" maxlength="5" style="width:100px">' +
+      '<div style="margin-top:8px"><button class="btn green sm" onclick="tryStar()">Check</button> <button class="peek" onclick="$(\'tStarHow\').classList.toggle(\'hidden\')">👀 Show me how</button></div></div>' +
+      '<div class="how hidden" id="tStarHow">2670 and 670 look the same except for the <b>thousands</b>: 2670 has 2 thousands, 670 has none.<br>' +
+      'So the 2 thousands were taken away: ★ = 2670 − 670 = <b>2000</b>.<br>Check: 2670 − 2000 = 670 ✓</div>';
+    $('tStar').addEventListener('keydown', function (e) { if (e.key === 'Enter') tryStar(); });
+    return;
+  }
+  if (it.order) {
+    $('tHost').innerHTML = '<p class="body center" style="margin-top:12px"><b>Which number goes on top?</b></p>' +
+      '<div class="yn"><button class="btn ghost" onclick="tryOrder(1895)">1895</button><button class="btn ghost" onclick="tryOrder(4997)">4997</button></div>';
+    return;
+  }
+  tryGrid(it);
+}
+function tryGrid(it) {
+  var w = new ColSub($('tHost'), it.a, it.b, function (first) { tryDone(first && T.first); });
+  w.fb = $('tFb');
+}
+function tryOrder(top) {
+  var it = T_ITEMS[T.i];
+  if (top === 4997) { sfxOk(); tryGrid(it); $('tFb').className = 'fb ok'; $('tFb').innerHTML = '✓ Bigger number on top: 4997 − 1895.'; }
+  else { T.first = false; sfxNo(); $('tFb').className = 'fb no'; $('tFb').innerHTML = 'You can\'t take 4997 away from 1895 — it\'s too big! The <b>bigger</b> number always goes on top, even when it\'s written second.'; }
+}
+function tryStar() {
+  var el = $('tStar'), v = el.value.trim(), fb = $('tFb');
+  if (v === '' || el.disabled) return;
+  if (+v === 2000) {
+    el.disabled = true; el.style.borderColor = '#3a7d44'; sfxOk();
+    fb.className = 'fb ok'; fb.innerHTML = '✓ ★ = 2000. 2670 − 2000 = 670' + (T.first ? ' — first try! ⭐' : '');
+    tryDone(T.first); return;
+  }
+  T.first = false; T.tries++; sfxNo(); el.style.borderColor = '#c0392b'; fb.className = 'fb no';
+  fb.innerHTML = +v === 3340 ? 'That\'s 2670 + 670. ★ is what you take <i>away</i> from 2670 to leave 670.'
+    : T.tries === 1 ? 'Compare 2670 and 670. Which digit is different?' : '2670 − 670 = ? That\'s ★.';
+}
+function tryDone(first) {
+  T.stars.push(first ? '⭐' : '✔️'); $('tStars').textContent = T.stars.join('');
+  if (T.i < T_ITEMS.length - 1) $('tNext').innerHTML = '<button class="btn" onclick="T.i++;drawTry()">Next →</button>';
+  else { $('tWon').classList.add('show'); badge('b2'); sfxWin(); confetti(40); }
+}
+drawTry();
+
+/* ================= 3 · SPOT THE MISTAKE ================= */
+var REASONS = {
+  bring: 'Left out the digits that had nothing under them',
+  add: 'Added in a column instead of taking away',
+  align: 'Lined the numbers up the wrong way',
+  flip: 'Took the top digit away from the bottom digit'
+};
+var S_ITEMS = [
+  { who: 'Julian', a: 7688, b: 73, said: 15, reason: 'bring', src: 'book page 53',
+    why: { bring: 'Yes! 73 has no hundreds or thousands, so the 6 and the 7 come straight down. 7688 − 73 = 7615.',
+           add: 'Ones: 8 − 3 = 5 ✓. Tens: 8 − 7 = 1 ✓. Those are right. What happened to the 7 and 6 on the left?',
+           align: '73 is under the 8 and 8 — ones under ones, tens under tens. That\'s fine. What happened to the 7 and 6 on the left?',
+           flip: 'Every top digit is bigger than the one under it — nothing flipped. What happened to the 7 and 6 on the left?' } },
+  { who: 'Mei Ling', a: 9832, b: 7512, said: 2320, ok: true, src: 'book page 53' },
+  { who: 'Ali', a: 1745, b: 21, said: 1535, reason: 'align', shift: 1, src: 'book page 53',
+    why: { align: 'Yes! 21 is 2 tens and 1 one, but Ali wrote it one place too far left — as if it were 210. Ones under ones: 1745 − 21 = 1724.',
+           bring: 'The 1 thousand did come down. Look at where the 21 is written.',
+           add: 'Every column was taken away. Look at where the 21 is written.',
+           flip: 'Nothing was flipped. Look at where the 21 is written — under the 7 and the 4.' } },
+  { who: 'Farah', a: 5698, b: 386, said: 5912, reason: 'add', src: 'book page 53',
+    why: { add: 'Yes! In the hundreds she did 6 + 3 = 9. Take away: 6 − 3 = 3. 5698 − 386 = 5312.',
+           bring: 'The 5 thousands came down fine. Look at the hundreds: how did 6 and 3 make 9?',
+           align: 'Ones are under ones — the lining up is fine. Look at the hundreds: how did 6 and 3 make 9?',
+           flip: '3 − 6 doesn\'t make 9 either. Look at the hundreds: how did 6 and 3 make 9?' } }
+];
+var SP = { i: 0, stage: 0, first: true, stars: [] };
+function spotWork(it) {
+  var n = 4;
+  return '<div class="colbox">' + colGrid(n, [
+    { cells: padCells(it.a, n) }, { op: '−', cells: padCells(it.b, n, it.shift || 0) }, 'line',
+    { cells: padCells(it.said, n), cls: [0, 1, 2, 3].map(function () { return 'claim'; }) }
+  ]) + '</div>';
+}
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function drawSpot() {
+  var it = S_ITEMS[SP.i];
+  $('sRound').textContent = 'MISTAKE HUNT ' + (SP.i + 1) + ' OF ' + S_ITEMS.length;
+  $('sStars').textContent = SP.stars.join('');
+  $('sFb').textContent = ''; $('sFb').className = 'fb'; $('sNext').innerHTML = '';
+  var head = '<div class="notebook"><div class="who">📝 <b>' + it.who + '</b> worked out ' + it.a + ' − ' + it.b +
+    ' and got <b>' + it.said + '</b>. <span style="color:#8a829c;font-size:13px">(numbers from ' + it.src + ')</span></div>' + spotWork(it) + '</div>';
+  var body = '';
+  if (SP.stage === 0) {
+    body = '<p class="body center" style="margin-top:12px"><b>Is ' + it.who + ' correct?</b></p>' +
+      '<div class="yn"><button class="btn green" onclick="spotYN(true)">✓ Yes</button><button class="btn amber" onclick="spotYN(false)">✗ No</button></div>';
+  } else if (SP.stage === 1) {
+    var keys = shuffle(Object.keys(REASONS));
+    body = '<p class="body center" style="margin-top:12px"><b>What went wrong?</b></p><div class="choices">' +
+      keys.map(function (k) { return '<button class="choice" data-k="' + k + '" onclick="spotWhy(this)">' + REASONS[k] + '</button>'; }).join('') + '</div>';
+  } else if (SP.stage === 2) {
+    body = '<div class="prompt">' + (it.ok ? 'Check it the book\'s way — add:<br>' + it.said + ' + ' + it.b + ' = {i}' : 'Now fix it:<br>' + it.a + ' − ' + it.b + ' = {i}')
+      .replace('{i}', '<input id="sIn" inputmode="numeric" maxlength="5" style="width:110px">') +
+      '<div style="margin-top:8px"><button class="btn green sm" onclick="spotFix()">Check</button></div></div>';
+  }
+  $('sBody').innerHTML = head + body;
+  var inp = $('sIn'); if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') spotFix(); });
+}
+function spotSay(msg, ok) { $('sFb').innerHTML = msg; $('sFb').className = 'fb ' + (ok ? 'ok' : 'no'); ok ? sfxOk() : sfxNo(); }
+function spotYN(yes) {
+  var it = S_ITEMS[SP.i];
+  if (yes === !!it.ok) {
+    spotSay(it.ok ? '✓ Right — ' + it.who + ' is correct. Let\'s prove it.' : '✓ Right — something\'s wrong. Let\'s find it.', true);
+    SP.stage = it.ok ? 2 : 1; setTimeout(drawSpot, 700);
+  } else {
+    SP.first = false;
+    spotSay(it.ok ? 'Check again, column by column: 2 − 2 = 0, 3 − 1 = 2, 8 − 5 = 3, 9 − 7 = 2 …' : 'Check it column by column, starting at the ones.', false);
+  }
+}
+function spotWhy(btn) {
+  var it = S_ITEMS[SP.i], k = btn.dataset.k;
+  if (k === it.reason) {
+    btn.classList.add('good'); spotSay('✓ ' + it.why[k], true);
+    $('sNext').innerHTML = '<button class="btn" onclick="SP.stage=2;drawSpot()">Fix it →</button>';
+    document.querySelectorAll('.choice').forEach(function (b) { b.disabled = true; });
+  } else { SP.first = false; btn.classList.add('bad'); spotSay(it.why[k], false); }
+}
+function spotFix() {
+  var it = S_ITEMS[SP.i], el = $('sIn'), v = el.value.trim();
+  if (v === '' || el.disabled) return;
+  var want = it.ok ? it.a : it.a - it.b;
+  if (+v === want) {
+    el.style.borderColor = '#3a7d44'; el.disabled = true;
+    spotSay(it.ok ? '✓ ' + it.said + ' + ' + it.b + ' = ' + it.a + ' — the number we started with, so the answer was right!' : '✓ ' + it.a + ' − ' + it.b + ' = ' + want + '.', true);
+    SP.stars.push(SP.first ? '⭐' : '✔️'); $('sStars').textContent = SP.stars.join('');
+    if (SP.i < S_ITEMS.length - 1) $('sNext').innerHTML = '<button class="btn" onclick="SP.i++;SP.stage=0;SP.first=true;drawSpot()">Next →</button>';
+    else { $('sNext').innerHTML = ''; $('sWon').classList.add('show'); badge('b3'); sfxWin(); confetti(40); }
+  } else {
+    SP.first = false; el.style.borderColor = '#c0392b';
+    spotSay(it.ok ? 'Not quite. Add column by column: 0 + 2, 2 + 1, 3 + 5, 2 + 7.' : diagnoseSub(it.a, it.b, +v), false);
+  }
+}
+drawSpot();
+</script>
+
+<script>
+/* ================= 4 · THE TEST (Homework 3A p31–34, Practice 1, all 17 questions) ================= */
+var SK_SUB = 'm3a.03.subregroup';
+var FOOD = [['Cheeseburgers', 400], ['Chicken Burgers', 450], ['Fish Burgers', 660], ['Chicken Nuggets', 330], ['Apple Pies', 358]];
+var questions = [
+  { id: '1(a)', a: 2766, b: 445, ans: 2321, pvt: true, pg: 31, sk: SK_SUB },
+  { id: '1(b)', a: 6984, b: 632, ans: 6352, pvt: true, pg: 31, sk: SK_SUB },
+  { id: '1(c)', a: 5479, b: 2035, ans: 3444, pvt: true, pg: 31, sk: SK_SUB },
+  { id: '1(d)', a: 6587, b: 4343, ans: 2244, pvt: true, pg: 31, sk: SK_SUB },
+  { id: '2(a)', a: 7825, b: 2204, ans: 5621, vert: true, pg: 32, sk: SK_SUB },
+  { id: '2(b)', a: 8043, b: 4012, ans: 4031, vert: true, pg: 32, sk: SK_SUB },
+  { id: '2(c)', a: 6372, b: 3260, ans: 3112, vert: true, pg: 32, sk: SK_SUB },
+  { id: '2(d)', a: 9958, b: 6435, ans: 3523, vert: true, pg: 32, sk: SK_SUB },
+  { id: '3(a)', pick: [37, 82, 46, 69], diff: 36, a: 82, b: 46, pg: 32, sk: SK_SUB },
+  { id: '3(b)', pick: [420, 378, 178, 650], diff: 230, a: 650, b: 420, pg: 32, sk: SK_SUB },
+  { id: '3(c)', pick: [900, 145, 575, 165], diff: 325, a: 900, b: 575, pg: 32, sk: SK_SUB },
+  { id: '4(a)', food: true, text: 'How many more chicken burgers than chicken nuggets did Sally sell?', a: 450, b: 330, ans: 120, unit: 'more chicken burgers', pg: 33, sk: SK_SUB },
+  { id: '4(b)', food: true, text: 'Find the difference between the number of cheeseburgers and the number of fish burgers Sally sold.', a: 660, b: 400, ans: 260, unit: 'burgers', pg: 33, sk: SK_SUB },
+  { id: '4(c)', food: true, text: 'How many fewer apple pies than cheeseburgers did Sally sell?', a: 400, b: 358, ans: 42, unit: 'fewer apple pies', pg: 33, sk: SK_SUB },
+  { id: '5', text: 'At ABC petrol station, 2570 litres of petrol were sold on Monday. On Tuesday, 5870 litres of petrol were sold. Find the difference between the amounts of petrol sold on the two days.', a: 5870, b: 2570, ans: 3300, unit: 'litres', pg: 34, sk: SK_SUB },
+  { id: '6', text: 'Baker Joe made 2874 fruit tarts and 1652 butter croissants. How many fewer butter croissants than fruit tarts did he make?', a: 2874, b: 1652, ans: 1222, unit: 'fewer butter croissants', pg: 34, sk: SK_SUB },
+  { id: '7', text: 'One Sunday morning, Vivian jogged 4562 m and Ahmad jogged 5994 m. How many more metres did Ahmad jog than Vivian?', a: 5994, b: 4562, ans: 1432, unit: 'm more', pg: 34, sk: SK_SUB }
+];
+// Every answer checked against the book's answer key (Homework 3A p154, Chapter 3 Practice 1).
+var SECS_PER_Q = 60;
+var QUIZ_SECS = questions.length * SECS_PER_Q;
+var PASS_PCT = 80, PASS_N = Math.ceil(questions.length * PASS_PCT / 100);
+var current = 0, score = 0, answered = false;
+var given = [], right = [], quizOn = false, timerId = null, secsLeft = 0;
+
+function fmtTime(s) { s = Math.max(0, s); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+function tick() {
+  secsLeft--;
+  $('qTime').textContent = '⏱ ' + fmtTime(secsLeft);
+  $('qTime').classList.toggle('low', secsLeft <= 60);
+  if (secsLeft <= 0) { clearInterval(timerId); timerId = null; if (quizOn) showResult(); }
+}
+function startQuiz() {
+  $('gate').classList.add('hidden'); $('result').classList.add('hidden'); $('quiz').classList.remove('hidden');
+  current = 0; score = 0; answered = false; given = []; right = []; quizOn = true;
+  secsLeft = QUIZ_SECS; $('qTime').textContent = '⏱ ' + fmtTime(secsLeft); $('qTime').classList.remove('low');
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(tick, 1000);
+  try { var s = window.QuizReport && QuizReport.session(); if (s) s.lastMark = Date.now(); } catch (e) {}
+  render();
+  $('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function foodTable() {
+  return '<table class="food"><tr><th>Types of Food</th><th>Number Sold</th></tr>' +
+    FOOD.map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('') + '</table>';
+}
+function qHTML(q) {
+  if (q.pvt) return '<div class="qtext">Subtract.</div><div class="colbox">' + colGrid(4, [{ small: true, cells: ['Th', 'H', 'T', 'O'] }, { cells: padCells(q.a, 4) }, { op: '−', cells: padCells(q.b, 4) }, 'line']) + '</div>';
+  if (q.vert) return '<div class="qtext">Subtract.</div><div class="colbox">' + colGrid(4, [{ cells: padCells(q.a, 4) }, { op: '−', cells: padCells(q.b, 4) }, 'line']) + '</div>';
+  if (q.pick) return '<div class="qtext">The difference between two of these numbers is ' + q.diff + '. Which two?</div>' +
+    '<div class="circles">' + q.pick.map(function (x) { return '<span>' + x + '</span>'; }).join('') + '</div>';
+  return (q.food ? '<p class="body center">Sally kept a record of her food stall sales.</p>' + foodTable() : '') + '<div class="qtext">' + q.text + '</div>';
+}
+function render() {
+  var q = questions[current];
+  answered = false;
+  $('qNum').textContent = 'Question ' + (current + 1) + ' of ' + questions.length;
+  $('qScore').textContent = '✓ ' + score;
+  $('qProg').style.width = (100 * current / questions.length) + '%';
+  var box = '<input id="qIn" inputmode="numeric" autocomplete="off" maxlength="6" aria-label="your answer">';
+  var row = q.pick
+    ? '<input id="qIn" class="md" inputmode="numeric" autocomplete="off" maxlength="4" aria-label="the bigger number"> − ' +
+      '<input id="qIn2" class="md" inputmode="numeric" autocomplete="off" maxlength="4" aria-label="the smaller number"> = ' + q.diff
+    : q.unit ? box + '<span class="unit">' + q.unit + '</span>' : box;
+  $('qBody').innerHTML = '<div class="center"><span class="qtag">Homework p' + q.pg + ' · Question ' + q.id + '</span></div>' + qHTML(q) +
+    '<div class="ansrow">' + row + '</div><div class="center"><button class="btn green" id="qGo" onclick="check()">Check</button></div>' +
+    '<div class="fb" id="qFb"></div><div class="explain" id="qExp"></div><div class="center" id="qNext"></div>';
+  ['qIn', 'qIn2'].forEach(function (id) {
+    var inp = $(id); if (!inp) return;
+    inp.addEventListener('input', function () { inp.value = inp.value.replace(/\D/g, ''); });
+    inp.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      if (answered) nextQ(); else if (id === 'qIn' && $('qIn2') && $('qIn2').value === '') $('qIn2').focus(); else check();
+    });
+  });
+  setTimeout(function () { try { $('qIn').focus({ preventScroll: true }); } catch (e) {} }, 60);
+}
+function ansText(q) { return q.pick ? q.a + ' − ' + q.b + ' = ' + q.diff : q.ans + (q.unit ? ' ' + q.unit : ''); }
+function givenText(q, g) { return q.pick ? g[0] + ' − ' + g[1] : String(g); }
+function explainQ(q) {
+  if (q.pick) {
+    var n = q.pick, lines = ['Try each pair, bigger − smaller:'];
+    for (var i = 0; i < n.length; i++) for (var j = i + 1; j < n.length; j++) {
+      var hi = Math.max(n[i], n[j]), lo = Math.min(n[i], n[j]), d = hi - lo;
+      lines.push(d === q.diff ? '<b>' + hi + ' − ' + lo + ' = ' + d + ' ✓</b>' : hi + ' − ' + lo + ' = ' + d);
+    }
+    lines.push('');
+    lines.push(explainSub(q.a, q.b));
+    return lines.join('<br>');
+  }
+  var s = '';
+  if (q.food) s = 'From the table: <b>' + q.a + '</b> and <b>' + q.b + '</b>.<br>';
+  else if (q.text) s = 'Find the difference: bigger − smaller = <b>' + q.a + ' − ' + q.b + '</b>.<br>';
+  return s + explainSub(q.a, q.b) + (q.unit ? '<br>Answer: <b>' + q.ans + ' ' + q.unit + '</b>.' : '');
+}
+function diagnoseQ(q, v) {
+  if (q.pick) {
+    var x = v[0], y = v[1];
+    if (q.pick.indexOf(x) < 0 || q.pick.indexOf(y) < 0) return 'Use two of the four numbers in the circles.';
+    if (x === y) return 'Pick two <b>different</b> numbers.';
+    if (Math.abs(x - y) === q.diff) return 'Right pair — but the bigger number goes first: ' + Math.max(x, y) + ' − ' + Math.min(x, y) + '.';
+    return Math.max(x, y) + ' − ' + Math.min(x, y) + ' = ' + Math.abs(x - y) + ', not ' + q.diff + '. Try the other pairs.';
+  }
+  if (q.food && v !== q.a + q.b) {
+    for (var i = 0; i < FOOD.length; i++) for (var j = 0; j < FOOD.length; j++) {
+      var d = FOOD[i][1] - FOOD[j][1];
+      if (d > 0 && d === v) return 'That\'s ' + FOOD[i][0].toLowerCase() + ' − ' + FOOD[j][0].toLowerCase() + '. Read the question again: which two rows of the table does it ask about?';
+    }
+  }
+  return diagnoseSub(q.a, q.b, v);
+}
+function check() {
+  if (answered || !quizOn) return;
+  var q = questions[current], el = $('qIn'), el2 = $('qIn2'), raw = el.value.trim();
+  if (raw === '' || (el2 && el2.value.trim() === '')) { $('qFb').className = 'fb no'; $('qFb').textContent = q.pick ? 'Type a number in both boxes.' : 'Type your answer first.'; return; }
+  var v = el2 ? [+raw, +el2.value.trim()] : +raw;
+  var ok = el2 ? (v[0] === q.a && v[1] === q.b) : v === q.ans;
+  given[current] = v; right[current] = ok; answered = true;
+  el.disabled = true; if (el2) el2.disabled = true; $('qGo').classList.add('hidden');
+  if (ok) {
+    score++; el.classList.add('good'); if (el2) el2.classList.add('good'); sfxOk();
+    $('qFb').className = 'fb ok'; $('qFb').textContent = '✓ Correct!';
+  } else {
+    el.classList.add('bad'); if (el2) el2.classList.add('bad'); sfxNo();
+    $('qFb').className = 'fb no'; $('qFb').innerHTML = '✗ Not quite — the answer is <b>' + ansText(q) + '</b>.';
+    $('qExp').innerHTML = '<div class="trap"><span class="lbl">What happened</span>' + diagnoseQ(q, v) + '</div><div class="how">' + explainQ(q) + '</div>';
+  }
+  $('qScore').textContent = '✓ ' + score;
+  var last = current === questions.length - 1;
+  $('qNext').innerHTML = '<button class="btn" style="margin-top:12px" onclick="nextQ()">' + (last ? 'See my score →' : 'Next →') + '</button>';
+}
+function nextQ() {
+  if (!quizOn) return;
+  if (current < questions.length - 1) { current++; render(); } else showResult();
+}
+function showResult() {
+  if (!quizOn) return;
+  quizOn = false;
+  if (timerId) { clearInterval(timerId); timerId = null; }
+  var used = QUIZ_SECS - Math.max(0, secsLeft), pct = Math.round(100 * score / questions.length), pass = pct >= PASS_PCT;
+  var stars = pct === 100 ? '⭐⭐⭐' : pct >= PASS_PCT ? '⭐⭐' : pct >= 50 ? '⭐' : '';
+  var missed = [];
+  questions.forEach(function (q, i) { if (!right[i]) missed.push(i); });
+  var html = '<div class="res-top"><div class="stars">' + (stars || '💪') + '</div><div class="pct">' + pct + '%</div>' +
+    '<div class="sub">' + score + ' right out of ' + questions.length + ' · the pass mark is ' + PASS_PCT + '% (' + PASS_N + ' correct)</div>' +
+    '<div class="sub">Time: ' + Math.floor(used / 60) + ' min ' + (used % 60) + ' s' + (secsLeft <= 0 ? ' — time ran out' : '') + '</div>' +
+    '<div class="verdict ' + (pass ? 'pass' : 'fail') + '">' + (pass ? '🎉 You passed!' : 'Not passed yet — ' + (PASS_N - score) + ' more needed') + '</div></div>';
+  if (missed.length) {
+    html += '<h3 class="rv">Let\'s look at the ' + (missed.length === 1 ? 'one' : missed.length) + ' you missed</h3>';
+    missed.forEach(function (i) {
+      var q = questions[i], g = given[i];
+      var sum = q.pvt || q.vert ? q.a + ' − ' + q.b : q.pick ? 'Which two of ' + q.pick.join(', ') + ' have a difference of ' + q.diff + '?' : q.text;
+      html += '<div class="miss"><div class="mh">Question ' + q.id + ': ' + sum + '<br>' +
+        (g === undefined ? '<span class="you">Not answered</span>' : 'You wrote <span class="you">' + givenText(q, g) + '</span>') +
+        ' · Answer: <span class="right">' + ansText(q) + '</span></div>' +
+        (g === undefined ? '' : '<div class="trap"><span class="lbl">What happened</span>' + diagnoseQ(q, g) + '</div>') +
+        '<div class="how">' + explainQ(q) + '</div></div>';
+    });
+    html += '<div class="center" style="margin-top:16px"><button class="btn amber" onclick="startRedo()">🔁 Practise the ones I missed</button>' +
+      '<button class="btn ghost" onclick="restart()">Take the whole test again</button></div><div id="redo"></div>';
+  } else {
+    html += '<p class="body center" style="margin-top:14px">Every single one right. Amazing! 🌟</p>' +
+      '<div class="center"><button class="btn ghost" onclick="restart()">Take the test again</button></div>';
+  }
+  $('quiz').classList.add('hidden');
+  var r = $('result'); r.innerHTML = html; r.classList.remove('hidden');
+  r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (pass) { badge('b4'); sfxWin(); confetti(); }
+}
+function restart() { startQuiz(); }
+
+/* ---- practise the missed ones (not scored, hints allowed) ---- */
+var RD = { list: [], i: 0 };
+function startRedo() {
+  RD.list = questions.map(function (q, i) { return i; }).filter(function (i) { return !right[i]; });
+  RD.i = 0; drawRedo();
+  $('redo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function drawRedo() {
+  var box = $('redo');
+  if (RD.i >= RD.list.length) {
+    box.innerHTML = '<div class="won show"><span class="lbl">✅ All fixed</span>You worked through every one you missed. Try the whole test again when you\'re ready!</div>';
+    sfxWin(); confetti(40); return;
+  }
+  var q = questions[RD.list[RD.i]];
+  var ask = q.pick ? 'The two numbers are <b>' + q.a + '</b> and <b>' + q.b + '</b>. Check that ' + q.a + ' − ' + q.b + ' = ' + q.diff + ':'
+    : q.text ? q.text + '<br><b>' + q.a + ' − ' + q.b + '</b>' : 'Subtract.';
+  box.innerHTML = '<div class="card" style="margin-top:14px;border:3px solid #e8c489"><div class="gbar"><span class="round">PRACTICE ' + (RD.i + 1) + ' OF ' + RD.list.length +
+    ' · QUESTION ' + q.id + ' · not scored</span></div><div class="target">' + ask + '</div><div id="rHost"></div><div class="fb" id="rFb"></div><div class="center" id="rNext"></div></div>';
+  var done = function () { $('rNext').innerHTML = '<button class="btn" onclick="RD.i++;drawRedo()">Next →</button>'; };
+  var w = needsRegroup(q.a, q.b) ? new CountUp($('rHost'), q.a, q.b, done) : new ColSub($('rHost'), q.a, q.b, done);
+  w.fb = $('rFb');
+}
+paintSound();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
