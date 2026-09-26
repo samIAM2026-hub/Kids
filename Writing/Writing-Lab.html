@@ -309,7 +309,7 @@
 
 /* ---------- prompts ---------- */
 var PROMPTS = [
-  { id:'rivals', kind:'story', star:true,
+  { id:'rivals', kind:'story', star:'yours · Sep 18',
     t:'When I came to my senses, I realized that I had been transported inside of a game… inside of "Rivals"!!',
     look:'You wrote the opening of this one on paper on Sep 18. Finish it this time — a story with no ending is the single most common way to lose points.' },
   { id:'door', kind:'story',
@@ -333,7 +333,13 @@ var PROMPTS = [
     look:'Avoid "he is kind and nice and funny". One story that proves it is worth ten adjectives.' },
   { id:'day', kind:'essay',
     t:'Describe your most memorable day. What happened, and why does it stay with you?',
-    look:'"Why it stays with you" is half the prompt. If you only narrate the day, you answered half the question.' }
+    look:'"Why it stays with you" is half the prompt. If you only narrate the day, you answered half the question.' },
+
+  // SSAT Middle Level Workbook prompt bank, creative #9 — Warren's pick on Sep 25. Kept at the end of the
+  // array so the other prompts keep their round numbers; renderPrompts() shows pinned ones first.
+  { id:'greatest-rival', kind:'story', star:'your pick · Sep 25', pin:true,
+    t:'I never expected to become friends with my greatest rival.',
+    look:'The story is the change: show why you were rivals, the one moment that turned it, and what is different at the end. Make the rival a real person with a reason of their own, not just a bad guy.' }
 ];
 
 var LIMIT_SECS = 30 * 60;
@@ -422,10 +428,13 @@ function renderPrompts(){
   ];
   groups.forEach(function(g){
     html += '<div class="grouphead"><h2>' + g[1] + '</h2><span class="n">' + g[2] + '</span></div>';
-    PROMPTS.forEach(function(p, i){
+    PROMPTS.map(function(p, i){ return i; })
+      .sort(function(a, b){ return (PROMPTS[b].pin ? 1 : 0) - (PROMPTS[a].pin ? 1 : 0) || a - b; })
+      .forEach(function(i){
+      var p = PROMPTS[i];
       if (p.kind !== g[0]) return;
       html += '<div class="pcard" onclick="pickPrompt(' + i + ')">' +
-        (p.star ? '<span class="ptag">yours · Sep 18</span>' : '') +
+        (p.star ? '<span class="ptag">' + esc(p.star) + '</span>' : '') +
         '<div class="ptxt">' + esc(p.t) + '</div>' +
         '<div class="plook">' + esc(p.look) + '</div></div>';
     });
