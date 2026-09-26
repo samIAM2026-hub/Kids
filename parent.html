@@ -913,8 +913,8 @@ const kidOf = uid => Object.keys(KID).find(k => KID[k].uid === uid);
 // practice.firstTry 在家长批改之前一直是 null（批完由 sendReview 写回分数）。对这几页，
 // 「交没交」看的是有没有这条记录，不是 firstTry —— 估时那边要用（buildEst）。
 // 再开新的写作台记得加进来：页面里搜 `solvedFirst = null` 就知道是不是这一类。
-const HANDIN_IDS = new Set(['../Writing/Writing-Lab.html', '../Writing/Summer-Story-Studio.html',
-                            '../Writing/Speech-Studio.html'].map(encodeURIComponent));
+// 文书页 Writing/Summer-Story-Studio.html 2026-09-25 起下架（文书改在 arbutus），交过的也搬走了。
+const HANDIN_IDS = new Set(['../Writing/Writing-Lab.html', '../Writing/Speech-Studio.html'].map(encodeURIComponent));
 const essayCol = n => n>=5 ? 'var(--green)' : n>=4 ? 'var(--cream)' : n>=3 ? 'var(--amber)' : 'var(--red)';
 const ess = a => a.essay!=null ? { txt:a.essay+'/6', col:essayCol(a.essay), todo:false }
                : a.skipped ? { txt:'不批了', col:'var(--mute)', todo:false }
@@ -1147,7 +1147,7 @@ function todoStrip(){
   const items = ['grace','warren'].map(k=>{
     const todo = ATT.filter(a=>a.kid===k && a.handin && ess(a).todo);
     if(!todo.length) return '';
-    // 哪门课几篇：「1 篇文书 · 1 篇 ISEE / SSAT 待批」
+    // 哪门课几篇：「ISEE / SSAT 1 篇 · 演讲课 1 篇待批」
     const by = WritingKinds.list.map(wk=>[wk, todo.filter(a=>(WritingKinds.ofPage(a.id)||WritingKinds.byKey.exam)===wk).length]).filter(x=>x[1]);
     return `<button data-gokid="${k}" data-gov="essay">${KID[k].av} ${KID[k].n} ${by.map(([wk,n])=>`${esc(wk.zh)} ${n} 篇`).join(' · ')}待批 ›</button>`;
   }).filter(Boolean);
@@ -2110,7 +2110,7 @@ function viewHist(){
       <li><b>闯关练习</b>（中文拼音、听句摆字这类）答错可以一直重试，所以<b>按「一次就对」算分</b>：一次就对的句数 ÷ 总句数，也算进达标。
         一份做了好几关就几关合起来算；同一关重做过，「第一遍」看每关第一次、「最后」看每关最近一次。</li>
       <li>只记「看过」的页面（参考、讲解）<b>不打分</b>，记一次 ✓，不算进达标。</li>
-      <li><b>写作</b>（考试作文、文书、BASA、演讲课）孩子交稿后由你或妈妈在「写作」标签里批改，按 1–6 分打（也可以不打），写成「4/6」，<b>不算进达标</b>（4/6 是扎实，折成 67% 会被标红）。还没批的写「待批改」，点「去批改 ›」直接过去。</li>
+      <li><b>写作</b>（考试作文、BASA、演讲课；申请文书在 arbutus）孩子交稿后由你或妈妈在「写作」标签里批改，按 1–6 分打（也可以不打），写成「4/6」，<b>不算进达标</b>（4/6 是扎实，折成 67% 会被标红）。还没批的写「待批改」，点「去批改 ›」直接过去。</li>
       <li><b>实际用时</b> = 页面开在最前面的时间（切到别的 APP、锁屏那段不算）。
         <b>页面开了</b> = 从打开卷子到交卷的全部时间，切走的也算在里面 —— 停在数字上能看到。
         切走了几次、多久，看「专注情况」。这一页里所有时间都是量出来的<b>实际</b>，没有估的数。</li>
@@ -2638,13 +2638,13 @@ const WR_KIND = { fix:'要改', good:'写得好', note:'批注' };
 // 批一次、改一次就定稿（Sam 2026-09-24）：第 1 稿逐句批；第 2 稿（及以后）不再从头批，只出一张对照表 ——
 // 上一稿的每条「要改 / 批注」这次改了没有 —— 发出去就是定稿，孩子那边不再有「写下一稿」。
 // 对照表存在 review.checks：[{ quote, fix, status:'fixed'|'partly'|'not', note }]。
-// 文书例外（Sam 2026-09-25）：改几稿都行。改稿先对照上一稿、再照样逐句批；每次发出去是
-// 「再改一稿」还是「定稿」由家长点（review.final）。哪门课、几稿的规矩都在 JS/writing-kinds.js。
+// 课程表里标 drafts:'many' 的课例外：改几稿都行，改稿先对照上一稿、再照样逐句批；每次发出去是
+// 「再改一稿」还是「定稿」由家长点（review.final）。现在没有课这样标（文书 2026-09-25 搬去 arbutus）。
 const WR_CK = { fixed:'改好了', partly:'改了一半', not:'没改' };
 // 要有 prevId 才算改稿：演讲工作台同一步交第二次也会写 draftNo 2，但那不是改稿。
 const { isRedraft, isFinal } = WritingKinds;
 const wrMany = w => WritingKinds.many(w);
-// 课程小标签：「🟪 文书」那种，列表、单篇、完成记录、题库都用这一个。
+// 课程小标签：「ISEE / SSAT」那种，列表、单篇、完成记录、题库都用这一个。
 const wkTag = k => k ? `<span class="wk" style="--wk:${k.color}">${esc(k.zh)}</span>` : '';
 const prevMarks = prev => WritingReview.ordered(prev && prev.review && prev.review.notes || []).filter(n=>n.kind!=='good');
 const meAs = () => auth.currentUser && auth.currentUser.email === MOM_EMAIL ? 'mom' : 'dad';
@@ -2820,7 +2820,7 @@ function viewAudio(){
 
 function viewEssay(){
   if(WR.cur && WR.list) return viewEssayOne();
-  let html = `<h2 class="sec">写作${qm('孩子在各个写作页里写完交上来的：考试作文（Writing Lab）、文书、BASA、演讲课。每篇前面的彩色小标签是哪门课，上面一排按钮只看一门。点一篇进去批改：在原文里选中一段写批注，最后打分、写总评，点「发给他」孩子才看得到。Reading Club 那边的作文在「阅读写作」。')}</h2>
+  let html = `<h2 class="sec">写作${qm('孩子在各个写作页里写完交上来的：考试作文（Writing Lab）、BASA、演讲课。申请文书不在这里，在 arbutus。每篇前面的彩色小标签是哪门课，上面一排按钮只看一门。点一篇进去批改：在原文里选中一段写批注，最后打分、写总评，点「发给他」孩子才看得到。Reading Club 那边的作文在「阅读写作」。')}</h2>
     <details class="hguide" data-guide="essay"${guideOpen('essay')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li><b>批改</b>：在原文里<b>选中一段 → 点「＋ 批注」</b>，选「要改 / 写得好 / 批注」，写「改成」和说明。孩子那边看到的是他自己的原文，被批的地方标颜色，点一下跳到批注。</li>
       <li><b>不用 API key 的办法</b>：在 Mac 上的 Claude 对话里说「<b>批改 Warren 的作文</b>」，Claude 批好会放到这里，那篇写着「Claude 批好了 · 等你发」，点开看一眼、点「发给」就行。</li>
@@ -2828,8 +2828,8 @@ function viewEssay(){
       <li><b>分数</b> 1–6：6 出色 · 5 强 · 4 扎实 · 3 在进步 · 2 弱 · 1 刚开头。可以不打。不是百分比，也不套 ${PASS}% 的达标线。</li>
       <li>批到一半的会<b>自动存成草稿</b>，爸爸妈妈看到的是同一份，换台设备接着批也行。</li>
       <li><b>按课程分</b>：${WritingKinds.list.map(k=>wkTag(k)).join(' ')}。看的是从哪一页交上来的，新加一门课改 <b>JS/writing-kinds.js</b> 一处。</li>
-      <li><b>批一次、改一次就定稿</b>（ISEE / SSAT、BASA、演讲课）：孩子收到批改后可以交<b>第 2 稿</b>（连着上一稿，能看两稿对比）。第 2 稿不再逐句批，只出一张<b>对照表</b>（上一稿指出的问题改好了 / 改了一半 / 没改），点「定稿」发出后这篇就结束，孩子不能再写下一稿。</li>
-      <li><b>文书改几稿都行</b>：每一稿都逐句批；第 2 稿起上面多一张对照表。发的时候二选一 ——「发给他，再改一稿」或「定稿」，点了定稿才结束。</li>
+      <li><b>申请文书不在这里</b>：2026-09-25 起文书都在申请学校的网站 arbutus 里写、批、定稿。</li>
+      <li><b>批一次、改一次就定稿</b>：孩子收到批改后可以交<b>第 2 稿</b>（连着上一稿，能看两稿对比）。第 2 稿不再逐句批，只出一张<b>对照表</b>（上一稿指出的问题改好了 / 改了一半 / 没改），点「定稿」发出后这篇就结束，孩子不能再写下一稿。</li>
       <li><b>用时</b>从选题算起，30 分钟到了不会强停；<b>粘贴</b>超过 20 个字符会标黄。</li>
     </ul></details>`;
   if(WR.err) return html + `<p class="empty" style="color:var(--red)">${esc(WR.err)}</p>
@@ -2863,9 +2863,8 @@ function viewEssay(){
 const seenText = w => w.seenAt ? `孩子 ${stamp(tsDate(w.seenAt))} 看过` : '孩子还没看';
 
 // 这篇作文是哪门课的（JS/writing-kinds.js 按交上来的页面认）。同一门课里再细分：
-// Writing Lab 的 SSAT 故事是 promptKind:'story'，ISEE 题目是 'essay'；
-// 文书页 2026-09-20 改版前交的 pid 是 'story-cps' / 'story-res'，正文后面还跟着准备材料。
-const SSS_PID = { 'story-cps':'creative problem solver', 'story-res':'resilience' };
+// Writing Lab 的 SSAT 故事是 promptKind:'story'，ISEE 题目是 'essay'。
+// 申请文书 2026-09-25 起不在作业系统里了，在 arbutus（Sam 定）。
 // 演讲课（Writing/Speech-Studio.html）：一课拆成五天，每天单独交一次，pid 是 speech-L<课>-d<天>。
 // 手批，不按 ISEE/SSAT 判分口径走 —— 见 HOMEWORK-SYSTEM.md 2026-09-20 演讲工作台。
 // 五个格子是「步骤」不是「天」（Sam 2026-09-21：用 Day 会逼着孩子当天做完；
@@ -2876,17 +2875,12 @@ const speechAt = w => /^speech-L(\d+)-d([1-5])$/.exec(w && w.pid || '');
 const wkOf = w => WritingKinds.of(w);
 const promptLabel = w => { const k = wkOf(w).key;
   return k==='speech' ? (m => m ? `Lesson ${m[1]} · 第 ${m[2]} 步 ${SPEECH_DAY[+m[2]]||''}` : '')(speechAt(w))
-    : k==='app' ? (SSS_PID[w.pid] ? `改版前的故事卡 · ${SSS_PID[w.pid]}` : '')
     : k==='exam' ? (w.promptKind==='story' ? 'SSAT 故事开头' : 'ISEE 题目') : ''; };
 
 // 每门课的批改口径（给 🤖 按钮用）在 JS/writing-kinds.js 的 rubric 里，writing-review.mjs 也读同一份。
 const promptTypeEN = w => { const k = wkOf(w).key;
   return k==='exam' ? (w.promptKind==='story' ? 'SSAT creative story starter — the student continues the opening line'
                                               : 'ISEE personal / expository topic')
-    : k==='app' && SSS_PID[w.pid]
-      ? WritingKinds.rubric.app + ' This one was written on the older version of the page, to show '
-        + SSS_PID[w.pid] + ': the handed-in text is the draft first, then the student\'s planning boxes, then '
-        + 'their three "why" answers said out loud. Mark the draft; the notes after it are only context.'
     : WritingKinds.rubric[k]; };
 // 列表上只显示题目，同一个题目交两篇就分不出来（Sam 2026-09-22），所以再露出正文开头。
 const essayOpening = w => String(w.text||'').replace(/\s+/g,' ').trim().slice(0, 140);
@@ -3140,7 +3134,7 @@ async function aiDraft(){
     'STUDENT: ' + KID[w.kid].n,
     'PROMPT TYPE: ' + promptTypeEN(w),
     'PROMPT: ' + w.prompt, '',
-    // 申请文书是在家慢慢写的，没有 30 分钟这回事，别让 Claude 拿考试的时间标准去评。
+    // 考试作文以外的（演讲课、BASA）是在家慢慢写的，没有 30 分钟这回事，别让 Claude 拿考试的时间标准去评。
     'CONDITIONS: ' + ((w.draftNo||1) > 1 ? `draft ${w.draftNo}, rewritten after marking` : wkOf(w).key!=='exam' ? `written in ${Math.round((w.secs||0)/60)} minutes, untimed` : `written in ${Math.round((w.secs||0)/60)} minutes (the test allows 30)`) +
       `, ${w.words||0} words` + (w.pasted > 20 ? `, ${w.pasted} characters were pasted in rather than typed` : '') + '.',
     ...(prev && prev.review ? ['', 'WHAT WAS MARKED ON THE DRAFT BEFORE:',
@@ -3170,7 +3164,7 @@ async function aiDraft(){
   if(V==='essay') render();
 }
 
-// final: 文书那两颗键里点的是哪一颗（'final' / 'more'）；别的课不看它，改稿发出去就是定稿。
+// how: drafts:'many' 的课那两颗键里点的是哪一颗（'final' / 'more'）；别的课不看它，改稿发出去就是定稿。
 async function wrSend(how){
   const w = wrCur(), ed = WR.ed;
   if(!w || !ed) return;
