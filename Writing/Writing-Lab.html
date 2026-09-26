@@ -381,6 +381,7 @@ var MINE_ERR = '';
 function show(name){
   ['pick','write','done','view'].forEach(function(s){ $('screen-' + s).classList.toggle('on', s === name); });
   if (name !== 'view' && /^#w=/.test(location.hash)) history.replaceState(null, '', location.pathname + location.search);
+  if (name !== 'view'){ readStop(); READ_AGAIN = null; }   // left the marked piece: hand in its reading time
   window.scrollTo(0, 0);
 }
 function backHome(){ show('pick'); loadMine(); }
@@ -621,11 +622,60 @@ function openView(id){
     n.scrollIntoView({ block: 'center', behavior: 'smooth' });
     n.classList.add('flash'); setTimeout(function (){ n.classList.remove('flash'); }, 1200);
   });
+  readStart(r ? w : null);   // time spent on Dad's / Mom's marks → 家长台 (no clock shown here)
   // Tell Dad / Mom it was read. The rules let a kid change only this one field.
   if (r && !w.seenAt && FB) FB.db.collection('writings').doc(id)
     .update({ seenAt: firebase.firestore.FieldValue.serverTimestamp() })
     .then(function (){ w.seenAt = true; renderMine(); }).catch(function (e){ console.warn('[writing] seenAt:', e.code || e); });
 }
+
+/* ---------- time spent reading the marks (Sam 2026-09-26：批改页孩子这边不计时，家长台要看得到用了多久) ----------
+   Nothing on this page shows a clock. While a MARKED piece is open, the time it is in front is kept; when the
+   kid leaves that view, switches away or closes the page, it goes to quiz-report.js as its own record
+   (itemId writing-review:<writing id>, same queue / offline retry / kid stamp as an attempt). parent.html
+   shows it as 看批改 and counts it in the day's 实际用时. Under READ_MIN_SECS of it isn't worth a record. */
+var READ = null, READ_AGAIN = null, READ_MIN_SECS = 15;
+function readStart(w){
+  readStop(); READ_AGAIN = null;
+  if (!w || PREVIEW || !window.QuizReport || !QuizReport.record) return;
+  var t = Date.now();
+  READ = { w: w, startedAt: t, activeMs: 0, since: document.hidden || !document.hasFocus() ? null : t,
+           awayFrom: document.hidden || !document.hasFocus() ? t : null, awayCount: 0, awayMs: 0, maxAway: 0 };
+}
+function readPause(){
+  if (!READ || READ.since == null) return;
+  var t = Date.now(); READ.activeMs += t - READ.since; READ.since = null; READ.awayFrom = t;
+}
+function readResume(){
+  if (!READ || READ.since != null) return;
+  var t = Date.now();
+  if (READ.awayFrom != null){ var d = t - READ.awayFrom; READ.awayCount++; READ.awayMs += d; READ.maxAway = Math.max(READ.maxAway, d); }
+  READ.awayFrom = null; READ.since = t;
+}
+function readStop(){
+  if (!READ) return;
+  var R = READ; READ = null;
+  var t = Date.now(), active = R.activeMs + (R.since != null ? t - R.since : 0);
+  if (active / 1000 < READ_MIN_SECS) return;
+  var w = R.w, s = function (ms){ return Math.round(ms / 1000); };
+  QuizReport.record({
+    itemId: 'writing-review:' + w.id, href: '../Writing/Writing-Lab.html#w=' + w.id,
+    t: '看批改 · ' + String(w.prompt || '').slice(0, 120), kind: 'review-read',
+    writingId: w.id, draftNo: w.draftNo || 1,
+    score: null, total: 0, pct: null, wrong: [], qTimes: [],
+    secs: s(t - R.startedAt), activeSecs: s(active),
+    focus: { awayCount: R.awayCount, awaySecs: s(t - R.startedAt - active), maxAwaySecs: s(R.maxAway), away: [] },
+    startedAtMs: R.startedAt, submittedAtMs: t, adapter: 'review-read'
+  });
+}
+// Switching away ends the sitting (an iPad may never come back to fire anything); coming back starts a new one.
+document.addEventListener('visibilitychange', function (){
+  if (document.hidden){ var w = READ && READ.w; readStop(); READ_AGAIN = w; }
+  else if (READ_AGAIN && $('screen-view').classList.contains('on')) readStart(READ_AGAIN);
+});
+window.addEventListener('blur', readPause);
+window.addEventListener('focus', readResume);
+window.addEventListener('pagehide', function (){ readStop(); });
 
 function reviseFrom(id){
   var w = MINE.filter(function (x){ return x.id === id; })[0]; if (!w || isFinal(w)) return;

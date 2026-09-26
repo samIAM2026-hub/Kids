@@ -133,7 +133,11 @@
   .st-done{background:rgba(75,182,122,.16);color:var(--green)}
   .st-low{background:rgba(217,83,79,.16);color:var(--red)}
   .st-open{background:rgba(224,163,62,.16);color:var(--amber)}
-  .st-prog{background:rgba(91,143,199,.18);color:var(--blue)}   /* 进行中：孩子开始做了、还没交（Sam 2026-09-22） */
+  .st-prog{background:rgba(91,143,199,.18);color:var(--blue)}
+  .livet{font-variant-numeric:tabular-nums;white-space:nowrap}   /* 实时计时（2026-09-26） */
+  .livedot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--blue);margin:0 4px 1px 0;vertical-align:middle;animation:livepulse 1.4s ease-in-out infinite}
+  @keyframes livepulse{50%{opacity:.25}}
+  @media (prefers-reduced-motion:reduce){.livedot{animation:none}}   /* 进行中：孩子开始做了、还没交（Sam 2026-09-22） */
 
   /* ---------- 派发记录: every item ever assigned, with the score it got that day ---------- */
   .dp{width:100%;border-collapse:collapse;font-size:12.5px}
@@ -920,6 +924,25 @@ const ess = a => a.essay!=null ? { txt:a.essay+'/6', col:essayCol(a.essay), todo
                : a.skipped ? { txt:'不批了', col:'var(--mute)', todo:false }
                : a.reviewed ? { txt:'已批改', col:'var(--green)', todo:false } : { txt:'待批改', col:'var(--amber)', todo:true };
 const lastEssay = tries => [...tries].reverse().find(a=>a.handin) || null;   // tries oldest-first
+// 看批改（HOMEWORK-SYSTEM.md 2026-09-26 · Sam：批改页孩子那边不计时，家长台要看得到他用了多久）：
+// Writing-Lab.html 打开一篇批好的，页面开在最前面满 15 秒，离开时记一条 attempts，itemId = writing-review:<作文 ID>。
+// 不用派，孩子自己打开的；算进这天的实际用时。
+const REVIEW_PFX = 'writing-review:';
+const isReviewRead = id => String(id||'').startsWith(REVIEW_PFX);
+// 一个孩子一段日子里的看批改，按作文合并：[{ id, wid, t, active, secs, n, last }]，最近看的在前
+function reviewReads(k, from, to){
+  const by = new Map();
+  ATT.forEach(a=>{
+    if(a.kid!==k || !isReviewRead(a.id) || a.date<from || a.date>to) return;
+    const g = by.get(a.id) || { id:a.id, wid:a.id.slice(REVIEW_PFX.length), t:a.t, active:0, secs:0, n:0, last:null };
+    g.active += estSecs(a); g.secs += a.secs||0; g.n++;
+    if(a.at && (!g.last || a.at>g.last)) g.last = a.at;
+    by.set(a.id, g);
+  });
+  return [...by.values()].sort((x,y)=>(y.last||0)-(x.last||0));
+}
+// 这篇作文孩子看批改一共花了多久（所有日子）
+const reviewReadSecs = wid => ATT.reduce((s,a)=>s+(a.id===REVIEW_PFX+wid ? estSecs(a) : 0), 0);
 
 function toAtt(doc){
   const a = doc.data(), kid = kidOf(a.kidId);
@@ -936,7 +959,7 @@ function toAtt(doc){
   const essay = hand && pr && typeof pr.firstTry==='number' ? pr.firstTry : null;
   const pct = typeof a.pct==='number' ? a.pct : a.total ? Math.round(100*a.score/a.total)
             : !hand && pr && typeof pr.firstTry==='number' && pr.items ? Math.round(100*pr.firstTry/pr.items) : null;
-  return { kid, id:a.itemId, t:a.t||b.t||a.itemId, subj:b.subj||'', book:b.book||'',
+  return { kid, id:a.itemId, t:a.t||b.t||a.itemId, subj:b.subj||(isReviewRead(a.itemId)?'📝 看批改':''), book:b.book||'',
            pct, score: typeof a.score==='number' ? a.score : null, total: a.total||0, wrong: a.wrong || [],
            practice: a.practice || null,   // { round, firstTry, items } from the Chinese practice games
            essay, reviewed: !!(pr && pr.reviewed), aid: doc.id,   // 写作台：1–6 分 / 批没批过；aid = 那篇文章的 ID
@@ -982,10 +1005,12 @@ function sortBank(){
 }
 
 async function loadAll(){
-  const [bankSnap, attSnap] = await Promise.all([
+  const [bankSnap, attSnap, progSnap] = await Promise.all([
     db.collection('bank').get(),
     // A family writes a handful a day, so fetch them all: "最近一次" needs more than three weeks.
     db.collection('attempts').orderBy('submittedAt','desc').get(),
+    // 没交卷的时间：一个孩子一份卷子一天一条，量不大，全拿（2026-09-24 之前的没带时间，toUnf 会跳过）
+    db.collection('progress').get(),
     loadDay(TD),
     TD === iso(today) ? null : loadDay(iso(today)),
     loadDays()
@@ -993,6 +1018,8 @@ async function loadAll(){
   BANK = bankSnap.docs.map(d => Object.assign({ docId:d.id }, d.data()));
   sortBank();
   ATT = attSnap.docs.map(toAtt).filter(Boolean);
+  UNF = {};
+  progSnap.docs.forEach(d=>{ const u = toUnf(d.id, d.data()); if(u) UNF[d.id] = u; });
   buildEst();   // 用时估算要等题库和成绩都到齐才算得出来
   // 做完的派件只「建议归档」，不自己收（Sam 2026-09-22：我不点归档，就别动）
   const n = archiveSuggestions().length;
@@ -1056,13 +1083,64 @@ function dayResult(k, id, d){
 // 只看今天：这一页开着时实时监听，数字变了只换状态那一枚；有新卷子交上来就把成绩补读进来、整页重画。
 const PROG_STALE_MS = 30*60*1000;   // 这么久没动静：「进行中」→「停在」
 let PROG = {}, PROG_OFF = null;
+
+// 没交卷的时间（HOMEWORK-SYSTEM.md 2026-09-24 · Sam：没交卷的那段也记进实际用时）。
+// 2026-09-24 起 progress 一天一份一条，带着时间：activeSecs / secs 是这一次（还没交、或者交了），
+// earlierActive / earlierSecs 是这天这份更早、没交就走了的那几次。交了的那一次已经在 attempts 里，不再算。
+// 光打开看讲解、读文章、一题没答的也算（Sam 同日定）。
+let UNF = {};   // progress 文档 ID → 没交卷的那段
+function toUnf(pid, p){
+  const kid = kidOf(p.kidId);
+  if(!kid || typeof p.activeSecs!=='number') return null;
+  const active = (p.earlierActive||0) + (p.done ? 0 : p.activeSecs);
+  if(active < 1) return null;
+  const secs = (p.earlierSecs||0) + (p.done ? 0 : (p.secs||0)), b = BANK_BY_ID[p.itemId] || {};
+  return { pid, kid, id:p.itemId, t:b.t||p.t||p.itemId, date:p.day, active, secs:Math.max(secs, active),
+           answered:p.answered||0, total:p.total||null, open:!p.done, lastAt:p.lastAt };   // 题数只说这一次（open 时）
+}
+const unfOn = (k, from, to) => Object.values(UNF).filter(u=>u.kid===k && u.date>=from && u.date<=to)
+  .sort((a,b)=>(b.lastAt||0)-(a.lastAt||0));
+const unfSum = list => list.reduce((s,u)=>s+u.active, 0);
+const unfDone = u => !u.open ? '这份后来交了卷；这是没算进那一遍的时间（之前开过没交、开始前看说明、中途重来）'
+  : !u.answered ? '一题没答' : u.total ? `答了 ${u.answered}/${u.total} 题` : `答了 ${u.answered} 题`;
+const UNF_TIP = '打开了、没交卷就走了的那段，也按页面开在最前面算（2026-09-24 起才有这个数）';
+
+/* 实时计时（HOMEWORK-SYSTEM.md 2026-09-26 · Sam：孩子一开始做就计时，家长这边边做边看得到用了多久）。
+   quiz-report.js 页面开在最前面满 15 秒写第一条，之后每分钟一条，切走 / 回来各写一条，here = 孩子此刻在这页上。
+   这边拿「收到那条的时刻」往上走秒（不用孩子设备的钟，两台钟对不齐也不怕）；here 是 false、或者 100 秒没收到新的一条
+   （设备睡了、断网），就停在最后那个数。数 = 这天这份没交卷的实际用时：更早没交的几次 + 这一次。 */
+const LIVE_FRESH_MS = 100*1000;
+let PROG_SEEN = {};   // key → 这边收到最新那条的时刻（毫秒，本机钟）
+function liveOf(key, after){
+  const p = PROG[key];
+  if(!p || typeof p.activeSecs!=='number' || p.done) return null;
+  const base = (after ? 0 : (p.earlierActive||0)) + p.activeSecs, age = Date.now() - (PROG_SEEN[key]||0);
+  const run = p.here===true && age < LIVE_FRESH_MS;
+  return { secs: base + (run ? age/1000 : 0), run };
+}
+const clock = s => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s/3600), m = Math.floor(s/60)%60, x = String(s%60).padStart(2,'0');
+  return h ? `${h}:${String(m).padStart(2,'0')}:${x}` : `${m}:${x}`; };
+const liveTxt = L => `${L.run?'<i class="livedot"></i>':''}已用 ${clock(L.secs)}${L.run?'':'（没在做）'}`;
+// 每秒只换那几个数字，别的不动
+setInterval(()=>{
+  document.querySelectorAll('[data-lt]').forEach(el=>{
+    const [k, id, after] = el.dataset.lt.split('|'), L = liveOf(k+'|'+id, after==='1');
+    if(L) el.innerHTML = liveTxt(L);
+  });
+}, 1000);
+
 function progChip(k, id, day, after){
-  const p = PROG[k+'|'+id];
+  const key = k+'|'+id, p = PROG[key];
   if(!p || day!==iso(today) || p.day!==day || p.done || (after && p.startedAt<=after)) return '';
+  const L = liveOf(key, !!after);
+  const lt = L ? ` · <span class="livet" data-lt="${esc(key)}|${after?1:0}">${liveTxt(L)}</span>` : '';
+  const tip = `${hm(new Date(p.startedAt))} 打开 · 实时计时：页面开在最前面的时间，切走、锁屏那段不算`;
+  // 打开了、还没答第一题（在看讲解、读文章）：不算「进行中」（Sam 2026-09-22），但时间照走
+  if(p.started===false) return L ? `<span class="chipst st-prog" title="${tip}">打开了，还没答题${lt}</span>` : '';
   const cnt = p.total ? ` ${p.answered}/${p.total}` : p.answered ? ` · 答了 ${p.answered} 题` : '';
   const stale = Date.now() - p.lastAt > PROG_STALE_MS, last = new Date(p.lastAt);
   const word = after ? (stale ? '第二遍停在' : '又在做') : (stale ? '停在' : '进行中');
-  return `<span class="chipst st-prog" title="${hm(new Date(p.startedAt))} 开始 · 最后一次作答 ${hm(last)}">${word}${cnt}${stale?' · '+hm(last):''}</span>`;
+  return `<span class="chipst st-prog" title="${tip} · 最后一次作答 ${hm(last)}">${word}${cnt}${stale?' · '+hm(last):''}${lt}</span>`;
 }
 // 「今日作业」每份后面那枚状态。
 function todayChip(k, it, day){
@@ -1081,8 +1159,14 @@ function watchProgress(){
       const p = ch.doc.data(), k = kidOf(p.kidId);
       if(!k) return;
       const key = k+'|'+p.itemId, was = PROG[key];
-      if(ch.type==='removed'){ delete PROG[key]; return; }
+      if(ch.type==='removed'){ delete PROG[key]; delete UNF[ch.doc.id]; return; }
+      const u = toUnf(ch.doc.id, p);
+      if(u) UNF[ch.doc.id] = u; else delete UNF[ch.doc.id];
+      // 老页面（浏览器缓存的旧 quiz-report.js）还写 uid__itemId，新的是 uid__itemId__day：同一份两条时认新的
+      if(was && ch.type!=='modified' && (was.lastAt||0) > (p.lastAt||0)) return;
       PROG[key] = p;
+      // 第一批是登录时一次读进来的：按孩子那边写的时刻估（startedAt + secs），不比现在晚；之后的都是刚收到的。
+      PROG_SEEN[key] = first ? Math.min(Date.now(), (p.startedAt||0) + (p.secs||0)*1000) : Date.now();
       if(!first && p.done && !(was && was.done && was.startedAt===p.startedAt)) landed = true;
     });
     first = false;
@@ -1090,7 +1174,7 @@ function watchProgress(){
     refreshToday(landed);
   }, e=>console.warn('进行中的监听断了：', e.code||e.message));
 }
-function stopProgress(){ if(PROG_OFF) PROG_OFF(); PROG_OFF = null; PROG = {}; }
+function stopProgress(){ if(PROG_OFF) PROG_OFF(); PROG_OFF = null; PROG = {}; PROG_SEEN = {}; }
 // 只补读比手上最新那条还新的成绩，不重读全部。
 async function pullNewAttempts(){
   const newest = ATT.reduce((m,a)=>a.at && a.at>m ? a.at : m, new Date(0));
@@ -1172,6 +1256,9 @@ function viewToday(){
       <li><span class="chipst st-prog">进行中 3/15</span> = 今天已经开始做、还没交：答了 3 题，一共 15 题（闯关练习只写「进行中」）。
         <b>答了第一题才算开始</b>，光打开不算。这一页开着会自己跳，不用刷新；交了卷，分数也会自己出来。
         30 分钟没动静变成 <span class="chipst st-prog">停在 3/15 · 14:20</span>；交完卷又开一遍，分数后面会多一枚「又在做」。</li>
+      <li><b>实时计时</b>：孩子打开一份、页面开在最前面满 15 秒，状态里就出现 <span class="chipst st-prog"><i class="livedot"></i>已用 3:25</span>，
+        一秒一秒往上走（还没答第一题写「打开了，还没答题」）。他切走、锁屏、关掉页面，数字就停住，后面写「（没在做）」；回来接着走。
+        交了卷，这个数换成「实际用时」。</li>
       <li>一份做了好几遍：状态里是<b>最后一遍</b>的分数，标题下面的小字写这天做了几遍、第一遍多少分。每一遍的细节看「完成记录」。</li>
       <li><b>闯关练习</b>答错可以一直重试，所以分数 = <b>一次就对</b>的句数 ÷ 总句数；这天做了好几关，就几关合起来算。</li>
       <li><b>派于</b> = 什么时候派的；<b>从 09-12 挪来</b> = 用「改日期」从别的日子挪过来的。</li>
@@ -1181,8 +1268,11 @@ function viewToday(){
         <span class="est real">蓝色</span>= 有出处（限时卷按卷子自己写的时长，其余按孩子以前的实际用时）；
         灰色 = 还没做过，按题数推的。鼠标停上去会说清这个数打哪儿来。</li>
       <li>做完的那份，⏱ 那枚直接换成 <b>实际用时 X 分钟</b> —— 估得准不准，一眼就对上了。
-        实际用时算的是<b>页面开在最前面</b>的时间：切到别的 APP、锁屏那段不算作业量。</li>
+        实际用时算的是<b>页面开在最前面</b>的时间：切到别的 APP、锁屏那段不算作业量。
+        打开了没交卷就走的那段也算进去，写成「含没交卷 X 分钟」；还没交的那份写「没交卷，已用 X 分钟」。</li>
       <li>只算<b>这一天</b>交的卷：以前做过、这天没做，这里照样显示「未开始」。</li>
+      <li><b>📝 看批改</b>：孩子打开你批好的作文、看批注的时间。不用派，他自己打开的也记；孩子那边不显示计时。
+        页面开在最前面满 15 秒才记，算进上面的「实际已用」。</li>
     </ul></details><div class="grid2">`;
   ['grace','warren'].forEach(k=>{
     const list = ASSIGN[k];
@@ -1192,13 +1282,18 @@ function viewToday(){
     const scored = done.filter(r=>r.scored);
     const avg = scored.length ? Math.round(scored.reduce((s,r)=>s+r.last.pct,0)/scored.length) : null;
     const nq = quizzes.reduce((s,it)=>s+(it.n||0),0);
-    // 这天已经真坐了多久（估时由 estSumTxt 现算）。
-    const spent = list.reduce((s,it)=>{ const r = doneOf(it); return s + (r ? r.tries.reduce((x,a)=>x+estSecs(a),0) : 0); }, 0);
+    // 这天已经真坐了多久（估时由 estSumTxt 现算）：交了卷的 + 派的这几份里没交卷的那段。
+    const unf = unfOn(k, day, day).filter(u=>list.some(it=>it.id===u.id)), unfS = unfSum(unf);
+    // 看批改不用派，孩子自己打开的，也算进这天的实际用时（Sam 2026-09-26）
+    const reads = reviewReads(k, day, day), readS = reads.reduce((s,g)=>s+g.active, 0);
+    const spent = unfS + readS + list.reduce((s,it)=>{ const r = doneOf(it); return s + (r ? r.tries.reduce((x,a)=>x+estSecs(a),0) : 0); }, 0);
+    const inc = [unfS?`没交卷 ${dur(unfS)}`:'', readS?`看批改 ${dur(readS)}`:''].filter(Boolean);
+    const spentTxt = dur(spent) + (inc.length ? `（含${inc.join('、')}）` : '');
     html += kidCard('today', k, list.length?'已派 '+list.length+' 份':isToday?'今天还没派':'这天没派',
       list.length ? `完成 <b>${done.length}/${list.length}</b> · 预计 <b>${estSumTxt(list, k)}</b>${
-          spent?` · 实际已用 <b>${dur(spent)}</b>`:''} · 题目 ${nq} 道 · 平均 <b style="color:${
+          spent?` · 实际已用 <b>${spentTxt}</b>`:''} · 题目 ${nq} 道 · 平均 <b style="color:${
           avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</b>`
-        : `到「题库」勾选几份，再派给 ${KID[k].n}`) + `
+        : readS ? `没派东西 · 看批改 实际用时 <b>${dur(readS)}</b>` : `到「题库」勾选几份，再派给 ${KID[k].n}`) + `
       <div class="hmet">
         <div><div class="v">${done.length}/${list.length}</div><div class="k">完成${qm(`派的 ${list.length} 份里，这天交过卷的份数`)}</div></div>
         <div><div class="v">${nq}</div><div class="k">题目数${qm(`${quizzes.length} 份打分卷子加起来一共几道题`)}</div></div>
@@ -1207,10 +1302,10 @@ function viewToday(){
         <div><div class="v">${list.length?tileUnit(estSumTxt(list, k)):'—'}</div><div class="k">预计用时${qm(
             list.length ? estSumTip(list, k) + '。派之前想知道够不够孩子当下的空档，看这个数'
                         : '这天没派东西')}</div>${
-            spent?`<div class="x">实际已用 ${dur(spent)}</div>`:''}</div>
+            spent?`<div class="x">实际已用 ${spentTxt}</div>`:''}</div>
       </div>`;
     if(!list.length){
-      html += `<p class="empty">到「题库」勾选几份，再派给 ${KID[k].n}。</p>`;
+      if(!reads.length) html += `<p class="empty">到「题库」勾选几份，再派给 ${KID[k].n}。</p>`;
     } else {
       list.forEach(it=>{
         const r = doneOf(it), key = k+'|'+it.id, at = tsDate(it.at);
@@ -1223,8 +1318,10 @@ function viewToday(){
         const again = n<2 ? '' : le ? `这天写了 ${n} 篇` : r.prac ? `这天做了 ${n} 轮${r.first.pct!==r.last.pct?'，每关第一次合起来 '+r.first.pct+'%':''}`
           : `这天做了 ${n} 遍${r.first.pct!=null?'，第一遍 '+r.first.pct+'%':''}`;
         // 没做的写「约多久」帮着排时间，做完的直接写真用了多久 —— 估的准不准，一眼就对上了。
-        const spentIt = r ? r.tries.reduce((x,a)=>x+estSecs(a),0) : 0;
-        const tmEst = r ? `<span class="est done" title="这天页面开在最前面的时间，几遍加起来（切到别的 APP、锁屏那段不算）">实际用时 ${dur(spentIt)}</span>` : estChip(it, k);
+        const u = unf.find(x=>x.id===it.id);
+        const spentIt = (r ? r.tries.reduce((x,a)=>x+estSecs(a),0) : 0) + (u ? u.active : 0);
+        const tmEst = r ? `<span class="est done" title="这天页面开在最前面的时间，几遍加起来（切到别的 APP、锁屏那段不算）${u?'；含没交卷的那段 —— '+UNF_TIP:''}">实际用时 ${dur(spentIt)}${u?`（含没交卷 ${dur(u.active)}）`:''}</span>`
+          : estChip(it, k) + (u && !liveOf(key, false) ? ` · <span class="est done" title="${UNF_TIP}">没交卷，已用 ${dur(u.active)} · ${unfDone(u)}</span>` : '');
         const tm = [at?'派于 '+stamp(at):'', it.movedFrom?'从 '+ymd(it.movedFrom)+' 挪来':'', again].filter(Boolean).join(' · ');
         html += `<div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
           <b>${openLink(it.href, esc(it.t))}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
@@ -1239,6 +1336,14 @@ function viewToday(){
         }
       });
     }
+    if(reads.length) html += `<div class="subhd">📝 看批改 · 不用派，孩子自己打开的</div>` + reads.map(g=>{
+      const w = (WR.list||[]).find(x=>x.id===g.wid);
+      return `<div class="task"><span class="ic">📝</span><span class="nm">
+        <b>${esc(g.t)}</b><span>写作${w?' · '+esc(wkOf(w).zh)+' · 第 '+(w.draftNo||1)+' 稿':''}</span>
+        <span class="tm"><span class="est done" title="批改页开在最前面的时间（切走、锁屏那段不算）；页面一共开了 ${dur(g.secs)}。孩子那边不显示计时">实际用时 ${dur(g.active)}</span>${
+          g.n>1?` · 这天打开看了 ${g.n} 次`:''}</span></span>
+        <span class="acts"><span class="chipst st-done">✓ 看过${g.last?' · '+hm(g.last):''}</span></span></div>`;
+    }).join('');
     if(PULLED[k].length) html += `<div class="pulled">这天撤回了 ${PULLED[k].length} 份：${PULLED[k].map(p=>{
       const w = tsDate(p.withdrawnAt); return esc(p.t) + (w ? `（${stamp(w)}）` : ''); }).join('、')}</div>`;
     html += `</details>`;
@@ -2008,12 +2113,16 @@ function dayStats(papers){
 const where = p => p.book || (p.subj||'').replace(/^[^\p{L}\p{N}《]+/u, '');
 
 // The day in plain sentences: what was done, what passed on the first try, what only passed on a retry.
-function histSummary(k, papers, S){
-  const n = KID[k].n;
-  if(!papers.length) return `${n} 这天没有交卷记录。派了作业却没做的话，到「今天」翻到这一天看。`;
+function histSummary(k, papers, S, U){
+  const n = KID[k].n, uS = unfSum(U);
+  const names = list => list.slice(0,3).map(u=>'「'+esc(u.t)+'」').join('、') + (list.length>3?' 等':'');
+  if(!papers.length) return U.length
+    ? `${n} 这天没有交卷记录，但打开过 <b>${U.length} 份</b>没交卷（${names(U)}），实际用时 <b>${dur(uS)}</b>。`
+    : `${n} 这天没有交卷记录。派了作业却没做的话，到「今天」翻到这一天看。`;
   const books = [...new Set(papers.map(where).filter(Boolean))];
-  const out = [`${n} 这天做了 <b>${papers.length} 份</b>（交卷 ${S.nAtt} 次），实际用时 <b>${dur(S.active)}</b>` +
+  const out = [`${n} 这天做了 <b>${papers.length} 份</b>（交卷 ${S.nAtt} 次），实际用时 <b>${dur(S.active+uS)}</b>` +
     (books.length ? `，内容是 ${books.slice(0,3).map(esc).join('、')}${books.length>3?' 等':''}` : '') + '。'];
+  if(U.length) out.push(`其中 <b>${dur(uS)}</b> 花在没交卷的 ${U.length} 份上（${names(U)}）。`);
   const sc = S.scored.length;
   if(sc){
     const fixed = S.scored.filter(p=>p.first.pct<PASS && p.last.pct>=PASS);
@@ -2050,6 +2159,13 @@ function histSummary(k, papers, S){
     out.push(`${sc?`另外 ${np} 份`:np>1?`${np} 份都`:'这份'}不打分（只记做过、看过），记 ✓。`);
   }
   return out.join('');
+}
+
+// 没交卷的一份：一行，右边是实际用时。完成记录和专注情况共用。
+function unfRow(u){
+  return `<div class="frow"><div class="ftop"><span class="when">${u.date.slice(5)}</span>
+      <span class="nm">${esc(u.t)}</span><span class="fnum" title="实际用时：页面开在最前面的时间">${dur(u.active)}</span></div>
+    <div class="fmeta">没交卷 · ${unfDone(u)} · 页面开了 ${dur(u.secs)}</div></div>`;
 }
 
 // One paper: every try that day in order, the last score on the right, and a verdict tag.
@@ -2119,13 +2235,14 @@ function viewHist(){
 
   kidsShown().forEach(k=>{
     const papers = dayPapers(k, day), S = dayStats(papers), sc = S.scored.length;
+    const U = unfOn(k, day, day), uS = unfSum(U), allTxt = dur(S.active+uS) + (uS ? `（含没交卷 ${dur(uS)}）` : '');
     html += kidCard('hist', k, papers.length?`${papers.length} 份 · 交卷 ${S.nAtt} 次`:'这天没交卷',
       papers.length ? [sc?`第一遍达标 <b>${S.firstOk.length}/${sc}</b>`:'',
                        sc?`最后达标 <b>${S.lastOk.length}/${sc}</b>`:'',
                        S.plain.length?`不打分 ${S.plain.length} 份`:'',
-                       `实际用时 ${dur(S.active)}`].filter(Boolean).join(' · ')
-        : '这天没有交卷记录') + `
-      <div class="dsum"><span class="lbl">${rel||'这天'}的总结</span>${histSummary(k, papers, S)}</div>${noteBlock(k, day)}`;
+                       `实际用时 ${allTxt}`].filter(Boolean).join(' · ')
+        : U.length ? `没交卷的实际用时 ${dur(uS)}` : '这天没有交卷记录') + `
+      <div class="dsum"><span class="lbl">${rel||'这天'}的总结</span>${histSummary(k, papers, S, U)}</div>${noteBlock(k, day)}`;
     if(papers.length){
       const met = (v, name, note, col) => `<div><div class="v" style="color:${col||'var(--cream)'}">${v}</div>
         <div class="k">${name}${qm(note)}</div></div>`;
@@ -2137,11 +2254,12 @@ function viewHist(){
         ${met(sc?`${S.lastOk.length}/${sc}`:'—', '最后达标', sc?`最后一遍 ≥ ${PASS}% 的份数，看重做后改对没有`:none,
               !sc?'var(--mute)':S.lastOk.length===sc?'var(--green)':'var(--red)')}
         ${met(tileUnit(S.plain.length+' 份'), '不打分', '只记做过、看过的页面，记 ✓')}
-        ${met(tileUnit(dur(S.active)), '实际用时', `页面开在最前面的时间，几遍加起来（切到别的 APP、锁屏那段不算）。这几份页面一共开了 ${dur(S.secs)}`)}
+        ${met(tileUnit(dur(S.active+uS)), '实际用时', `页面开在最前面的时间，几遍加起来（切到别的 APP、锁屏那段不算）。交了卷的这几份页面一共开了 ${dur(S.secs)}${uS?`；另有没交卷的 ${dur(uS)} 也算在里面 —— ${UNF_TIP}`:''}`)}
       </div>
       <div class="subhd">每份卷子 · 最近做的在上面</div>
       ${papers.map(histPaper).join('')}`;
     }
+    if(U.length) html += `<div class="subhd">没交卷 · ${U.length} 份${qm(UNF_TIP)}</div>` + U.map(unfRow).join('');
     // A week around the day shown (up to 3 days after it, never past today), one line a day.
     const end = shiftDay(day,3) < iso(today) ? shiftDay(day,3) : iso(today);
     // Folded by default — seven lines under every card is clutter. Opened, it stays open while you
@@ -2380,7 +2498,8 @@ function viewFocus(){
     <div class="filters">${[[1,'今天'],[7,'近 7 天'],[21,'近 21 天']].map(([v,l])=>
       `<button class="fchip${FR===v?' on':''}" data-fr="${v}">${l}</button>`).join('')}</div>
     <details class="hguide" data-guide="focus"${guideOpen('focus')}><summary><b>这些数字怎么读</b><span class="tap">点开</span></summary><ul>
-      <li><b>实际用时</b> = 页面开在最前面的时间加起来（练习、参考也算）。「今天」和「完成记录」里的实际用时是同一个口径，对得上。</li>
+      <li><b>实际用时</b> = 页面开在最前面的时间加起来（练习、参考也算）。「今天」和「完成记录」里的实际用时是同一个口径，对得上。
+        <b>没交卷的也算</b>：打开了作业、看讲解、读文章、做了一半就走的那段，同样按页面在最前面的时间记（2026-09-24 起才有）。</li>
       <li><b>页面开了</b> = 从打开到交卷的全部时间，切走的也算 —— 它总比实际用时大，只当背景看。</li>
       <li><b>在页面上</b> = 实际用时 ÷ 页面开了：90% 及以上绿色，75%–89% 黄色，更低红色。</li>
       <li><b>切走次数</b> = 这一页被切走的次数。切到别的 APP、别的标签页、锁屏、屏幕变暗都算，去查一次字典也算一次。</li>
@@ -2388,7 +2507,8 @@ function viewFocus(){
         ≥ ${FOCUS.attnSlow} 道慢题；≥ ${FOCUS.attnGuess} 道答得很快又答错。</li>
       <li><b>慢题</b> = 这道题页面在最前面停了 ≥ ${dur(FOCUS.slowMin)}，而且是这份卷子一般题目（中位数）的 ${FOCUS.slowX} 倍以上。
         <b>答得很快又答错</b> = 不到 ${FOCUS.guessSecs} 秒就选了、选错了，可能是蒙的。</li>
-      <li>按交卷那天算。上面的「今天 / 近 7 天 / 近 21 天」换统计的天数。</li>
+      <li><b>切走次数</b>、<b>需要留意</b>和每题小条只看交了卷的；没交卷的只记时间，列在最下面。</li>
+      <li>按交卷那天算，没交卷的按打开那天算。上面的「今天 / 近 7 天 / 近 21 天」换统计的天数。</li>
     </ul></details>
     <div class="grid2">`;
 
@@ -2397,31 +2517,35 @@ function viewFocus(){
     const T = mine.reduce((s,a)=>({ secs:s.secs+a.f.secs, active:s.active+a.f.active, away:s.away+a.f.awaySecs,
                                     n:s.n+a.f.awayCount, max:Math.max(s.max,a.f.maxAway) }),
                           { secs:0, active:0, away:0, n:0, max:0 });
+    // 没交卷的那段：时间加进总数，切走的秒数 = 页面开了 − 实际用时（次数只有交了卷的才有）
+    const U = unfOn(k, sinceIso, iso(today)), uS = unfSum(U);
+    T.active += uS; T.secs += U.reduce((s,u)=>s+u.secs,0); T.away += U.reduce((s,u)=>s+u.secs-u.active,0);
+    const any = mine.length || U.length;
     const share = T.secs ? Math.round(100*T.active/T.secs) : null;
     const shareCol = share==null ? 'var(--mute)' : share>=90 ? 'var(--green)' : share>=75 ? 'var(--amber)' : 'var(--red)';
-    html += kidCard('focus', k, `交卷 ${mine.length} 次`,
-      mine.length ? `实际用时 <b>${dur(T.active)}</b> · 在页面上 <b style="color:${shareCol}">${
+    html += kidCard('focus', k, `交卷 ${mine.length} 次${U.length?` · 没交卷 ${U.length} 份`:''}`,
+      any ? `实际用时 <b>${dur(T.active)}</b>${uS?`（含没交卷 ${dur(uS)}）`:''} · 在页面上 <b style="color:${shareCol}">${
           share==null?'—':share+'%'}</b> · 切走 ${T.n} 次`
         : '这段时间没有做题记录') + `
       <div class="hmet">
-        <div><div class="v">${tileUnit(dur(T.active))}</div><div class="k">实际用时${qm(`${mine.length} 次交卷，页面开在最前面的时间加起来（切走的不算）`)}</div>
-            <div class="x">页面开了 ${dur(T.secs)}</div></div>
+        <div><div class="v">${tileUnit(dur(T.active))}</div><div class="k">实际用时${qm(`${mine.length} 次交卷${U.length?` + 没交卷的 ${U.length} 份`:''}，页面开在最前面的时间加起来（切走的不算）${uS?`。其中没交卷的 ${dur(uS)} —— ${UNF_TIP}`:''}`)}</div>
+            <div class="x">${uS?`含没交卷 ${dur(uS)} · `:''}页面开了 ${dur(T.secs)}</div></div>
         <div><div class="v" style="color:${shareCol}">${share==null?'—':share+'%'}</div><div class="k">在页面上${qm(share==null?'这段时间没有记录':`实际用时 ${dur(T.active)} ÷ 页面开了 ${dur(T.secs)}`)}</div></div>
-        <div><div class="v" style="color:${T.n?'var(--amber)':'var(--cream)'}">${T.n}</div><div class="k">切走次数${qm(`这一页被切走的次数${T.away?`，一共切走 ${dur(T.away)}`:''}`)}</div></div>
+        <div><div class="v" style="color:${T.n?'var(--amber)':'var(--cream)'}">${T.n}</div><div class="k">切走次数${qm(`交了卷的那几份被切走的次数（没交卷的只记了切走多久，没记次数）${T.away?`，一共切走 ${dur(T.away)}`:''}`)}</div></div>
         <div><div class="v">${T.max?tileUnit(dur(T.max)):'—'}</div><div class="k">最长一次切走${qm('单独一次切走最久的时长')}</div></div>
       </div>`;
-    if(!mine.length){ html += `<p class="empty">这段时间没有做题记录。</p></details>`; return; }
+    if(!any){ html += `<p class="empty">这段时间没有做题记录。</p></details>`; return; }
 
     html += `<div class="stack"><i class="on" style="width:${share}%"></i><i class="off" style="width:${100-share}%"></i></div>
       <div class="stacklbl">在页面上 ${dur(T.active)} · 切走 ${dur(T.away)}</div>`;
 
     const flagged = mine.filter(a=>a.f.attention);
-    html += `<div class="subhd">需要留意 · ${flagged.length} 份${qm('满足「这些数字怎么读」里「需要留意」任一条的卷子。标签写的是它为什么被列进来；这是参考，不是判决。')}</div>`;
-    html += flagged.length ? flagged.map(a=>`<div class="flagrow"><span class="when">${a.date.slice(5)}</span>
+    if(mine.length) html += `<div class="subhd">需要留意 · ${flagged.length} 份${qm('满足「这些数字怎么读」里「需要留意」任一条的卷子。标签写的是它为什么被列进来；这是参考，不是判决。')}</div>`;
+    if(mine.length) html += flagged.length ? flagged.map(a=>`<div class="flagrow"><span class="when">${a.date.slice(5)}</span>
         <span class="nm">${esc(a.t)}<div class="flags">${a.f.flags.map(x=>`<span>${esc(x)}</span>`).join('')}</div></span></div>`).join('')
       : `<p class="empty" style="padding:8px 0">都挺专心，没有要特别留意的。</p>`;
 
-    html += `<div class="subhd">每份实际用时 · 每题停留${qm('右边大数字 = 这份的实际用时（页面开在最前面的时间）。下面一排小条，一根是一道题，越高停得越久；颜色的意思在页面最下面。')}</div>`;
+    if(mine.length) html += `<div class="subhd">每份实际用时 · 每题停留${qm('右边大数字 = 这份的实际用时（页面开在最前面的时间）。下面一排小条，一根是一道题，越高停得越久；颜色的意思在页面最下面。')}</div>`;
     mine.forEach(a=>{
       const f = a.f, maxQ = Math.max(1, ...f.qs.map(q=>q.active));
       const slowest = f.qs.reduce((m,q)=>!m||q.active>m.active?q:m, null);
@@ -2435,6 +2559,7 @@ function viewFocus(){
           : `<div class="fmeta" style="opacity:.7">练习 / 参考类，没有逐题记录</div>`}
       </div>`;
     });
+    if(U.length) html += `<div class="subhd">没交卷 · ${U.length} 份 · ${dur(uS)}${qm(UNF_TIP)}</div>` + U.map(unfRow).join('');
     html += `</details>`;
   });
 
@@ -2860,7 +2985,8 @@ function viewEssay(){
   return html;
 }
 
-const seenText = w => w.seenAt ? `孩子 ${stamp(tsDate(w.seenAt))} 看过` : '孩子还没看';
+const seenText = w => { const rs = reviewReadSecs(w.id);
+  return (w.seenAt ? `孩子 ${stamp(tsDate(w.seenAt))} 看过` : '孩子还没看') + (rs ? ` · 看批改实际用时 ${dur(rs)}` : ''); };
 
 // 这篇作文是哪门课的（JS/writing-kinds.js 按交上来的页面认）。同一门课里再细分：
 // Writing Lab 的 SSAT 故事是 promptKind:'story'，ISEE 题目是 'essay'。

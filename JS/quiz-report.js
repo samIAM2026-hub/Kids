@@ -54,6 +54,8 @@
   var ACTIVE_KEY = 'kid.lastActive.v1';   // shared with homework.html
   var IDLE_MS = 30 * 60 * 1000;           // nobody used the site this long → sign the kid out
   var PROG_EVERY_MS = 20000;               // live progress (进行中): at most one write per 20 s while answering
+  var BEAT_MS = 60000;                     // …and once a minute while the page is just open (time not handed in)
+  var UNF_KEY = 'quizReport.unfinished.v1';   // this device's sessions per kid / page / day (see putProgress)
   var KIDS = {                             // same uids as homework.html; for the name badge only
     mbtSDgfFrOOS4xIT3eXr7pETEt33: { n: 'Grace', av: '👧', fg: '#d84315', bg: '#fff4e8', line: '#ffb37b' },
     paACSAD0W0bBNknKrAf3GfpHy8x1: { n: 'Warren', av: '👦', fg: '#35704a', bg: '#eef6f0', line: '#8bb98f' }
@@ -93,6 +95,9 @@
   function lastActive() { try { return +localStorage.getItem(ACTIVE_KEY) || 0; } catch (e) { return now(); } }
   var idleAtLoad = now() - lastActive() > IDLE_MS;
   function newSession() {
+    // A round starting on a practice page ends the menu session: write its last numbers first,
+    // so the time spent there still counts (HOMEWORK-SYSTEM.md 2026-09-24 · 没交卷的时间).
+    if (session && !session.sent && worthProgress()) sendProgress(false);
     if (session && session.progTimer) clearTimeout(session.progTimer);
     session = { startedAt: now(), lastMark: now(), away: [], awayFrom: null, q: {}, sent: false, fixupSent: false,
                 progAt: 0, progTimer: 0 };
@@ -132,6 +137,7 @@
     r.awaySecs += awayBetween(from, t);
     if (correct !== undefined) r.correct = correct;
     session.lastMark = t;
+    session.started = true;
     progressSoon();
   }
   // Knowledge-point tag (HOMEWORK-SYSTEM.md §三十五; ids in
@@ -270,7 +276,7 @@
         var p = this.pair();
         // Time the round, not the menu. A game has no per-question hook, so starting a round is
         // what shows 进行中 on the parent page (no x/y count).
-        wrap(p[0], null, function () { newSession(); sendProgress(false); });
+        wrap(p[0], null, function () { newSession(); session.started = true; sendProgress(false); });
         wrap(p[1], null, function () {
           var rounds = peek('ROUNDS'), r = rounds && rounds[peek('round')];
           var first = peek('firstTryOK'), items = peek('total'), lvl = peek('currentLvl');
@@ -476,32 +482,73 @@
   }
 
   /* ---------- live progress: 进行中 on the parent page (HOMEWORK-SYSTEM.md 2026-09-22 · 进行中) ----------
-     progress/{kidUid}__{itemId}: one doc per kid per page, overwritten each time the kid works on it.
-     Written on the first answer, then at most every PROG_EVERY_MS while answering, and once more
-     with done:true when the attempt has landed (see flush). Nothing is written for a page that's
-     only opened: "started" means the first question answered (Sam 2026-09-22). Best-effort only —
-     a failed write never touches the attempt. */
+     progress/{kidUid}__{itemId}__{day}: one doc per kid per page per day, overwritten each time the kid
+     works on it that day. Written on the first answer, then at most every PROG_EVERY_MS while answering,
+     and once more with done:true when the attempt has landed (see flush). "started" (the 进行中 chip)
+     still means the first question answered (Sam 2026-09-22).
+     Since 2026-09-24 it also carries time, so the parent page can count time that was never handed in
+     (Sam: 没交卷的那段也记进实际用时, including a page only opened and read): activeSecs / secs of this
+     session, and earlierActive / earlierSecs = this day's earlier sessions on this page that ended
+     without a hand-in. So a page that's only open is written too, once it has been in front for
+     VIEW_MIN_SECS, then every BEAT_MS and when it's left. Best-effort only — a failed write never
+     touches the attempt. */
   function localDay(ms) {
     var d = new Date(ms);
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  // Each write replaces the day's doc, so a session that ended without a hand-in would vanish as soon as
+  // the next one on the same page writes. This device remembers every session it wrote (keyed by its
+  // startedAt) and each write carries the sum of the earlier unfinished ones. Another device's sessions
+  // aren't known here — rare enough to live with.
+  function readUnf() { try { return JSON.parse(localStorage.getItem(UNF_KEY)) || {}; } catch (e) { return {}; } }
+  function tallyEarlier(p) {
+    var all = readUnf(), key = p.kidId + '|' + p.itemId + '|' + p.day, mine = all[key] || {};
+    var yesterday = localDay(now() - 864e5);
+    Object.keys(all).forEach(function (k) {   // keep today and yesterday only
+      var d = k.slice(k.lastIndexOf('|') + 1);
+      if (d !== p.day && d !== localDay(now()) && d !== yesterday) delete all[k];
+    });
+    // A late done:true (the attempt landed after a new session began) must not undo that session.
+    mine[p.startedAt] = { a: p.activeSecs, s: p.secs, d: p.done || !!(mine[p.startedAt] && mine[p.startedAt].d) };
+    all[key] = mine;
+    try { localStorage.setItem(UNF_KEY, JSON.stringify(all)); } catch (e) {}
+    p.earlierActive = 0; p.earlierSecs = 0;
+    Object.keys(mine).forEach(function (sid) {
+      if (+sid === p.startedAt || mine[sid].d) return;
+      p.earlierActive += mine[sid].a || 0;
+      p.earlierSecs += mine[sid].s || 0;
+    });
   }
   function putProgress(p) {
     ready.then(function (fb) {
       var user = signedInKid(fb.auth);
       if (!user) return;
       p.kidId = user.uid;
-      return fb.db.collection('progress').doc(user.uid + '__' + p.itemId).set(p);
+      tallyEarlier(p);
+      return fb.db.collection('progress').doc(user.uid + '__' + p.itemId + '__' + p.day).set(p);
     }).catch(function (e) { console.warn('[quiz-report] progress not sent:', (e && e.code) || e); });
   }
-  function sendProgress(done) {
+  function activeNow() {
     var s = session;
+    return Math.max(0, (now() - s.startedAt) / 1000 - awayBetween(s.startedAt, now()));
+  }
+  // Only a page that has been in front a little while is worth a doc: a tab opened by mistake isn't.
+  function worthProgress() { return session.started || activeNow() >= VIEW_MIN_SECS; }
+  // here: the kid is on this page right now (in front, not handed in). The parent page runs a live clock off it
+  // (HOMEWORK-SYSTEM.md 2026-09-26 · 家长台实时计时): true → keep counting from this write, false → stop at this number.
+  function sendProgress(done, gone) {
+    var s = session;
+    s.gone = !!gone || !!done || document.hidden || s.awayFrom != null;
     if (s.progTimer) { clearTimeout(s.progTimer); s.progTimer = 0; }
     s.progAt = now();
     var total = null;
     try { var n = progTotal && progTotal(); if (typeof n === 'number' && n > 0) total = n; } catch (e) {}
     putProgress({ itemId: itemId, t: String(document.title || file).slice(0, 300), day: localDay(s.startedAt),
-                  answered: Object.keys(s.q).length, total: total,
-                  startedAt: s.startedAt, lastAt: now(), done: !!done });
+                  answered: Object.keys(s.q).length, total: total, started: !!s.started,
+                  activeSecs: Math.round(activeNow()), secs: Math.round((now() - s.startedAt) / 1000),
+                  // lastAt drives 进行中 → 停在 on the parent page (30 min quiet), so once answering has begun it's the
+                  // last answer / page turn, not this write — a heartbeat on a page left open mustn't keep it 进行中.
+                  startedAt: s.startedAt, lastAt: s.started ? s.lastMark : now(), done: !!done, here: !s.gone });
   }
   function progressSoon() {
     var s = session;
@@ -513,10 +560,22 @@
       if (s === session && !s.sent) sendProgress(false);
     }, wait);
   }
-  // Leaving mid-way: send the count now rather than lose the last 20 s of it.
-  document.addEventListener('visibilitychange', function () {
-    if (document.hidden && session.progTimer && !session.sent) sendProgress(false);
-  });
+  // Leaving mid-way (another app, lock screen, closing the tab): send the count and the time now.
+  function leaving(gone) { if (!session.sent && worthProgress()) sendProgress(false, gone === true); }
+  document.addEventListener('visibilitychange', function () { document.hidden ? leaving() : returned(); });
+  window.addEventListener('pagehide', function () { leaving(true); });
+  // iPad split view / another window: the page stays visible but the kid isn't on it — stop the parent's clock too.
+  window.addEventListener('blur', function () { if (!document.hidden) leaving(); });
+  window.addEventListener('focus', function () { returned(); });
+  // Back on the page after a "gone" write: say so at once, so the parent's clock starts again (at most one write per away).
+  function returned() {
+    var s = session;
+    if (s.gone && !s.sent && !document.hidden && s.awayFrom == null && worthProgress()) sendProgress(false);
+  }
+  // Open and in front but not answering (reading, the lesson part): keep the time current.
+  setInterval(function () {
+    if (!document.hidden && !session.sent && worthProgress() && now() - session.progAt >= BEAT_MS) sendProgress(false);
+  }, 15000);
 
   /* ---------- the fix round (JS/fix-loop.js) ----------
      The kid went back through every question they missed and got them all right.
@@ -577,7 +636,8 @@
             // Fix rounds are their own tiny attempt after the real one — no need to flip anything for those.
             if (r.kind !== 'fixup') putProgress({
               itemId: r.itemId, t: String(r.t || '').slice(0, 300), day: localDay(r.startedAtMs),
-              answered: (r.qTimes || []).length, total: r.total || null,
+              answered: (r.qTimes || []).length, total: r.total || null, started: true,
+              activeSecs: r.activeSecs || 0, secs: r.secs || 0,
               startedAt: r.startedAtMs, lastAt: r.submittedAtMs, done: true
             });
             if (!r.writing) return;
@@ -602,8 +662,17 @@
   flush();                                   // anything left over from an earlier page
   window.addEventListener('online', flush);
 
+  // A page's own timed record that isn't a round — the Writing Lab timing a kid reading Dad's / Mom's marks
+  // (HOMEWORK-SYSTEM.md 2026-09-26 · 看批改). Same queue, kid stamp and offline retry as an attempt;
+  // the caller fills in itemId, t, secs / activeSecs, startedAtMs / submittedAtMs.
+  function record(rec) {
+    rec.localId = now().toString(36) + Math.random().toString(36).slice(2, 10);
+    rec.reportVersion = 2;
+    enqueue(rec);
+  }
+
   // For checking by hand in the console: QuizReport.adapter, QuizReport.session()
   // ready: Promise<{ db, auth }> on the kid's sign-in — the Writing Lab reads the kid's own writings with it.
   window.QuizReport = { adapter: adapter ? adapter.name : 'viewed', itemId: itemId, session: function () { return session; },
-                        flush: flush, ready: ready, fixup: fixup };
+                        flush: flush, ready: ready, fixup: fixup, record: record };
 })();
