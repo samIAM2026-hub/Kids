@@ -2991,16 +2991,16 @@ const seenText = w => { const rs = reviewReadSecs(w.id);
 // 这篇作文是哪门课的（JS/writing-kinds.js 按交上来的页面认）。同一门课里再细分：
 // Writing Lab 的 SSAT 故事是 promptKind:'story'，ISEE 题目是 'essay'。
 // 申请文书 2026-09-25 起不在作业系统里了，在 arbutus（Sam 定）。
-// 演讲课（Writing/Speech-Studio.html）：一课拆成五天，每天单独交一次，pid 是 speech-L<课>-d<天>。
-// 手批，不按 ISEE/SSAT 判分口径走 —— 见 HOMEWORK-SYSTEM.md 2026-09-20 演讲工作台。
-// 五个格子是「步骤」不是「天」（Sam 2026-09-21：用 Day 会逼着孩子当天做完；
-// 一次可能做两步，一步也可能分几次做）。pid 里的 d 只是内部编号，没改。
-const SPEECH_DAY = { 1:'用自己的话复述技术点', 2:'三个开场白', 3:'骨架 · 意图 + 三个论点',
-                     4:'结尾 · 三种收尾 + takeaway', 5:'成稿 + 朗读录音' };
-const speechAt = w => /^speech-L(\d+)-d([1-5])$/.exec(w && w.pid || '');
+// 演讲课（Writing/Speech-Studio.html）：一课若干步，每步单独交一次，手批，不按 ISEE/SSAT 判分口径走 ——
+// 见 HOMEWORK-SYSTEM.md 2026-09-20 演讲工作台。2026-09-27 起改成四步（pid speech-L<课>-s<步>）：
+// 找素材 · 填课本那张表 · 开头和结尾 · 成稿朗读录音。之前交的五步版 pid 是 speech-L<课>-d<步>，照旧能显示。
+const SPEECH_STEP = { s: { 1:'找素材 · 三个故事', 2:'填表 · YOUR SPEECH', 3:'开头和最后一句', 4:'成稿 + 朗读录音' },
+                      d: { 1:'用自己的话复述技术点', 2:'三个开场白', 3:'骨架 · 意图 + 三个论点',
+                           4:'结尾 · 三种收尾 + takeaway', 5:'成稿 + 朗读录音' } };
+const speechAt = w => /^speech-L(\d+)-([ds])(\d)$/.exec(w && w.pid || '');
 const wkOf = w => WritingKinds.of(w);
 const promptLabel = w => { const k = wkOf(w).key;
-  return k==='speech' ? (m => m ? `Lesson ${m[1]} · 第 ${m[2]} 步 ${SPEECH_DAY[+m[2]]||''}` : '')(speechAt(w))
+  return k==='speech' ? (m => m ? `Lesson ${m[1]} · 第 ${m[3]} 步 ${SPEECH_STEP[m[2]][+m[3]]||''}${m[2]==='d'?'（旧五步版）':''}` : '')(speechAt(w))
     : k==='exam' ? (w.promptKind==='story' ? 'SSAT 故事开头' : 'ISEE 题目') : ''; };
 
 // 每门课的批改口径（给 🤖 按钮用）在 JS/writing-kinds.js 的 rubric 里，writing-review.mjs 也读同一份。
