@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Speech · A Few Things About Me</title>
+<style>
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --ink:#1c1a17; --soft:#5b4636; --cream:#f6f3ed; --paper:#fffdf7;
+    --rust:#b4622f; --green:#3f7d4e; --line:#e2d9c9; --gold:#c9a227;
+    --up:#2f6f9f; --down:#a0452a;
+    --c-hook:#b4622f; --c-dance:#b0417a; --c-piano:#2f6f9f; --c-bad:#3f7d4e; --c-sum:#a07a12; --c-end:#c0392b;
+  }
+  body{ font-family:Georgia,"Times New Roman",serif; background:var(--cream); color:var(--ink);
+    line-height:1.65; padding:26px 16px 80px; -webkit-text-size-adjust:100%; }
+  .wrap{ max-width:760px; margin:0 auto; }
+  .mono{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; }
+  header{ border-bottom:3px double var(--line); padding-bottom:16px; margin-bottom:18px; }
+  .eyebrow{ font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--rust); margin-bottom:6px; }
+  h1{ font-size:1.8rem; line-height:1.2; letter-spacing:-.4px; }
+  .byline{ color:var(--soft); font-size:.95rem; margin-top:6px; font-style:italic; }
+  a.back{ color:var(--rust); font-size:.85rem; text-decoration:none; display:inline-block; margin-bottom:12px; }
+  h2.sec{ font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--soft); margin:0 0 8px; }
+
+  /* shape of the speech */
+  .shape{ display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-bottom:6px; }
+  .shape .st{ display:flex; flex-direction:column; align-items:center; min-width:62px; padding:6px 8px;
+    border-radius:10px; color:#fff; font-size:.72rem; line-height:1.2; text-align:center; }
+  .shape .st b{ font-size:1.5rem; line-height:1.2; }
+  .shape .ar{ color:var(--soft); font-size:1rem; }
+  .shape-note{ color:var(--soft); font-size:.9rem; margin-bottom:18px; }
+
+  /* legend */
+  .legend{ background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:12px 16px; margin-bottom:18px; }
+  .legend ul{ list-style:none; display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:4px 16px; font-size:.95rem; }
+  .legend li span:first-child{ display:inline-block; min-width:62px; text-align:center; }
+
+  .modes{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+  .modes button, .tool{ font-family:inherit; font-size:.92rem; cursor:pointer; border-radius:8px;
+    border:1px solid var(--line); background:var(--paper); color:var(--ink); padding:9px 14px; }
+  .modes button.on{ background:var(--green); border-color:var(--green); color:#fff; font-weight:700; }
+  .tools{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; font-size:.92rem; }
+  .tools label{ display:flex; align-items:center; gap:6px; cursor:pointer; }
+  #clock{ font-size:1.05rem; min-width:3.2em; }
+  .hint{ color:var(--soft); font-size:.88rem; margin-bottom:16px; font-style:italic; }
+
+  .part{ background:var(--paper); border:1px solid var(--line); border-left:5px solid var(--c);
+    border-radius:0 10px 10px 0; padding:13px 17px 14px; margin-bottom:12px; }
+  .part .lab{ font-size:.64rem; letter-spacing:.14em; text-transform:uppercase; color:var(--c);
+    display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:5px; }
+  .part .say{ font-family:inherit; font-size:.75rem; letter-spacing:0; text-transform:none; cursor:pointer;
+    border:1px solid var(--line); background:#fff; color:var(--c); border-radius:99px; padding:2px 10px; }
+  .part .how{ font-size:.92rem; color:var(--soft); background:#faf5ea; border-radius:6px; padding:5px 9px; margin-bottom:8px; }
+  .part .cue{ display:none; font-size:1.02rem; color:var(--ink); }
+  .part .txt{ font-size:1.18rem; line-height:1.95; }
+
+  .pause{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.8rem; color:var(--gold);
+    font-weight:700; vertical-align:1px; margin:0 1px; }
+  .arr{ font-size:.95rem; font-weight:700; margin-left:1px; }
+  .arr.up{ color:var(--up); } .arr.down{ color:var(--down); }
+  .loud{ font-weight:700; color:#000; }
+  .stretch{ text-decoration:underline wavy var(--c-dance); text-underline-offset:4px; }
+  body.nomarks .pause, body.nomarks .arr{ display:none; }
+  body.nomarks .loud{ font-weight:normal; }
+  body.nomarks .stretch{ text-decoration:none; }
+  body.nomarks .part .how{ display:none; }
+
+  .w{ white-space:nowrap; }
+  .w .b{ display:none; }
+  /* 2 · key words hidden */
+  body.m-keys .txt .w.loud:not(.shown){ color:transparent; background:#f1e7cf; border-radius:4px;
+    border-bottom:2px solid var(--gold); cursor:pointer; text-decoration:none; }
+  body.m-keys .txt .w.loud:not(.shown) .arr{ color:transparent; }
+  /* 3 · first letters */
+  body.m-letters .txt{ word-spacing:.35em; }
+  body.m-letters .txt .w .r{ display:none; }
+  body.m-letters .txt .w .b{ display:inline-block; height:.9em; border-bottom:2px solid #cbbfa9; margin-left:1px; vertical-align:baseline; }
+  body.m-letters .txt .w .f{ font-weight:700; }
+  /* 4 · cues only */
+  body.m-map .part .txt, body.m-map .part .how{ display:none; }
+  body.m-map .part .cue{ display:block; }
+
+  .tips{ margin-top:22px; background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--gold);
+    border-radius:0 10px 10px 0; padding:15px 18px; }
+  .tips h2{ font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
+  .tips ol, .tips ul{ padding-left:20px; } .tips li{ margin-bottom:6px; }
+  .ladder li{ margin-bottom:3px; }
+  footer{ margin-top:22px; color:var(--soft); font-size:.85rem; text-align:center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../homework.html">← My homework</a>
+  <header>
+    <div class="eyebrow mono">Public Speaking · Speech to learn by heart</div>
+    <h1>A Few Things About Me</h1>
+    <div class="byline">By Grace. About 1 minute out loud. Every word is yours — this page only adds marks to help you say it.</div>
+  </header>
+
+  <h2 class="sec mono">The shape of your speech</h2>
+  <div class="shape" id="shape"></div>
+  <div class="shape-note">Remember the 6 pictures and you remember the speech. Each hobby has the same pattern:
+    <b>what I do → how it feels → the best part</b>.</div>
+
+  <div class="legend">
+    <h2 class="sec mono">What the marks mean</h2>
+    <ul>
+      <li><span class="loud">bold</span> say it fuller and stronger (not shouting)</li>
+      <li><span class="pause">|</span> tiny stop, one beat</li>
+      <li><span class="pause">||</span> stop and take a breath</li>
+      <li><span class="stretch">wavy</span> stretch it slowly: “re-e-ally”</li>
+      <li><span class="arr up">↗</span> voice goes up</li>
+      <li><span class="arr down">↘</span> voice goes down, like a full stop</li>
+    </ul>
+  </div>
+
+  <div class="modes" id="modes">
+    <button data-m="read" class="on">1 · Read it</button>
+    <button data-m="keys">2 · Key words hidden</button>
+    <button data-m="letters">3 · First letters</button>
+    <button data-m="map">4 · Just the pictures</button>
+  </div>
+  <div class="tools">
+    <label><input type="checkbox" id="marks" checked> Show marks</label>
+    <button class="tool" id="timer">⏱ Time me</button>
+    <span id="clock" class="mono"></span>
+  </div>
+  <div class="hint" id="hint"></div>
+
+  <div id="speech"></div>
+
+  <div class="tips">
+    <h2 class="mono">The first words of each part</h2>
+    <p style="margin-bottom:6px">If you get stuck, you only need the start. The rest follows.</p>
+    <ol class="ladder">
+      <li>❓ <b>Have you ever wondered…</b></li>
+      <li>💃 <b>I really love dancing…</b></li>
+      <li>🎹 <b>I also enjoy playing the piano…</b></li>
+      <li>🏸 <b>I also like badminton…</b></li>
+      <li>✋ <b>Dancing, piano, and badminton…</b></li>
+      <li>🙏 <b>Now you know…</b></li>
+    </ol>
+    <p style="margin-top:6px;color:var(--soft);font-size:.9rem">Love → enjoy → like: the three hobbies go from biggest feeling to smallest.</p>
+  </div>
+
+  <div class="tips">
+    <h2 class="mono">How to learn it fast</h2>
+    <ol>
+      <li>Look at the 6 pictures. Say them out loud: <i>question, dance, piano, badminton, all three, thank you.</i></li>
+      <li>Mode 1: read the whole speech out loud <b>twice</b>. Follow the marks. Tap <b>▶ Hear it</b> if you want to listen first.</li>
+      <li>Learn <b>one coloured box at a time</b>. Say it, look away, say it again.</li>
+      <li>Mode 2: the bold words are hidden. Say the whole speech, then tap a gap to check.</li>
+      <li>Mode 3: only first letters. Mode 4: only pictures and cues.</li>
+      <li>Stand up and say it to Mum or Dad with no screen. Press <b>⏱ Time me</b> — about 1 minute is just right.</li>
+    </ol>
+  </div>
+
+  <div class="tips">
+    <h2 class="mono">On the stage</h2>
+    <ul>
+      <li>Stand still, feet flat. Hands relaxed by your sides.</li>
+      <li>Take one breath <b>before</b> the first word.</li>
+      <li>Look at three people: one on the left, one in the middle, one on the right.</li>
+      <li>Being nervous makes you fast. Go <b>slower</b> than feels normal.</li>
+      <li>If you forget, pause, smile, and say the next picture. Nobody knows the words but you!</li>
+    </ul>
+  </div>
+  <footer>You don't have to say every word perfectly. If you know the pictures, you know the speech.</footer>
+</div>
+
+<script>
+/* Marks: *word* = stronger · | = one beat · || = breath · ↗ ↘ = voice up / down · ~ inside a word = stretch it */
+const PARTS = [
+  { k:'Question', ic:'❓', c:'--c-hook',
+    how:'😊 Curious, friendly voice. Look around at everyone. Your voice goes up at the end of the question.',
+    cue:'❓ Ever wondered … not at school? → Well, a few things you might not know',
+    t:'Have you *ever* wondered | what *I* like to do | when I’m *not* at school? ↗ || *Well,* | here are a few things | you might *not* know about me! ↘ ||' },
+  { k:'Dancing', ic:'💃', c:'--c-dance',
+    how:'🌟 Your happiest, brightest voice — this is your favourite! Lean on “really”.',
+    cue:'💃 Really love dancing · on stage → happy + confident → practice pays off → prizes or trophies',
+    t:'I *re~ally* love *dancing,* | especially | performing on *stage.* || It makes me feel *happy* | and *confident,* | and I love when all my practice | *pays off* | and I can win *prizes* ↗ | or *trophies.* ↘ ||' },
+  { k:'Piano', ic:'🎹', c:'--c-piano',
+    how:'🎹 Say “hard at first” a little lower and slower. Then lift up on “amazing” — like the music finally works.',
+    cue:'🎹 Also enjoy piano → challenging pieces → hard at first → amazing when I finally learn them',
+    t:'I *also* enjoy playing the *piano.* || I like learning *challenging* pieces | because they can be *hard* at first, ↘ | but they sound *a~mazing* ↗ | when I *finally* learn them. ||' },
+  { k:'Badminton', ic:'🏸', c:'--c-bad',
+    how:'🏸 Light and relaxed, like telling a friend. Smile on “lots of fun”.',
+    cue:'🏸 Also like badminton → not very often → but whenever I do → lots of fun',
+    t:'I *also* like *badminton.* || I don’t play it very *often,* | but *whenever* I do, | I have *lots* of *fun.* ||' },
+  { k:'All three', ic:'✋', c:'--c-sum',
+    how:'✋ Slow down. Count on your fingers: dancing (1), piano (2), badminton (3).',
+    cue:'✋ Dancing, piano, badminton → different sides of me → challenge me + make me happy',
+    t:'*Dancing,* ↗ | *piano,* ↗ | and *badminton* ↘ | all show *different sides* of me. || They *challenge* me | and make me *happy.* ||' },
+  { k:'Thank you', ic:'🙏', c:'--c-end',
+    how:'🙏 The slowest part. Stop, look at the people, big smile, then “Thank you!” with a small nod.',
+    cue:'🙏 Now you know a little more about me → Thank you!',
+    t:'Now you know | a *little more* about me. || *Thank you!*' },
+];
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const plain = t => t.replace(/\|+|[*~↗↘]/g, '').replace(/\s+/g, ' ').trim();
+function words(t){
+  let loud = false;
+  return t.split(/(\s+)/).map(tok => {
+    if (!tok) return '';
+    if (/^\s+$/.test(tok)) return tok;
+    if (tok === '|' || tok === '||') return '<span class="pause">' + tok + '</span>';
+    if (tok === '↗') return '<span class="arr up">↗</span>';
+    if (tok === '↘') return '<span class="arr down">↘</span>';
+    const opens = tok.startsWith('*'), closes = tok.endsWith('*');
+    if (opens) loud = true;
+    const isLoud = loud;
+    if (closes) loud = false;
+    const stretch = tok.includes('~');
+    tok = tok.replace(/[*~]/g, '');
+    const m = tok.match(/^([^A-Za-z0-9]*)([A-Za-z0-9])([A-Za-z0-9’']*)(.*)$/);
+    const inner = !m ? esc(tok) : esc(m[1]) + '<span class="f">' + esc(m[2]) + '</span>' +
+      (m[3] ? '<span class="r">' + esc(m[3]) + '</span><span class="b" style="width:' + (m[3].length * .45).toFixed(2) + 'em"></span>' : '') + esc(m[4]);
+    return '<span class="w' + (isLoud ? ' loud' : '') + (stretch ? ' stretch' : '') + '">' + inner + '</span>';
+  }).join('');
+}
+
+const box = document.getElementById('speech'), shape = document.getElementById('shape');
+let total = 0;
+PARTS.forEach((p, i) => {
+  total += plain(p.t).split(' ').length;
+  const d = document.createElement('div');
+  d.className = 'part'; d.style.setProperty('--c', 'var(' + p.c + ')');
+  d.innerHTML = '<div class="lab mono"><span>' + (i+1) + ' · ' + p.ic + ' ' + esc(p.k) + '</span>' +
+    '<button class="say" data-i="' + i + '">▶ Hear it</button></div>' +
+    '<div class="how">' + esc(p.how) + '</div>' +
+    '<div class="cue">' + esc(p.cue) + '</div><div class="txt">' + words(p.t) + '</div>';
+  box.appendChild(d);
+  if (i) { const a = document.createElement('span'); a.className = 'ar'; a.textContent = '→'; shape.appendChild(a); }
+  const s = document.createElement('div');
+  s.className = 'st mono'; s.style.background = 'var(' + p.c + ')';
+  s.innerHTML = '<b>' + p.ic + '</b>' + esc(p.k);
+  shape.appendChild(s);
+});
+
+/* tap a hidden key word to check it */
+box.addEventListener('click', e => {
+  const w = e.target.closest('.w.loud');
+  if (w && document.body.classList.contains('m-keys')) w.classList.toggle('shown');
+});
+
+/* ▶ Hear it — the device voice reads the plain words (it can't copy your feeling; the marks are for that) */
+const synth = window.speechSynthesis;
+let speaking = null;
+box.addEventListener('click', e => {
+  const b = e.target.closest('.say'); if (!b) return;
+  if (!synth) { b.textContent = 'No sound on this device'; return; }
+  const i = +b.dataset.i;
+  synth.cancel();
+  document.querySelectorAll('.say').forEach(x => x.textContent = '▶ Hear it');
+  if (speaking === i) { speaking = null; return; }
+  const u = new SpeechSynthesisUtterance(plain(PARTS[i].t));
+  u.lang = 'en-US'; u.rate = 0.85;
+  u.onend = () => { if (speaking === i) { speaking = null; b.textContent = '▶ Hear it'; } };
+  speaking = i; b.textContent = '■ Stop';
+  synth.speak(u);
+});
+
+const HINTS = {
+  read: 'Read it out loud and follow the marks. ' + total + ' words, about 1 minute.',
+  keys: 'The bold words are hidden. Say the whole speech, then tap a gap to check.',
+  letters: 'Only the first letter of each word is left. Say the whole word.',
+  map: 'Only the pictures and cues are left. Say the whole speech.',
+};
+function setMode(m){
+  document.body.classList.remove('m-keys', 'm-letters', 'm-map');
+  if (m !== 'read') document.body.classList.add('m-' + m);
+  document.querySelectorAll('.w.shown').forEach(w => w.classList.remove('shown'));
+  document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+  document.getElementById('hint').textContent = HINTS[m];
+  try { localStorage.setItem('graceSpeechAboutMe.mode', m); } catch(e) {}
+}
+document.getElementById('modes').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setMode(b.dataset.m); });
+let start = 'read';
+try { start = localStorage.getItem('graceSpeechAboutMe.mode') || 'read'; } catch(e) {}
+setMode(HINTS[start] ? start : 'read');
+
+const marks = document.getElementById('marks');
+marks.addEventListener('change', () => document.body.classList.toggle('nomarks', !marks.checked));
+
+/* ⏱ Time me */
+const tBtn = document.getElementById('timer'), clock = document.getElementById('clock');
+let t0 = 0, tick = null;
+tBtn.addEventListener('click', () => {
+  if (tick) {
+    clearInterval(tick); tick = null;
+    const s = Math.round((Date.now() - t0) / 1000);
+    clock.textContent = s + ' s' + (s < 45 ? ' — a bit fast, slow down!' : s > 90 ? ' — keep practising!' : ' — just right!');
+    tBtn.textContent = '⏱ Time me';
+  } else {
+    t0 = Date.now(); clock.textContent = '0 s'; tBtn.textContent = '■ Stop';
+    tick = setInterval(() => { clock.textContent = Math.floor((Date.now() - t0) / 1000) + ' s'; }, 250);
+  }
+});
+</script>
+</body>
+</html>
