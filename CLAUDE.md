@@ -4,6 +4,12 @@
 > Cowork 和 Claude Code 在同一个仓库里同时干活，拿 session 里的旧副本覆盖会抹掉对方的修正
 > （2026-09-15 已发生三次，细节见 `HOMEWORK-SYSTEM.md` 第三十三节「🔴 零」）。做新课就只写新课那一个文件。
 >
+> 🔴 **RULE (Sam, 2026-09-27): everything the kids see is in English.**
+> Grace and Warren are native English speakers and **cannot read Chinese**. Every explanation,
+> mistake review, hint, tip, feedback, report and instruction written for them must be in English.
+> **The one exception is Chinese lessons** — Chinese is the subject there, so Chinese on those pages
+> is fine. Otherwise Chinese is only for Sam's own analysis in the chat and the parent page.
+>
 > **Building the homework system?** Read `HOMEWORK-SYSTEM.md` in this folder first —
 > it holds the design decisions, the permission matrix, the Firestore model, and the
 > things not to re-litigate (why Firebase over Supabase, why the quiz pages stay as
