@@ -25,7 +25,7 @@
       pages: ['Writing/BASA-Invention-Poem-Workshop.html', 'Writing/BASA-Poetry-Read-Aloud.html',
               'Writing/BASA-Read-Aloud-Studio.html'] },
     { key: 'speech', zh: '演讲课',      en: 'Speech',            color: '#e08a2e',
-      pages: ['Writing/Speech-Studio.html'] }
+      pages: ['Writing/Speech-Studio.html', 'Writing/Grace-Speech-Thanksgiving.html'] }
   ];
   var BY_KEY = {};
   LIST.forEach(function (k) { BY_KEY[k.key] = k; });
