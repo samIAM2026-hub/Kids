@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3A Chapter 3 Lesson 4 &mdash; Mental Subtraction</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #f3effa 55%, #e6def5 100%);
+    min-height: 100vh; color: #1f1a2e; padding: 22px 14px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header { background: #5b3f99; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f7f3ff; box-shadow: 0 8px 0 #3d2a6b; margin-bottom: 14px; position: relative; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+  .sound { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.35);
+    color: #fff; border-radius: 99px; width: 40px; height: 40px; font-size: 18px; cursor: pointer; }
+
+  .nav { position: sticky; top: 0; z-index: 30; background: rgba(255,253,247,.95); backdrop-filter: blur(4px); border-radius: 12px; padding: 8px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(61,42,107,.12); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav a { text-decoration: none; font-size: 13.5px; font-weight: bold; color: #3d2a6b; background: #ece6f7; border-radius: 99px; padding: 6px 13px; }
+
+  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 6px 0 #d9d0ec; margin-bottom: 16px; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16.5px; line-height: 1.6; }
+  .intro p + p { margin-top: 8px; }
+  .hidden { display: none !important; }
+
+  .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .badge { background: #f3f1f6; border: 3px dashed #cfc6e0; border-radius: 14px; padding: 8px 12px; text-align: center;
+    font-size: 13px; font-weight: bold; color: #a39bb5; min-width: 98px; transition: .25s; }
+  .badge .bi { display: block; font-size: 24px; filter: grayscale(1); opacity: .45; }
+  .badge.on { background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; transform: scale(1.04); }
+  .badge.on .bi { filter: none; opacity: 1; }
+
+  h2.sect { font-size: 20px; color: #3d2a6b; margin: 30px 0 12px; text-align: center; scroll-margin-top: 70px; }
+  h2.sect span { background: #ece6f7; border-radius: 99px; padding: 5px 16px; display: inline-block; }
+  p.body { font-size: 16.5px; line-height: 1.6; color: #3a3350; }
+  p.body + p.body { margin-top: 8px; }
+
+  .btn { background: #5b3f99; color: #fff; border: none; border-radius: 12px; padding: 11px 20px; font-size: 15.5px; font-family: inherit; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #3d2a6b; margin: 4px; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #3d2a6b; }
+  .btn.amber { background: #c9761d; box-shadow: 0 5px 0 #8f5211; }
+  .btn.green { background: #3a7d44; box-shadow: 0 5px 0 #23572c; }
+  .btn.ghost { background: #fff; color: #5d5670; box-shadow: 0 4px 0 #e2dcef; border: 2px solid #e2dcef; }
+  .btn.sm { padding: 8px 14px; font-size: 14px; }
+  .center { text-align: center; }
+
+  .fb { text-align: center; font-size: 16px; font-weight: bold; min-height: 26px; margin-top: 10px; line-height: 1.55; color: #5d5670; }
+  .fb.ok { color: #3a7d44; }
+  .fb.no { color: #c0392b; }
+  .won { display: none; background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; border-radius: 12px; padding: 13px 15px; margin-top: 12px; font-size: 16px; line-height: 1.6; }
+  .won.show { display: block; }
+  .won .lbl, .trap .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; margin-bottom: 4px; }
+  .trap { background: #fbeaea; border: 3px solid #e2a49c; border-radius: 12px; padding: 12px 14px; font-size: 15.5px; line-height: 1.6; margin-top: 10px; color: #7d2b21; }
+  .trap .lbl { color: #a5352a; }
+
+  .gbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .gbar .round { font-size: 13px; font-weight: bold; color: #5d5670; font-family: 'Courier New', monospace; letter-spacing: .5px; }
+  .gbar .stars { font-size: 18px; letter-spacing: 2px; }
+  .target { background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 11px 14px; text-align: center; font-size: 17px; line-height: 1.5; }
+
+  /* ---------- column addition ---------- */
+  .colbox { display: flex; justify-content: center; margin: 14px 0 6px; }
+  .colw { display: inline-grid; gap: 4px 5px; font-family: 'Courier New', monospace; font-weight: bold; font-size: 27px; color: #1f1a2e; align-items: center; justify-items: center; }
+  .colw .c { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+  .colw .cs { height: 32px; }
+  .colw .op { color: #5b3f99; }
+  .colw .line { grid-column: 1 / -1; width: 100%; border-top: 3px solid #1f1a2e; height: 0; }
+  .colw .hi { background: #fff1c9; }
+  .colw .claim { color: #7d2b21; }
+  .colw .cc { font-size: 17px; color: #c9761d; }
+  .colw input { font-family: inherit; font-weight: bold; text-align: center; border-radius: 8px; outline: none; color: #1f1a2e; background: #fbfaff; }
+  .colw input.dg { width: 44px; height: 48px; font-size: 26px; border: 3px solid #cbbfe6; }
+  .colw input.cy { width: 30px; height: 30px; font-size: 16px; border: 2px dashed #e0b064; color: #c9761d; background: #fffaf0; }
+  .colw input:focus { border-color: #5b3f99; box-shadow: 0 0 0 3px #e3dbf6; }
+  .colw input.good { border-color: #3a7d44; background: #e8f5e6; border-style: solid; }
+  .colw input.bad { border-color: #c0392b; background: #fbeaea; border-style: solid; }
+  .colhint { text-align: center; font-size: 13px; color: #8a829c; margin-top: 2px; }
+  .peek { background: #fff; color: #5d5670; border: 2px solid #e2dcef; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-family: inherit; font-weight: bold; cursor: pointer; margin-top: 10px; }
+  .how { background: #f6f3fc; border-left: 5px solid #8f78c9; border-radius: 8px; padding: 10px 13px; margin-top: 8px; font-size: 15.5px; line-height: 1.7; }
+
+  /* ---------- place-value chart ---------- */
+  .watch { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; align-items: flex-start; margin-top: 12px; }
+  table.pv { border-collapse: collapse; font-size: 13px; }
+  table.pv th { padding: 4px 6px; font-size: 12px; color: #fff; }
+  table.pv th.t { background: #2a9d8f; } table.pv th.h { background: #8f78c9; } table.pv th.te { background: #e67e22; } table.pv th.o { background: #e8508a; }
+  table.pv td { border: 2px solid #e2dcef; width: 74px; height: 58px; vertical-align: middle; text-align: center; padding: 3px; }
+  table.pv td.lab { width: auto; border: none; font-family: 'Courier New', monospace; font-weight: bold; font-size: 15px; padding-right: 8px; text-align: right; }
+  table.pv tr.sum td { background: #fbfaff; border-top: 3px solid #1f1a2e; }
+  table.pv td.hi { background: #fff1c9; }
+  .chips { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; }
+  .chip { width: 17px; height: 17px; border-radius: 50%; display: inline-block; }
+  .chip.t { background: #2a9d8f; } .chip.h { background: #8f78c9; } .chip.te { background: #e67e22; } .chip.o { background: #e8508a; }
+  .chip.new { outline: 3px dashed #c9761d; outline-offset: 1px; }
+  .prompt { background: #f6f3fc; border-radius: 12px; padding: 14px; margin-top: 14px; text-align: center; font-size: 17px; line-height: 1.9; }
+  .prompt input, .ansrow input { width: 78px; height: 42px; font-size: 22px; font-family: 'Courier New', monospace; font-weight: bold; text-align: center; border: 3px solid #cbbfe6; border-radius: 10px; margin: 0 4px; }
+  .prompt input.sm { width: 50px; }
+
+  /* ---------- spot the mistake ---------- */
+  .notebook { background: #fffdf2; border: 2px solid #eadfb8; border-radius: 12px; padding: 10px 14px; text-align: center; margin-top: 10px; }
+  .notebook .who { font-size: 16px; line-height: 1.5; }
+  .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .choice { background: #f6f3fc; border: 3px solid #e2dcef; border-radius: 12px; padding: 11px 14px; font-size: 16px; font-family: inherit; text-align: left; cursor: pointer; color: #1f1a2e; }
+  .choice:hover { border-color: #8f78c9; }
+  .choice.good { background: #e8f5e6; border-color: #3a7d44; }
+  .choice.bad { background: #fbeaea; border-color: #c0392b; }
+  .yn { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+
+  /* ---------- test ---------- */
+  .qbar { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: bold; font-size: 15px; color: #3d2a6b; }
+  .qbar .time { font-family: 'Courier New', monospace; font-size: 18px; }
+  .qbar .time.low { color: #c0392b; }
+  .progress { height: 10px; background: #ece6f7; border-radius: 99px; margin: 10px 0 16px; overflow: hidden; }
+  .progress i { display: block; height: 100%; background: #8f78c9; width: 0; transition: width .3s; }
+  .qtext { font-size: 19px; line-height: 1.5; text-align: center; font-weight: bold; }
+  .qtag { display: inline-block; background: #5b3f99; color: #fff; font-size: 12px; font-weight: bold; border-radius: 99px; padding: 3px 12px; margin-bottom: 8px; }
+  .ansrow { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; flex-wrap: wrap; }
+  .ansrow input { width: 130px; height: 50px; font-size: 26px; }
+  .ansrow input.good { border-color: #3a7d44; background: #e8f5e6; }
+  .ansrow input.bad { border-color: #c0392b; background: #fbeaea; }
+  .explain { margin-top: 12px; }
+  .res-top { text-align: center; }
+  .res-top .stars { font-size: 34px; letter-spacing: 4px; }
+  .res-top .pct { font-size: 48px; font-weight: bold; color: #3d2a6b; }
+  .res-top .sub { color: #5d5670; font-size: 15px; margin-top: 4px; }
+  .res-top .verdict { font-size: 22px; font-weight: bold; margin-top: 8px; }
+  .verdict.pass { color: #3a7d44; } .verdict.fail { color: #c0392b; }
+  .miss { border: 3px solid #f0d2cc; border-radius: 12px; padding: 12px 14px; margin-top: 12px; background: #fffafa; }
+  .miss .mh { font-weight: bold; font-size: 16px; }
+  .miss .mh .you { color: #c0392b; } .miss .mh .right { color: #3a7d44; }
+  h3.rv { color: #3d2a6b; margin-top: 22px; text-align: center; font-size: 18px; }
+
+  .confetti { position: fixed; top: -12px; width: 9px; height: 14px; z-index: 99; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(105vh) rotate(720deg); } }
+  .pop { animation: popin .3s ease-out; }
+  @keyframes popin { 0% { transform: scale(.7) } 60% { transform: scale(1.12) } 100% { transform: scale(1) } }
+
+  .foot { text-align: center; margin-top: 26px; font-size: 13px; color: #8a829c; }
+  .foot a { color: #5b3f99; }
+  @media (max-width: 480px) {
+    .colw { font-size: 22px; }
+    .colw .c, .colw input.dg { width: 38px; }
+    table.pv td { width: 56px; }
+  }
+  table.pv td .none { font-size: 13px; color: #8a829c; font-style: italic; }
+  /* ---------- number bonds + mental working ---------- */
+  .mrow { display: flex; gap: 18px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .bond { position: relative; width: 180px; height: 136px; flex: none; }
+  .bond svg { position: absolute; left: 0; top: 0; }
+  .bc { position: absolute; width: 58px; height: 58px; border-radius: 50%; border: 3px solid #8f78c9; background: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: 'Courier New', monospace; font-size: 20px; color: #1f1a2e; }
+  .bc.w { left: 2px; top: 39px; border-color: #5b3f99; background: #f6f3fc; }
+  .bc.t { left: 118px; top: 0; }
+  .bc.b { left: 118px; top: 78px; }
+  .bc.q { color: #a39bb5; }
+  .bc input.mi { width: 46px; height: 38px; font-size: 18px; padding: 0; border-width: 2px; }
+  .mlines { font-family: 'Courier New', monospace; font-weight: bold; font-size: 20px; line-height: 2.4; color: #1f1a2e; }
+  .mlines .done { color: #3a7d44; }
+  input.mi { width: 78px; height: 42px; font-size: 21px; font-family: 'Courier New', monospace; font-weight: bold; text-align: center;
+    border: 3px solid #cbbfe6; border-radius: 10px; background: #fbfaff; color: #1f1a2e; outline: none; }
+  input.mi:focus { border-color: #5b3f99; box-shadow: 0 0 0 3px #e3dbf6; }
+  input.mi.good { border-color: #3a7d44; background: #e8f5e6; }
+  input.mi.bad { border-color: #c0392b; background: #fbeaea; }
+  .echo { display: inline-block; min-width: 58px; border-bottom: 2px solid #cbbfe6; text-align: center; color: #5b3f99; line-height: 1.4; }
+  .sub-h { font-size: 16px; font-weight: bold; color: #3d2a6b; margin-bottom: 6px; }
+  .exname { text-align: center; font-size: 17px; font-weight: bold; color: #3d2a6b; margin-top: 4px; }
+  table.pv td.over { background: #fbeaea; color: #c0392b; }
+  table.pv td.num { font-size: 24px; font-weight: 700; font-family: 'Courier New', monospace; }
+  .claim { color: #7d2b21; }
+  @media (max-width: 480px) {
+    .mlines { font-size: 18px; }
+    input.mi { width: 66px; }
+  }
+  /* ---------- number strip (warm-up) ---------- */
+  .strip { display: flex; gap: 3px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .strip .sc { width: 31px; height: 38px; border: 2px solid #e2dcef; border-radius: 7px; background: #fff; display: flex; align-items: center; justify-content: center;
+    font-family: 'Courier New', monospace; font-weight: bold; font-size: 15px; color: #1f1a2e; }
+  .strip .sc.ten { border: 3px solid #5b3f99; background: #f6f3fc; }
+  .strip .sc.gone { background: #fbeaea; border-color: #e2a49c; color: #c0392b; text-decoration: line-through; }
+  .strip .sc.now { background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; }
+  @media (max-width: 480px) { .strip .sc { width: 27px; font-size: 13px; } }
+  .strip-key { text-align: center; font-size: 13px; color: #8a829c; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <button class="sound" id="soundBtn" onclick="toggleSound()" aria-label="Sound on or off">🔊</button>
+  <div class="ic">🧠</div>
+  <h1>Mental Subtraction</h1>
+  <p>My Pals Are Here! Maths 3A · Chapter 3 · Lesson 4</p>
+</header>
+
+<nav class="nav">
+  <a href="#watch">👀 Watch it</a><a href="#try">✏️ Your turn</a><a href="#spot">🔍 Spot the mistake</a><a href="#test">🏆 Test</a>
+</nav>
+
+<div class="card intro">
+  <p><b>Take away in your head with friendly numbers: split a number into tens and ones — or jump to a round number and give back the extra.</b></p>
+  <p>Warm up, watch, try 10 from the book, catch the mistakes — then a 14-question test (1 minute each · pass = 80%).</p>
+  <div class="badges">
+    <div class="badge" id="b1"><span class="bi">👀</span>Watch it</div>
+    <div class="badge" id="b2"><span class="bi">✏️</span>Your turn</div>
+    <div class="badge" id="b3"><span class="bi">🔍</span>Mistake finder</div>
+    <div class="badge" id="b4"><span class="bi">🏆</span>Test passed</div>
+  </div>
+</div>
+
+<!-- ===================== 1 · WATCH IT ===================== -->
+<h2 class="sect" id="watch"><span>👀 1 · Watch it — Textbook pages 69–70</span></h2>
+<div class="card">
+  <div class="sub-h">🔁 Warm-up · taking ones away past a ten</div>
+  <p class="body">23 − 8: there are only 3 ones, but we need to take 8. So go down <b>to 20 first</b>, then take the rest.
+    You will need this in almost every test question.</p>
+  <div id="uStrip"></div>
+  <div class="prompt" id="uPrompt"></div>
+  <div class="fb" id="uFb"></div>
+  <div class="won" id="uWon"><span class="lbl">✅ Warm-up done</span>
+    <b>Go down to the ten first, then take the rest.</b> 23 − 8 → 23 − 3 = 20 → 20 − 5 = <b>15</b>.<br>
+    Taking away always makes the number <b>smaller</b>. If your answer is bigger than where you started, something is flipped.</div>
+</div>
+<div class="card" id="wCard">
+  <div class="sub-h">👀 The book's way · three examples</div>
+  <div id="wName" class="exname"></div>
+  <div class="mrow" id="wShow"></div>
+  <div class="prompt" id="wPrompt"></div>
+  <div class="fb" id="wFb"></div>
+  <div class="won" id="wWon"><span class="lbl">✅ You did it</span>
+    Two ways to take away in your head:<br>
+    <b>① Split:</b> 68 − 43 → 68 − 40 = 28, then 28 − 3 = <b>25</b>. Both parts get <b>taken away</b>.<br>
+    <b>② Jump and give back:</b> 81 − 37 → 81 − 40 = 41. 40 is 3 more than 37, so you took away 3 too many. Give them back: 41 + 3 = <b>44</b>.<br>
+    Numbers ending in 7, 8 or 9 (like 37, 48, 59) are nearly a round number — jump is quickest for those.</div>
+</div>
+
+<!-- ===================== 2 · YOUR TURN ===================== -->
+<h2 class="sect" id="try"><span>✏️ 2 · Your turn — Textbook page 70</span></h2>
+<div class="card">
+  <p class="body">Guided Practice 1–3. Fill in the number bond first, then the two lines.</p>
+  <div class="gbar"><span class="round" id="tRound"></span><span class="stars" id="tStars"></span></div>
+  <div class="target" id="tAsk"></div>
+  <div id="tHost"></div>
+  <div class="fb" id="tFb"></div>
+  <div class="center" id="tNext"></div>
+  <div class="won" id="tWon"><span class="lbl">✅ All 10 done</span>
+    Before you start, look at the number you take away. <b>Ends in 7, 8 or 9?</b> Jump to the round number, then <b>give back</b> the extra.
+    <b>Otherwise</b> split it into tens and ones and take away <b>both</b>.</div>
+</div>
+
+<!-- ===================== 3 · SPOT THE MISTAKE ===================== -->
+<h2 class="sect" id="spot"><span>🔍 3 · Spot the mistake — Textbook pages 70–71</span></h2>
+<div class="card">
+  <div class="gbar"><span class="round" id="sRound"></span><span class="stars" id="sStars"></span></div>
+  <div id="sBody"></div>
+  <div class="fb" id="sFb"></div>
+  <div class="center" id="sNext"></div>
+  <div class="won" id="sWon"><span class="lbl">✅ Mistake finder</span>
+    The traps: after a jump, <b>forgetting to give back</b> or <b>taking away the extra again</b> (jump → give back = add);
+    after a split, <b>adding the ones</b> (split → take away both parts); and <b>flipping the ones</b> when the top digit is smaller.</div>
+</div>
+
+<!-- ===================== 4 · TEST ===================== -->
+<h2 class="sect" id="test"><span>🏆 4 · The test — Homework pages 47–48</span></h2>
+<div class="card center" id="gate">
+  <p class="body"><b>14 questions</b> — all of Practice 4 · <b>1 minute each</b> (14 minutes in all) · pass mark <b>80%</b> (12 right).</p>
+  <p class="body">The number-bond questions have a few boxes: <b>every box</b> has to be right to get the point.
+    Type and press <b>Check</b>. One try per question — if it's wrong, you'll see why straight away.</p>
+  <p style="margin-top:12px"><button class="btn amber" onclick="startQuiz()">▶ Start the test</button></p>
+</div>
+<div class="card hidden" id="quiz">
+  <div class="qbar"><span id="qNum"></span><span id="qScore"></span><span class="time" id="qTime"></span></div>
+  <div class="progress"><i id="qProg"></i></div>
+  <div id="qBody"></div>
+</div>
+<div class="card hidden" id="result"></div>
+
+<div class="foot">My Pals Are Here! Maths 3A · Textbook p69–71 · Homework p47–48 ·
+  <a href="../homework.html">← My homework</a></div>
+</div>
+
+<script>
+/* ================= shared helpers (keep in this first script) ================= */
+function $(id) { return document.getElementById(id); }
+function onlyDigits(el) { el.value = el.value.replace(/\D/g, ''); }
+
+/* A strategy says how to take b away in your head.
+   split: b = F + part  → a − F, then − part.   bond: whole b, top F, bottom part
+   jump:  F = b + part  → a − F, then + part (give back).   bond: whole F, top b, bottom part
+   tens:  b is whole tens (like 40) → one step, a − b. */
+function mkSt(a, b, kind, F) {
+  var st = { kind: kind, a: a, b: b, F: F };
+  st.part = kind === 'split' ? b - F : kind === 'jump' ? F - b : 0;
+  st.op = kind === 'jump' ? '+' : '−';
+  st.w = kind === 'jump' ? F : b; st.t = kind === 'jump' ? b : F; st.bb = st.part;
+  st.x = a - F; return st;
+}
+function stratOf(a, b) {               // the friendliest way for a two-digit b
+  if (b % 10 === 0) return mkSt(a, b, 'tens', b);
+  if (b % 10 >= 7) return mkSt(a, b, 'jump', Math.ceil(b / 10) * 10);
+  return mkSt(a, b, 'split', b - b % 10);
+}
+function pastTen(x, p) {               // e.g. 23 − 8 → (23 − 3 = 20, 20 − 5 = 15)
+  var o = x % 10;
+  if (o === 0 || o >= p) return '';
+  return ' <span style="color:#c9761d">(' + x + ' − ' + o + ' = ' + (x - o) + ', then ' + (x - o) + ' − ' + (p - o) + ' = ' + (x - p) + ')</span>';
+}
+function explainMental(st) {
+  var a = st.a, b = st.b, ans = a - b, L = [];
+  if (st.kind === 'tens') {
+    L.push(b + ' is just ' + (b / 10) + ' tens. Take away ' + (b / 10) + ' tens: count back in tens from ' + a + '.');
+    L.push(a + ' − ' + b + ' = <b>' + ans + '</b>. The ones don\'t change.');
+    return L.join('<br>');
+  }
+  if (st.kind === 'split') L.push('Split <b>' + b + '</b> into <b>' + st.F + '</b> and <b>' + st.part + '</b>.');
+  else L.push('<b>' + b + '</b> is close to <b>' + st.F + '</b>: ' + b + ' + ' + st.part + ' = ' + st.F + '.');
+  L.push('Take away ' + st.F + ' first: ' + a + ' − ' + st.F + ' = <b>' + st.x + '</b>.');
+  if (st.kind === 'split') L.push('Then take away the ' + st.part + ' too: ' + st.x + ' − ' + st.part + ' = <b>' + ans + '</b>.' + pastTen(st.x, st.part));
+  else L.push('You took away ' + st.part + ' too many, so give ' + st.part + ' back: ' + st.x + ' + ' + st.part + ' = <b>' + ans + '</b>.');
+  L.push('So <b>' + a + ' − ' + b + ' = ' + ans + '</b>.');
+  return L.join('<br>');
+}
+function flipSub(a, b) {              // took the smaller digit from the bigger one in every column
+  var sa = String(a), sb = String(b), n = sa.length, s = '';
+  for (var i = 0; i < n; i++) { var j = sb.length - n + i; s += Math.abs(+sa[i] - (j >= 0 ? +sb[j] : 0)); }
+  return +s;
+}
+function diagnoseMental(st, v) {
+  var a = st.a, b = st.b, ans = a - b, oa = a % 10, ob = b % 10;
+  if (v === ans) return '';
+  if (st.kind === 'jump') {
+    if (v === st.x) return 'You took away ' + st.F + ' but forgot to give back the extra. ' + st.F + ' is ' + st.part + ' more than ' + b + ', so add ' + st.part + ' back.';
+    if (v === st.x - st.part) return 'You took the ' + st.part + ' away again. But ' + st.F + ' was already <b>more</b> than ' + b + ' — you took away too many, so the ' + st.part + ' has to be given <b>back</b> (added).';
+    if (ob !== st.part && v === st.x + ob) return 'You gave back ' + ob + ' — the ones digit. Give back how far ' + b + ' is from ' + st.F + ': ' + b + ' + ' + st.part + ' = ' + st.F + ', so give back <b>' + st.part + '</b>.';
+  } else if (st.kind === 'split') {
+    if (v === st.x) return 'You only took away the ' + st.F + '. ' + b + ' = ' + st.F + ' + ' + st.part + ' — the ' + st.part + ' has to be taken away too.';
+    if (v === st.x + st.part) return 'The ' + st.part + ' is part of ' + b + ', so it gets <b>taken away</b> too — not added.';
+  }
+  if (oa < ob && v === flipSub(a, b)) return 'In the ones you did ' + ob + ' − ' + oa + ' (bottom − top). ' + a + ' has only ' + oa + ' ones, so you can\'t take ' + ob + ' — never flip them. Go down past the ten instead.';
+  if (v === a + b) return 'You added. The question is a subtraction.';
+  if (st.kind === 'tens') return b + ' is ' + (b / 10) + ' tens. Take away ' + (b / 10) + ' tens from ' + a + ' — the ones don\'t change.';
+  if (v === ans + 10) return 'Your answer is 10 too big. When you take ones away past a ten, you go down into the ten below — like 23 − 8 = 15, not 25.';
+  if (v === ans - 10) return 'Your answer is 10 too small — check the tens.';
+  if (v > a) return 'Taking away makes a number <b>smaller</b> — your answer is bigger than ' + a + '.';
+  return 'Do it the friendly way, one step at a time — look at the steps below.';
+}
+
+/* number bond: whole on the left, two parts on the right. cells.w/t/b = html inside each circle */
+function bondHTML(cells) {
+  function c(k) { var v = cells[k]; return '<div class="bc ' + k + (v === '?' ? ' q' : '') + '">' + (v === undefined ? '' : v) + '</div>'; }
+  return '<div class="bond"><svg width="180" height="136" aria-hidden="true">' +
+    '<line x1="58" y1="68" x2="122" y2="30" stroke="#8a829c" stroke-width="4"/>' +
+    '<line x1="58" y1="68" x2="122" y2="106" stroke="#8a829c" stroke-width="4"/></svg>' + c('w') + c('t') + c('b') + '</div>';
+}
+function miInput(key, extra) { return '<input class="mi" data-k="' + key + '" inputmode="numeric" autocomplete="off" maxlength="4" aria-label="answer box"' + (extra || '') + '>'; }
+function wireEchoes(host) {            // spans with data-e="k" copy whatever is typed in the input data-k="k"
+  host.querySelectorAll('input.mi').forEach(function (el) {
+    el.addEventListener('input', function () {
+      onlyDigits(el); el.classList.remove('bad', 'good');
+      host.querySelectorAll('[data-e="' + el.dataset.k + '"]').forEach(function (s) { s.textContent = el.value; });
+    });
+  });
+}
+
+/* ---- sound (WebAudio, no files) ---- */
+var soundOn = true, AC = null;
+try { soundOn = localStorage.getItem('kidsSound') !== 'off'; } catch (e) {}
+function paintSound() { $('soundBtn').textContent = soundOn ? '🔊' : '🔇'; }
+function toggleSound() { soundOn = !soundOn; try { localStorage.setItem('kidsSound', soundOn ? 'on' : 'off'); } catch (e) {} paintSound(); }
+function tone(f, t0, dur, type, vol) {
+  if (!soundOn) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    var o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + t0;
+    o.type = type || 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(vol || .16, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+function sfxOk() { tone(660, 0, .12); tone(880, .1, .18); }
+function sfxNo() { tone(220, 0, .22, 'square', .07); }
+function sfxWin() { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * .11, .25); }); }
+
+/* ---- confetti (pure CSS) ---- */
+function confetti(n) {
+  var colors = ['#5b3f99', '#e8508a', '#e67e22', '#2a9d8f', '#f1c40f', '#3a7d44'];
+  for (var i = 0; i < (n || 70); i++) {
+    var s = document.createElement('span');
+    s.className = 'confetti';
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.background = colors[i % colors.length];
+    s.style.animationDuration = (1.6 + Math.random() * 1.6) + 's';
+    s.style.animationDelay = (Math.random() * .4) + 's';
+    document.body.appendChild(s);
+    setTimeout(function (el) { el.remove(); }.bind(null, s), 3800);
+  }
+}
+function badge(id) { var b = $(id); if (b && !b.classList.contains('on')) { b.classList.add('on', 'pop'); } }
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+/* ---- a step-by-step prompt: each step's ask has {i} boxes; ans, hints (two levels), wrong{value: msg}, ok, apply ---- */
+function Steps(promptId, fbId, steps, redraw, onDone) {
+  var self = this; this.i = 0; this.tries = 0;
+  this.draw = function () {
+    if (self.i >= steps.length) { $(promptId).classList.add('hidden'); onDone(); return; }
+    var st = steps[self.i], k = 0;
+    if (st.pre) { st.pre(); redraw(); }
+    $(promptId).innerHTML = st.ask.replace(/\{i\}/g, function () {
+      return '<input class="' + (st.ans.length > 1 ? 'sm' : '') + '" data-k="' + (k++) + '" inputmode="numeric" autocomplete="off" maxlength="5">';
+    }) + '<div style="margin-top:8px"><button class="btn green sm">Check</button></div>';
+    $(promptId).querySelector('button').onclick = self.check;
+    $(promptId).querySelectorAll('input').forEach(function (el) {
+      el.addEventListener('input', function () { onlyDigits(el); });
+      el.addEventListener('keydown', function (e) { if (e.key === 'Enter') self.check(); });
+    });
+    self.tries = 0;
+  };
+  this.check = function () {
+    var st = steps[self.i], ins = $(promptId).querySelectorAll('input'), ok = true, vals = [], fb = $(fbId);
+    ins.forEach(function (el, i) { vals.push(el.value.trim()); if (+el.value !== st.ans[i]) ok = false; });
+    if (vals.some(function (v) { return v === ''; })) { fb.className = 'fb no'; fb.textContent = 'Type a number in each box.'; return; }
+    if (!ok) {
+      sfxNo(); self.tries++; fb.className = 'fb no';
+      fb.innerHTML = (st.wrong && st.wrong[vals.join(',')]) || st.hints[Math.min(self.tries, st.hints.length) - 1];
+      return;
+    }
+    sfxOk(); fb.className = 'fb ok'; fb.innerHTML = '✓ ' + st.ok;
+    if (st.apply) st.apply();
+    self.i++; redraw(); self.draw();
+  };
+}
+
+/* ---- the practice widget: bond + two lines, checked box by box ---- */
+function MentSub(host, st, onDone) {
+  var self = this, tries = {}, failed = false, a = st.a, b = st.b, ans = a - b;
+  if (st.kind === 'tens') {
+    host.innerHTML = '<div class="mrow"><div class="mlines"><div>' + a + ' − ' + b + ' = ' + miInput('s') + '</div></div></div>';
+  } else {
+    var cells = { w: st.w, t: st.t, b: miInput('p') };
+    host.innerHTML = '<div class="mrow">' + bondHTML(cells) + '<div class="mlines">' +
+      '<div>' + a + ' − ' + st.F + ' = ' + miInput('x') + '</div>' +
+      '<div><span class="echo" data-e="x"></span> ' + st.op + ' <span class="echo" data-e="p"></span> = ' + miInput('s') + '</div>' +
+      '<div>So, ' + a + ' − ' + b + ' = <span class="echo" data-e="s"></span></div></div></div>';
+  }
+  host.innerHTML += '<div class="center"><button class="btn green sm" data-go>Check</button> <button class="peek" data-how>👀 Show me how</button></div>' +
+    '<div class="how hidden" data-howbox>' + explainMental(st) + '</div>';
+  wireEchoes(host);
+  var box = {}; host.querySelectorAll('input.mi').forEach(function (el) { box[el.dataset.k] = el; });
+  host.querySelectorAll('input.mi').forEach(function (el) { el.addEventListener('keydown', function (e) { if (e.key === 'Enter') self.check(); }); });
+  host.querySelector('[data-go]').onclick = function () { self.check(); };
+  host.querySelector('[data-how]').onclick = function () { host.querySelector('[data-howbox]').classList.toggle('hidden'); };
+  this.fb = null; this.done = false;
+  function say(msg, ok) { if (self.fb) { self.fb.innerHTML = msg; self.fb.className = 'fb ' + (ok ? 'ok' : 'no'); } }
+  function fail(k, m1, m2) {
+    failed = true; tries[k] = (tries[k] || 0) + 1;
+    box[k].classList.add('bad'); box[k].focus(); box[k].select();
+    say(tries[k] === 1 ? m1 : m2, false); sfxNo();
+  }
+  var order = st.kind === 'tens' ? [
+    { k: 's', want: ans, m1: b + ' is ' + (b / 10) + ' tens. Count back ' + (b / 10) + ' tens from ' + a + '. The ones stay the same.', m2: a + ' − ' + b + ' = ' + ans + '.' }
+  ] : [
+    { k: 'p', want: st.part,
+      m1: st.kind === 'split' ? 'The bond: ' + st.F + ' and what make ' + b + '?' : 'The bond: how far is ' + b + ' from ' + st.F + '? Count up from ' + b + '.',
+      m2: st.kind === 'split' ? b + ' − ' + st.F + ' = ' + st.part + '.' : b + ' + ' + st.part + ' = ' + st.F + ', so the missing part is ' + st.part + '.' },
+    { k: 'x', want: st.x,
+      m1: 'Take ' + st.F + ' away from ' + a + '. Count back in tens from ' + a + '.',
+      m2: a + ' − ' + st.F + ' = ' + st.x + '.' },
+    { k: 's', want: ans,
+      m1: st.kind === 'split' ? 'Now take the ' + st.part + ' away from ' + st.x + ' too.' : 'You took away ' + st.part + ' too many — give ' + st.part + ' back: add it to ' + st.x + '.',
+      m2: st.x + ' ' + st.op + ' ' + st.part + ' = ' + ans + '.' + (st.kind === 'split' ? pastTen(st.x, st.part) : '') }
+  ];
+  this.check = function () {
+    if (self.done) return;
+    for (var i = 0; i < order.length; i++) {
+      var o = order[i], el = box[o.k];
+      if (el.value === '') { failed = true; el.classList.add('bad'); el.focus(); say('Fill in every box.', false); sfxNo(); return; }
+      if (+el.value !== o.want) {
+        var m1 = o.m1;
+        if (o.k === 's') { var d = diagnoseMental(st, +el.value); if (d && d.indexOf('friendly way') < 0) m1 = d; }
+        fail(o.k, m1, o.m2); return;
+      }
+      el.classList.add('good');
+    }
+    self.done = true; sfxOk();
+    say('✓ ' + a + ' − ' + b + ' = ' + ans + (failed ? '' : ' — first try! ⭐'), true);
+    host.querySelectorAll('input').forEach(function (x) { x.disabled = true; });
+    host.querySelector('[data-go]').classList.add('hidden');
+    if (onDone) onDone(!failed);
+  };
+  // Focus only after the kid has clicked something (Next), never on page load — that would pop the iPad keyboard.
+  var ae = document.activeElement;
+  var firstBox = box.p || box.s;
+  if (ae && ae !== document.body) setTimeout(function () { try { firstBox.focus({ preventScroll: true }); } catch (e) {} }, 50);
+}
+</script>
+
+<script>
+/* ================= 1a · WARM-UP: taking ones away past a ten ================= */
+var U = { a: 23, lo: 14, gone: 0, done: false };
+function drawStrip() {
+  var h = '<div class="strip">';
+  for (var n = U.lo; n <= U.a; n++) {
+    var cls = n > U.a - U.gone ? ' gone' : n === U.a - U.gone && U.gone ? ' now' : n % 10 === 0 ? ' ten' : '';
+    h += '<div class="sc' + cls + '">' + n + '</div>';
+  }
+  $('uStrip').innerHTML = h + '</div><div class="strip-key">crossed out = taken away · green = where you are now · purple = the ten</div>';
+}
+function uSet(a, take) { U.a = a; U.lo = a - take - 1; U.gone = 0; }
+var U_STEPS = [
+  { pre: function () { uSet(23, 8); },
+    ask: '<b>23 − 8.</b> 23 has only 3 ones.<br>First take away just enough to reach 20:<br>23 − {i} = 20', ans: [3],
+    hints: ['How many ones does 23 have?', '23 − 3 = 20.'],
+    ok: '3 gone — you are at 20.', apply: function () { U.gone = 3; } },
+  { ask: 'We have to take 8 in all. 3 are gone.<br>8 = 3 + {i}', ans: [5],
+    hints: ['3 and how many more make 8?', '3 + 5 = 8.'], ok: '5 more to take.' },
+  { ask: 'Take the other 5 from 20:<br>20 − 5 = {i}', ans: [15],
+    wrong: { '25': '25 is bigger than 23! Taking away makes it smaller. Count back from 20: 19, 18, …', '5': 'Count back 5 from 20 — not 5 from 10.' },
+    hints: ['Count back 5 from 20: 19, 18, 17, …', '20 − 5 = 15.'],
+    ok: '23 − 8 = 15.', apply: function () { U.gone = 8; } },
+  { pre: function () { uSet(34, 6); },
+    ask: '<b>34 − 6.</b> Take away enough to reach 30:<br>34 − {i} = 30', ans: [4],
+    hints: ['How many ones does 34 have?', '34 − 4 = 30.'],
+    ok: 'At 30.', apply: function () { U.gone = 4; } },
+  { ask: '6 = 4 + {i}', ans: [2], hints: ['4 and how many more make 6?', '4 + 2 = 6.'], ok: '2 more to take.' },
+  { ask: '30 − 2 = {i}', ans: [28],
+    wrong: { '32': 'Taking away makes it smaller — go back from 30: 29, 28.' },
+    hints: ['Count back 2 from 30.', '30 − 2 = 28.'],
+    ok: '34 − 6 = 28.', apply: function () { U.gone = 6; } },
+  { pre: function () { uSet(44, 5); },
+    ask: 'Now in one go: <b>44 − 5 = {i}</b>', ans: [39],
+    wrong: { '41': 'You did 5 − 4 = 1 in the ones — that\'s flipped. Go down to 40 first (take 4), then take 1 more.',
+             '49': 'Taking away makes it smaller. Go down to 40 first (take 4), then 1 more.' },
+    hints: ['Take 4 to reach 40, then 1 more.', '44 − 4 = 40, then 40 − 1 = 39.'],
+    ok: '44 − 5 = 39.', apply: function () { U.gone = 5; } }
+];
+var uSteps = new Steps('uPrompt', 'uFb', U_STEPS, drawStrip, function () {
+  $('uWon').classList.add('show'); U.done = true; sfxWin(); if (W.done) badge('b1');
+});
+drawStrip(); uSteps.draw();
+
+/* ================= 1b · WATCH IT: the book's three examples (Textbook p69–70) ================= */
+var W = { ex: 0, bond: { w: 43, t: '?', b: '?' }, lines: [], done: false };
+var W_EX = ['Find the difference between 43 and 68.', 'Subtract 37 from 81.', 'Subtract 38 from 90.'];
+function drawW() {
+  $('wName').textContent = W_EX[W.ex];
+  $('wShow').innerHTML = bondHTML(W.bond) + '<div class="mlines">' + (W.lines.length ? W.lines.join('<br>') : '&nbsp;') + '</div>';
+}
+var W_STEPS = [
+  { ask: '"Difference" means bigger − smaller.<br>So we work out {i} − {i}', ans: [68, 43],
+    wrong: { '43,68': 'Put the <b>bigger</b> number first: 68 is bigger than 43.' },
+    hints: ['Which is bigger, 43 or 68? It goes first.', '68 − 43.'],
+    ok: '68 − 43.', apply: function () { W.lines = ['68 − 43 = ?']; } },
+  { ask: '<b>① Split.</b> Break 43 into tens and ones.<br>43 = {i} + {i}', ans: [40, 3],
+    wrong: { '4,3': '43 is 4 <b>tens</b> and 3 ones — 4 tens is 40.' },
+    hints: ['How many tens in 43? Write what they are worth.', '43 = 40 + 3.'],
+    ok: 'The bond: 43 splits into 40 and 3.', apply: function () { W.bond = { w: 43, t: 40, b: 3 }; } },
+  { ask: 'Take away the tens part first:<br>68 − 40 = {i}', ans: [28],
+    hints: ['Count back in tens from 68: 58, 48, …', '68 − 40 = 28.'],
+    ok: '28.', apply: function () { W.lines.push('68 − 40 = 28'); } },
+  { ask: 'Now take away the ones part too:<br>28 − 3 = {i}', ans: [25],
+    wrong: { '31': 'The 3 is part of 43, so it gets <b>taken away</b> too — don\'t add it.' },
+    hints: ['28, back 3.', '28 − 3 = 25.'],
+    ok: '68 − 43 = 25. On to example 2 →',
+    apply: function () { W.lines.push('28 − 3 = <span class="done">25</span>'); } },
+  { ask: '<b>② Jump and give back.</b> 37 is close to 40.<br>37 + {i} = 40', ans: [3],
+    hints: ['Count up from 37: 38, 39, 40.', '37 + 3 = 40.'],
+    ok: '37 is 3 short of 40.', apply: function () { W.bond = { w: 40, t: 37, b: 3 }; W.lines = ['81 − 37 = ?']; } },
+  { ask: 'Taking away 40 is easy — take away 40 instead:<br>81 − 40 = {i}', ans: [41],
+    hints: ['Count back in tens from 81: 71, 61, …', '81 − 40 = 41.'],
+    ok: '41.', apply: function () { W.lines.push('81 − 40 = 41'); } },
+  { ask: 'But 40 is <b>3 more</b> than 37 — we took away 3 too many.<br>Give them back: 41 + 3 = {i}', ans: [44],
+    wrong: { '38': 'We took away too much, so the 3 goes <b>back</b> — add it, don\'t take it away.' },
+    hints: ['41, then 3 more.', '41 + 3 = 44.'],
+    ok: '81 − 37 = 44. On to example 3 →',
+    apply: function () { W.lines.push('41 + 3 = <span class="done">44</span>'); } },
+  { ask: '<b>③ Split again.</b> 90 − 38.<br>38 = {i} + {i}', ans: [30, 8],
+    wrong: { '3,8': '38 is 3 <b>tens</b> and 8 ones — 3 tens is 30.' },
+    hints: ['How many tens in 38? Write what they are worth.', '38 = 30 + 8.'],
+    ok: 'The bond: 38 splits into 30 and 8.', apply: function () { W.bond = { w: 38, t: 30, b: 8 }; W.lines = ['90 − 38 = ?']; } },
+  { ask: '90 − 30 = {i}', ans: [60],
+    hints: ['9 tens take away 3 tens.', '90 − 30 = 60.'],
+    ok: '60.', apply: function () { W.lines.push('90 − 30 = 60'); } },
+  { ask: 'Now take away the 8. 60 has no ones — go down past 60:<br>60 − 8 = {i}', ans: [52],
+    wrong: { '68': 'Taking away makes it smaller. Count back 8 from 60: 59, 58, …', '58': 'That\'s 60 − 2. Count back all 8: 59, 58, 57, 56, 55, 54, 53, …' },
+    hints: ['Count back 8 from 60: 59, 58, 57, …', '60 − 8 = 52.'],
+    ok: '90 − 38 = 52. (The book shows another way: 38 from 40 leaves 2, and 50 + 2 = 52.)',
+    apply: function () { W.lines.push('60 − 8 = <span class="done">52</span>'); } }
+];
+var wSteps = new Steps('wPrompt', 'wFb', W_STEPS, function () {
+  W.ex = wSteps.i >= 7 ? 2 : wSteps.i >= 4 ? 1 : 0; drawW();
+}, function () {
+  $('wWon').classList.add('show'); W.done = true; sfxWin(); if (U.done) badge('b1');
+});
+drawW(); wSteps.draw();
+
+/* ================= 2 · YOUR TURN (Textbook p70, Guided Practice 1–3) ================= */
+var T_ITEMS = [
+  { a: 68, b: 32, ask: '1 · Subtract 32 from 68.' },
+  { a: 79, b: 45, ask: '2 · Find the difference between 79 and 45.' },
+  { a: 66, b: 40, ask: '3(a) · Subtract mentally: 66 − 40 — just tens, one step.' },
+  { a: 88, b: 55, ask: '3(b) · 88 − 55' },
+  { a: 96, b: 42, ask: '3(c) · 96 − 42' },
+  { a: 70, b: 28, ask: '3(d) · 70 − 28 — 28 ends in 8, so jump to 30.' },
+  { a: 45, b: 19, ask: '3(e) · 45 − 19' },
+  { a: 81, b: 23, ask: '3(f) · 81 − 23' },
+  { a: 86, b: 39, ask: '3(g) · 86 − 39' },
+  { a: 72, b: 47, ask: '3(h) · 72 − 47' }
+];
+var T = { i: 0, stars: [] };
+function drawTry() {
+  var it = T_ITEMS[T.i];
+  $('tRound').textContent = 'QUESTION ' + (T.i + 1) + ' OF ' + T_ITEMS.length;
+  $('tStars').textContent = T.stars.join('');
+  $('tAsk').innerHTML = it.ask;
+  $('tFb').textContent = ''; $('tFb').className = 'fb'; $('tNext').innerHTML = '';
+  var w = new MentSub($('tHost'), stratOf(it.a, it.b), function (first) {
+    T.stars.push(first ? '⭐' : '✔️'); $('tStars').textContent = T.stars.join('');
+    if (T.i < T_ITEMS.length - 1) $('tNext').innerHTML = '<button class="btn" onclick="T.i++;drawTry()">Next →</button>';
+    else { $('tWon').classList.add('show'); badge('b2'); sfxWin(); confetti(40); }
+  });
+  w.fb = $('tFb');
+}
+drawTry();
+
+/* ================= 3 · SPOT THE MISTAKE (numbers from Textbook p70 Maths Sharing, p70 Guided Practice, p71 Chapter 3 Review 4) ================= */
+var REASONS = {
+  forgot: 'Forgot to give back the extra',
+  wrongway: 'Took the extra away again instead of giving it back',
+  addones: 'Added the ones instead of taking them away',
+  flip: 'Flipped the ones (took the top from the bottom)'
+};
+var S_ITEMS = [
+  { who: 'Ryan', his: 'his', a: 65, b: 27, said: 32, reason: 'wrongway', src: 'Textbook page 71',
+    work: ['65 − 30 = 35', '35 − 3 = 32', 'So, 65 − 27 = <span class="claim">32</span>'],
+    why: { wrongway: 'Yes! 30 is <b>3 more</b> than 27, so Ryan took away 3 too many. He should give them <b>back</b>: 35 + 3 = 38.',
+           forgot: 'Ryan did do something with the 3 (35 − 3). Was it the right way round?',
+           addones: 'Ryan didn\'t split 27 into 20 and 7 — he jumped to 30. Look at his second line.',
+           flip: 'No digits were flipped — he jumped to 30. Look at what he did with the 3.' } },
+  { who: 'Jean', his: 'her', a: 94, b: 58, said: 36, ok: true, src: 'Textbook page 70',
+    work: ['94 − 60 = 34', '34 + 2 = 36', 'So, 94 − 58 = <span class="claim">36</span>'],
+    proof: { ask: 'Check it another way — split 58 into 50 and 8:<br>94 − 50 = 44, then 44 − 8 = {i}', ans: 36, hint: '44 − 8: take 4 to reach 40, then 4 more.' },
+    nohint: 'Check each line. 60 is how much more than 58? Did she give that much back?' },
+  { who: 'Mei', his: 'her', a: 80, b: 24, said: 64, reason: 'addones', src: 'Textbook page 70',
+    work: ['80 − 20 = 60', '60 + 4 = 64', 'So, 80 − 24 = <span class="claim">64</span>'],
+    why: { addones: 'Yes! Mei split 24 into 20 and 4. Both parts are in 24, so the 4 has to be <b>taken away</b> too: 60 − 4 = 56.',
+           forgot: 'Mei split 24 — she didn\'t jump past it, so there is nothing to give back. Look at the sign in her second line.',
+           wrongway: '20 is <b>less</b> than 24 — Mei didn\'t jump past it. Look at what she did with the 4.',
+           flip: 'No digits were flipped. Look at the sign in her second line.' } },
+  { who: 'Ali', his: 'his', a: 86, b: 39, said: 46, reason: 'forgot', src: 'Textbook page 70',
+    work: ['86 − 40 = 46', 'So, 86 − 39 = <span class="claim">46</span>'],
+    why: { forgot: 'Yes! Ali took away 40, but 40 is <b>1 more</b> than 39. He took away 1 too many, so he must give 1 back: 46 + 1 = 47.',
+           wrongway: 'Ali didn\'t do a second step at all. What is missing?',
+           addones: 'Ali didn\'t split 39 — he jumped to 40. What should come after the jump?',
+           flip: 'No digits were flipped. Ali jumped to 40 — what should come next?' } },
+  { who: 'Siti', his: 'her', a: 92, b: 44, said: 52, reason: 'flip', src: 'Textbook page 71',
+    work: ['Tens: 9 − 4 = 5', 'Ones: 4 − 2 = 2', 'So, 92 − 44 = <span class="claim">52</span>'],
+    why: { flip: 'Yes! 92 has only <b>2</b> ones, and you can\'t take 4 from 2 — so Siti took 2 from 4 instead. The friendly way: 92 − 40 = 52, then 52 − 4 = 48.',
+           forgot: 'Siti didn\'t jump to a round number, so there was nothing to give back. Look at her ones line: which number is on top?',
+           wrongway: 'Siti didn\'t jump to a round number. Look at her ones line: 92 has how many ones?',
+           addones: 'Nothing was added. Look at her ones line: 92 has 2 ones, 44 has 4 ones.' } }
+];
+var SP = { i: 0, stage: 0, first: true, stars: [] };
+function drawSpot() {
+  var it = S_ITEMS[SP.i];
+  $('sRound').textContent = 'MISTAKE HUNT ' + (SP.i + 1) + ' OF ' + S_ITEMS.length;
+  $('sStars').textContent = SP.stars.join('');
+  $('sFb').textContent = ''; $('sFb').className = 'fb'; $('sNext').innerHTML = '';
+  var head = '<div class="notebook"><div class="who">📝 <b>' + it.who + '</b> worked out <b>' + it.a + ' − ' + it.b + '</b> in ' + it.his + ' head' +
+    ' <span style="color:#8a829c;font-size:13px">(numbers from ' + it.src + ')</span></div><div class="mlines">' + it.work.join('<br>') + '</div></div>';
+  var body = '';
+  if (SP.stage === 0) {
+    body = '<p class="body center" style="margin-top:12px"><b>Is ' + it.who + ' correct?</b></p>' +
+      '<div class="yn"><button class="btn green" onclick="spotYN(true)">✓ Yes</button><button class="btn amber" onclick="spotYN(false)">✗ No</button></div>';
+  } else if (SP.stage === 1) {
+    var keys = shuffle(Object.keys(REASONS));
+    body = '<p class="body center" style="margin-top:12px"><b>What went wrong?</b></p><div class="choices">' +
+      keys.map(function (k) { return '<button class="choice" data-k="' + k + '" onclick="spotWhy(this)">' + REASONS[k] + '</button>'; }).join('') + '</div>';
+  } else {
+    body = '<div class="prompt">' + (it.ok ? it.proof.ask : 'Now fix it:<br>' + it.a + ' − ' + it.b + ' = {i}')
+      .replace('{i}', '<input id="sIn" inputmode="numeric" autocomplete="off" maxlength="4" style="width:100px">') +
+      '<div style="margin-top:8px"><button class="btn green sm" onclick="spotFix()">Check</button></div></div>';
+  }
+  $('sBody').innerHTML = head + body;
+  var inp = $('sIn');
+  if (inp) {
+    inp.addEventListener('input', function () { onlyDigits(inp); });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') spotFix(); });
+  }
+}
+function spotSay(msg, ok) { $('sFb').innerHTML = msg; $('sFb').className = 'fb ' + (ok ? 'ok' : 'no'); ok ? sfxOk() : sfxNo(); }
+function spotYN(yes) {
+  var it = S_ITEMS[SP.i];
+  if (yes === !!it.ok) {
+    spotSay(it.ok ? '✓ Right — ' + it.who + ' is correct. Let\'s prove it.' : '✓ Right — something\'s wrong. Let\'s find it.', true);
+    SP.stage = it.ok ? 2 : 1; setTimeout(drawSpot, 700);
+  } else {
+    SP.first = false;
+    spotSay(it.ok ? it.nohint : 'Check each line. Split → take away both parts. Jump → give back how far the jump went.', false);
+  }
+}
+function spotWhy(btn) {
+  var it = S_ITEMS[SP.i], k = btn.dataset.k;
+  if (k === it.reason) {
+    btn.classList.add('good'); spotSay('✓ ' + it.why[k], true);
+    $('sNext').innerHTML = '<button class="btn" onclick="SP.stage=2;drawSpot()">Fix it →</button>';
+    document.querySelectorAll('.choice').forEach(function (b) { b.disabled = true; });
+  } else { SP.first = false; btn.classList.add('bad'); spotSay(it.why[k], false); }
+}
+function spotFix() {
+  var it = S_ITEMS[SP.i], el = $('sIn'), v = el.value.trim();
+  if (v === '' || el.disabled) return;
+  var want = it.ok ? it.proof.ans : it.a - it.b;
+  if (+v === want) {
+    el.style.borderColor = '#3a7d44'; el.disabled = true;
+    spotSay(it.ok ? '✓ ' + want + ' both ways — ' + it.who + ' was right!' : '✓ ' + it.a + ' − ' + it.b + ' = ' + want + '.', true);
+    SP.stars.push(SP.first ? '⭐' : '✔️'); $('sStars').textContent = SP.stars.join('');
+    if (SP.i < S_ITEMS.length - 1) $('sNext').innerHTML = '<button class="btn" onclick="SP.i++;SP.stage=0;SP.first=true;drawSpot()">Next →</button>';
+    else { $('sNext').innerHTML = ''; $('sWon').classList.add('show'); badge('b3'); sfxWin(); confetti(40); }
+  } else {
+    SP.first = false; el.style.borderColor = '#c0392b';
+    var st = stratOf(it.a, it.b), d = diagnoseMental(st, +v);
+    if (d.indexOf('friendly way') >= 0) d = 'Not quite. Do it step by step: ' + it.a + ' − ' + st.F + ' first, then ' + (st.kind === 'jump' ? 'give back ' : 'take away ') + st.part + '.';
+    spotSay(it.ok ? it.proof.hint : d, false);
+  }
+}
+drawSpot();
+</script>
+
+<script>
+/* ================= 4 · THE TEST (Homework p47–48, Practice 4 — all 14) ================= */
+var SK_M = 'm3a.03.mental';
+/* bond questions: st = 'split' | 'jump', F = the round number, miss = which circles are blank in the book */
+var questions = [
+  { id: '1(a)', src: 47, a: 73, b: 58, ans: 15, st: 'split', F: 50, miss: ['b'],      sk: SK_M },
+  { id: '1(b)', src: 47, a: 84, b: 56, ans: 28, st: 'split', F: 50, miss: ['t', 'b'], sk: SK_M },
+  { id: '1(c)', src: 47, a: 94, b: 55, ans: 39, st: 'split', F: 50, miss: ['t', 'b'], sk: SK_M },
+  { id: '1(d)', src: 47, a: 76, b: 59, ans: 17, st: 'split', F: 50, miss: ['t', 'b'], sk: SK_M },
+  { id: '2(a)', src: 48, a: 75, b: 48, ans: 27, st: 'jump',  F: 50, miss: ['b'],      sk: SK_M },
+  { id: '2(b)', src: 48, a: 83, b: 45, ans: 38, st: 'jump',  F: 50, miss: ['t', 'b'], sk: SK_M },
+  { id: '3(a)', src: 48, a: 94, b: 32, ans: 62, sk: SK_M },
+  { id: '3(b)', src: 48, a: 78, b: 53, ans: 25, sk: SK_M },
+  { id: '3(c)', src: 48, a: 72, b: 25, ans: 47, sk: SK_M },
+  { id: '3(d)', src: 48, a: 65, b: 38, ans: 27, sk: SK_M },
+  { id: '3(e)', src: 48, a: 51, b: 19, ans: 32, sk: SK_M },
+  { id: '3(f)', src: 48, a: 84, b: 37, ans: 47, sk: SK_M },
+  { id: '3(g)', src: 48, a: 64, b: 47, ans: 17, sk: SK_M },
+  { id: '3(h)', src: 48, a: 94, b: 49, ans: 45, sk: SK_M }
+];
+questions.forEach(function (q) { q.S = q.st ? mkSt(q.a, q.b, q.st, q.F) : stratOf(q.a, q.b); });
+var SECS_PER_Q = 60;
+var QUIZ_SECS = questions.length * SECS_PER_Q;
+var PASS_PCT = 80, PASS_N = Math.ceil(questions.length * PASS_PCT / 100);
+var current = 0, score = 0, answered = false;
+var given = [], got = [], quizOn = false, timerId = null, secsLeft = 0;
+
+function fmtTime(s) { s = Math.max(0, s); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+function tick() {
+  secsLeft--;
+  $('qTime').textContent = '⏱ ' + fmtTime(secsLeft);
+  $('qTime').classList.toggle('low', secsLeft <= 60);
+  if (secsLeft <= 0) { clearInterval(timerId); timerId = null; if (quizOn) showResult(); }
+}
+function startQuiz() {
+  $('gate').classList.add('hidden'); $('result').classList.add('hidden'); $('quiz').classList.remove('hidden');
+  current = 0; score = 0; answered = false; given = []; got = []; quizOn = true;
+  secsLeft = QUIZ_SECS; $('qTime').textContent = '⏱ ' + fmtTime(secsLeft); $('qTime').classList.remove('low');
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(tick, 1000);
+  try { var s = window.QuizReport && QuizReport.session(); if (s) s.lastMark = Date.now(); } catch (e) {}
+  render();
+  $('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function qHTML(q) {
+  if (!q.st) return '<div class="qtext">' + q.a + ' − ' + q.b + ' = ?</div><div class="ansrow">' + miInput('ans', ' id="qIn"') + '</div>';
+  var S = q.S, cells = { w: S.w, t: S.t, b: S.bb };
+  q.miss.forEach(function (k) { cells[k] = miInput(k); });
+  var part = q.miss.indexOf('b') >= 0 ? '<span class="echo" data-e="b"></span>' : S.part;
+  return '<div class="qtext">' + q.a + ' − ' + q.b + ' = ?</div><div class="mrow"><div class="mlines">' +
+    '<div>' + q.a + ' − ' + S.F + ' = ' + miInput('x') + '</div>' +
+    '<div><span class="echo" data-e="x"></span> ' + S.op + ' ' + part + ' = ' + miInput('ans', ' id="qIn"') + '</div>' +
+    '<div>So, ' + q.a + ' − ' + q.b + ' = <span class="echo" data-e="ans"></span></div></div>' + bondHTML(cells) + '</div>';
+}
+function render() {
+  var q = questions[current];
+  answered = false;
+  $('qNum').textContent = 'Question ' + (current + 1) + ' of ' + questions.length;
+  $('qScore').textContent = '✓ ' + score;
+  $('qProg').style.width = (100 * current / questions.length) + '%';
+  $('qBody').innerHTML = '<div class="center"><span class="qtag">Homework p' + q.src + ' · Question ' + q.id + (q.st ? ' · fill in every box' : '') + '</span></div>' +
+    qHTML(q) + '<div class="center"><button class="btn green" id="qGo" onclick="check()">Check</button></div>' +
+    '<div class="fb" id="qFb"></div><div class="explain" id="qExp"></div><div class="center" id="qNext"></div>';
+  var host = $('qBody');
+  wireEchoes(host);
+  host.querySelectorAll('input.mi').forEach(function (el) {
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter') { if (!answered) check(); else nextQ(); } });
+  });
+  var first = host.querySelector('input.mi');
+  setTimeout(function () { try { first.focus({ preventScroll: true }); } catch (e) {} }, 60);
+}
+function grade(q, vals) {             // → { ok, final, bad: [keys] }
+  var S = q.S, bad = [];
+  if (q.st) {
+    var want = { w: S.w, t: S.t, b: S.bb };
+    if (q.miss.length === 2 && q.miss[0] === 't') {   // two blank parts: either order is fine
+      var pair = [vals.t, vals.b].sort(function (x, y) { return x - y; }).join(','), okp = [S.t, S.bb].sort(function (x, y) { return x - y; }).join(',');
+      if (pair !== okp) { if (vals.t !== S.t) bad.push('t'); if (vals.b !== S.bb) bad.push('b'); if (!bad.length) bad.push('t', 'b'); }
+    } else q.miss.forEach(function (k) { if (vals[k] !== want[k]) bad.push(k); });
+    if (vals.x !== S.x) bad.push('x');
+  }
+  if (vals.ans !== q.ans) bad.push('ans');
+  return { ok: bad.length === 0, final: vals.ans, bad: bad };
+}
+function explainQ(q) { return explainMental(q.S); }
+function diagnoseQ(q, r) {
+  var S = q.S, notes = [];
+  if (r.final === q.ans) {
+    if (r.bad.indexOf('t') >= 0 || r.bad.indexOf('b') >= 0 || r.bad.indexOf('w') >= 0)
+      notes.push('The number bond isn\'t right: <b>' + S.w + '</b> splits into <b>' + S.t + '</b> and <b>' + S.bb + '</b>.');
+    if (r.bad.indexOf('x') >= 0) notes.push('The first line should be ' + q.a + ' − ' + S.F + ' = <b>' + S.x + '</b>.');
+    return 'Your final answer is right, but not every box was. ' + notes.join(' ');
+  }
+  var d = diagnoseMental(S, r.final);
+  if (q.st && r.bad.indexOf('x') >= 0) d += ' Also the first line: ' + q.a + ' − ' + S.F + ' = ' + S.x + '.';
+  return d;
+}
+function check() {
+  if (answered || !quizOn) return;
+  var q = questions[current], vals = {}, empty = false;
+  $('qBody').querySelectorAll('input.mi').forEach(function (el) {
+    if (el.value.trim() === '') empty = true; vals[el.dataset.k] = +el.value;
+  });
+  if (empty) { $('qFb').className = 'fb no'; $('qFb').textContent = q.st ? 'Fill in every box first.' : 'Type your answer first.'; return; }
+  var r = grade(q, vals);
+  given[current] = r.final; got[current] = r; answered = true;
+  $('qBody').querySelectorAll('input.mi').forEach(function (el) {
+    el.disabled = true; el.classList.add(r.bad.indexOf(el.dataset.k) >= 0 ? 'bad' : 'good');
+  });
+  $('qGo').classList.add('hidden');
+  if (r.ok) {
+    score++; sfxOk();
+    $('qFb').className = 'fb ok'; $('qFb').textContent = '✓ Correct!';
+  } else {
+    sfxNo();
+    $('qFb').className = 'fb no';
+    $('qFb').innerHTML = r.final === q.ans ? '✗ So close — ' + q.ans + ' is right, but every box has to be right for the point.'
+      : '✗ Not quite — ' + q.a + ' − ' + q.b + ' = <b>' + q.ans + '</b>.';
+    $('qExp').innerHTML = '<div class="trap"><span class="lbl">What happened</span>' + diagnoseQ(q, r) + '</div><div class="how">' + explainQ(q) + '</div>';
+  }
+  $('qScore').textContent = '✓ ' + score;
+  var last = current === questions.length - 1;
+  $('qNext').innerHTML = '<button class="btn" style="margin-top:12px" onclick="nextQ()">' + (last ? 'See my score →' : 'Next →') + '</button>';
+}
+function nextQ() {
+  if (!quizOn) return;
+  if (current < questions.length - 1) { current++; render(); } else showResult();
+}
+function showResult() {
+  if (!quizOn) return;
+  quizOn = false;
+  if (timerId) { clearInterval(timerId); timerId = null; }
+  var used = QUIZ_SECS - Math.max(0, secsLeft), pct = Math.round(100 * score / questions.length), pass = pct >= PASS_PCT;
+  var stars = pct === 100 ? '⭐⭐⭐' : pct >= PASS_PCT ? '⭐⭐' : pct >= 50 ? '⭐' : '';
+  var missed = [];
+  questions.forEach(function (q, i) { if (!got[i] || !got[i].ok) missed.push(i); });
+  var html = '<div class="res-top"><div class="stars">' + (stars || '💪') + '</div><div class="pct">' + pct + '%</div>' +
+    '<div class="sub">' + score + ' right out of ' + questions.length + ' · the pass mark is ' + PASS_PCT + '% (' + PASS_N + ' correct)</div>' +
+    '<div class="sub">Time: ' + Math.floor(used / 60) + ' min ' + (used % 60) + ' s' + (secsLeft <= 0 ? ' — time ran out' : '') + '</div>' +
+    '<div class="verdict ' + (pass ? 'pass' : 'fail') + '">' + (pass ? '🎉 You passed!' : 'Not passed yet — ' + (PASS_N - score) + ' more needed') + '</div></div>';
+  if (missed.length) {
+    html += '<h3 class="rv">Let\'s look at the ' + (missed.length === 1 ? 'one' : missed.length) + ' you missed</h3>';
+    missed.forEach(function (i) {
+      var q = questions[i], r = got[i];
+      html += '<div class="miss"><div class="mh">Question ' + q.id + ': ' + q.a + ' − ' + q.b + '<br>' +
+        (!r ? '<span class="you">Not answered</span>' : 'You wrote <span class="you">' + r.final + '</span>') +
+        ' · Answer: <span class="right">' + q.ans + '</span></div>' +
+        (!r ? '' : '<div class="trap"><span class="lbl">What happened</span>' + diagnoseQ(q, r) + '</div>') +
+        '<div class="how">' + explainQ(q) + '</div></div>';
+    });
+    html += '<div class="center" style="margin-top:16px"><button class="btn amber" onclick="startRedo()">🔁 Practise the ones I missed</button>' +
+      '<button class="btn ghost" onclick="restart()">Take the whole test again</button></div><div id="redo"></div>';
+  } else {
+    html += '<p class="body center" style="margin-top:14px">Every single one right. Amazing! 🌟</p>' +
+      '<div class="center"><button class="btn ghost" onclick="restart()">Take the test again</button></div>';
+  }
+  $('quiz').classList.add('hidden');
+  var res = $('result'); res.innerHTML = html; res.classList.remove('hidden');
+  res.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (pass) { badge('b4'); sfxWin(); confetti(); }
+}
+function restart() { startQuiz(); }
+
+/* ---- practise the missed ones (not scored, hints allowed) ---- */
+var RD = { list: [], i: 0 };
+function startRedo() {
+  RD.list = questions.map(function (q, i) { return i; }).filter(function (i) { return !got[i] || !got[i].ok; });
+  RD.i = 0; drawRedo();
+  $('redo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function drawRedo() {
+  var box = $('redo');
+  if (RD.i >= RD.list.length) {
+    box.innerHTML = '<div class="won show"><span class="lbl">✅ All fixed</span>You worked through every one you missed. Try the whole test again when you\'re ready!</div>';
+    sfxWin(); confetti(40); return;
+  }
+  var q = questions[RD.list[RD.i]];
+  box.innerHTML = '<div class="card" style="margin-top:14px;border:3px solid #e8c489"><div class="gbar"><span class="round">PRACTICE ' + (RD.i + 1) + ' OF ' + RD.list.length +
+    ' · QUESTION ' + q.id + ' · not scored</span></div><div class="target">' + q.a + ' − ' + q.b + ' = ?</div>' +
+    '<div id="rHost"></div><div class="fb" id="rFb"></div><div class="center" id="rNext"></div></div>';
+  var w = new MentSub($('rHost'), q.S, function () {
+    $('rNext').innerHTML = '<button class="btn" onclick="RD.i++;drawRedo()">Next →</button>';
+  });
+  w.fb = $('rFb');
+}
+paintSound();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
