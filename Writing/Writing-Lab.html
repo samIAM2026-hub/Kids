@@ -228,9 +228,9 @@
   <header>
     <div class="topline">
       <div>
-        <div class="eyebrow">Warren · ISEE / SSAT Writing Sample</div>
-        <h1>Writing Lab</h1>
-        <div class="byline">Pick a topic, write for 30 minutes, then hand it in. Dad or Mom will mark it and send it back.</div>
+        <div class="eyebrow" id="hdEye">Warren · ISEE / SSAT Writing Sample</div>
+        <h1 id="hdH1">Writing Lab</h1>
+        <div class="byline" id="hdBy">Pick a topic, write for 30 minutes, then hand it in. Dad or Mom will mark it and send it back.</div>
       </div>
     </div>
     <div style="margin-top:12px" class="noprint"><a class="back" href="../homework.html">← My homework</a></div>
@@ -347,6 +347,24 @@ var K_DRAFT = 'writingLab.draft.v1';
 var WHO = { dad:'Dad', mom:'Mom' };
 var BANDS = { 6:'Outstanding for Grade 7', 5:'Strong', 4:'Solid', 3:'Developing', 2:'Weak', 1:'Barely started' };
 var PREVIEW = /(?:^|&)preview=1(?:&|$)/.test(location.search.slice(1));   // a parent looking from parent.html
+// Grace's Speech Studio pieces are shown here too (Speech Studio has no #w= view), so the header follows the
+// piece being shown and the signed-in kid instead of always saying "Warren · ISEE / SSAT" (Sam 2026-10-03).
+var KID_NAMES = { mbtSDgfFrOOS4xIT3eXr7pETEt33: 'Grace', paACSAD0W0bBNknKrAf3GfpHy8x1: 'Warren' };
+var HEAD0 = null;
+function setHeader(w){
+  if (!HEAD0) HEAD0 = { eye: $('hdEye').textContent, h1: $('hdH1').textContent, by: $('hdBy').textContent, title: document.title };
+  var name = KID_NAMES[(w && w.kidId) || (ME && ME.uid)] || 'Warren';
+  var wk = w ? WritingKinds.of(w) : null;
+  if (wk && wk.key !== 'exam'){
+    $('hdEye').textContent = name + ' · ' + wk.en;
+    $('hdH1').textContent = 'Your Marked Work';
+    $('hdBy').textContent = 'Dad or Mom read what you handed in and wrote notes on it. Read them, then make the changes on the page where you wrote it.';
+    document.title = wk.en + ' · Marked work';
+  } else {
+    $('hdEye').textContent = name + ' · ISEE / SSAT Writing Sample';
+    $('hdH1').textContent = HEAD0.h1; $('hdBy').textContent = HEAD0.by; document.title = HEAD0.title;
+  }
+}
 
 /* ---------- globals quiz-report.js's `practice` adapter matches on ---------- */
 var ROUNDS = PROMPTS.map(function (p) {
@@ -382,6 +400,7 @@ function show(name){
   ['pick','write','done','view'].forEach(function(s){ $('screen-' + s).classList.toggle('on', s === name); });
   if (name !== 'view' && /^#w=/.test(location.hash)) history.replaceState(null, '', location.pathname + location.search);
   if (name !== 'view'){ readStop(); READ_AGAIN = null; }   // left the marked piece: hand in its reading time
+  if (name !== 'view') setHeader(null);
   window.scrollTo(0, 0);
 }
 function backHome(){ show('pick'); loadMine(); }
@@ -591,7 +610,7 @@ function openView(id){
     var sc = Number(r.score) || 0;
     if (sc) h += '<div class="scorebar"><div class="chip big ' + band(sc) + '"><div class="k">Score</div>' +
       '<div class="v">' + sc + ' <span style="font-size:.9rem;color:var(--soft);font-weight:400">/ 6</span></div>' +
-      '<div class="lbl">' + (BANDS[sc] || '') + '</div></div></div>';
+      '<div class="lbl">' + (sc === 6 && wk.key !== 'exam' ? 'Outstanding' : BANDS[sc] || '') + '</div></div></div>';
     if (r.summary) h += '<div class="item" style="margin-top:14px"><div class="h">From ' + (WHO[r.by] || 'Dad or Mom') + '</div>' +
       '<div class="summary">' + esc(r.summary) + '</div></div>';
     var list = WritingReview.ordered(r.notes);
@@ -614,6 +633,7 @@ function openView(id){
     '\');return false">← Draft ' + ((w.draftNo || 2) - 1) + ' and its marks</a></p>';
   $('view').innerHTML = h;
   show('view');
+  setHeader(w);
   history.replaceState(null, '', location.pathname + location.search + '#w=' + id);
   var marked = $('marked');
   if (marked) marked.addEventListener('click', function (e){
@@ -732,7 +752,9 @@ function finish(){ /* quiz-report.js reads solvedFirst + REPORT_WRITING after th
     if (!window.QuizReport || !QuizReport.ready){ renderMine(); return; }
     QuizReport.ready.then(function (fb){
       FB = fb;
-      fb.auth.onAuthStateChanged(function (u){ ME = u && !u.isAnonymous ? u : null; loadMine(); });
+      fb.auth.onAuthStateChanged(function (u){ ME = u && !u.isAnonymous ? u : null;
+        if (!$('screen-view').classList.contains('on')) setHeader(null);
+        loadMine(); });
     }).catch(function (){ renderMine(); });
   });
   window.addEventListener('pageshow', function (e){ if (e.persisted) loadMine(); });
