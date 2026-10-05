@@ -46,7 +46,7 @@
   // The course of a handed-in piece. The pid is looked at first: speech-lesson pids only come from that page.
   function of(w) {
     var pid = String(w && w.pid || '');
-    if (/^speech-L\d+-[ds]\d$/.test(pid)) return BY_KEY.speech;   // -d = old five steps, -s = four steps (2026-09-27)
+    if (/^speech-L\d+-[dsw]\d$/.test(pid)) return BY_KEY.speech;   // -d = old five steps, -s = four steps (09-27), -w = whole speech in one sitting (10-04)
     return ofPage(w && w.itemId) || BY_KEY.exam;
   }
   var many = function (w) { return of(w).drafts === 'many'; };
@@ -69,12 +69,11 @@
       + 'instead of feeling words, sound and rhythm when read aloud, line breaks that do a job, whether it stays on '
       + 'the invention and what it changes, and whether the ending turns or lands. Spelling and grammar get a light '
       + 'pass only.',
-    speech: 'Public-speaking homework (Leaders of Tomorrow, Level 1) for a Grade 3 child. One course lesson is built in '
-      + 'four steps, each handed in on its own: step 1 three answers about the topic, each with one real moment behind it '
-      + '(her raw material); step 2 the book\'s YOUR SPEECH table (title, introduction, points 1-3, conclusion, takeaway); '
-      + 'step 3 two possible openings and two possible last lines, one of each picked; step 4 the whole speech written out '
-      + '(150-250 words) with the table above it, then read out loud and recorded. (Pieces handed in before 2026-09-27 '
-      + 'came from an older five-step version.) This is a SPOKEN piece, not an essay: mark it by how it would land on a '
+    speech: 'Public-speaking homework (Leaders of Tomorrow, Level 1) for a Grade 3 child. Since 2026-10-04 one lesson is: read '
+      + 'the lesson (skill, model speech), then write the WHOLE speech in one sitting (about 150-250 words: first line, '
+      + 'introduction, three points each with one real moment, conclusion, last line), then read it out loud and record it. '
+      + '(Pieces handed in before that came from older step-by-step versions: four steps 09-27 to 10-04 — stories, the '
+      + 'YOUR SPEECH table, first/last line, whole speech — and five steps before that; mark those as the part they are.) This is a SPOKEN piece, not an essay: mark it by how it would land on a '
       + 'room of listeners. What counts: would the opening make someone look up; is the intention one clear sentence; '
       + 'are the three points genuinely separate, about the same thing, and roughly the same size; does each point have '
       + 'something real behind it; does the ending leave them with one thing. Short sentences and plain words are a '

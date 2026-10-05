@@ -204,7 +204,7 @@
     <div>
       <div class="eyebrow">Leaders of Tomorrow · Level 1 · Influence</div>
       <h1>Speech Studio</h1>
-      <div class="byline" id="sub">One lesson, four steps, one speech you actually say out loud. Take the steps at whatever pace suits you.</div>
+      <div class="byline" id="sub">Read the lesson, then write your whole speech in one go — and say it out loud.</div>
     </div>
     <a class="back" href="../homework.html">← 我的作业 My Homework</a>
   </div>
@@ -216,15 +216,11 @@
 <div class="screen on" id="screen-home">
   <div class="reader">
     <h3>How this works</h3>
-    <p>Ten lessons — the whole of Level 1. Each one starts with <b>the lesson itself</b>: a short read,
-      a model speech to look at, and three quick questions. Then you build your own speech in <b>four steps</b>,
-      the same way as the YOUR SPEECH table in your book.</p>
-    <p><b>Step 1</b> find your stories &middot; <b>Step 2</b> fill in your speech plan &middot; <b>Step 3</b> write your
-      first and last line &middot; <b>Step 4</b> write it, learn it, and <b>say it out loud</b>.</p>
-    <p><b>Steps are an order, not a timetable.</b> One sitting, one step is the usual shape — but take two
-      when it is going well, and leave a big one half finished when it is not. Nothing here expires and nothing
-      is late.</p>
-    <p>Each step you hand in, Dad or Mom reads and writes back. Nobody marks your spelling here —
+    <p>Ten lessons — the whole of Level 1. Each lesson is one page:</p>
+    <p><b>Read the top part</b> — a short read, a model speech, and three quick questions.<br>
+      <b>Then write your whole speech</b> underneath, in one sitting — first line to last line, like writing a story —
+      practise it, and <b>say it out loud</b>.</p>
+    <p>When you hand in your speech, Dad or Mom reads it and writes back. Nobody marks your spelling here —
       they are looking at whether it would hold a room.</p>
   </div>
   <section>
@@ -233,39 +229,11 @@
   </section>
 </div>
 
-<!-- ============ LESSON ============ -->
-<div class="screen" id="screen-lesson">
+<!-- ============ ONE LESSON: read it, then write the speech (one page since 2026-10-04 evening) ============ -->
+<div class="screen" id="screen-day">
   <button class="small" onclick="goHome()">← All lessons</button>
   <section>
-    <h2 class="sec"><span class="n" id="L-k"></span> <span id="L-t"></span></h2>
-    <div class="promptbar">
-      <div class="k">You are speaking about</div>
-      <div class="v" id="L-topic"></div>
-      <div class="look" id="L-look"></div>
-    </div>
-    <div id="L-days"></div>
-  </section>
-</div>
-
-<!-- ============ THE LESSON ITSELF (courseware) ============ -->
-<div class="screen" id="screen-read">
-  <button class="small" onclick="backToLesson()">← Back to the lesson</button>
-  <section>
-    <h2 class="sec"><span class="n" id="R-k"></span> <span id="R-t"></span></h2>
-    <div id="R-body"></div>
-    <div class="actions">
-      <button class="primary" onclick="startDay1()">Start step 1</button>
-      <button onclick="backToLesson()">Back to the lesson</button>
-    </div>
-  </section>
-</div>
-
-<!-- ============ ONE DAY ============ -->
-<div class="screen" id="screen-day">
-  <button class="small" onclick="backToLesson()">← Back to the lesson</button>
-  <section>
     <h2 class="sec"><span class="n" id="D-k"></span> <span id="D-t"></span></h2>
-    <div class="lead" id="D-ask"></div>
     <div id="D-teach"></div>
     <div id="D-body"></div>
     <div id="D-msg"></div>
@@ -283,7 +251,7 @@
     <h2 class="sec"><span class="n">Handed in</span> Nice work</h2>
     <div class="msg ok" id="done-msg"></div>
     <div class="actions">
-      <button class="primary" onclick="backToLesson()">Back to the lesson</button>
+      <button class="primary" onclick="backToLesson()">Back to my speech</button>
       <button onclick="goHome()">All lessons</button>
     </div>
   </section>
@@ -291,7 +259,7 @@
 
 <footer>
   Public Speaking · Level 1 <i>The Leader In You</i>. Ten lessons, each one read in five minutes and then
-  built in four steps. The printed book stays on paper — everything here is written fresh. <a class="back" href="../homework.html">我的作业 My Homework</a>
+  written in one go. The printed book stays on paper — everything here is written fresh. <a class="back" href="../homework.html">我的作业 My Homework</a>
 </footer>
 </div>
 
@@ -727,7 +695,7 @@ var LESSONS = [
     topic: 'Pick any topic from the list at the bottom of the page — or have someone pick one for you. ' +
            'Thirty seconds to think, then talk.',
     look: 'Book task: an impromptu speech on a topic you are given.',
-    weekNote: 'For this lesson, step 4 is different: don’t read your speech. Look at your plan only, and say it.'
+    weekNote: 'For this lesson, write it fast — about ten minutes. When you say it, don’t read: use “Just the first words” only.'
   },
 
   {
@@ -1039,7 +1007,7 @@ var ENDERS = [
    base64 adds a third, 150 s at 24 kbps stays well inside. */
 var MAX_TAKES = 3, MAX_SECS = 150, BITRATE = 24000, MAX_B64 = 720000;
 var DRAFT_MIN = 150, DRAFT_MAX = 250;
-var NSTEPS = 4;   // 2026-09-27: was five (learn it · hook · skeleton · ending · draft); now stories · plan · first/last line · say it
+var NSTEPS = 1;   // 2026-10-04: one sitting, the whole speech (was four steps 09-27 → 10-04, five before that)
 
 var KIDS = {
   mbtSDgfFrOOS4xIT3eXr7pETEt33: 'grace',
@@ -1098,115 +1066,97 @@ var CUR = null;            // { L, d, spec, key, startedAt }
 var TAKES = [];            // this day's takes: { state, blob, url, secs, err, id }
 var RECORDING = false;
 
-function dkey(ln, d){ return 'L' + ln + 's' + d; }   // 's' = the four-step version; old 'd' keys are left alone
-function pidOf(ln, d){ return 'speech-L' + ln + '-s' + d; }
+function dkey(ln, d){ return 'L' + ln + 'w' + d; }   // 'w' = whole speech (2026-10-04); old 's' / 'd' keys are left alone
+function pidOf(ln, d){ return 'speech-L' + ln + '-w' + d; }
 function fval(k, fid){ return S.f[k + ':' + fid] || ''; }
 function setf(k, fid, v){ S.f[k + ':' + fid] = v; }
 
 /* =====================================================================
-   The five steps
+   One lesson = read the lesson, then write the whole speech in one sitting
+   (Sam 2026-10-04: 「像写文章的顺序 …… 通篇写，一个课时写完，不要分开」).
+   It used to be four steps handed in one by one — stories · plan · first/last
+   line · say it (pids speech-L<n>-s<step>), and before that five (-d<step>).
+   Grace found the pieces confusing and lost the shape of the whole speech, so
+   now it is one big box with the shape shown above it. Pid speech-L<n>-w1.
 ===================================================================== */
 function daySpec(L, d){
-  var P = L.plan || {};
-  function pl(id){ return P[id] || ['', '']; }
-
-  if (d === 1){
-    var G = L.gather || [
-      { q:'Idea 1 for your speech', eg:'', ph:'' },
-      { q:'Idea 2 for your speech', eg:'', ph:'' },
-      { q:'Idea 3 for your speech', eg:'', ph:'' }
-    ];
-    var f = [];
-    G.forEach(function (g, i){
-      f.push({ id:'g' + (i + 1), lab:(i + 1) + '. ' + g.q, eg:g.eg, ph:g.ph, rows:2, min:4 });
-      f.push({ id:'g' + (i + 1) + 's', lab:'└ Tell one real moment', eg:g.seg, ph:g.sph || 'One time…', rows:2, min:5, sub:true });
-    });
-    return {
-      name: 'Find your stories', mins: 'about 10 minutes', icon: '\u{1F50E}',
-      ask: 'Before you can plan a speech, you need things to say. Answer three questions about <b>you</b>. ' +
-           'For each one, add <b>one real moment</b> — something that actually happened. These become your three points.',
-      teach: 'topic',
-      fields: f,
-      stuck: ['<b>Can’t think of anything?</b> Ask Mum or Dad: “What is something about me that my friends don’t know?”',
-              '<b>Spelling doesn’t matter here.</b> Just get the idea down.']
-    };
-  }
-
-  if (d === 2) return {
-    name: 'Fill in your speech plan', mins: 'about 15 minutes', icon: '\u{1F4CB}',
-    ask: 'This is the <b>YOUR SPEECH</b> table from your book. Fill in each line with one or two sentences. ' +
-         'Your answers from Step 1 are your three points.',
-    teach: 'stories',
-    fields: [
-      { id:'title', type:'text', lab:'Title', eg:pl('title')[0], ph:pl('title')[1], min:1 },
-      { id:'intro', lab:'Introduction — tell them what you will talk about', eg:pl('intro')[0], ph:pl('intro')[1], rows:2, min:8 },
-      { id:'p1', lab:'Point 1', eg:pl('p1')[0], ph:pl('p1')[1], rows:2, min:6 },
-      { id:'p2', lab:'Point 2', eg:pl('p2')[0], ph:pl('p2')[1], rows:2, min:6 },
-      { id:'p3', lab:'Point 3', eg:pl('p3')[0], ph:pl('p3')[1], rows:2, min:6 },
-      { id:'concl', lab:'Conclusion — say your three points again, very short', eg:pl('concl')[0], ph:pl('concl')[1], rows:2, min:6 },
-      { id:'take', lab:'Takeaway — the one thing they should remember', eg:pl('take')[0], ph:pl('take')[1], rows:2, min:4 }
-    ],
-    checks: [
-      ['diff', 'My three points are three different things'],
-      ['same', 'All three points are about my topic']
-    ],
-    stuck: ['<b>Two points feel the same?</b> Keep the better one, and go back to Step 1 for another idea.']
-  };
-
-  if (d === 3) return {
-    name: 'Your first and last line', mins: 'about 10 minutes', icon: '\u{1FA9D}',
-    ask: 'Now you know what your speech is about, write how it <b>starts</b> and how it <b>ends</b>. ' +
-         'Try two of each, then pick the best one.',
-    teach: 'hooks',
-    fields: [
-      { id:'h1kind', type:'select', opts:HOOKS, lab:'Opening 1 — which kind?' },
-      { id:'h1', lab:'Opening 1', ph:'Write it the way you would say it…', rows:2, min:5 },
-      { id:'h2kind', type:'select', opts:HOOKS, lab:'Opening 2 — a different kind' },
-      { id:'h2', lab:'Opening 2', ph:'Write it the way you would say it…', rows:2, min:5 },
-      { id:'pick', type:'select', lab:'Which opening will you use?',
-        opts:[['1','Opening 1',''],['2','Opening 2','']] },
-      { id:'e1kind', type:'select', opts:ENDERS, lab:'Last line 1 — which kind?' },
-      { id:'e1', lab:'Last line 1', ph:'The very last thing you say…', rows:2, min:4 },
-      { id:'e2kind', type:'select', opts:ENDERS, lab:'Last line 2 — a different kind' },
-      { id:'e2', lab:'Last line 2', ph:'The very last thing you say…', rows:2, min:4 },
-      { id:'epick', type:'select', lab:'Which last line will you use?',
-        opts:[['1','Last line 1',''],['2','Last line 2','']] }
-    ],
-    stuck: ['<b>Both openings sound the same?</b> Make one a question and one a story.',
-            '<b>Good trick:</b> make your last line go back to your first line.']
-  };
-
   return {
-    name: 'Write it, learn it, say it', mins: 'about 20 minutes · needs a room you can talk out loud in', icon: '\u{1F3A4}',
-    ask: 'Put it all together into one speech (' + DRAFT_MIN + '–' + DRAFT_MAX + ' words). Practise it until you can say it ' +
-         'without reading, then <b>stand up and record it</b>.',
-    teach: 'outline',
+    name: 'Write your whole speech', mins: 'one sitting · about 30–40 minutes · then say it out loud', icon: '✍️',
+    ask: 'Write your <b>whole speech in one go</b> — from your first line to your last line, ' +
+         'like writing a story. Then practise it until you don’t need to read, and <b>stand up and record it</b>.',
+    teach: 'guide',
     fields: [
       { id:'draft', type:'big', lab:'Your whole speech', min:DRAFT_MIN,
-        hint:'Press “Start from my plan” and your opening, plan and last line appear here. Then join them up so it sounds like you talking.' }
+        hint:'Write it the way you would say it, in the order of the list above. ' +
+             'Start each point with “First,” “Next,” and “And last,” so people always know where you are.' }
     ],
     checks: [
-      ['c1', 'It starts with my opening — not “Um, hi, today I’m going to…”'],
-      ['c2', 'My three points are in there, in order'],
-      ['c3', 'It ends with my last line'],
-      ['c4', 'I practised it with “First letters” and “Just the plan”']
+      ['c1', 'My first line makes people look up — not “Hi, my name is…”'],
+      ['c2', 'I have three points, and each one has a real moment'],
+      ['c3', 'My last line goes back to my first line, or gives them one thing to remember'],
+      ['c4', 'I read it out loud, and practised it with “First letters” and “Just the first words”']
     ],
     practise: true,
     booth: true,
-    stuck: ['<b>Too long?</b> ' + DRAFT_MAX + ' words is about two minutes. Cut whole sentences, not little words.',
+    stuck: ['<b>Don’t know how to start?</b> Write your three points first (First… Next… And last…). Then go back and add the first line.',
+            '<b>Stuck on a point?</b> Ask yourself: “When did this happen? What did I see, say, or do?” Write that.',
+            '<b>Too long?</b> ' + DRAFT_MAX + ' words is about two minutes. Cut whole sentences, not little words.',
             '<b>Made a mistake while recording?</b> Just start that sentence again and keep going.']
   };
+}
+
+/* The writing half of the page: what to do, then the shape of the speech with one example line for each
+   part. The lesson's three questions sit inside the three points (they used to be a separate "Think first"
+   block), and the model speech is not repeated — it is right above, in the reading half. */
+function guideHtml(L, spec){
+  var P = L.plan || {}, M = (L.model && L.model.lines) || [], G = L.gather || [];
+  function eg(id){ return (P[id] || [''])[0]; }
+  function pt(i, word){ return G[i] ? word + ' ' + G[i].q.charAt(0).toLowerCase() + G[i].q.slice(1) + '. And one real moment.' : 'Point ' + (i + 1) + ', and one real moment.'; }
+  var hook = M.length && /^hook/i.test(M[0][0]) ? M[0][1] : '';
+  var last = M.length && /last line/i.test(M[M.length - 1][0]) ? M[M.length - 1][1] : eg('take');
+  var shape = [
+    ['First line', 'Make them look up: a question, a tiny story, or a sound.', hook],
+    ['Introduction', 'Tell them what you will talk about — your three things.', eg('intro')],
+    ['First, …', pt(0, 'Point 1:'), eg('p1')],
+    ['Next, …', pt(1, 'Point 2:'), eg('p2')],
+    ['And last, …', pt(2, 'Point 3:'), eg('p3')],
+    ['Conclusion', 'Say your three points again — very short.', eg('concl')],
+    ['Last line', 'The one thing they should remember. Going back to your first line works well.', last]
+  ];
+  return '<section><h2 class="sec"><span class="n">Now, your turn</span> ' + esc(spec.name) + '</h2>' +
+      '<div class="lead" style="margin-top:0">' + spec.ask + (L.weekNote ? ' <b>' + esc(L.weekNote) + '</b>' : '') + '</div>' +
+      '<div class="outline">' + shape.map(function (r){
+        return '<div class="row"><div class="k">' + esc(r[0]) + '</div><div class="v">' + esc(r[1]) +
+          (r[2] ? '<div class="eg">e.g. ' + esc(r[2]) + '</div>' : '') + '</div></div>';
+      }).join('') + '</div>' +
+      '<p class="lead" style="margin-top:8px;font-size:.95em">A “real moment” is something that really happened — what you saw, said, or did. ' +
+      'The examples are from the model speech: take the shape, never the sentences.</p>' +
+    '</section>' +
+    '<div id="D-before"></div>';
+}
+/* What she handed in for this lesson under the old steps (four-step -s, five-step -d): her ideas are in there. */
+function paintBefore(L){
+  var el = $('D-before'); if (!el) return;
+  var old = Object.keys(MINE).filter(function (p){ return new RegExp('^speech-L' + L.n + '-[ds]\\d$').test(p); }).sort()
+    .map(function (p){ return MINE[p]; });
+  if (!old.length){ el.innerHTML = ''; return; }
+  el.innerHTML = '<details class="stuck"><summary>Your notes from before (' + old.length + ')</summary><div class="body">' +
+    '<p style="margin-bottom:8px">You already started this lesson the old way. Your ideas are here — use them in your speech.</p>' +
+    old.map(function (w){
+      var t = String(w.text || '').split('\n').filter(function (x, i){ return i > 1; }).join('\n').trim();
+      return '<div class="manu" style="white-space:pre-wrap;margin-bottom:10px;padding:8px 10px;border:1px solid var(--line,#ddd);border-radius:8px">' + esc(t) + '</div>';
+    }).join('') + '</div></details>';
 }
 
 /* =====================================================================
    Screens
 ===================================================================== */
 function show(name){
-  ['home','read','lesson','day','done'].forEach(function (s){ $('screen-' + s).classList.toggle('on', s === name); });
+  ['home','day','done'].forEach(function (s){ $('screen-' + s).classList.toggle('on', s === name); });
   window.scrollTo(0, 0);
 }
 function goHome(){ stopClock(); CUR = null; paintHome(); show('home'); }
-function backToLesson(){ stopClock(); if (!CUR) return goHome(); paintLesson(CUR.L); show('lesson'); }
+function backToLesson(){ stopClock(); if (!CUR || !CUR.L) return goHome(); openDay(CUR.L.n, 1); }
 
 /* how far along a day is: 'none' | 'part' | 'done' */
 function dayState(L, d){
@@ -1225,70 +1175,13 @@ function paintHome(){
       if (st === 'done') done++;
       pips += '<span class="pip ' + (st === 'none' ? '' : st) + '"></span>';
     }
-    return '<div class="lcard" onclick="openLesson(' + L.n + ')">' +
+    return '<div class="lcard" onclick="openDay(' + L.n + ',1)">' +
       '<div class="h"><div class="t">Lesson ' + L.n + ' · ' + esc(L.title) + '</div>' +
       '<div class="k">' + esc(L.leader) + '</div></div>' +
       '<div class="d">' + esc(L.topic.slice(0, 96)) + (L.topic.length > 96 ? '…' : '') + '</div>' +
-      '<div class="pips">' + pips + '<span class="lab">' + done + '/' + NSTEPS + ' handed in</span></div></div>';
+      '<div class="pips">' + pips + '<span class="lab">' + (done ? '✓ Speech handed in' : 'Not started yet') + '</span></div></div>';
   }).join('');
 }
-
-function openLesson(n){
-  var L = LESSONS.filter(function (x){ return x.n === n; })[0];
-  if (!L) return;
-  CUR = { L: L, d: 0 };
-  paintLesson(L);
-  show('lesson');
-}
-
-function paintLesson(L){
-  CUR = CUR || {}; CUR.L = L;
-  $('L-k').textContent = 'Lesson ' + L.n + ' · ' + L.leader;
-  $('L-t').textContent = L.title;
-  $('L-topic').textContent = L.topic;
-  $('L-look').textContent = L.look;
-  var html = '<div class="dcard readc" onclick="openRead(' + L.n + ')">' +
-    '<div class="l"><div class="t">\u{1F4DA} The lesson \u00b7 read this first</div>' +
-    '<div class="d">about 5 minutes \u00b7 the idea, a model speech, a quick check \u00b7 nothing to hand in</div></div>' +
-    '<span class="chip">\u8bfe\u4ef6</span></div>';
-  for (var d = 1; d <= NSTEPS; d++){
-    var spec = daySpec(L, d), st = dayState(L, d), k = dkey(L.n, d);
-    var w = MINE[pidOf(L.n, d)];
-    var chip = st === 'done'
-      ? (w && w.review ? '<span class="chip marked">✓ Marked</span>' : '<span class="chip done">✓ Handed in</span>')
-      : st === 'part' ? '<span class="chip part">In progress</span>' : '<span class="chip">Not started</span>';
-    html += '<div class="dcard ' + (st === 'none' ? '' : st) + '" onclick="openDay(' + L.n + ',' + d + ')">' +
-      '<div class="l"><div class="t">' + spec.icon + ' Step ' + d + ' · ' + esc(spec.name) + '</div>' +
-      '<div class="d">' + spec.mins + '</div></div>' + chip + '</div>';
-  }
-  $('L-days').innerHTML = html;
-}
-
-/* ---------- the lesson itself ---------- */
-/* Everything the printed book puts on its two teaching pages, rewritten: the
-   leadership page, the speech skill in full, a worked model speech with every
-   part labelled, the discussion questions, and the lesson's task. Read it once at
-   the start of the lesson; the five steps below are the practice. */
-function openRead(n){
-  var L = LESSONS.filter(function (x){ return x.n === n; })[0];
-  if (!L) return;
-  stopClock();
-  CUR = { L: L, d: 0 };
-  $('R-k').textContent = 'Lesson ' + L.n + ' \u00b7 ' + L.leader;
-  $('R-t').textContent = L.title;
-  $('R-body').innerHTML = readHtml(L);
-  $('R-body').querySelectorAll('.qq').forEach(function (box){
-    var q = L.quiz[+box.dataset.q];
-    box.addEventListener('click', function (e){
-      var b = e.target.closest('button'); if (!b) return;
-      var j = +b.dataset.j;
-      b.classList.add(j === q.a ? 'right' : 'wrong');
-      box.querySelector('.why').textContent = j === q.a ? '\u2713 Yes! ' + q.why : 'Not quite \u2014 try another one.';
-    });
-  });
-  show('read');
-}
-function startDay1(){ if (CUR && CUR.L) openDay(CUR.L.n, 1); }
 
 /* options show in a new order each time, so where the right one sits tells her nothing */
 function shuffled(a){
@@ -1297,7 +1190,9 @@ function shuffled(a){
   return a;
 }
 function readHtml(L){
-  var h = '<div class="reader"><h3>The leadership lesson \u00b7 ' + esc(L.leader) + '</h3>' +
+  var h = '<div class="promptbar"><div class="k">Your speech is about</div><div class="v">' + esc(L.topic) + '</div>' +
+    (L.look ? '<div class="look">' + esc(L.look) + '</div>' : '') + '</div>' +
+    '<div class="reader"><h3>The leadership lesson \u00b7 ' + esc(L.leader) + '</h3>' +
     L.lead.map(function (p){ return '<p>' + esc(p) + '</p>'; }).join('') + '</div>';
 
   h += '<section><h2 class="sec"><span class="n">The speech skill</span> ' + esc(L.title) + '</h2>' +
@@ -1335,9 +1230,6 @@ function readHtml(L){
   h += '<section><h2 class="sec"><span class="n">Say these out loud</span> With Mum or Dad</h2>' +
     '<ul class="plain">' + L.talk.map(function (q){ return '<li>' + esc(q) + '</li>'; }).join('') + '</ul></section>';
 
-  h += '<section><h2 class="sec"><span class="n">Then, your turn</span> Your speech</h2>' +
-    '<div class="promptbar"><div class="k">You are speaking about</div><div class="v">' + esc(L.topic) + '</div>' +
-    '<div class="look">' + esc(L.look) + (L.weekNote ? ' \u2014 ' + esc(L.weekNote) : '') + '</div></div></section>';
   return h;
 }
 
@@ -1348,10 +1240,10 @@ function openDay(ln, d){
   var spec = daySpec(L, d), k = dkey(ln, d);
   CUR = { L:L, d:d, spec:spec, key:k };
   TAKES = [];
-  $('D-k').textContent = 'Lesson ' + ln + ' · Step ' + d;
-  $('D-t').textContent = spec.name;
-  $('D-ask').innerHTML = spec.ask + (d === NSTEPS && L.weekNote ? ' <b>' + esc(L.weekNote) + '</b>' : '');
-  $('D-teach').innerHTML = teachHtml(L, spec);
+  $('D-k').textContent = 'Lesson ' + ln + ' \u00b7 ' + L.leader;
+  $('D-t').textContent = L.title;
+  $('D-teach').innerHTML = readHtml(L) + teachHtml(L, spec);
+  wireQuiz(L);
   $('D-body').innerHTML = fieldsHtml(L, spec, k) +
     (spec.practise ? practiseHtml() : '') +
     (spec.booth ? boothHtml() : '') +
@@ -1366,13 +1258,27 @@ function openDay(ln, d){
   $('D-saved').textContent = '';
   wireDay(L, spec, k);
   paintMarks(L, d);
+  paintBefore(L);
   handButton();
   show('day');
   startRound(roundIndex(ln, d));   // quiz-report.js starts timing here
   startClock();
 }
 
+function wireQuiz(L){
+  $('D-teach').querySelectorAll('.qq').forEach(function (box){
+    var q = L.quiz[+box.dataset.q];
+    box.addEventListener('click', function (e){
+      var b = e.target.closest('button'); if (!b) return;
+      var j = +b.dataset.j;
+      b.classList.add(j === q.a ? 'right' : 'wrong');
+      box.querySelector('.why').textContent = j === q.a ? '\u2713 Yes! ' + q.why : 'Not quite \u2014 try another one.';
+    });
+  });
+}
+
 function teachHtml(L, spec){
+  if (spec.teach === 'guide') return guideHtml(L, spec);
   if (spec.teach === 'topic'){
     return '<div class="promptbar"><div class="k">Your speech is about</div><div class="v">' + esc(L.topic) + '</div>' +
       '<div class="look">Each question has an example from the model speech. Yours will be different — it has to be true about you.</div></div>';
@@ -1424,7 +1330,7 @@ function fieldsHtml(L, spec, k){
         '<div class="statbar"><span class="stat" id="wc">words <b>0</b></span>' +
         '<span class="stat">target <b>' + DRAFT_MIN + '–' + DRAFT_MAX + '</b></span>' +
         '<span class="stat" id="clock">time <b>0:00</b></span></div>' +
-        '<textarea class="big" data-f="' + f.id + '" placeholder="Press “Start from my plan”, or just start writing…">' + esc(v) + '</textarea></div>';
+        '<textarea class="big" data-f="' + f.id + '" placeholder="Your first line goes here…">' + esc(v) + '</textarea></div>';
     }
     return '<div class="' + cls + '">' + head + '<textarea data-f="' + f.id + '" rows="' + (f.rows || 2) + '"' + ph + '>' + esc(v) + '</textarea></div>';
   }).join('') + '</section>';
@@ -1530,7 +1436,7 @@ function practiseHtml(){
     '<div class="actions" style="margin-top:0" id="pmodes">' +
       '<button class="small" data-m="read">1 · Read it</button>' +
       '<button class="small" data-m="letters">2 · First letters</button>' +
-      '<button class="small" data-m="plan">3 · Just the plan</button></div>' +
+      '<button class="small" data-m="plan">3 · Just the first words</button></div>' +
     '<div class="practise" id="pbody"></div></section>';
 }
 function wirePractise(){
@@ -1543,12 +1449,15 @@ function wirePractise(){
 function paintPractise(){
   var el = $('pbody'); if (!el || !CUR) return;
   $('pmodes').querySelectorAll('button').forEach(function (b){ b.classList.toggle('on', b.dataset.m === PMODE); });
-  if (PMODE === 'plan'){
-    el.innerHTML = '<div class="outline">' + rowsHtml(planRows(CUR.L).filter(function (r){ return r[0] !== 'Title' && r[0] !== 'Takeaway'; }), '—') + '</div>';
-    return;
-  }
   var t = String(fval(CUR.key, 'draft')).trim();
   if (!t){ el.innerHTML = '<div class="v empty" style="color:#b3a693;font-style:italic">Write your speech above first.</div>'; return; }
+  if (PMODE === 'plan'){   // 2026-10-04: no separate plan any more — the first few words of each part are the cue
+    el.innerHTML = t.split(/\n+/).filter(function (x){ return x.trim(); }).map(function (para){   // every line, not just blank-line paragraphs
+      var w = para.trim().split(/\s+/);
+      return '<p>' + esc(w.slice(0, 4).join(' ')) + (w.length > 4 ? ' …' : '') + '</p>';
+    }).join('');
+    return;
+  }
   el.innerHTML = t.split(/\n\s*\n/).map(function (para){
     if (PMODE === 'read') return '<p>' + esc(para) + '</p>';
     return '<p class="letters">' + para.split(/(\s+)/).map(function (w){
@@ -1801,7 +1710,7 @@ function handIn(){
   var text = assemble(L, d, spec, k);
   var w = {
     pid: pidOf(L.n, d),
-    prompt: 'Lesson ' + L.n + ' · ' + L.title + ' — Step ' + d + ' · ' + spec.name,
+    prompt: 'Lesson ' + L.n + ' · ' + L.title + ' — ' + spec.name,
     promptKind: 'speech',
     text: text.slice(0, 20000),
     words: words(text),
@@ -1824,10 +1733,10 @@ function handIn(){
 
   $('done-msg').innerHTML = (navigator.onLine === false
       ? 'You are offline, so it is saved on this device and goes out as soon as the internet is back. ' : '') +
-    'Step ' + d + ' of Lesson ' + L.n + ' is in. ' +
+    'Your Lesson ' + L.n + ' speech is in. ' +
     (d < NSTEPS ? 'Next, whenever you come back to it: <b>Step ' + (d + 1) + ' · ' + esc(daySpec(L, d + 1).name) + '</b>.'
            : 'That is the whole lesson — speech written and said out loud. \u{1F3C6}') +
-    '<br><br>Dad or Mom reads it and writes back. When the marks come, they show up here on this day’s page ' +
+    '<br><br>Dad or Mom reads it and writes back. When the marks come, they show up here on this lesson’s page ' +
     'and on <b>My Homework</b>.';
   show('done');
   setTimeout(loadMine, 2500);
@@ -1836,12 +1745,10 @@ function skipMic(){ msg('', ''); handIn(); }
 
 /* What the parent actually reads. Step 5 carries the lesson's outline above the draft. */
 function assemble(L, d, spec, k){
-  var out = ['LESSON ' + L.n + ' · ' + L.title + ' — STEP ' + d + ' · ' + spec.name,
+  var out = ['LESSON ' + L.n + ' · ' + L.title + ' — ' + spec.name.toUpperCase(),
              'Topic: ' + L.topic, ''];
   if (d === NSTEPS){
-    out.push('--- YOUR SPEECH ---');
-    planRows(L).forEach(function (r){ out.push(r[0] + ': ' + r[1]); });
-    out.push('', '--- THE SPEECH ---', fval(k, 'draft'));
+    out.push('--- THE SPEECH ---', fval(k, 'draft'));
     out.push('', '--- SAID OUT LOUD ---',
       savedTakes() ? savedTakes() + ' recording(s) saved — listen under 朗读录音.' : 'No recording (microphone unavailable).');
     return out.join('\n');
@@ -1876,8 +1783,7 @@ function loadMine(){
       if (!have || ms(w.submittedAt) > ms(have.submittedAt)) byPid[w.pid] = w;
     });
     MINE = byPid;
-    if (CUR && CUR.d) paintMarks(CUR.L, CUR.d);
-    if ($('screen-lesson').classList.contains('on') && CUR) paintLesson(CUR.L);
+    if (CUR && CUR.d){ paintMarks(CUR.L, CUR.d); paintBefore(CUR.L); }
     if ($('screen-home').classList.contains('on')) paintHome();
   }).catch(function (){ /* offline is fine — the page still works */ });
 }
