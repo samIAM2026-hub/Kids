@@ -119,6 +119,9 @@
   .kind{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.6px;
         text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--cream);color:var(--ink2);
         margin-right:6px}
+  /* Left over from an earlier day (没做完自动顺延) */
+  .carry{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.4px;
+        padding:2px 8px;border-radius:6px;background:#fbeee0;color:#b4622f;margin-left:6px;white-space:nowrap}
   .subj{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.6px;
         text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--accbg);color:var(--acc);
         border:1px solid var(--accline);margin-right:6px;white-space:nowrap;vertical-align:2px}
@@ -470,14 +473,16 @@ function touch(force){
 /* ---------- data ---------- */
 async function load(){
   const sib = Object.values(KIDS).find(k=>k.uid!==ME.uid);
-  const [days, att, pet, sibPet, wr] = await Promise.all([
+  const [days, att, pet, sibPet, wr, prof] = await Promise.all([
     // All my assigned days (today's included): older days tell the subject of past attempts.
     db.collection(`assignments/${ME.uid}/days`).get(),
     // No orderBy here: kidId == x plus orderBy another field would need a composite index.
     db.collection('attempts').where('kidId','==',ME.uid).get(),
     getPet(ME.uid), getPet(sib.uid),
     // Same no-orderBy rule as attempts. Can't read them → no reminder card, nothing else breaks.
-    db.collection('writings').where('kidId','==',ME.uid).get().catch(e=>{ console.warn('[writings]', e.code||e); return null; })
+    db.collection('writings').where('kidId','==',ME.uid).get().catch(e=>{ console.warn('[writings]', e.code||e); return null; }),
+    // kids/{uid}.carry — Dad's 「没做完自动顺延」 switch. Can't read it → no carry-over, nothing else breaks.
+    db.doc(`kids/${ME.uid}`).get().then(d=>d.data()||{}).catch(e=>{ console.warn('[profile]', e.code||e); return {}; })
   ]);
   MARKED = wr ? wr.docs.map(d=>Object.assign({ id:d.id }, d.data())).filter(w=>w.status==='reviewed' && !w.seenAt) : [];
   // A pet that can't be read this time keeps what we already knew.
@@ -490,21 +495,58 @@ async function load(){
   const day = days.docs.find(d=>d.id===iso(today));
   ITEMS = ((day && day.data()) || {}).items || [];
   ITEMS = ITEMS.map(it=>({ ...it, subj: subjOf(it.subj) }));
+  const todayDoc = (day && day.data()) || {};
   ATT = att.docs.map(d=>{
     const a = d.data();
     const when = a.submittedAt && a.submittedAt.toDate ? a.submittedAt.toDate() : null;
     const pct = typeof a.pct==='number' ? a.pct : a.total ? Math.round(100*a.score/a.total) : null;
     return { id:a.itemId, t:a.t||'', href:a.href||'', subj: subjOf(label.get(a.itemId)),
              kind: a.kind || (pct!=null ? 'scored' : 'viewed'),
-             pct, wrong:a.wrong||[], when, date: when?iso(when):'', secs: a.secs||0 };
+             pct, wrong:a.wrong||[], when, date: when?iso(when):'', secs: a.secs||0,
+             // Really handed in (not just opened for a look): a score, a practice round, a writing hand-in.
+             // Same as parent.html's realTry — the two pages must agree on what carries over.
+             real: pct!=null || !!(a.practice && a.practice.firstTry!=null) || HANDIN_IDS.has(a.itemId) };
   }).sort((a,b)=>(b.when||0)-(a.when||0));
+  // Carry-over: what an earlier day left undone shows up today, marked "From Fri". Dad's page moves
+  // it into today for real when it opens — this only makes sure the kid sees it before that happens.
+  const left = carriedIn(days.docs.map(d=>({ date:d.id, items:(d.data()||{}).items||[] })), todayDoc, prof.carry);
+  ITEMS = ITEMS.concat(left.map(it=>({ ...it, subj: subjOf(it.subj) })));
   DAYS = days.docs.map(d=>{
     const x = d.data()||{}, one = it=>({ id:it.id, t:it.t, subj:subjOf(it.subj) });
-    return { date:d.id, items:(x.items||[]).map(one), withdrawn:(x.withdrawn||[]).map(one), summary: x.summary||null };
+    // A day's carried-on items still count as left undone that day (the streak doesn't come back
+    // because the work moved on); today also gets the ones not moved over yet.
+    return { date:d.id, items:[...(x.items||[]), ...(x.carried||[]), ...(d.id===iso(today) ? left : [])].map(one),
+             withdrawn:(x.withdrawn||[]).map(one), summary: x.summary||null };
   });
+  if(!DAYS.some(d=>d.date===iso(today)) && left.length)
+    DAYS.push({ date:iso(today), items:left.map(it=>({ id:it.id, t:it.t, subj:subjOf(it.subj) })), withdrawn:[], summary:null });
   GAME = KidPets.compute(
     ATT.map(a=>({ id:a.id, t:a.t, kind:a.kind, pct:a.pct, wrong:a.wrong.length, date:a.date, at:a.when?+a.when:0 })),
     DAYS, iso(today));
+}
+// 没做完自动顺延 (HOMEWORK-SYSTEM.md 2026-10-04). Same rule as parent.html's carryList — keep them alike:
+// an item from one of the last CARRY_DAYS days (not before carry.since) that wasn't handed in from
+// that day up to yesterday comes on to today, unless today already has it or Dad took it off today.
+// A quiz only counts if it was really handed in; a Read or a link counts once it was opened.
+const CARRY_DAYS = 7;
+// Writing pages hand in a piece with no score yet (parent.html HANDIN_IDS — keep the list the same).
+const HANDIN_IDS = new Set(['../Writing/Writing-Lab.html', '../Writing/Speech-Studio.html', '../Writing/Grace-Speech-Thanksgiving.html'].map(encodeURIComponent));
+function carriedIn(days, todayDoc, carry){
+  if(!carry || !carry.on) return [];
+  const back = new Date(today); back.setDate(back.getDate() - CARRY_DAYS);
+  const t = iso(today), first = [carry.since||t, iso(back)].sort()[1];
+  const have = new Set([...(todayDoc.items||[]), ...(todayDoc.withdrawn||[])].map(it=>it.id));
+  const out = [];
+  days.filter(d=>d.date>=first && d.date<t).sort((a,b)=>a.date.localeCompare(b.date)).forEach(d=>{
+    d.items.forEach(it=>{
+      if(have.has(it.id)) return;
+      const quiz = (it.type||'quiz')==='quiz';
+      if(ATT.some(a=>a.id===it.id && a.date>=d.date && a.date<t && (!quiz || a.real))) return;
+      have.add(it.id);
+      out.push({ ...it, movedFrom: d.date, origin: it.origin || d.date, carried: true });
+    });
+  });
+  return out;
 }
 // A pet doc; null if this kid hasn't picked one, undefined if it can't be read right now.
 function getPet(uid){
@@ -546,6 +588,9 @@ function viewToday(){
   return html + petsRow();
 }
 
+// "Fri" for a day this week, "Sep 28" further back.
+const fromDay = d => { const x = new Date(d+'T12:00:00');
+  return today - x < 6*864e5 ? x.toLocaleDateString('en-US', { weekday:'short' }) : x.toLocaleDateString('en-US', { month:'short', day:'numeric' }); };
 // One homework card; a = today's attempt at it, if any.
 function card(it, a){
   const scored = a && a.pct!=null;
@@ -568,7 +613,7 @@ function card(it, a){
     <span class="ic">${esc(it.ic)||'📄'}</span>
     <div class="body">
       <div class="t">${esc(it.t)}</div>
-      <div class="meta"><span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book)}${size}</div>
+      <div class="meta"><span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book)}${size}${it.carried?`<span class="carry">↪ From ${fromDay(it.origin||it.movedFrom)}</span>`:''}</div>
       ${status}
     </div>
     ${btn}

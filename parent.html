@@ -202,6 +202,7 @@
   .mini.bad:hover{color:var(--red);border-color:var(--red)}
   .mini:disabled{opacity:.35;cursor:not-allowed}
   .moverow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:0 0 10px 27px;font-size:12px;color:var(--mute)}
+  .carryrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12.5px;color:var(--mute);margin:-4px 0 12px}
   .pulled{font-size:11.5px;color:var(--mute);margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)}
   .recent{color:var(--gold)}
 
@@ -939,7 +940,7 @@ const ymd = s => s && s.slice(0,4)===String(today.getFullYear()) ? s.slice(5) : 
 let BANK = [], BANK_BY_ID = {}, ATT = [];
 // The day 今日作业 is showing (today unless the parent picked another) and both kids' items on it;
 // PULLED = items withdrawn from that day.
-let TD = iso(today), ASSIGN = { grace:[], warren:[] }, PULLED = { grace:[], warren:[] };
+let TD = iso(today), ASSIGN = { grace:[], warren:[] }, PULLED = { grace:[], warren:[] }, CARRIED = { grace:[], warren:[] };
 // Today's items whatever day 今日作业 is showing: the bank marks these "Assigned".
 let TODAY_ITEMS = { grace:[], warren:[] };
 // The kid-facing daily report (HOMEWORK-SYSTEM.md 「每日总结」): `summary` on the day doc, written by
@@ -1019,7 +1020,7 @@ async function loadDay(d){
   [['grace', g], ['warren', w]].forEach(([k, snap])=>{
     const x = snap.data() || {};
     // TD may have moved on while this was loading; then only today's copy (if it's today) is still wanted.
-    if(d === TD){ ASSIGN[k] = x.items || []; PULLED[k] = x.withdrawn || []; }
+    if(d === TD){ ASSIGN[k] = x.items || []; PULLED[k] = x.withdrawn || []; CARRIED[k] = x.carried || []; }
     if(d === iso(today)) TODAY_ITEMS[k] = x.items || [];
     NOTES[k+'|'+d] = x.summary || null;
   });
@@ -1034,10 +1035,95 @@ async function loadDays(){
     db.collection(`assignments/${KID[k].uid}/days`).get()));
   ['grace','warren'].forEach((k, i)=>{
     DAYS[k] = got[i].docs
-      .map(d => ({ date: d.id, items: d.data().items || [], withdrawn: d.data().withdrawn || [] }))
+      .map(d => ({ date: d.id, items: d.data().items || [], withdrawn: d.data().withdrawn || [], carried: d.data().carried || [] }))
       .filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x.date))
       .sort((a, b) => b.date.localeCompare(a.date));   // newest day first
   });
+}
+
+/* ===================== 没做完自动顺延（HOMEWORK-SYSTEM.md 2026-10-04） =====================
+   Sam：「没做完的作业自动放到第二天做」。每个孩子一个开关，存在 kids/{uid}.carry = { on, since }。
+   开着的时候：最近 CARRY_DAYS 天里（不早于 since —— 打开开关那天的前一天）派的，从那天到昨天都没交的，
+   挪到今天，带 movedFrom（从哪天挪来）、origin（最早派的那天）、carried:true。
+   原来那天的 items 拿掉，放进那天的 carried[]（带 carriedTo），所以那天的记录还在：派发记录照样写「没做」，
+   孩子的连续天数也不会因为挪走了就补回来。今天撤回过的那份不再挪回来；今天已经有的只从原来那天拿掉。
+   这一页一打开就挪（换一天会整页重开，等于每天第一次打开时挪）；孩子先登录也不怕 ——
+   homework.html 的 carriedIn 按同一条规则先把它显示在 Today 里。两边的规则要一起改。 */
+const CARRY_DAYS = 7;
+let CARRY = { grace:null, warren:null };
+// 这个孩子今天该挪过来的：[{ from, it }]，同一份只算最早那天的
+function carryList(k){
+  const c = CARRY[k], T = iso(today);
+  if(!c || !c.on) return [];
+  const first = [c.since || T, shiftDay(T, -CARRY_DAYS)].sort()[1];
+  const td = DAYS[k].find(d => d.date === T) || { items:[], withdrawn:[] };
+  const have = new Set([...td.items, ...td.withdrawn].map(it => it.id));
+  const out = [];
+  DAYS[k].filter(d => d.date >= first && d.date < T).sort((a,b)=>a.date.localeCompare(b.date)).forEach(d=>{
+    d.items.forEach(it=>{
+      if(have.has(it.id)) return;
+      const b = BANK_BY_ID[it.id];
+      // 从那天到昨天交过就不挪（今天才做的照挪：挪过来正好算今天的）
+      if(ATT.some(a => a.kid===k && a.id===it.id && a.date>=d.date && a.date<T && (!b || countsAsDone(a, b)))) return;
+      have.add(it.id);
+      out.push({ from: d.date, it });
+    });
+  });
+  return out;
+}
+// 真挪：每个孩子一个 transaction。返回挪了几份。
+async function runCarry(){
+  const T = iso(today);
+  let n = 0;
+  for(const k of ['grace','warren']){
+    const list = carryList(k);
+    if(!list.length) continue;
+    const froms = [...new Set(list.map(x => x.from))], dst = dayRef(k, T);
+    let movedK = 0;
+    await db.runTransaction(async tx=>{
+      movedK = 0;
+      const snaps = await Promise.all([dst, ...froms.map(d => dayRef(k, d))].map(r => tx.get(r)));
+      const t = snaps[0].data() || {}, tItems = [...(t.items || [])];
+      const tHave = new Set([...tItems, ...(t.withdrawn || [])].map(i => i.id));
+      const now = firebase.firestore.FieldValue.serverTimestamp(), at = firebase.firestore.Timestamp.now();
+      froms.forEach((d, i)=>{
+        const x = snaps[i+1].data() || {}, ids = new Set(list.filter(y => y.from===d).map(y => y.it.id));
+        const go = (x.items || []).filter(it => ids.has(it.id));
+        if(!go.length) return;   // 别的设备刚挪过了
+        go.forEach(it=>{
+          if(tHave.has(it.id)) return;
+          tHave.add(it.id); movedK++;
+          tItems.push({ ...it, movedFrom: d, origin: it.origin || d, carried: true });
+        });
+        tx.set(dayRef(k, d), { items: (x.items || []).filter(it => !ids.has(it.id)),
+          carried: [...(x.carried || []), ...go.map(it => ({ ...it, carriedTo: T, carriedAt: at }))], updatedAt: now }, { merge:true });
+      });
+      if(movedK) tx.set(dst, { items: tItems, updatedAt: now }, { merge:true });
+    });
+    n += movedK;
+  }
+  if(n) await Promise.all([loadDay(TD), TD === T ? null : loadDay(T), loadDays()]);
+  return n;
+}
+async function setCarry(k, on, btn){
+  btn.disabled = true;
+  const carry = on ? { on: true, since: shiftDay(iso(today), -1) } : { ...(CARRY[k] || {}), on: false };
+  try {
+    await db.doc(`kids/${KID[k].uid}`).set({ carry }, { merge:true });
+    CARRY[k] = carry;
+    const n = on ? await runCarry() : 0;
+    render();
+    toast(on ? `${KID[k].n}：没做完的会自动顺延到第二天${n ? `，刚把昨天没做的 ${n} 份挪到了今天` : ''}` : `${KID[k].n}：关掉了自动顺延，已经挪过来的不动`);
+  } catch(e){
+    console.error(e); btn.disabled = false;
+    toast('没存上：' + (e.code||e.message), true);
+  }
+}
+async function carryNow(){
+  try {
+    const n = await runCarry();
+    if(n){ render(); toast(`昨天没做完的 ${n} 份已自动顺延到今天`); }
+  } catch(e){ console.error(e); toast('自动顺延没成功：' + (e.code||e.message) + '，下次打开再试', true); }
 }
 
 // 题库的排法：科目 → 书 → 标题。loadAll 之后排一次，加 / 改自定义链接之后再排一次。
@@ -1048,7 +1134,7 @@ function sortBank(){
 }
 
 async function loadAll(){
-  const [bankSnap, attSnap, progSnap] = await Promise.all([
+  const [bankSnap, attSnap, progSnap, , , , profs] = await Promise.all([
     db.collection('bank').get(),
     // A family writes a handful a day, so fetch them all: "最近一次" needs more than three weeks.
     db.collection('attempts').orderBy('submittedAt','desc').get(),
@@ -1056,8 +1142,11 @@ async function loadAll(){
     db.collection('progress').get(),
     loadDay(TD),
     TD === iso(today) ? null : loadDay(iso(today)),
-    loadDays()
+    loadDays(),
+    // 没做完自动顺延的开关在 kids/{uid}.carry（孩子页也读这个）
+    Promise.all(['grace','warren'].map(k => db.doc(`kids/${KID[k].uid}`).get()))
   ]);
+  ['grace','warren'].forEach((k, i)=>{ CARRY[k] = (profs[i].data()||{}).carry || null; });
   BANK = bankSnap.docs.map(d => Object.assign({ docId:d.id }, d.data()));
   sortBank();
   ATT = attSnap.docs.map(toAtt).filter(Boolean);
@@ -1297,6 +1386,12 @@ function viewToday(){
       <button class="fchip" data-day="${shiftDay(day,1)}">${dayName(shiftDay(day,1), '后一天')} ›</button>
       ${isToday?'':`<button class="fchip" data-day="${iso(today)}">回到今天</button>`}
     </div>
+    <div class="carryrow">没做完自动顺延到第二天${qm(`开着的话：前一天（最远倒推 ${CARRY_DAYS} 天）派的、到昨天都没交的，第二天自动挪到「今天」，标「从 10-03 顺延」。
+      原来那天会写一行「没做完，顺延到 …」，派发记录里那天照样算没做。打分的卷子要交了卷才算做完，参考 / 链接打开过就算。
+      今天撤回的那份不会再挪回来；不想让它再往后挪，就撤回。这一页每天第一次打开时挪；孩子先登录也看得到（他那边标 From Fri）。`)}
+      ${['grace','warren'].map(k=>{ const on = !!(CARRY[k] && CARRY[k].on);
+        return `<button class="fchip${on?' on':''}" data-carry="${k}" data-on="${on?0:1}">${KID[k].av} ${KID[k].n} · ${on?'开':'关'}</button>`; }).join('')}
+    </div>
     <details class="hguide" data-guide="today"${guideOpen('today')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li>卡片右上角 <b>已派 N 份</b> = 这天派给孩子、没有撤回的份数。</li>
       <li>每份后面的状态：<span class="chipst st-open">未开始</span> = 这天还没交卷；
@@ -1372,7 +1467,7 @@ function viewToday(){
         const spentIt = (r ? r.tries.reduce((x,a)=>x+estSecs(a),0) : 0) + (u ? u.active : 0);
         const tmEst = r ? `<span class="est done" title="这天页面开在最前面的时间，几遍加起来（切到别的 APP、锁屏那段不算）${u?'；含没交卷的那段 —— '+UNF_TIP:''}">实际用时 ${dur(spentIt)}${u?`（含没交卷 ${dur(u.active)}）`:''}</span>`
           : estChip(it, k) + (u && !liveOf(key, false) ? ` · <span class="est done" title="${UNF_TIP}">没交卷，已用 ${dur(u.active)} · ${unfDone(u)}</span>` : '');
-        const tm = [at?'派于 '+stamp(at):'', it.movedFrom?'从 '+ymd(it.movedFrom)+' 挪来':'', again].filter(Boolean).join(' · ');
+        const tm = [at?'派于 '+stamp(at):'', moveTxt(it), again].filter(Boolean).join(' · ');
         // 做完了的那份，这里直接能归档（Sam 2026-09-27：不用再跑去题库）
         const bk = BANK_BY_ID[it.id];
         const arch = !r || !bk ? '' : bk.archived ? `<span class="archdone" title="已归档 ${ymd(bk.archivedOn||'')}">已归档</span>`
@@ -1400,12 +1495,17 @@ function viewToday(){
           g.n>1?` · 这天打开看了 ${g.n} 次`:''}</span></span>
         <span class="acts"><span class="chipst st-done">✓ 看过${g.last?' · '+hm(g.last):''}</span></span></div>`;
     }).join('');
+    if(CARRIED[k].length) html += `<div class="pulled">这天没做完，顺延了 ${CARRIED[k].length} 份：${CARRIED[k].map(p=>
+      esc(p.t) + `（→ ${ymd(p.carriedTo)}）`).join('、')}</div>`;
     if(PULLED[k].length) html += `<div class="pulled">这天撤回了 ${PULLED[k].length} 份：${PULLED[k].map(p=>{
       const w = tsDate(p.withdrawnAt); return esc(p.t) + (w ? `（${stamp(w)}）` : ''); }).join('、')}</div>`;
     html += `</details>`;
   });
   return html + `</div>`;
 }
+
+// 「从 10-03 挪来」（手动改日期）/「从 10-02 顺延」（自动；连着顺延好几天写最早那天）
+const moveTxt = it => !it.movedFrom ? '' : it.carried ? '从 '+ymd(it.origin||it.movedFrom)+' 顺延' : '从 '+ymd(it.movedFrom)+' 挪来';
 
 /* ===================== 派发记录 (dispatch record) =====================
    Sam 2026-09-19: 「所有派发的作业都要有派发记录，并且要有当时判的分数」.
@@ -1427,6 +1527,11 @@ function dispatchRows(k){
       // wait：以后排着的（later）、今天的还没做（today）—— 都不算「没做」，和题库的派发历史同一个说法（histState）
       out.push({ date: d.date, it, r, pulled: pulled.get(it.id) || null, wait: r ? '' : d.date > T ? 'later' : d.date === T ? 'today' : '',
                  done: !!r, pct: r && r.scored ? r.last.pct : null });
+    });
+    // 顺延走的：这天没做，记一行「没做」，标去了哪天
+    (d.carried || []).forEach(p=>{
+      if(d.items.some(it => it.id === p.id)) return;
+      out.push({ date: d.date, it: p, r: null, pulled: null, wait: '', done: false, pct: null, carriedTo: p.carriedTo });
     });
     // Withdrawn items are no longer in items[] — they still belong in a record of what went out.
     d.withdrawn.forEach(p=>{
@@ -1475,7 +1580,8 @@ function viewDispatch(){
         : !r.done ? `<span class="chipst st-open">没做</span>`
         : `<span class="chipst ${r.pct==null||r.pct>=PASS?'st-done':'st-low'}">${r.pct==null?'✓ 完成':r.pct+'%'}</span>`;
       const extra = n>1 && r.r.first.pct!=null && r.r.first.pct!==r.pct ? `<span class="dflag">这天 ${n} 遍 · 第一遍 ${r.r.first.pct}%</span>` : '';
-      const flags = (r.it.movedFrom ? `<span class="dflag">从 ${ymd(r.it.movedFrom)} 挪来</span>` : '') + extra;
+      const flags = (r.it.movedFrom ? `<span class="dflag">${moveTxt(r.it)}</span>` : '')
+        + (r.carriedTo ? `<span class="dflag">顺延到 ${ymd(r.carriedTo)}</span>` : '') + extra;
       html += `<tr class="${newday?'newday ':''}${!r.done&&!r.pulled&&!r.wait?'miss':''}">
         <td class="dday">${newday?`<b>${ymd(r.date)}</b> 周${wdOf(r.date)}`:''}</td>
         <td class="dt"><b>${openLink(r.it.href, esc(r.it.t))}</b>${flags}
@@ -3617,6 +3723,7 @@ function render(){
     viewEl.querySelectorAll('[data-gokid]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.gov, b.dataset.gokid)));
     viewEl.querySelectorAll('.fchip[data-day]').forEach(b=>b.addEventListener('click',()=>goDay(b.dataset.day)));
     document.getElementById('tdpick').addEventListener('change', e=>goDay(e.target.value));
+    viewEl.querySelectorAll('[data-carry]').forEach(b=>b.addEventListener('click',()=>setCarry(b.dataset.carry, b.dataset.on==='1', b)));
     viewEl.querySelectorAll('[data-pull]').forEach(b=>b.addEventListener('click',()=>{
       const [k, id] = b.dataset.pull.split('|'); pullItem(k, id, b); }));
     viewEl.querySelectorAll('[data-move]').forEach(b=>b.addEventListener('click',()=>{
@@ -4054,8 +4161,9 @@ async function moveItem(k, id, to, btn){
       wrote = false;
       const [s, t] = await Promise.all([tx.get(src), tx.get(dst)]);
       const sItems = (s.data()||{}).items || [], tItems = (t.data()||{}).items || [];
-      const cur = sItems.find(i=>i.id===id);
-      if(!cur) return;
+      const found = sItems.find(i=>i.id===id);
+      if(!found) return;
+      const { carried, origin, ...cur } = found;   // 手动改日期就是「挪来」，不再算自动顺延
       const now = firebase.firestore.FieldValue.serverTimestamp();
       if(!keep) tx.set(src, { items: sItems.filter(i=>i.id!==id), updatedAt: now }, { merge:true });
       // 新日期上以前撤回过这份的话，挪过去就不算撤回了（和派发一样）
@@ -4092,7 +4200,7 @@ document.getElementById('reload').addEventListener('click', async ()=>{
   // 写作、朗读录音也重读（正在批的那篇不打断，回到列表时再读）
   RC.list = null; RC.stale = false;
   if(V==='essay' && WR.cur) WR.stale = true; else WR.list = null;
-  try { await loadAll(); render(); toast('已刷新'); }
+  try { await loadAll(); await carryNow(); render(); toast('已刷新'); }
   catch(e){ console.error(e); toast('刷新失败：' + (e.code||e.message), true); }
 });
 
@@ -4152,6 +4260,7 @@ auth.onAuthStateChanged(async user=>{
   signinBtn.disabled = true; signinBtn.textContent = '正在读取数据…'; momPin.disabled = true;
   try {
     await loadAll();
+    await carryNow();
     watchProgress();
     WR.list = null; WR.cur = ''; WR.ed = null;   // the 作文 tab reads its own collection, lazily
     document.getElementById('whoami').textContent = user.email === MOM_EMAIL ? '👩 妈妈' : (user.email || '');
