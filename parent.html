@@ -193,6 +193,9 @@
          border:1.5px solid var(--line);border-radius:7px;color:var(--cream);padding:6px 9px;outline:none}
   .task .nm span.tm{display:block}
   .task .acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  /* 按钮区最多占一半多一点，状态多了就在右边折行，别把标题挤成一个字宽（Sam 2026-09-27） */
+  .task .acts{max-width:58%}
+  .task .acts>[data-pg]{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
   .mini{font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;border-radius:6px;padding:3px 8px;
         border:1px solid var(--line);background:transparent;color:var(--mute)}
   .mini:hover{color:var(--cream);border-color:var(--gold2)}
@@ -259,6 +262,7 @@
   .shelftog::before{content:'▸';color:var(--gold2);font-size:13px;display:inline-block;transition:transform .12s}
   .shelftog.open::before{transform:rotate(90deg)}
   .shelftog:hover{color:var(--cream)}
+  .shelfname{padding:2px 0}   /* 科目底下唯一的书架：不折叠，只是个名字 */
   table{width:100%;border-collapse:collapse;font-size:13px}
   tbody tr{border-bottom:1px solid rgba(42,59,88,.55)}
   tbody tr:hover{background:rgba(42,59,88,.3)}
@@ -665,7 +669,8 @@
     td .d{display:none}
     input[type=checkbox]{width:20px;height:20px}
     .task{flex-wrap:wrap}
-    .task .acts{flex-basis:100%;padding-left:27px;justify-content:flex-start}   /* status + buttons under the title */
+    .task .acts{flex-basis:100%;max-width:none;padding-left:27px;justify-content:flex-start}
+    .task .acts>[data-pg]{justify-content:flex-start}   /* status + buttons under the title */
 
     /* header: title and the two buttons on one line; tabs scroll sideways instead of wrapping */
     .hrow{flex-wrap:nowrap;align-items:center;gap:8px;padding:12px 0 6px}
@@ -697,7 +702,7 @@
     details.subj td:nth-child(5) div, details.subj td:nth-child(6) .crumb{display:inline;margin:0 0 0 6px}
     /* a shelf: the book name gets the line, its counts go on a line under it */
     .shelfhead{flex-wrap:wrap;align-items:center;column-gap:10px;row-gap:2px}
-    .shelfhead .shelftog{flex:1 1 0;min-width:0}
+    .shelfhead .shelftog,.shelfhead .shelfname{flex:1 1 0;min-width:0}
     .shelfhead .scount{flex-basis:100%;padding-left:30px}
     .shelfhead .hint{display:none}
     /* 题库那一行在手机上：两组做成分段控件，跟展开 / 收起两个图标挤在同一行 */
@@ -1750,10 +1755,10 @@ function archCell(b){
                b.archivedWhy || ''].filter(Boolean).join(' · ');
   return b.archived
     ? `<span class="badge b-arch"${why?` title="${esc(why)}"`:''}>已归档</span>
-       <button class="archbtn" data-arch="${esc(b.docId)}" data-to="0" title="放回在用列表（放回之后不会再建议归档，除非又做了一遍）">放回</button>`
+       <button class="archbtn" data-arch="${esc(b.docId)}" data-to="0" title="放回在用列表">放回</button>`
     : `${SUG.has(b.docId)?`<span class="badge b-sug" title="派出去都做完了（完成 ${ymd(SUG.get(b.docId))}），建议归档。不点就不动">建议归档</span> `:''}<button class="archbtn" data-arch="${esc(b.docId)}" data-to="1" title="从默认列表里收起来，不删文件、不动成绩">归档</button>
-       <button class="archbtn keep${b.keep?' on':''}" data-keep="${esc(b.docId)}" data-to="${b.keep?'0':'1'}"
-               title="${b.keep?'已钉住：做完也不提示归档。点一下取消':'钉住：常年重复派的，做完也不提示归档'}">📌${b.keep?' 钉住':''}</button>`;
+       ${!SUGGEST_ARCHIVE?'':`<button class="archbtn keep${b.keep?' on':''}" data-keep="${esc(b.docId)}" data-to="${b.keep?'0':'1'}"
+               title="${b.keep?'已钉住：做完也不提示归档。点一下取消':'钉住：常年重复派的，做完也不提示归档'}">📌${b.keep?' 钉住':''}</button>`}`;
 }
 
 // 归档 = 从默认题库列表里收起来。文件留着、历史成绩照样指得到、归档的还能派作业（§三之二）。
@@ -1834,7 +1839,11 @@ function doneDate(b){
 }
 
 // 建议归档的那几份：[[b, 完成日期], …]。只算，不写 —— 归不归档由家长点（Sam 2026-09-22）。
+// 2026-10-04 Sam：「建议归档不用再建议了，我自己手动做」—— 整个关掉：题库顶上那块、今天页那条、
+// 行上的「建议归档」标签都靠这里返回空来消失。下面的算法留着，哪天要再打开，删掉这一行就行。
+const SUGGEST_ARCHIVE = false;
 function archiveSuggestions(){
+  if(!SUGGEST_ARCHIVE) return [];
   const out = [];
   BANK.forEach(b=>{
     if(b.archived || b.keep) return;
@@ -1957,7 +1966,8 @@ function bankRow(b, withPlace){
   return `<tr class="${SEL.has(b.docId)?'sel':''}${b.archived?' arch':''}${assignedTo(b.docId).length?' assigned':''}">
     <td class="c" style="width:34px"><input type="checkbox" class="pick" ${SEL.has(b.docId)?'checked':''} data-id="${esc(b.docId)}"></td>
     <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)} ${wkTag(WritingKinds.ofPage(b.docId))}${bothBadge(b)}${assignedBadge(b.docId)}</div><div class="d">${esc(b.d)}</div>
-      ${withPlace?`<div class="crumb">${esc(b.subj)}${b.book?' · '+esc(b.book):''}</div>`:''}${bankDates(b)}</td>
+      ${typeof withPlace==='string' ? (withPlace?`<div class="crumb">${esc(withPlace)}</div>`:'')
+        : withPlace?`<div class="crumb">${esc(b.subj)}${b.book?' · '+esc(b.book):''}</div>`:''}${bankDates(b)}</td>
     ${F.kid==='all'?`<td class="crumb" style="width:92px">${kid.av} ${kid.n}</td>`:''}
     <td class="c crumb" style="width:84px">${b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '—'}
         <div>${estChip(b, F.kid)}</div></td>
@@ -2144,12 +2154,8 @@ function viewBank(){
       外站那边判不了分，所以孩子在作业页上自己点「✓ I'm done」，这边显示「✓ 完成」。</p>
       <p>归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。
       每行类型下面有 <b>归档</b> 按钮，点一下就收起来；要一次收一批，就勾选后用底部那条的 <b>归档</b>。归档过的按 <b>放回</b> 回到在用列表。</p>
-      <p><b>派出去做完的会<u>建议</u>归档，不会自己收</b>（点了才归档）：派给谁就要谁交卷，两个孩子都派过的要<b>两个都交了</b>才收；
-      有题的卷子要真做出个分数才算完成（光打开看看不算），参考页和自定义链接点了「✓ I'm done」就算；
-      撤回的不算，<b>今天或以后还排在派单上的一份都不提</b>。建议的那几份列在最上面，点「全部归档」或者单行的「归档」才收；
-      点「先不归档，别再提示」就留在在用里，除非又做了一遍才会再提。归档那行写着 <b>完成 X 月 X 日 · 归档 X 月 X 日</b>。
-      点 <b>放回</b> 就拿回在用列表，放回之后也不会再提 —— 除非又做了一遍。
-      常年要重复派的（作文本、打字游戏那种），点行上那颗 <b>📌</b> 钉住，做完也不提示归档。</p>`)}</h2>
+      <p><b>归档全靠手点</b>，系统不会自己收，也不再列「建议归档」（Sam 2026-10-04）。归档那行写着 <b>归档 X 月 X 日</b>。
+      点 <b>放回</b> 就拿回在用列表。</p>`)}</h2>
     ${kidTabs()}
     <div class="seclead groupbar slim"><input type="search" class="bsearch" id="bsearch" placeholder="搜标题、书名（按 / ）" value="${esc(F.q)}" autocomplete="off">
       <button class="fchip${F.never?' on':''}" data-never="1" title="只看从来没派给${F.kid==='all'?'任何一个孩子':KID[F.kid].n}的">只看没派过</button>
@@ -2206,15 +2212,24 @@ function viewBank(){
     if(loose) html += `<div class="shelf"><table><tbody>${
       [...loose.values()].flat().map(b=>bankRow(b, false)).join('')}</tbody></table></div>`;
 
-    [...byKind.keys()].filter(k=>k!=='loose')
-      .sort((a,b)=>(KIND_RANK[a]??99)-(KIND_RANK[b]??99)).forEach(kind=>{
+    // 少一层是一层（Sam 2026-09-28：「层级太多，应该一点入就进课件」）：
+    //   · 科目底下只有一种书架，「教材 · 单元」那条分段标签就不出了；
+    //   · 科目底下只有一个书架，书架不折叠 —— 点开科目就直接看到每一份；
+    //   · 书架里只有一份，连书架那行都不要，那一份直接摆出来（书名写在它下面一行小字）。
+    const kinds = [...byKind.keys()].filter(k=>k!=='loose');
+    const oneShelf = kinds.reduce((s,k)=>s+byKind.get(k).size, 0) === 1;
+    kinds.sort((a,b)=>(KIND_RANK[a]??99)-(KIND_RANK[b]??99)).forEach(kind=>{
       const shelves = byKind.get(kind);
       const n = [...shelves.values()].flat().length;
-      html += `<div class="kindband"><span class="kindlbl">${esc(KIND_LBL[kind]||kind)}</span>
+      if(kinds.length > 1) html += `<div class="kindband"><span class="kindlbl">${esc(KIND_LBL[kind]||kind)}</span>
         <span class="scount">${n} 份</span></div>`;
       shelves.forEach((list, book)=>{
-        // A shelf (a book, a mock test) folds to one line.
-        const key = subj + '|' + book, shut = !OPEN_SHELF.has(key);
+        if(list.length === 1){
+          html += `<div class="shelf"><table><tbody>${bankRow(list[0], book)}</tbody></table></div>`;
+          return;
+        }
+        // A shelf (a book, a mock test) folds to one line — unless it's the only one under the subject.
+        const key = subj + '|' + book, shut = !oneShelf && !OPEN_SHELF.has(key);
         const all = list.every(b=>SEL.has(b.docId)), nSel = list.filter(b=>SEL.has(b.docId)).length;
         const nAsg = list.filter(b=>assignedTo(b.docId).length).length;
         const nSent = list.filter(b=>histOf(b.docId).some(e=>!e.self && !e.pulled)).length;
@@ -2222,7 +2237,8 @@ function viewBank(){
 
         html += `<div class="shelf"><div class="shelfhead"><input type="checkbox" class="selall"${all?' checked':''} title="整组选"
             data-ids="${esc(list.map(b=>b.docId).join(' '))}">
-          <button class="shelftog${shut?'':' open'}" data-shelf="${esc(key)}">${esc(book)}</button>
+          ${oneShelf ? `<span class="shelfname">${esc(book)}</span>`
+                     : `<button class="shelftog${shut?'':' open'}" data-shelf="${esc(key)}">${esc(book)}</button>`}
           <span class="scount">${list.length} 份 · <span class="dasg" title="这一组里派给过${F.kid==='all'?'孩子':KID[F.kid].n}的份数">派过 ${nSent}/${list.length}</span>${nAsg?` · <span class="sasg">今天已派 ${nAsg}</span>`:''}${nSel?` · <span class="ssel">已选 ${nSel}</span>`:''} · 最近 ${(v=>`<span class="${v>=RECENT?'recent':''}">${ymd(v)}</span>`)(list.map(touched).sort().pop())}<span class="hint"> · 勾方框整组选</span></span>
           ${grp.length?`<button class="archbtn grpbtn" data-archgrp="${esc(grp.join(' '))}" data-to="${F.arch==='archived'?0:1}" data-name="${esc(book)}"
             title="${F.arch==='archived'?'这一组全部放回在用':'这一组全部收进归档（不删文件、不动成绩）'}">${F.arch==='archived'?'整组放回':'整组归档'}</button>`:''}</div>`;
