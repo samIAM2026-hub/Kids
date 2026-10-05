@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3A Chapter 7 Lesson 1 &mdash; Quotient and Remainder</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #f3effa 55%, #e6def5 100%);
+    min-height: 100vh; color: #1f1a2e; padding: 22px 14px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header { background: #5b3f99; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f7f3ff; box-shadow: 0 8px 0 #3d2a6b; margin-bottom: 14px; position: relative; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+  .sound { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.35);
+    color: #fff; border-radius: 99px; width: 40px; height: 40px; font-size: 18px; cursor: pointer; }
+
+  .nav { position: sticky; top: 0; z-index: 30; background: rgba(255,253,247,.95); backdrop-filter: blur(4px); border-radius: 12px; padding: 8px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(61,42,107,.12); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav a { text-decoration: none; font-size: 13.5px; font-weight: bold; color: #3d2a6b; background: #ece6f7; border-radius: 99px; padding: 6px 13px; }
+
+  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 6px 0 #d9d0ec; margin-bottom: 16px; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16.5px; line-height: 1.6; }
+  .intro p + p { margin-top: 8px; }
+  .hidden { display: none !important; }
+
+  .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .badge { background: #f3f1f6; border: 3px dashed #cfc6e0; border-radius: 14px; padding: 8px 12px; text-align: center;
+    font-size: 13px; font-weight: bold; color: #a39bb5; min-width: 98px; transition: .25s; }
+  .badge .bi { display: block; font-size: 24px; filter: grayscale(1); opacity: .45; }
+  .badge.on { background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; transform: scale(1.04); }
+  .badge.on .bi { filter: none; opacity: 1; }
+
+  h2.sect { font-size: 20px; color: #3d2a6b; margin: 30px 0 12px; text-align: center; scroll-margin-top: 70px; }
+  h2.sect span { background: #ece6f7; border-radius: 99px; padding: 5px 16px; display: inline-block; }
+  p.body { font-size: 16.5px; line-height: 1.6; color: #3a3350; }
+  p.body + p.body { margin-top: 8px; }
+
+  .btn { background: #5b3f99; color: #fff; border: none; border-radius: 12px; padding: 11px 20px; font-size: 15.5px; font-family: inherit; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #3d2a6b; margin: 4px; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #3d2a6b; }
+  .btn.amber { background: #c9761d; box-shadow: 0 5px 0 #8f5211; }
+  .btn.green { background: #3a7d44; box-shadow: 0 5px 0 #23572c; }
+  .btn.ghost { background: #fff; color: #5d5670; box-shadow: 0 4px 0 #e2dcef; border: 2px solid #e2dcef; }
+  .btn.sm { padding: 8px 14px; font-size: 14px; }
+  .center { text-align: center; }
+
+  .fb { text-align: center; font-size: 16px; font-weight: bold; min-height: 26px; margin-top: 10px; line-height: 1.55; color: #5d5670; }
+  .fb.ok { color: #3a7d44; }
+  .fb.no { color: #c0392b; }
+  .won { display: none; background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; border-radius: 12px; padding: 13px 15px; margin-top: 12px; font-size: 16px; line-height: 1.6; }
+  .won.show { display: block; }
+  .won .lbl, .trap .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; margin-bottom: 4px; }
+  .trap { background: #fbeaea; border: 3px solid #e2a49c; border-radius: 12px; padding: 12px 14px; font-size: 15.5px; line-height: 1.6; margin-top: 10px; color: #7d2b21; }
+  .trap .lbl { color: #a5352a; }
+
+  .gbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .gbar .round { font-size: 13px; font-weight: bold; color: #5d5670; font-family: 'Courier New', monospace; letter-spacing: .5px; }
+  .gbar .stars { font-size: 18px; letter-spacing: 2px; }
+  .target { background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 11px 14px; text-align: center; font-size: 17px; line-height: 1.5; }
+  .peek { background: #fff; color: #5d5670; border: 2px solid #e2dcef; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-family: inherit; font-weight: bold; cursor: pointer; margin-top: 10px; }
+  .how { background: #f6f3fc; border-left: 5px solid #8f78c9; border-radius: 8px; padding: 10px 13px; margin-top: 8px; font-size: 15.5px; line-height: 1.7; }
+
+
+
+  /* ---------- pictures ---------- */
+  .pic { display: flex; flex-direction: column; align-items: center; margin: 12px 0 4px; }
+  .grps { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 520px; }
+  .grp { text-align: center; }
+  .grp .g { display: inline-grid; gap: 3px; padding: 6px; border: 3px solid; border-radius: 12px; min-width: 34px; min-height: 30px; }
+  .grp .d { width: 13px; height: 13px; border-radius: 50%; }
+  .grp .gl { font-family: 'Courier New', monospace; font-weight: bold; font-size: 14px; color: #3d2a6b; margin-top: 2px; min-height: 18px; }
+  .grp.empty .g { border-style: dashed; background: #faf8fd !important; }
+  .grp.left .g { border: 3px dashed #a39bb5; background: #f3f1f6; }
+  .grp.left .d { background: #8a829c; }
+  .grp.left .gl { color: #a5352a; }
+  .pile { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; max-width: 270px; padding: 8px; background: #fff8ec; border: 2px solid #e8c489; border-radius: 14px; margin-bottom: 4px; }
+  .pile .d { width: 12px; height: 12px; border-radius: 50%; background: #c9761d; }
+  .pilecap { font-size: 13.5px; font-weight: bold; color: #5d5670; margin: 2px 0 8px; }
+  .shapes { font-size: 20px; line-height: 1.35; letter-spacing: 4px; color: #3d2a6b; text-align: left; background: #fff; border: 2px solid #cfc6e0; border-radius: 10px; padding: 6px 10px; }
+  /* ---------- long division (like the book) ---------- */
+  .ld { display: grid; width: max-content; grid-template-columns: auto auto auto; column-gap: 6px; row-gap: 3px; align-items: center; margin: 4px auto 8px;
+    font-family: 'Courier New', monospace; font-weight: bold; font-size: 22px; line-height: 1.3; text-align: right; vertical-align: middle; }
+  .ld .n { min-width: 62px; padding: 2px 4px; text-align: right; }
+  .ld .n.top { border-top: 3px solid #3d2a6b; }
+  .ld .dv { color: #3d2a6b; }
+  .ld .lb { font-family: 'Trebuchet MS', system-ui, sans-serif; font-size: 12.5px; color: #8a829c; text-align: left; font-weight: bold; }
+  .ld input, .ld input.bx { margin: 0; }
+  /* ---------- fill-in boxes ---------- */
+  .prompt { background: #f6f3fc; border-radius: 12px; padding: 14px; margin-top: 14px; text-align: center; font-size: 18px; line-height: 2.1; }
+  .prompt input, .ansrow input, input.bx { width: 62px; height: 42px; font-size: 22px; font-family: 'Courier New', monospace; font-weight: bold; text-align: center; border: 3px solid #cbbfe6; border-radius: 10px; margin: 0 3px; background: #fbfaff; color: #1f1a2e; outline: none; }
+  input.bx:focus, .prompt input:focus { border-color: #5b3f99; box-shadow: 0 0 0 3px #e3dbf6; }
+  input.bx.good { border-color: #3a7d44; background: #e8f5e6; }
+  input.bx.bad { border-color: #c0392b; background: #fbeaea; }
+  .fact { font-family: 'Courier New', monospace; font-weight: bold; }
+
+  /* ---------- spot the mistake ---------- */
+  .notebook { background: #fffdf2; border: 2px solid #eadfb8; border-radius: 12px; padding: 10px 14px; text-align: center; margin-top: 10px; }
+  .notebook .who { font-size: 16px; line-height: 1.5; }
+  .notebook .work { font-family: 'Courier New', monospace; font-weight: bold; font-size: 20px; color: #7d2b21; margin-top: 6px; line-height: 1.5; }
+  .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .choice { background: #f6f3fc; border: 3px solid #e2dcef; border-radius: 12px; padding: 11px 14px; font-size: 16px; font-family: inherit; text-align: left; cursor: pointer; color: #1f1a2e; }
+  .choice:hover { border-color: #8f78c9; }
+  .choice.good { background: #e8f5e6; border-color: #3a7d44; }
+  .choice.bad { background: #fbeaea; border-color: #c0392b; }
+  .yn { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+
+  /* ---------- test ---------- */
+  .qbar { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: bold; font-size: 15px; color: #3d2a6b; }
+  .qbar .time { font-family: 'Courier New', monospace; font-size: 18px; }
+  .qbar .time.low { color: #c0392b; }
+  .progress { height: 10px; background: #ece6f7; border-radius: 99px; margin: 10px 0 16px; overflow: hidden; }
+  .progress i { display: block; height: 100%; background: #8f78c9; width: 0; transition: width .3s; }
+  .qtext { font-size: 17px; line-height: 1.5; text-align: center; font-weight: bold; }
+  .qtag { display: inline-block; background: #5b3f99; color: #fff; font-size: 12px; font-weight: bold; border-radius: 99px; padding: 3px 12px; margin-bottom: 8px; }
+  .qline { font-size: 20px; line-height: 2.2; text-align: center; margin-top: 10px; }
+  .explain { margin-top: 12px; }
+  .res-top { text-align: center; }
+  .res-top .stars { font-size: 34px; letter-spacing: 4px; }
+  .res-top .pct { font-size: 48px; font-weight: bold; color: #3d2a6b; }
+  .res-top .sub { color: #5d5670; font-size: 15px; margin-top: 4px; }
+  .res-top .verdict { font-size: 22px; font-weight: bold; margin-top: 8px; }
+  .verdict.pass { color: #3a7d44; } .verdict.fail { color: #c0392b; }
+  .miss { border: 3px solid #f0d2cc; border-radius: 12px; padding: 12px 14px; margin-top: 12px; background: #fffafa; }
+  .miss .mh { font-weight: bold; font-size: 16px; line-height: 1.6; }
+  .miss .you { color: #c0392b; } .miss .right { color: #3a7d44; }
+  h3.rv { color: #3d2a6b; margin-top: 22px; text-align: center; font-size: 18px; }
+
+  .confetti { position: fixed; top: -12px; width: 9px; height: 14px; z-index: 99; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(105vh) rotate(720deg); } }
+  .pop { animation: popin .3s ease-out; }
+  @keyframes popin { 0% { transform: scale(.7) } 60% { transform: scale(1.12) } 100% { transform: scale(1) } }
+
+  .foot { text-align: center; margin-top: 26px; font-size: 13px; color: #8a829c; }
+  .foot a { color: #5b3f99; }
+  @media (max-width: 480px) {
+    .card { padding: 16px 12px; }
+    .prompt { padding: 12px 6px; font-size: 17px; }
+    .prompt input, .ansrow input, input.bx { width: 54px; font-size: 20px; }
+    .grp .d { width: 11px; height: 11px; }
+    .ld { font-size: 20px; column-gap: 4px; }
+    .ld .n { min-width: 56px; }
+    .ld .lb { font-size: 11.5px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <button class="sound" id="soundBtn" onclick="toggleSound()" aria-label="Sound on or off">🔊</button>
+  <div class="ic">➗</div>
+  <h1>Quotient and Remainder</h1>
+  <p>My Pals Are Here! Maths 3A · Chapter 7 · Lesson 1</p>
+</header>
+
+<nav class="nav">
+  <a href="#watch">👀 Watch it</a><a href="#try">✏️ Your turn</a><a href="#spot">🔍 Spot the mistake</a><a href="#test">🏆 Test</a>
+</nav>
+
+<div class="card intro">
+  <p><b>When things don't share out equally, the extra is the remainder: 11 ÷ 5 = 2 R 1. The remainder is always smaller than the number you divide by.</b></p>
+  <p>Watch 4 steps, try 2 yourself, check 5 answers — then take the 14-question test (1 minute each · pass = 80%).</p>
+  <div class="badges">
+    <div class="badge" id="b1"><span class="bi">👀</span>Watch it</div>
+    <div class="badge" id="b2"><span class="bi">✏️</span>Your turn</div>
+    <div class="badge" id="b3"><span class="bi">🔍</span>Mistake finder</div>
+    <div class="badge" id="b4"><span class="bi">🏆</span>Test passed</div>
+  </div>
+</div>
+
+<!-- ===================== 1 · WATCH IT ===================== -->
+<h2 class="sect" id="watch"><span>👀 1 · Watch it — book page 132</span></h2>
+<div class="card">
+  <p class="body" id="wStory"></p>
+  <div class="pic" id="wPic"></div>
+  <div class="prompt" id="wPrompt"></div>
+  <div class="fb" id="wFb"></div>
+  <div class="won" id="wWon"><span class="lbl">✅ You did it</span>
+    <b>Share, then see what is left.</b> 11 ÷ 5 = 2 R 1: 2 in each group, 1 left over.<br>
+    <b>Quotient</b> = how many in each group (on top). <b>Remainder</b> = what is left (at the bottom).<br>
+    The remainder must be <b>smaller</b> than the number you divide by. If it isn't, one more fits!</div>
+</div>
+
+<!-- ===================== 2 · YOUR TURN ===================== -->
+<h2 class="sect" id="try"><span>✏️ 2 · Your turn — book page 134</span></h2>
+<div class="card">
+  <div class="gbar"><span class="round" id="tRound"></span><span class="stars" id="tStars"></span></div>
+  <div class="target" id="tAsk"></div>
+  <div id="tHost"></div>
+  <div class="fb" id="tFb"></div>
+  <div class="center" id="tNext"></div>
+  <div class="won" id="tWon"><span class="lbl">✅ Both done</span>
+    Three steps every time: <b>how many fit</b> (quotient) → <b>multiply</b> → <b>subtract</b> (remainder).<br>
+    50 ÷ 6: 6 × 8 = 48, 50 − 48 = 2, so 50 ÷ 6 = 8 R 2.</div>
+</div>
+
+<!-- ===================== 3 · SPOT THE MISTAKE ===================== -->
+<h2 class="sect" id="spot"><span>🔍 3 · Spot the mistake</span></h2>
+<div class="card">
+  <div class="gbar"><span class="round" id="sRound"></span><span class="stars" id="sStars"></span></div>
+  <div id="sBody"></div>
+  <div class="fb" id="sFb"></div>
+  <div class="center" id="sNext"></div>
+  <div class="won" id="sWon"><span class="lbl">✅ Mistake finder</span>
+    Mistakes to watch for: a <b>remainder that is too big</b> (another group still fits), <b>forgetting the remainder</b>,
+    writing <b>what you used</b> instead of what is left, and a <b>quotient that is too big</b> (you need more than you have).
+    Always check: divisor × quotient + remainder = the number, and the remainder is smaller than the divisor.</div>
+</div>
+
+<!-- ===================== 4 · TEST ===================== -->
+<h2 class="sect" id="test"><span>🏆 4 · The test — Homework pages 117–120</span></h2>
+<div class="card center" id="gate">
+  <p class="body"><b>14 questions</b> — all of Homework Practice 1, pages 117–120 · <b>1 minute each</b> (14 minutes in all) · pass mark <b>80%</b> (12 right).</p>
+  <p class="body">Type the numbers and press <b>Check</b>. If a question has more than one box, every box must be right. You get one try per question — if it's wrong, you'll see why straight away.</p>
+  <p class="body">Question 3: find Glenn's number. In your book, still circle the groups in Question 1 and write your working.</p>
+  <p style="margin-top:12px"><button class="btn amber" onclick="startQuiz()">▶ Start the test</button></p>
+</div>
+<div class="card hidden" id="quiz">
+  <div class="qbar"><span id="qNum"></span><span id="qScore"></span><span class="time" id="qTime"></span></div>
+  <div class="progress"><i id="qProg"></i></div>
+  <div id="qBody"></div>
+</div>
+<div class="card hidden" id="result"></div>
+
+<div class="foot">My Pals Are Here! Maths 3A · Pupil's Book p132–134 · Homework p117–120 ·
+  <a href="../homework.html">← My homework</a></div>
+</div>
+
+<script>
+/* ================= shared helpers (keep in this first script) =================
+   This lesson: P ÷ d = q R r, where d × q + r = P and r is smaller than d. */
+var GROUP_COLORS = ['#e8508a', '#e67e22', '#2a9d8f', '#8f78c9', '#3a7d44', '#d4a017', '#c0392b', '#2b7bb9', '#9b59b6', '#16a085'];
+function $(id) { return document.getElementById(id); }
+function x(a, b) { return a + ' × ' + b; }
+function dv(a, b) { return a + ' ÷ ' + b; }
+function skipList(n, N) { var s = []; for (var k = 1; k <= n; k++) s.push(k * N); return s; }
+function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
+function qr(P, d) { return { q: Math.floor(P / d), r: P % d }; }
+function qrText(P, d) { var a = qr(P, d); return a.q + ' R ' + a.r; }
+
+/* How to find P ÷ d with a remainder */
+function explainQR(P, d) {
+  var a = qr(P, d), p = a.q * d;
+  return 'Count by ' + d + 's, and stop before you go past ' + P + ': ' + skipList(a.q, d).join(', ') +
+    ' <span style="color:#a39bb5">(' + (p + d) + ' is too many)</span>.<br>' +
+    'That is ' + a.q + ' groups of ' + d + ': ' + x(d, a.q) + ' = ' + p + '.<br>' +
+    'Left over: ' + P + ' − ' + p + ' = ' + a.r + '.<br>' +
+    'So <b>' + dv(P, d) + ' = ' + a.q + ' R ' + a.r + '</b> (quotient ' + a.q + ', remainder ' + a.r + '). ' + a.r + ' is smaller than ' + d + ' ✓';
+}
+/* Why is the quotient vq wrong for P ÷ d ? */
+function diagnoseQuot(P, d, vq) {
+  var a = qr(P, d);
+  if (vq === a.q) return null;
+  if (vq * d > P) return x(d, vq) + ' = ' + vq * d + ' — that is more than ' + P + '. There is not enough for ' + vq + ' in each group. Try a smaller quotient.';
+  if ((vq + 1) * d <= P) return x(d, vq) + ' = ' + vq * d + ', and there is still enough for another ' + d + ' (' + vq * d + ' + ' + d + ' = ' + (vq + 1) * d + '). Try a bigger quotient.';
+  return 'Count by ' + d + 's and stop before you go past ' + P + '.';
+}
+/* Why is (vq, vr) wrong for P ÷ d ? */
+function diagnoseQR(P, d, vq, vr) {
+  var a = qr(P, d);
+  if (vq === a.q && vr === a.r) return null;
+  if (vr >= d && vq * d + vr === P) return 'Your remainder ' + vr + ' is not smaller than ' + d + ' — another group of ' + d + ' still fits! The remainder must always be smaller than the number you divide by.';
+  if (vq === a.q && vr === a.q * d) return vr + ' is ' + x(d, a.q) + ' — what you used, not what is left. Subtract: ' + P + ' − ' + a.q * d + ' = ' + a.r + '.';
+  if (vq === a.q && vr === 0 && a.r > 0) return 'Quotient is right, but don\'t forget the left-overs: ' + P + ' − ' + a.q * d + ' = ' + a.r + '.';
+  if (vq === a.q) return 'Quotient is right. For the remainder, subtract: ' + P + ' − ' + x(d, a.q) + ' = ' + P + ' − ' + a.q * d + ' = ' + a.r + '.';
+  if (vq * d > P) return x(d, vq) + ' = ' + vq * d + ' — more than ' + P + '. You used more than there is. Try ' + a.q + ' (' + x(d, a.q) + ' = ' + a.q * d + ').';
+  if (vr >= d) return 'Your remainder ' + vr + ' is not smaller than ' + d + ', so another ' + d + ' still fits. Make the quotient bigger.';
+  return diagnoseQuot(P, d, vq) + ' Check: ' + d + ' × quotient + remainder should make ' + P + '.';
+}
+
+/* ---- sound (WebAudio, no files) ---- */
+var soundOn = true, AC = null;
+try { soundOn = localStorage.getItem('kidsSound') !== 'off'; } catch (e) {}
+function paintSound() { $('soundBtn').textContent = soundOn ? '🔊' : '🔇'; }
+function toggleSound() { soundOn = !soundOn; try { localStorage.setItem('kidsSound', soundOn ? 'on' : 'off'); } catch (e) {} paintSound(); }
+function tone(f, t0, dur, type, vol) {
+  if (!soundOn) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    var o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + t0;
+    o.type = type || 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(vol || .16, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+function sfxOk() { tone(660, 0, .12); tone(880, .1, .18); }
+function sfxNo() { tone(220, 0, .22, 'square', .07); }
+function sfxWin() { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * .11, .25); }); }
+
+function confetti(n) {
+  var colors = ['#5b3f99', '#e8508a', '#e67e22', '#2a9d8f', '#f1c40f', '#3a7d44'];
+  for (var i = 0; i < (n || 70); i++) {
+    var s = document.createElement('span');
+    s.className = 'confetti';
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.background = colors[i % colors.length];
+    s.style.animationDuration = (1.6 + Math.random() * 1.6) + 's';
+    s.style.animationDelay = (Math.random() * .4) + 's';
+    document.body.appendChild(s);
+    setTimeout(function (el) { el.remove(); }.bind(null, s), 3800);
+  }
+}
+function badge(id) { var b = $(id); if (b && !b.classList.contains('on')) { b.classList.add('on', 'pop'); } }
+
+/* ---- FillBoxes: the one checking engine for every fill-in widget ----
+   cfg = { pic, lines: ['… {} …'], cells: [{ans, m1, m2, why: fn(v)→msg|null}], how, okMsg }
+   Checks boxes in order, marks only the first wrong one: 1st try = direction (m1), 2nd try = the sum (m2). */
+function FillBoxes(host, cfg, onDone) {
+  var self = this, tries = {}, failed = false, k = 0;
+  var lines = cfg.lines.map(function (l) {
+    return l.replace(/\{\}/g, function () { var i = k++; return '<input class="bx" data-i="' + i + '" inputmode="numeric" autocomplete="off" maxlength="3" aria-label="box ' + (i + 1) + '">'; });
+  });
+  host.innerHTML = (cfg.pic ? '<div class="pic">' + cfg.pic + '</div>' : '') +
+    '<div class="prompt">' + lines.join('<br>') + '</div>' +
+    '<div class="center"><button class="btn green sm" data-go>Check</button> <button class="peek" data-how>👀 Show me how</button></div>' +
+    '<div class="how hidden" data-howbox>' + cfg.how + '</div>';
+  var boxes = Array.prototype.slice.call(host.querySelectorAll('input.bx'));
+  boxes.forEach(function (el, i) {
+    el.addEventListener('input', function () { el.value = el.value.replace(/\D/g, ''); el.classList.remove('bad', 'good'); });
+    el.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      var nx = boxes[i + 1];
+      if (el.value !== '' && nx && nx.value === '') nx.focus(); else self.check();
+    });
+  });
+  host.querySelector('[data-go]').onclick = function () { self.check(); };
+  host.querySelector('[data-how]').onclick = function () { host.querySelector('[data-howbox]').classList.toggle('hidden'); };
+  this.fb = null; this.done = false;
+  function say(msg, ok) { if (self.fb) { self.fb.innerHTML = msg; self.fb.className = 'fb ' + (ok ? 'ok' : 'no'); } }
+  this.check = function () {
+    if (self.done) return;
+    boxes.forEach(function (b) { b.classList.remove('bad'); });
+    for (var i = 0; i < boxes.length; i++) {
+      var el = boxes[i], c = cfg.cells[i], v = el.value;
+      if (v === '' || +v !== c.ans) {
+        if (v === '') { el.classList.add('bad'); el.focus(); say('Fill in box ' + (i + 1) + '.', false); return; }
+        failed = true; tries[i] = (tries[i] || 0) + 1;
+        el.classList.add('bad'); el.focus(); el.select && el.select(); sfxNo();
+        var special = c.why ? c.why(+v) : null;
+        say(tries[i] === 1 ? (special || c.m1) : c.m2, false);
+        return;
+      }
+      el.classList.add('good');
+    }
+    self.done = true; sfxOk();
+    say('✓ ' + (cfg.okMsg || 'All correct') + (failed ? '' : ' — first try! ⭐'), true);
+    boxes.forEach(function (b) { b.disabled = true; });
+    host.querySelector('[data-go]').classList.add('hidden');
+    if (onDone) onDone(!failed);
+  };
+  // Focus only after the kid has clicked something (Next), never on page load — that would pop the iPad keyboard.
+  var ae = document.activeElement;
+  if (boxes[0] && ae && ae !== document.body) setTimeout(function () { try { boxes[0].focus({ preventScroll: true }); } catch (e) {} }, 50);
+}
+
+/* ---- picture 1: n coloured groups of N dots, plus r left over (grey) ---- */
+function groupsPic(n, N, opts) {
+  opts = opts || {};
+  var cols = N <= 3 ? N : Math.ceil(N / 2), html = '<div class="grps">';
+  for (var g = 0; g < n; g++) {
+    var c = GROUP_COLORS[g % GROUP_COLORS.length];
+    html += '<div class="grp"><div class="g" style="border-color:' + c + ';background:' + c + '18;grid-template-columns:repeat(' + cols + ',auto)">';
+    for (var d = 0; d < N; d++) html += '<span class="d" style="background:' + c + '"></span>';
+    html += '</div><div class="gl">' + (opts.name || '') + '</div></div>';
+  }
+  if (opts.left) {
+    html += '<div class="grp left"><div class="g" style="grid-template-columns:repeat(' + Math.min(opts.left, 3) + ',auto)">';
+    for (var j = 0; j < opts.left; j++) html += '<span class="d"></span>';
+    html += '</div><div class="gl">left</div></div>';
+  }
+  return html + '</div>';
+}
+/* ---- picture 2: a pile of `total` things and `plates` empty groups ---- */
+function pilePic(total, plates, what, plateWord) {
+  var html = '<div class="pile">';
+  for (var i = 0; i < total; i++) html += '<span class="d"></span>';
+  html += '</div><div class="pilecap">' + total + ' ' + what + (plates ? ' to share into ' + plural(plates, plateWord) : '') + '</div>';
+  if (plates) {
+    html += '<div class="grps">';
+    for (var p = 0; p < plates; p++) { var c = GROUP_COLORS[p % GROUP_COLORS.length]; html += '<div class="grp empty"><div class="g" style="border-color:' + c + '"></div><div class="gl">?</div></div>'; }
+    html += '</div>';
+  }
+  return html;
+}
+/* ---- picture 3: the homework's box of shapes, `per` in a row ---- */
+function shapesPic(total, per, ch) {
+  var html = '<div class="shapes">';
+  for (var i = 0; i < total; i += per) html += '<div>' + new Array(Math.min(per, total - i) + 1).join(ch) + '</div>';
+  return html + '</div>';
+}
+/* ---- long division layout (like the book). toks = [quotient, product, remainder]: a number, '{}' / '{i}' for a box,
+   or leave toks out to show just  d ) P  with an empty quotient line. ---- */
+function ldTpl(P, d, toks) {
+  var t = toks || ['', null, null];
+  var h = '<div class="ld">' +
+    '<span></span><span class="n">' + t[0] + '</span><span class="lb">' + (t[0] !== '' ? '← Quotient' : '') + '</span>' +
+    '<span class="dv">' + d + ' )</span><span class="n top">' + P + '</span><span></span>';
+  if (t[1] !== null && t[1] !== undefined) h += '<span></span><span class="n">' + t[1] + '</span><span class="lb">← ' + d + ' × quotient</span>';
+  if (t[2] !== null && t[2] !== undefined) h += '<span></span><span class="n top">' + t[2] + '</span><span class="lb">← Remainder</span>';
+  return h + '</div>';
+}
+
+/* ---- LDBuilder: P ÷ d in the long-division boxes, then P ÷ d = q R r ---- */
+function LDBuilder(host, P, d, onDone, opts) {
+  opts = opts || {};
+  var a = qr(P, d), p = a.q * d;
+  var cells = [
+    { ans: a.q, m1: 'Count by ' + d + 's. How many ' + d + 's fit into ' + P + ' without going over?', m2: skipList(a.q, d).join(', ') + ' — that is ' + a.q + ' groups of ' + d + ' (' + (p + d) + ' is too many).', why: function (v) { return diagnoseQuot(P, d, v); } },
+    { ans: p, m1: 'Multiply: ' + d + ' × the quotient.', m2: x(d, a.q) + ' = ' + p + '.', why: function (v) { return v === P ? 'Under ' + P + ' write what you used: ' + d + ' × the quotient.' : null; } },
+    { ans: a.r, m1: 'Subtract: ' + P + ' − ' + p + '.', m2: P + ' − ' + p + ' = ' + a.r + '.', why: function (v) { return v === p ? 'That is what you used. The remainder is what is left: ' + P + ' − ' + p + '.' : v >= d ? v + ' is not smaller than ' + d + ' — check your subtraction.' : null; } },
+    { ans: a.q, m1: 'Copy the quotient from the top.', m2: 'The quotient is ' + a.q + '.' },
+    { ans: a.r, m1: 'Copy the remainder from the bottom.', m2: 'The remainder is ' + a.r + '.' }
+  ];
+  return new FillBoxes(host, { pic: opts.pic || '', lines: [ldTpl(P, d, ['{}', '{}', '{}']), dv(P, d) + ' = {} R {}'], cells: cells,
+    how: explainQR(P, d), okMsg: opts.okMsg || dv(P, d) + ' = ' + a.q + ' R ' + a.r }, onDone);
+}
+</script>
+
+<script>
+/* ================= 1 · WATCH IT (book p132 Learn: Farah's pencils; Megan's biscuits from the Learn box) ================= */
+var W = { step: 0, tries: 0 };
+function wLD(P, d, base) {       // boxes base..base+4 = quotient, product, remainder, quotient, remainder
+  var a = qr(P, d), p = a.q * d;
+  return function (v) {
+    if (v[base] !== a.q) return diagnoseQuot(P, d, v[base]);
+    if (v[base + 1] !== p) return v[base + 1] === P ? 'Under ' + P + ' write what you used: ' + x(d, a.q) + '.' : 'Multiply: ' + x(d, a.q) + ' = ?';
+    if (v[base + 2] !== a.r) return diagnoseQR(P, d, a.q, v[base + 2]);
+    return 'Copy the quotient (top) and the remainder (bottom) into ' + dv(P, d) + ' = __ R __.';
+  };
+}
+var W_STEPS = [
+  { story: 'Farah has <b>11</b> pencils. She puts them equally into <b>5</b> pencil holders. How many in each holder? How many are left?',
+    pic: function () { return pilePic(11, 5, 'pencils', 'holder'); },
+    ask: 'Put 1 pencil in each holder → 5 pencils used.<br>Put 1 more in each → {i} pencils used.<br>One more round needs 15 — too many!<br>So each holder gets {i} pencils.', ans: [10, 2],
+    wrong: function (v) {
+      if (v[0] !== 10) return '5 pencils, then 5 more: 5 + 5 = ?';
+      if (v[1] === 3) return '3 rounds would need 15 pencils, but Farah has only 11.';
+      return 'How many rounds did she do? Each round puts 1 pencil in each holder.';
+    },
+    hints: ['5 + 5 = 10. She did 2 rounds before running out.', 'Type 10 and 2.'],
+    ok: '2 pencils in each holder.' },
+  { story: '5 holders with 2 pencils each — and some pencils are left over.',
+    pic: function () { return groupsPic(5, 2, { name: 'holder', left: 1 }); },
+    ask: 'Pencils used: 5 × 2 = {i}<br>Left over: 11 − 10 = {i}', ans: [10, 1],
+    wrong: function (v) { return v[0] !== 10 ? '5 holders × 2 pencils each.' : 'Take away the pencils used: 11 − 10.'; },
+    hints: ['5 × 2 = 10. 11 − 10 = ?', 'Type 10 and 1.'],
+    ok: '1 pencil is left. It can\'t go in a holder — there is not one for every holder. That is the <b>remainder</b>.' },
+  { story: 'Now write it the book\'s way. We say: <b>11 ÷ 5 = 2 R 1</b> (R means remainder).',
+    pic: function () { return groupsPic(5, 2, { left: 1 }); },
+    ask: ldTpl(11, 5, ['{i}', '{i}', '{i}']) + '11 ÷ 5 = {i} R {i}', ans: [2, 10, 1, 2, 1],
+    wrong: wLD(11, 5, 0),
+    hints: ['Top: 2 in each holder. Under 11: 5 × 2 = 10. Bottom: 11 − 10 = 1.', 'Type 2, 10, 1, then 2 and 1.'],
+    ok: '11 ÷ 5 = 2 R 1. Quotient = 2, remainder = 1. Each holder has 2 pencils, and 1 pencil is left.' },
+  { story: 'Megan packs <b>15</b> biscuits equally into <b>4</b> packets. Your go — all on your own.',
+    pic: function () { return pilePic(15, 4, 'biscuits', 'packet'); },
+    ask: ldTpl(15, 4, ['{i}', '{i}', '{i}']) + '15 ÷ 4 = {i} R {i}', ans: [3, 12, 3, 3, 3],
+    wrong: wLD(15, 4, 0),
+    hints: ['Count by 4s: 4, 8, 12 (16 is too many). That is 3 fours. 15 − 12 = 3 left.', 'Type 3, 12, 3, then 3 and 3.'],
+    ok: '15 ÷ 4 = 3 R 3: 3 biscuits in each packet, 3 left unpacked. The remainder 3 is smaller than 4 ✓' }
+];
+function drawWatch() {
+  if (W.step >= W_STEPS.length) {
+    $('wPic').innerHTML = groupsPic(4, 3, { name: 'packet', left: 3 });
+    $('wStory').innerHTML = '15 ÷ 4 = 3 R 3:';
+    $('wPrompt').classList.add('hidden'); $('wWon').classList.add('show'); badge('b1'); sfxWin(); return;
+  }
+  var st = W_STEPS[W.step];
+  $('wStory').innerHTML = st.story;
+  $('wPic').innerHTML = st.pic();
+  var k = 0;
+  $('wPrompt').innerHTML = st.ask.replace(/\{i\}/g, function () {
+    return '<input data-k="' + (k++) + '" inputmode="numeric" autocomplete="off" maxlength="3" aria-label="answer box">';
+  }) + '<div style="margin-top:8px"><button class="btn green sm" onclick="checkWatch()">Check</button></div>';
+  $('wPrompt').querySelectorAll('input').forEach(function (el) {
+    el.addEventListener('input', function () { el.value = el.value.replace(/\D/g, ''); });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter') checkWatch(); });
+  });
+  W.tries = 0;
+}
+function checkWatch() {
+  var st = W_STEPS[W.step], ins = $('wPrompt').querySelectorAll('input'), ok = true, vals = [];
+  ins.forEach(function (el, i) { vals.push(el.value.trim()); if (+el.value !== st.ans[i] || el.value.trim() === '') ok = false; });
+  var fb = $('wFb');
+  if (vals.some(function (v) { return v === ''; })) { fb.className = 'fb no'; fb.textContent = 'Type a number in each box.'; return; }
+  if (!ok) {
+    sfxNo(); W.tries++;
+    fb.className = 'fb no';
+    var special = st.wrong ? st.wrong(vals.map(Number)) : null;
+    fb.innerHTML = (W.tries === 1 && special) || st.hints[Math.min(W.tries, st.hints.length) - 1];
+    return;
+  }
+  sfxOk(); fb.className = 'fb ok'; fb.innerHTML = '✓ ' + st.ok;
+  W.step++; drawWatch();
+  var first = $('wPrompt').querySelector('input');
+  if (first) setTimeout(function () { try { first.focus({ preventScroll: true }); } catch (e) {} }, 50);
+}
+drawWatch();
+
+/* ================= 2 · YOUR TURN (book p134 Guided Practice 1(a), 1(b)) ================= */
+var T_ITEMS = [
+  { ask: '1(a) · Find the quotient and the remainder: <b>21 ÷ 8</b>', make: function (host, done) { return LDBuilder(host, 21, 8, done); } },
+  { ask: '1(b) · Find the quotient and the remainder: <b>50 ÷ 6</b>', make: function (host, done) { return LDBuilder(host, 50, 6, done); } }
+];
+var T = { i: 0, stars: [] };
+function drawTry() {
+  var it = T_ITEMS[T.i];
+  $('tRound').textContent = 'QUESTION ' + (T.i + 1) + ' OF ' + T_ITEMS.length;
+  $('tStars').textContent = T.stars.join('');
+  $('tAsk').innerHTML = it.ask;
+  $('tFb').textContent = ''; $('tFb').className = 'fb'; $('tNext').innerHTML = '';
+  var w = it.make($('tHost'), function (first) {
+    T.stars.push(first ? '⭐' : '✔️'); $('tStars').textContent = T.stars.join('');
+    if (T.i < T_ITEMS.length - 1) $('tNext').innerHTML = '<button class="btn" onclick="T.i++;drawTry()">Next →</button>';
+    else { $('tWon').classList.add('show'); badge('b2'); sfxWin(); confetti(40); }
+  });
+  w.fb = $('tFb');
+}
+drawTry();
+
+/* ================= 3 · SPOT THE MISTAKE (numbers from the book p132–134) ================= */
+var REASONS = {
+  big: 'The remainder is too big — another group still fits',
+  norem: 'Left out the remainder',
+  prod: 'Wrote what was used as the remainder (did not subtract)',
+  over: 'The quotient is too big — used more than there is'
+};
+var S_ITEMS = [
+  { who: 'Ken', P: 21, d: 8, sq: 1, sr: 13, reason: 'big', src: 'book page 134', work: '8 × 1 = 8 &nbsp; 21 − 8 = 13',
+    why: { big: 'Yes! 13 is bigger than 8, so one more 8 fits. 8 × 2 = 16, 21 − 16 = 5. So 21 ÷ 8 = 2 R 5.',
+           norem: 'He did write a remainder: 13. Is 13 smaller than 8?',
+           prod: 'He did subtract: 21 − 8 = 13. Look at the size of his remainder.',
+           over: '8 × 1 = 8 is not more than 21. His quotient is too small, not too big.' } },
+  { who: 'Mei Ling', P: 11, d: 5, sq: 2, sr: 1, ok: true, src: 'book page 132', work: '5 × 2 = 10 &nbsp; 11 − 10 = 1' },
+  { who: 'Ravi', P: 50, d: 6, sq: 8, sr: 0, reason: 'norem', src: 'book page 134', work: '6 × 8 = 48, so 50 ÷ 6 = 8',
+    why: { norem: 'Yes! 6 × 8 = 48, but there are 50. 50 − 48 = 2 are left over. 50 ÷ 6 = 8 R 2.',
+           big: 'He has no remainder at all. Is anything left over after 48?',
+           prod: 'He did not write 48 as a remainder. Is anything left over after 48?',
+           over: '6 × 8 = 48 is not more than 50. Is anything left over?' } },
+  { who: 'Siti', P: 15, d: 4, sq: 3, sr: 12, reason: 'prod', src: 'book page 132', work: '4 × 3 = 12 → 3 R 12',
+    why: { prod: 'Yes! 12 is the biscuits used, not left. 15 − 12 = 3, so 15 ÷ 4 = 3 R 3.',
+           big: '12 is too big — but look where it came from: 4 × 3 = 12. Did she take it away from 15?',
+           norem: 'She wrote a remainder, 12. Where did 12 come from?',
+           over: '4 × 3 = 12 is not more than 15. Look at where her 12 came from.' } },
+  { who: 'Jun', P: 17, d: 5, sq: 4, sr: 3, reason: 'over', src: 'book page 133', work: '5 × 4 = 20 &nbsp; 20 − 17 = 3',
+    why: { over: 'Yes! 5 × 4 = 20 — more than 17. He took away the wrong way round. 5 × 3 = 15, 17 − 15 = 2. So 17 ÷ 5 = 3 R 2.',
+           big: '3 is smaller than 5. Look at his multiplication: is 20 more or less than 17?',
+           norem: 'He wrote a remainder, 3. Look at his multiplication: is 20 more or less than 17?',
+           prod: 'He did subtract. Look at his multiplication: is 20 more or less than 17?' } }
+];
+var SP = { i: 0, stage: 0, first: true, stars: [] };
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function spotGot(it) { return it.sr ? it.sq + ' R ' + it.sr : '' + it.sq; }
+function spotInp(n) { return '<input id="sIn' + n + '" class="bx" inputmode="numeric" autocomplete="off" maxlength="3">'; }
+function drawSpot() {
+  var it = S_ITEMS[SP.i];
+  $('sRound').textContent = 'MISTAKE HUNT ' + (SP.i + 1) + ' OF ' + S_ITEMS.length;
+  $('sStars').textContent = SP.stars.join('');
+  $('sFb').textContent = ''; $('sFb').className = 'fb'; $('sNext').innerHTML = '';
+  var head = '<div class="notebook"><div class="who">📝 <b>' + it.who + '</b> worked out ' + dv(it.P, it.d) +
+    ' and got <b>' + spotGot(it) + '</b>. <span style="color:#8a829c;font-size:13px">(' + it.src + ')</span></div>' +
+    '<div class="work">' + it.work + '</div></div>';
+  var body = '';
+  if (SP.stage === 0) {
+    body = '<p class="body center" style="margin-top:12px"><b>Is ' + it.who + ' correct?</b></p>' +
+      '<div class="yn"><button class="btn green" onclick="spotYN(true)">✓ Yes</button><button class="btn amber" onclick="spotYN(false)">✗ No</button></div>';
+  } else if (SP.stage === 1) {
+    var keys = shuffle(Object.keys(REASONS));
+    body = '<p class="body center" style="margin-top:12px"><b>What went wrong?</b></p><div class="choices">' +
+      keys.map(function (k) { return '<button class="choice" data-k="' + k + '" onclick="spotWhy(this)">' + REASONS[k] + '</button>'; }).join('') + '</div>';
+  } else if (SP.stage === 2) {
+    body = '<div class="prompt">' + (it.ok ? 'Check it: ' + it.d + ' × ' + it.sq + ' + ' + it.sr + ' = ' + spotInp(0)
+      : 'Now fix it:<br>' + dv(it.P, it.d) + ' = ' + spotInp(0) + ' R ' + spotInp(1)) +
+      '<div style="margin-top:8px"><button class="btn green sm" onclick="spotFix()">Check</button></div></div>';
+  }
+  $('sBody').innerHTML = head + body;
+  var ins = $('sBody').querySelectorAll('input.bx');
+  ins.forEach(function (inp) {
+    inp.addEventListener('input', function () { inp.value = inp.value.replace(/\D/g, ''); });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') spotFix(); });
+  });
+  if (ins[0]) setTimeout(function () { try { ins[0].focus({ preventScroll: true }); } catch (e) {} }, 50);
+}
+function spotSay(msg, ok) { $('sFb').innerHTML = msg; $('sFb').className = 'fb ' + (ok ? 'ok' : 'no'); ok ? sfxOk() : sfxNo(); }
+function spotYN(yes) {
+  var it = S_ITEMS[SP.i];
+  if (yes === !!it.ok) {
+    spotSay(it.ok ? '✓ Right — ' + it.who + ' is correct. Let\'s prove it.' : '✓ Right — something\'s wrong. Let\'s find it.', true);
+    SP.stage = it.ok ? 2 : 1; setTimeout(drawSpot, 700);
+  } else {
+    SP.first = false;
+    spotSay(it.ok ? 'Check again: is the remainder ' + it.sr + ' smaller than ' + it.d + '? Does ' + it.d + ' × ' + it.sq + ' + ' + it.sr + ' make ' + it.P + '?'
+      : 'Check two things: is the remainder smaller than ' + it.d + '? Does ' + it.d + ' × quotient + remainder make ' + it.P + '?', false);
+  }
+}
+function spotWhy(btn) {
+  var it = S_ITEMS[SP.i], k = btn.dataset.k;
+  if (k === it.reason) {
+    btn.classList.add('good'); spotSay('✓ ' + it.why[k], true);
+    $('sNext').innerHTML = '<button class="btn" onclick="SP.stage=2;drawSpot()">Fix it →</button>';
+    document.querySelectorAll('.choice').forEach(function (b) { b.disabled = true; });
+  } else { SP.first = false; btn.classList.add('bad'); spotSay(it.why[k], false); }
+}
+function spotFix() {
+  var it = S_ITEMS[SP.i], ins = Array.prototype.slice.call($('sBody').querySelectorAll('input.bx'));
+  if (!ins.length || ins[0].disabled) return;
+  var vals = ins.map(function (el) { return el.value.trim(); });
+  if (vals.some(function (v) { return v === ''; })) return;
+  var a = qr(it.P, it.d), good;
+  if (it.ok) good = +vals[0] === it.P; else good = +vals[0] === a.q && +vals[1] === a.r;
+  if (good) {
+    ins.forEach(function (el) { el.disabled = true; el.classList.remove('bad'); el.classList.add('good'); });
+    spotSay(it.ok ? '✓ ' + it.d + ' × ' + it.sq + ' + ' + it.sr + ' = ' + it.P + ', and ' + it.sr + ' is smaller than ' + it.d + '. ' + dv(it.P, it.d) + ' = ' + spotGot(it) + ' is right!'
+      : '✓ ' + dv(it.P, it.d) + ' = ' + a.q + ' R ' + a.r + '. Check: ' + it.d + ' × ' + a.q + ' + ' + a.r + ' = ' + it.P + ' ✓', true);
+    SP.stars.push(SP.first ? '⭐' : '✔️'); $('sStars').textContent = SP.stars.join('');
+    if (SP.i < S_ITEMS.length - 1) $('sNext').innerHTML = '<button class="btn" onclick="SP.i++;SP.stage=0;SP.first=true;drawSpot()">Next →</button>';
+    else { $('sNext').innerHTML = ''; $('sWon').classList.add('show'); badge('b3'); sfxWin(); confetti(40); }
+  } else {
+    SP.first = false; ins.forEach(function (el) { el.classList.add('bad'); });
+    spotSay(it.ok ? 'Multiply first: ' + x(it.d, it.sq) + ' = ' + it.d * it.sq + '. Then add ' + it.sr + '.'
+      : (diagnoseQR(it.P, it.d, +vals[0], +vals[1]) || 'Not quite.'), false);
+  }
+}
+drawSpot();
+</script>
+
+<script>
+/* ================= 4 · THE TEST (Homework 3A p117–120, Chapter 7 Practice 1 — all of it, 14 questions) =================
+   Quotient + remainder = one question (both boxes right to score). Q1 also asks "Quotient = __ ones, Remainder = __ ones"
+   with the same two numbers again — not asked twice here.
+   redo = how "Practise the ones I missed" rebuilds it. */
+var SK = 'm3a.07.div';
+function shareQ(id, P, d, ch, word) {
+  var a = qr(P, d);
+  return { id: id, pg: 117, head: P + ' ' + word + ' shared among ' + d + ' groups.', pic: function () { return shapesPic(P, d, ch); },
+    tpl: '{} in each group, {} left over<br>' + dv(P, d) + ' = {} R {}', blanks: [{ ans: a.q }, { ans: a.r }, { ans: a.q }, { ans: a.r }],
+    diag: function (v) { var m = diagnoseQR(P, d, v[0], v[1]); if (m) return m; return diagnoseQR(P, d, v[2], v[3]) || 'Write the same two numbers in ' + dv(P, d) + ' = __ R __.'; },
+    how: explainQR(P, d) + '<br>In your book, circle ' + d + ' groups of ' + a.q + '.', redo: { ld: [P, d] }, sk: SK };
+}
+function ldQ(id, P, d) {
+  var a = qr(P, d);
+  return { id: id, pg: 118, head: 'Find the quotient and remainder.', pic: function () { return ldTpl(P, d); },
+    tpl: 'Quotient = {}<br>Remainder = {}', blanks: [{ ans: a.q }, { ans: a.r }],
+    diag: function (v) { return diagnoseQR(P, d, v[0], v[1]); }, how: explainQR(P, d), redo: { ld: [P, d] }, sk: SK };
+}
+/* 3(a)–(c): "divide by d, quotient q, remainder r" → the number is d × q + r */
+function backQ(id, d, q, r) {
+  var n = d * q + r;
+  return { id: id, pg: 119, head: 'When I divide the number by ' + d + ', its quotient is ' + (d === q ? 'also ' : '') + q + ' and its remainder is ' + r + '.',
+    tpl: 'The number is {}.', blanks: [{ ans: n }],
+    diag: function (v) {
+      v = v[0];
+      if (v === d * q) return x(d, q) + ' = ' + d * q + ' is a good start — now add the remainder ' + r + '.';
+      if (v === d * q - r) return 'Add the remainder, don\'t take it away: ' + d * q + ' + ' + r + '.';
+      return v + ' ÷ ' + d + ' = ' + qrText(v, d) + ', not ' + q + ' R ' + r + '. The number = ' + d + ' × quotient + remainder.';
+    },
+    how: 'The number = ' + d + ' × quotient + remainder.<br>' + x(d, q) + ' = ' + d * q + ', then ' + d * q + ' + ' + r + ' = <b>' + n + '</b>.<br>Check: ' + n + ' ÷ ' + d + ' = ' + q + ' R ' + r + ' ✓',
+    redo: { make: function (host, done) {
+      return new FillBoxes(host, { lines: [x(d, q) + ' = {}', 'Add the remainder: {} + ' + r + ' = {}'],
+        cells: [{ ans: d * q, m1: 'Multiply ' + x(d, q) + '.', m2: x(d, q) + ' = ' + d * q + '.' },
+                { ans: d * q, m1: 'Copy your answer from the line above.', m2: d * q + '.' },
+                { ans: n, m1: 'Add: ' + d * q + ' + ' + r + '.', m2: d * q + ' + ' + r + ' = ' + n + '.' }],
+        how: 'The number = ' + d + ' × quotient + remainder = ' + d * q + ' + ' + r + ' = ' + n + '.', okMsg: 'The number is ' + n }, done);
+    } }, sk: SK };
+}
+/* 3(d)–(f): a number between lo and hi; conds = [{d, r}], list = which cond makes the list of candidates */
+function condText(c) { return c.r ? 'leaves ' + c.r + ' when you divide by ' + c.d : 'divides by ' + c.d + ' with no remainder'; }
+function condTextPl(c) { return c.r ? 'leave ' + c.r + ' when you divide by ' + c.d : 'divide by ' + c.d + ' with no remainder'; }
+function findQ(id, pg, head, lo, hi, conds, li) {
+  var L = conds[li], others = conds.filter(function (c, i) { return i !== li; }), cand = [];
+  for (var n = lo + 1; n < hi; n++) if (n % L.d === L.r) cand.push(n);
+  var ans = cand.filter(function (n) { return others.every(function (c) { return n % c.d === c.r; }); })[0];
+  var checks = cand.map(function (n) {
+    var bad = null;
+    for (var i = 0; i < others.length; i++) if (n % others[i].d !== others[i].r) { bad = others[i]; break; }
+    var shown = bad ? [bad] : others;
+    return shown.map(function (c) { return n + ' ÷ ' + c.d + ' = ' + qrText(n, c.d); }).join(', ') + (bad ? ' ✗' : ' ✓');
+  });
+  return { id: id, pg: pg, head: head, tpl: 'The number is {}.', blanks: [{ ans: ans }],
+    diag: function (v) {
+      v = v[0];
+      if (v <= lo || v >= hi) return v + ' is not between ' + lo + ' and ' + hi + '.';
+      for (var i = 0; i < conds.length; i++) if (v % conds[i].d !== conds[i].r) return v + ' ÷ ' + conds[i].d + ' = ' + qrText(v, conds[i].d) + ' — but the number ' + condText(conds[i]) + (conds[i].r ? ' (remainder ' + conds[i].r + ')' : '') + '.';
+      return 'Make a list, then check each number.';
+    },
+    how: 'Make a list. Numbers between ' + lo + ' and ' + hi + ' that ' + condTextPl(L) + ': <b>' + cand.join(', ') + '</b>.<br>' +
+      'Now check each one:<br>' + checks.join('<br>') + '<br>The number is <b>' + ans + '</b>.',
+    redo: { make: function (host, done) {
+      var seq = [cand[0]].concat(cand.slice(1).map(function () { return '{}'; }));
+      var cells = cand.slice(1).map(function (n) { return { ans: n, m1: 'Add ' + L.d + ' to the number before.', m2: (n - L.d) + ' + ' + L.d + ' = ' + n + '.' }; });
+      cells.push({ ans: ans, m1: 'Check each number in your list: ' + others.map(function (c) { return '÷ ' + c.d + ' → remainder ' + c.r + '?'; }).join(' and '),
+        m2: checks.join('<br>'), why: function (v) { return cand.indexOf(v) < 0 ? v + ' is not in your list.' : null; } });
+      return new FillBoxes(host, { lines: ['Numbers between ' + lo + ' and ' + hi + ' that ' + condTextPl(L) + ':<br>' + seq.join(', '),
+        'Which one also ' + others.map(condText).join(' and ') + '? {}'], cells: cells,
+        how: 'Start at ' + cand[0] + ' and add ' + L.d + ' each time. Then divide each number to check.', okMsg: 'The number is ' + ans }, done);
+    } }, sk: SK };
+}
+var questions = [
+  shareQ('1(a)', 23, 4, '☆', 'stars'),
+  shareQ('1(b)', 26, 6, '△', 'triangles'),
+  ldQ('2(a)', 39, 8), ldQ('2(b)', 35, 4), ldQ('2(c)', 59, 9), ldQ('2(d)', 60, 7), ldQ('2(e)', 68, 8), ldQ('2(f)', 70, 9),
+  backQ('3(a)', 6, 6, 4), backQ('3(b)', 7, 7, 3), backQ('3(c)', 9, 7, 5),
+  findQ('3(d)', 119, 'The number is between 12 and 32. When I divide it by 5, it leaves a remainder of 1. When I divide it by 4, it leaves a remainder of 2.', 12, 32, [{ d: 5, r: 1 }, { d: 4, r: 2 }], 0),
+  findQ('3(e)', 120, 'The number is between 20 and 40. When I divide it by 3, it leaves a remainder of 2. When I divide it by 7, it leaves a remainder of 1.', 20, 40, [{ d: 3, r: 2 }, { d: 7, r: 1 }], 1),
+  findQ('3(f)', 120, 'The number is between 20 and 60. When I divide it by 6 or 8, it leaves a remainder of 1. When I divide it by 7, it leaves no remainder.', 20, 60, [{ d: 6, r: 1 }, { d: 8, r: 1 }, { d: 7, r: 0 }], 2)
+];
+// Answers worked out, then checked against the book's answer key (Homework 3A p161, Chapter 7 Practice 1) — all agree:
+// 1(a) 5 R 3 · 1(b) 4 R 2 · 2(a) 4, 7 (b) 8, 3 (c) 6, 5 (d) 8, 4 (e) 8, 4 (f) 7, 7 · 3(a) 40 (b) 52 (c) 68 (d) 26 (e) 29 (f) 49
+var SECS_PER_Q = 60;
+var QUIZ_SECS = questions.length * SECS_PER_Q;
+var PASS_PCT = 80, PASS_N = Math.ceil(questions.length * PASS_PCT / 100);
+var current = 0, score = 0, answered = false;
+var given = [], right = [], quizOn = false, timerId = null, secsLeft = 0;
+
+function fmtTime(s) { s = Math.max(0, s); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+function tick() {
+  secsLeft--;
+  $('qTime').textContent = '⏱ ' + fmtTime(secsLeft);
+  $('qTime').classList.toggle('low', secsLeft <= 60);
+  if (secsLeft <= 0) { clearInterval(timerId); timerId = null; if (quizOn) showResult(); }
+}
+function startQuiz() {
+  $('gate').classList.add('hidden'); $('result').classList.add('hidden'); $('quiz').classList.remove('hidden');
+  current = 0; score = 0; answered = false; given = []; right = []; quizOn = true;
+  secsLeft = QUIZ_SECS; $('qTime').textContent = '⏱ ' + fmtTime(secsLeft); $('qTime').classList.remove('low');
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(tick, 1000);
+  try { var s = window.QuizReport && QuizReport.session(); if (s) s.lastMark = Date.now(); } catch (e) {}
+  render();
+  $('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function fillTpl(q, vals, cls) {
+  var k = 0;
+  return q.tpl.replace(/\{\}/g, function () { var v = vals ? vals[k] : undefined; k++; var c = typeof cls === 'function' ? cls(k - 1) : cls; return v === undefined ? '___' : '<b class="' + (c || '') + '">' + v + '</b>'; });
+}
+function render() {
+  var q = questions[current];
+  answered = false;
+  $('qNum').textContent = 'Question ' + (current + 1) + ' of ' + questions.length;
+  $('qScore').textContent = '✓ ' + score;
+  $('qProg').style.width = (100 * current / questions.length) + '%';
+  var k = 0;
+  var line = q.tpl.replace(/\{\}/g, function () { var i = k++; return '<input class="bx" id="qb' + i + '" inputmode="numeric" autocomplete="off" maxlength="3" aria-label="box ' + (i + 1) + '">'; });
+  $('qBody').innerHTML = '<div class="center"><span class="qtag">Homework p' + q.pg + ' · Question ' + q.id + '</span></div>' +
+    '<div class="qtext">' + q.head + '</div>' + (q.pic ? '<div class="pic">' + q.pic() + '</div>' : '') +
+    '<div class="qline">' + line + '</div>' +
+    '<div class="center"><button class="btn green" id="qGo" onclick="check()">Check</button></div>' +
+    '<div class="fb" id="qFb"></div><div class="explain" id="qExp"></div><div class="center" id="qNext"></div>';
+  var boxes = qBoxes();
+  boxes.forEach(function (inp, i) {
+    inp.addEventListener('input', function () { inp.value = inp.value.replace(/\D/g, ''); });
+    inp.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      if (answered) { nextQ(); return; }
+      var nx = boxes[i + 1];
+      if (inp.value !== '' && nx && nx.value === '') nx.focus(); else check();
+    });
+  });
+  setTimeout(function () { try { boxes[0].focus({ preventScroll: true }); } catch (e) {} }, 60);
+}
+function qBoxes() { return Array.prototype.slice.call($('qBody').querySelectorAll('input.bx')); }
+function ansList(q) { return q.blanks.map(function (b) { return b.ans; }); }
+function explainQ(q) { return q.how; }
+function diagnoseQ(q, vals) { return q.diag(vals) || 'Check each box with: divisor × quotient + remainder = the number.'; }
+function check() {
+  if (answered || !quizOn) return;
+  var q = questions[current], boxes = qBoxes(), vals = boxes.map(function (el) { return el.value.trim(); });
+  if (vals.some(function (v) { return v === ''; })) {
+    $('qFb').className = 'fb no'; $('qFb').textContent = boxes.length > 1 ? 'Fill in every box first.' : 'Type your answer first.'; return;
+  }
+  vals = vals.map(Number);
+  var want = ansList(q), ok = vals.every(function (v, i) { return v === want[i]; });
+  given[current] = vals; right[current] = ok; answered = true;
+  boxes.forEach(function (el, i) { el.disabled = true; el.classList.add(vals[i] === want[i] ? 'good' : 'bad'); });
+  $('qGo').classList.add('hidden');
+  if (ok) {
+    score++; sfxOk();
+    $('qFb').className = 'fb ok'; $('qFb').textContent = '✓ Correct!';
+  } else {
+    sfxNo();
+    $('qFb').className = 'fb no'; $('qFb').innerHTML = '✗ Not quite — the answer is: ' + fillTpl(q, want) + '';
+    $('qExp').innerHTML = '<div class="trap"><span class="lbl">What happened</span>' + diagnoseQ(q, vals) + '</div><div class="how">' + explainQ(q) + '</div>';
+  }
+  $('qScore').textContent = '✓ ' + score;
+  var last = current === questions.length - 1;
+  $('qNext').innerHTML = '<button class="btn" id="qNextBtn" style="margin-top:12px" onclick="nextQ()">' + (last ? 'See my score →' : 'Next →') + '</button>';
+  try { $('qNextBtn').focus({ preventScroll: true }); } catch (e) {}
+}
+function nextQ() {
+  if (!quizOn) return;
+  if (current < questions.length - 1) { current++; render(); } else showResult();
+}
+function showResult() {
+  if (!quizOn) return;
+  quizOn = false;
+  if (timerId) { clearInterval(timerId); timerId = null; }
+  var used = QUIZ_SECS - Math.max(0, secsLeft), pct = Math.round(100 * score / questions.length), pass = pct >= PASS_PCT;
+  var stars = pct === 100 ? '⭐⭐⭐' : pct >= PASS_PCT ? '⭐⭐' : pct >= 50 ? '⭐' : '';
+  var missed = [];
+  questions.forEach(function (q, i) { if (!right[i]) missed.push(i); });
+  var html = '<div class="res-top"><div class="stars">' + (stars || '💪') + '</div><div class="pct">' + pct + '%</div>' +
+    '<div class="sub">' + score + ' right out of ' + questions.length + ' · the pass mark is ' + PASS_PCT + '% (' + PASS_N + ' correct)</div>' +
+    '<div class="sub">Time: ' + Math.floor(used / 60) + ' min ' + (used % 60) + ' s' + (secsLeft <= 0 ? ' — time ran out' : '') + '</div>' +
+    '<div class="verdict ' + (pass ? 'pass' : 'fail') + '">' + (pass ? '🎉 You passed!' : 'Not passed yet — ' + (PASS_N - score) + ' more needed') + '</div></div>';
+  if (missed.length) {
+    html += '<h3 class="rv">Let\'s look at the ' + (missed.length === 1 ? 'one' : missed.length) + ' you missed</h3>';
+    missed.forEach(function (i) {
+      var q = questions[i], g = given[i];
+      html += '<div class="miss"><div class="mh">Question ' + q.id + ': ' + q.head + '<br>' +
+        (g === undefined ? '<span class="you">Not answered</span>' : 'You wrote: ' + fillTpl(q, g, function (j) { return g[j] === q.blanks[j].ans ? 'right' : 'you'; })) +
+        '<br>Answer: ' + fillTpl(q, ansList(q), 'right') + '</div>' +
+        (g === undefined ? '' : '<div class="trap"><span class="lbl">What happened</span>' + diagnoseQ(q, g) + '</div>') +
+        '<div class="how">' + explainQ(q) + '</div></div>';
+    });
+    html += '<div class="center" style="margin-top:16px"><button class="btn amber" onclick="startRedo()">🔁 Practise the ones I missed</button>' +
+      '<button class="btn ghost" onclick="restart()">Take the whole test again</button></div><div id="redo"></div>';
+  } else {
+    html += '<p class="body center" style="margin-top:14px">Every single one right. Amazing! 🌟</p>' +
+      '<div class="center"><button class="btn ghost" onclick="restart()">Take the test again</button></div>';
+  }
+  $('quiz').classList.add('hidden');
+  var r = $('result'); r.innerHTML = html; r.classList.remove('hidden');
+  r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (pass) { badge('b4'); sfxWin(); confetti(); }
+}
+function restart() { startQuiz(); }
+
+/* ---- practise the missed ones (not scored, hints allowed; uses the Your-turn widgets) ---- */
+var RD = { list: [], i: 0 };
+function startRedo() {
+  RD.list = questions.map(function (q, i) { return i; }).filter(function (i) { return !right[i]; });
+  RD.i = 0; drawRedo();
+  $('redo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function drawRedo() {
+  var box = $('redo');
+  if (RD.i >= RD.list.length) {
+    box.innerHTML = '<div class="won show"><span class="lbl">✅ All fixed</span>You worked through every one you missed. Try the whole test again when you\'re ready!</div>';
+    sfxWin(); confetti(40); return;
+  }
+  var q = questions[RD.list[RD.i]], rd = q.redo;
+  var ask = q.head;
+  if (rd.ld) ask += '<br><span style="font-size:14px;color:#5d5670">Let\'s find ' + dv(rd.ld[0], rd.ld[1]) + ' step by step.</span>';
+  box.innerHTML = '<div class="card" style="margin-top:14px;border:3px solid #e8c489;padding:14px 10px"><div class="gbar"><span class="round">PRACTICE ' + (RD.i + 1) + ' OF ' + RD.list.length +
+    ' · QUESTION ' + q.id + ' · not scored</span></div><div class="target">' + ask + '</div><div id="rHost"></div><div class="fb" id="rFb"></div><div class="center" id="rNext"></div></div>';
+  var done = function () {
+    $('rNext').innerHTML = '<div class="how" style="text-align:left">Back to the question: ' + fillTpl(q, ansList(q), 'right') + '</div>' +
+      '<button class="btn" onclick="RD.i++;drawRedo()">Next →</button>';
+  };
+  var w = rd.make ? rd.make($('rHost'), done) : LDBuilder($('rHost'), rd.ld[0], rd.ld[1], done);
+  w.fb = $('rFb');
+}
+paintSound();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
