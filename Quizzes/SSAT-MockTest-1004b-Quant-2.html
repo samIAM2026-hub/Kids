@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 10.4b · Quantitative 2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #2f6f5e; --accent-soft: #d5e7e0;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 10.4b &middot; Section 5</div>
+    <h1>Quantitative Skills &mdash; Section 5 (Questions 1&ndash;25)</h1>
+    <div class="meta">25 questions &middot; 30 minutes &middot; 72 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">30:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 10.4b &middot; <a href="SSAT-MockTest-1004b-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Quantitative 2",
+ "items": [
+  {
+   "n": 1,
+   "stem": "Douglass has 160 tadpoles in a 20 gallon aquarium full of water. He needs to have only 4 tadpoles for each gallon. How many of the tadpoles should he remove from the aquarium?",
+   "opts": [
+    "20",
+    "60",
+    "80",
+    "100",
+    "120"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.word",
+   "why": "Allowed: 4 &times; 20 = 80 tadpoles. He has 160, so he removes 160 &minus; 80 = <b>80<\/b>. Here the two numbers happen to match, so check: 80 left &divide; 20 gallons = 4 each. The trap is (E) 120: 160 &divide; 4 = 40, then 160 &minus; 40 &mdash; but 40 is how many gallons 160 tadpoles would need, not how many may stay. Rule: find the allowed amount first, then subtract."
+  },
+  {
+   "n": 2,
+   "stem": "Mason received $5 from a friend and spent $10 at a store. If Mason started with <i>y<\/i> dollars, how much money does he have now?",
+   "opts": [
+    "<i>y<\/i> &minus; 15",
+    "<i>y<\/i> &minus; 5",
+    "<i>y<\/i> &minus; 2",
+    "<i>y<\/i> + 5",
+    "<i>y<\/i> + 15"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.algebra",
+   "why": "<i>y<\/i> + 5 &minus; 10 = <b><i>y<\/i> &minus; 5<\/b>. The trap is (A) <i>y<\/i> &minus; 15, which treats the $5 gift as money spent. Rule: received means +, spent means &minus;."
+  },
+  {
+   "n": 3,
+   "stem": "Which point must be used as the starting point if the figure shown is to be drawn without lifting the pencil or retracing?",
+   "opts": [
+    "<i>A<\/i>",
+    "<i>B<\/i>",
+    "<i>C<\/i>",
+    "<i>D<\/i>",
+    "<i>E<\/i>"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.logic",
+   "why": "Count the lines meeting at each point. A, B, D and the unlabeled right point each have 2; C has 6; the top point and <b><i>E<\/i><\/b> each have 3 (two diamond sides plus the vertical line). A path that never retraces must start at one odd point and end at the other, and E is the only odd point offered. The trap is (C): C is the busiest point, but an even count means you pass through it, not start there. Rule: start a one-stroke drawing at a point with an odd number of lines.",
+   "fig": "<svg role=\"img\" aria-label=\"Two diamonds stacked point to point, sharing point C, with a vertical line from the top point of the upper diamond straight down through C to E, the bottom point of the lower diamond. A and B are the left and right points of the upper diamond; D is the left point of the lower diamond. The top point and the right point of the lower diamond are not labeled.\" width=\"160\" height=\"200\" viewBox=\"0 0 160 200\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Georgia\"><line x1=\"80\" y1=\"10\" x2=\"40\" y2=\"50\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><line x1=\"80\" y1=\"10\" x2=\"120\" y2=\"50\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><line x1=\"40\" y1=\"50\" x2=\"80\" y2=\"90\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><line x1=\"120\" y1=\"50\" x2=\"80\" y2=\"90\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><line x1=\"80\" y1=\"90\" x2=\"40\" y2=\"130\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><line x1=\"80\" y1=\"90\" x2=\"120\" y2=\"130\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><line x1=\"40\" y1=\"130\" x2=\"80\" y2=\"170\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><line x1=\"120\" y1=\"130\" x2=\"80\" y2=\"170\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><line x1=\"80\" y1=\"10\" x2=\"80\" y2=\"170\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><circle cx=\"40\" cy=\"50\" r=\"4\" fill=\"#1c1a17\"/><circle cx=\"120\" cy=\"50\" r=\"4\" fill=\"#1c1a17\"/><circle cx=\"80\" cy=\"90\" r=\"4\" fill=\"#1c1a17\"/><circle cx=\"40\" cy=\"130\" r=\"4\" fill=\"#1c1a17\"/><circle cx=\"80\" cy=\"170\" r=\"4\" fill=\"#1c1a17\"/><text x=\"22\" y=\"54\" font-size=\"13\" text-anchor=\"start\" fill=\"#1c1a17\" font-style=\"italic\">A<\/text><text x=\"128\" y=\"54\" font-size=\"13\" text-anchor=\"start\" fill=\"#1c1a17\" font-style=\"italic\">B<\/text><text x=\"62\" y=\"94\" font-size=\"13\" text-anchor=\"start\" fill=\"#1c1a17\" font-style=\"italic\">C<\/text><text x=\"22\" y=\"134\" font-size=\"13\" text-anchor=\"start\" fill=\"#1c1a17\" font-style=\"italic\">D<\/text><text x=\"76\" y=\"190\" font-size=\"13\" text-anchor=\"start\" fill=\"#1c1a17\" font-style=\"italic\">E<\/text><\/svg>"
+  },
+  {
+   "n": 4,
+   "stem": "If the perimeter of the top face of a cube is 12, then the area of that face must be",
+   "opts": [
+    "4",
+    "7",
+    "9",
+    "12",
+    "144"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.area",
+   "why": "Every face of a cube is a square, so each side is 12 &divide; 4 = 3 and the area is 3 &times; 3 = <b>9<\/b>. The trap is (E) 144, which squares the perimeter instead of the side. Rule: perimeter &divide; 4 gives the side of a square."
+  },
+  {
+   "n": 5,
+   "stem": "If (5 + <i>N<\/i>) &times; 2 = 15, then <i>N<\/i> =",
+   "opts": [
+    "<sup>5<\/sup>&frasl;<sub>2<\/sub>",
+    "5",
+    "10",
+    "<sup>25<\/sup>&frasl;<sub>2<\/sub>",
+    "25"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.algebra",
+   "why": "Undo the &times; 2 first: 5 + <i>N<\/i> = 7.5. Then <i>N<\/i> = 7.5 &minus; 5 = 2.5 = <b><sup>5<\/sup>&frasl;<sub>2<\/sub><\/b>. Check: (5 + 2.5) &times; 2 = 15. The trap is (B) 5, from forgetting the parentheses (5 + 5 &times; 2 = 15). Rule: undo operations in reverse order."
+  },
+  {
+   "n": 6,
+   "stem": "The light in a lighthouse flashes 6 times per minute. How many times does the light flash in one day?",
+   "opts": [
+    "360",
+    "1,440",
+    "3,600",
+    "8,640",
+    "21,600"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.arith",
+   "why": "6 per minute &times; 60 minutes = 360 per hour; 360 &times; 24 hours = <b>8,640<\/b>. The trap is (A) 360, which stops after one hour. Rule: chain the units: minutes &rarr; hours &rarr; days."
+  },
+  {
+   "n": 7,
+   "stem": "If a quarter of 40 people surveyed prefer to pay bills by mail, what percent of people do not prefer to pay bills by mail?",
+   "opts": [
+    "<sup>1<\/sup>&frasl;<sub>4<\/sub>%",
+    "25%",
+    "40%",
+    "60%",
+    "75%"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.pct",
+   "why": "A quarter is 25%, so the rest is 100% &minus; 25% = <b>75%<\/b>. The 40 people do not change the percent. The trap is (B) 25%, the people who DO prefer mail. Rule: &ldquo;do not&rdquo; means take the complement, 100% minus the part."
+  },
+  {
+   "n": 8,
+   "stem": "At the end of a fundraiser, Allison earned $8 less than Ben. Charlotte earned more than Allison but less than Devon. Devon earned $5 more than Allison but $2 less than Eli. Who earned the most money in the fundraiser?",
+   "opts": [
+    "Allison",
+    "Ben",
+    "Charlotte",
+    "Devon",
+    "Eli"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.logic",
+   "why": "Measure everyone from Allison (A): Ben = A + 8, Devon = A + 5, Eli = A + 7, Charlotte is between A and A + 5. The biggest is <b>Ben<\/b> at A + 8. The trap is (E) Eli, who is at the top of the Devon chain but still $1 short of Ben. Rule: put every person on one number line from the same starting point."
+  },
+  {
+   "n": 9,
+   "stem": "Andre is shorter than Julio but taller than Kyle. Elena is taller than either Andre or Julio. Who is the shortest?",
+   "opts": [
+    "Andre",
+    "Julio",
+    "Kyle",
+    "Elena",
+    "It cannot be determined from the information given."
+   ],
+   "ans": 2,
+   "sk": "ssat.q.logic",
+   "why": "From shortest up: Kyle &lt; Andre &lt; Julio, and Elena is taller than both Andre and Julio. So <b>Kyle<\/b> is the shortest. The trap is (E): Elena's spot doesn't matter because she is above Andre, who is already above Kyle. Rule: line up names in order as you read each clue."
+  },
+  {
+   "n": 10,
+   "stem": "Which fraction is closest to 0.44?",
+   "opts": [
+    "<sup>1<\/sup>&frasl;<sub>2<\/sub>",
+    "<sup>2<\/sup>&frasl;<sub>5<\/sub>",
+    "<sup>4<\/sup>&frasl;<sub>9<\/sub>",
+    "<sup>3<\/sup>&frasl;<sub>7<\/sub>",
+    "<sup>5<\/sup>&frasl;<sub>11<\/sub>"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.frac",
+   "why": "Change each to a decimal: <sup>1<\/sup>&frasl;<sub>2<\/sub> = 0.5, <sup>2<\/sup>&frasl;<sub>5<\/sub> = 0.4, <sup>4<\/sup>&frasl;<sub>9<\/sub> = 0.444&hellip;, <sup>3<\/sup>&frasl;<sub>7<\/sub> &asymp; 0.429, <sup>5<\/sup>&frasl;<sub>11<\/sub> &asymp; 0.455. The closest is <b><sup>4<\/sup>&frasl;<sub>9<\/sub><\/b>, only 0.004 away. The trap is (B) <sup>2<\/sup>&frasl;<sub>5<\/sub>, which looks close because of the 4, but is 0.04 away. Rule: convert to decimals to three places and compare the gaps."
+  },
+  {
+   "n": 11,
+   "stem": "Which product is closest to 3.8 &times; 1.2 &times; 5.9?",
+   "opts": [
+    "4 &times; 2 &times; 6",
+    "4 &times; 1 &times; 6",
+    "3 &times; 1 &times; 5",
+    "3 &times; 1 &times; 6",
+    "3 &times; 2 &times; 6"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.arith",
+   "why": "Round each factor to the nearest whole number: 3.8 &rarr; 4, 1.2 &rarr; 1, 5.9 &rarr; 6, giving <b>4 &times; 1 &times; 6<\/b> = 24 (the real product is about 26.9). The trap is (A), which rounds 1.2 up to 2 and doubles the answer. Rule: round to the nearest whole, not always up."
+  },
+  {
+   "n": 12,
+   "stem": "Which of the following pairs has an average equal to three times the average of 7 and 19?",
+   "opts": [
+    "11 and 15",
+    "21 and 31",
+    "34 and 44",
+    "39 and 47",
+    "19 and 135"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.data",
+   "why": "The average of 7 and 19 is 26 &divide; 2 = 13, and three times that is 39. The pair 34 and 44 averages (34 + 44) &divide; 2 = <b>39<\/b>. The trap is (D) 39 and 47, which contains 39 but averages 43. Rule: you need the pair's average to equal 39, not just a 39 in the pair."
+  },
+  {
+   "n": 13,
+   "stem": "A hot air balloon ride costs $54 for the first 3 people and $17 for each additional person. If 7 people split the cost equally, approximately how much does each person pay?",
+   "opts": [
+    "$17.50",
+    "$22.30",
+    "$40.70",
+    "$54",
+    "$122"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.word",
+   "why": "Total = $54 + 4 &times; $17 = $54 + $68 = $122. Split 7 ways: 122 &divide; 7 &asymp; 17.4, so about <b>$17.50<\/b>. The trap is (E) $122, the total before splitting. Rule: find the total, then divide by the number of people."
+  },
+  {
+   "n": 14,
+   "stem": "If <i>w<\/i> is an integer and <i>w<\/i> + 6 &lt; 13, what is the greatest possible value of 3<i>w<\/i>?",
+   "opts": [
+    "6",
+    "7",
+    "13",
+    "18",
+    "19"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.algebra",
+   "why": "<i>w<\/i> + 6 &lt; 13 means <i>w<\/i> &lt; 7, so the largest integer <i>w<\/i> is 6, and 3<i>w<\/i> = <b>18<\/b>. The trap is (A) 6, the value of <i>w<\/i> rather than 3<i>w<\/i>. Rule: solve for the variable, then finish the question that was asked."
+  },
+  {
+   "n": 15,
+   "stem": "If <sup><i>X<\/i><\/sup>&frasl;<sub><i>Y<\/i><\/sub> = 2 and both <i>X<\/i> and <i>Y<\/i> are positive integers, which of the following must be true?",
+   "opts": [
+    "<i>Y<\/i> is less than <i>X<\/i>",
+    "<i>X<\/i> is less than <i>Y<\/i>",
+    "<i>X<\/i> + <i>Y<\/i> = 2",
+    "<i>X<\/i> = <i>Y<\/i>",
+    "It cannot be determined from the information given."
+   ],
+   "ans": 0,
+   "sk": "ssat.q.algebra",
+   "why": "<i>X<\/i> = 2<i>Y<\/i>, and doubling a positive number makes it bigger, so <b><i>Y<\/i> is less than <i>X<\/i><\/b> (for example, <i>X<\/i> = 6, <i>Y<\/i> = 3). The trap is (C): <i>X<\/i> + <i>Y<\/i> = 3<i>Y<\/i>, not 2. Rule: rewrite a fraction equation as multiplication, then try a quick example."
+  },
+  {
+   "n": 16,
+   "stem": "How many sixths are there in 3<sup>1<\/sup>&frasl;<sub>6<\/sub>?",
+   "opts": [
+    "4",
+    "18",
+    "19",
+    "22",
+    "24"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.frac",
+   "why": "Each whole is <sup>6<\/sup>&frasl;<sub>6<\/sub>, so 3 wholes = 18 sixths, plus 1 more sixth = <b>19<\/b>. The trap is (B) 18, which forgets the extra <sup>1<\/sup>&frasl;<sub>6<\/sub>. Rule: mixed number &rarr; improper fraction: whole &times; denominator + numerator."
+  },
+  {
+   "n": 17,
+   "stem": "According to the graph, what is the fractional part of the number of turkeys not used commercially?",
+   "opts": [
+    "<sup>1<\/sup>&frasl;<sub>2<\/sub>",
+    "<sup>1<\/sup>&frasl;<sub>3<\/sub>",
+    "<sup>1<\/sup>&frasl;<sub>4<\/sub>",
+    "<sup>2<\/sup>&frasl;<sub>3<\/sub>",
+    "<sup>3<\/sup>&frasl;<sub>4<\/sub>"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.data",
+   "why": "The dark Commercial Use part of the Turkey bar ends at 25%, so the part NOT used commercially is 100% &minus; 25% = 75% = <b><sup>3<\/sup>&frasl;<sub>4<\/sub><\/b>. The trap is (C) <sup>1<\/sup>&frasl;<sub>4<\/sub>, the commercial part itself. Rule: read where the shading ends, then check whether the question wants that part or the rest.",
+   "fig": "<svg role=\"img\" aria-label=\"Horizontal 100% bar graph titled How Meat is Distributed in the US, scale 0% to 100%. The dark Commercial Use part of each bar reaches about: Duck 12%, Beef 22%, Pork 72%, Turkey 25%, Chicken 50%; the rest of each bar is light.\" width=\"330\" height=\"232\" viewBox=\"0 0 330 232\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Georgia\"><text x=\"185\" y=\"16\" font-size=\"14\" text-anchor=\"middle\" fill=\"#1c1a17\">How Meat is Distributed in the US<\/text><line x1=\"60.0\" y1=\"24\" x2=\"60.0\" y2=\"190\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"60.0\" y=\"204\" font-size=\"8\" text-anchor=\"middle\" fill=\"#1c1a17\">0%<\/text><line x1=\"85.0\" y1=\"24\" x2=\"85.0\" y2=\"190\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"85.0\" y=\"204\" font-size=\"8\" text-anchor=\"middle\" fill=\"#1c1a17\">10%<\/text><line x1=\"110.0\" y1=\"24\" x2=\"110.0\" y2=\"190\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"110.0\" y=\"204\" font-size=\"8\" text-anchor=\"middle\" fill=\"#1c1a17\">20%<\/text><line x1=\"135.0\" y1=\"24\" x2=\"135.0\" y2=\"190\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"135.0\" y=\"204\" font-size=\"8\" text-anchor=\"middle\" fill=\"#1c1a17\">30%<\/text><line x1=\"160.0\" y1=\"24\" x2=\"160.0\" y2=\"190\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"160.0\" y=\"204\" font-size=\"8\" text-anchor=\"middle\" fill=\"#1c1a17\">40%<\/text><line x1=\"185.0\" y1=\"24\" x2=\"185.0\" y2=\"190\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"185.0\" y=\"204\" font-size=\"8\" text-anchor=\"middle\" fill=\"#1c1a17\">50%<\/text><line x1=\"210.0\" y1=\"24\" x2=\"210.0\" y2=\"190\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"210.0\" y=\"204\" font-size=\"8\" text-anchor=\"middle\" fill=\"#1c1a17\">60%<\/text><line x1=\"235.0\" y1=\"24\" x2=\"235.0\" y2=\"190\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"235.0\" y=\"204\" font-size=\"8\" text-anchor=\"middle\" fill=\"#1c1a17\">70%<\/text><line x1=\"260.0\" y1=\"24\" x2=\"260.0\" y2=\"190\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"260.0\" y=\"204\" font-size=\"8\" text-anchor=\"middle\" fill=\"#1c1a17\">80%<\/text><line x1=\"285.0\" y1=\"24\" x2=\"285.0\" y2=\"190\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"285.0\" y=\"204\" font-size=\"8\" text-anchor=\"middle\" fill=\"#1c1a17\">90%<\/text><line x1=\"310.0\" y1=\"24\" x2=\"310.0\" y2=\"190\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"310.0\" y=\"204\" font-size=\"8\" text-anchor=\"middle\" fill=\"#1c1a17\">100%<\/text><rect x=\"60\" y=\"30\" width=\"30.0\" height=\"20\" fill=\"#3a3632\"/><rect x=\"90.0\" y=\"30\" width=\"220.0\" height=\"20\" fill=\"#c8c4bc\"/><text x=\"54\" y=\"44\" font-size=\"11\" text-anchor=\"end\" fill=\"#1c1a17\">Duck<\/text><rect x=\"60\" y=\"62\" width=\"55.0\" height=\"20\" fill=\"#3a3632\"/><rect x=\"115.0\" y=\"62\" width=\"195.0\" height=\"20\" fill=\"#c8c4bc\"/><text x=\"54\" y=\"76\" font-size=\"11\" text-anchor=\"end\" fill=\"#1c1a17\">Beef<\/text><rect x=\"60\" y=\"94\" width=\"180.0\" height=\"20\" fill=\"#3a3632\"/><rect x=\"240.0\" y=\"94\" width=\"70.0\" height=\"20\" fill=\"#c8c4bc\"/><text x=\"54\" y=\"108\" font-size=\"11\" text-anchor=\"end\" fill=\"#1c1a17\">Pork<\/text><rect x=\"60\" y=\"126\" width=\"62.5\" height=\"20\" fill=\"#3a3632\"/><rect x=\"122.5\" y=\"126\" width=\"187.5\" height=\"20\" fill=\"#c8c4bc\"/><text x=\"54\" y=\"140\" font-size=\"11\" text-anchor=\"end\" fill=\"#1c1a17\">Turkey<\/text><rect x=\"60\" y=\"158\" width=\"125.0\" height=\"20\" fill=\"#3a3632\"/><rect x=\"185.0\" y=\"158\" width=\"125.0\" height=\"20\" fill=\"#c8c4bc\"/><text x=\"54\" y=\"172\" font-size=\"11\" text-anchor=\"end\" fill=\"#1c1a17\">Chicken<\/text><rect x=\"140\" y=\"214\" width=\"10\" height=\"10\" fill=\"#3a3632\"/><text x=\"154\" y=\"223\" font-size=\"10\" text-anchor=\"start\" fill=\"#1c1a17\">Commercial Use<\/text><\/svg>"
+  },
+  {
+   "n": 18,
+   "stem": "David is drawing a series of shapes in a repeating pattern: square, circle, triangle, hexagon, trapezoid, oval. What will be the 98th shape he draws?",
+   "opts": [
+    "Square",
+    "Circle",
+    "Triangle",
+    "Hexagon",
+    "Trapezoid"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.logic",
+   "why": "The pattern repeats every 6 shapes. 98 = 6 &times; 16 + 2, so after 16 full rounds the 98th shape is the 2nd one: <b>circle<\/b>. The trap is (C) Triangle, which comes from counting only 5 shapes and forgetting the oval (98 &divide; 5 leaves remainder 3). Check: the 96th shape is an oval, so the 97th is a square and the 98th is a circle. Rule: divide by the pattern length and use the remainder."
+  },
+  {
+   "n": 19,
+   "stem": "The fractional part of the number of math teachers employed in middle schools was approximately ____.",
+   "opts": [
+    "<sup>1<\/sup>&frasl;<sub>4<\/sub>",
+    "<sup>3<\/sup>&frasl;<sub>10<\/sub>",
+    "<sup>7<\/sup>&frasl;<sub>20<\/sub>",
+    "<sup>9<\/sup>&frasl;<sub>20<\/sub>",
+    "<sup>3<\/sup>&frasl;<sub>4<\/sub>"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.data",
+   "why": "In the Math Teachers bar, the middle-school section runs from about 30% up to about 75%, so it is 75 &minus; 30 = 45% = <b><sup>9<\/sup>&frasl;<sub>20<\/sub><\/b>. The trap is (E) <sup>3<\/sup>&frasl;<sub>4<\/sub>, which reads the top of the section instead of its height. Rule: in a stacked bar, a section's size is top minus bottom.",
+   "fig": "<svg role=\"img\" aria-label=\"Stacked 100% column graph titled Where Teachers Were Employed After Graduating from College, percent 0 to 100 in steps of 10. Math teachers: elementary about 30%, middle school up to about 75%, high school the rest. Science: elementary about 15%, middle up to about 65%. Social studies: elementary about 30%, middle up to about 60%. English: elementary about 35%, middle up to about 70%.\" width=\"330\" height=\"292\" viewBox=\"0 0 330 292\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Georgia\"><text x=\"175\" y=\"16\" font-size=\"12\" text-anchor=\"middle\" fill=\"#1c1a17\">Where Teachers Were<\/text><text x=\"175\" y=\"31\" font-size=\"12\" text-anchor=\"middle\" fill=\"#1c1a17\">Employed After Graduating<\/text><text x=\"175\" y=\"46\" font-size=\"12\" text-anchor=\"middle\" fill=\"#1c1a17\">from College<\/text><line x1=\"50\" y1=\"230.0\" x2=\"320\" y2=\"230.0\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"45\" y=\"233.0\" font-size=\"8\" text-anchor=\"end\" fill=\"#1c1a17\">0<\/text><line x1=\"50\" y1=\"212.0\" x2=\"320\" y2=\"212.0\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"45\" y=\"215.0\" font-size=\"8\" text-anchor=\"end\" fill=\"#1c1a17\">10<\/text><line x1=\"50\" y1=\"194.0\" x2=\"320\" y2=\"194.0\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"45\" y=\"197.0\" font-size=\"8\" text-anchor=\"end\" fill=\"#1c1a17\">20<\/text><line x1=\"50\" y1=\"176.0\" x2=\"320\" y2=\"176.0\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"45\" y=\"179.0\" font-size=\"8\" text-anchor=\"end\" fill=\"#1c1a17\">30<\/text><line x1=\"50\" y1=\"158.0\" x2=\"320\" y2=\"158.0\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"45\" y=\"161.0\" font-size=\"8\" text-anchor=\"end\" fill=\"#1c1a17\">40<\/text><line x1=\"50\" y1=\"140.0\" x2=\"320\" y2=\"140.0\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"45\" y=\"143.0\" font-size=\"8\" text-anchor=\"end\" fill=\"#1c1a17\">50<\/text><line x1=\"50\" y1=\"122.0\" x2=\"320\" y2=\"122.0\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"45\" y=\"125.0\" font-size=\"8\" text-anchor=\"end\" fill=\"#1c1a17\">60<\/text><line x1=\"50\" y1=\"104.0\" x2=\"320\" y2=\"104.0\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"45\" y=\"107.0\" font-size=\"8\" text-anchor=\"end\" fill=\"#1c1a17\">70<\/text><line x1=\"50\" y1=\"86.0\" x2=\"320\" y2=\"86.0\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"45\" y=\"89.0\" font-size=\"8\" text-anchor=\"end\" fill=\"#1c1a17\">80<\/text><line x1=\"50\" y1=\"68.0\" x2=\"320\" y2=\"68.0\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"45\" y=\"71.0\" font-size=\"8\" text-anchor=\"end\" fill=\"#1c1a17\">90<\/text><line x1=\"50\" y1=\"50.0\" x2=\"320\" y2=\"50.0\" stroke=\"#999\" stroke-width=\"0.6\" stroke-dasharray=\"2 3\"/><text x=\"45\" y=\"53.0\" font-size=\"8\" text-anchor=\"end\" fill=\"#1c1a17\">100<\/text><rect x=\"70\" y=\"176.0\" width=\"34\" height=\"54.0\" fill=\"#6e6a64\"/><rect x=\"70\" y=\"95.0\" width=\"34\" height=\"81.0\" fill=\"#c8c4bc\"/><rect x=\"70\" y=\"50.0\" width=\"34\" height=\"45.0\" fill=\"#2b2825\"/><text x=\"87\" y=\"243\" font-size=\"9\" text-anchor=\"middle\" fill=\"#1c1a17\">Math<\/text><text x=\"87\" y=\"254\" font-size=\"9\" text-anchor=\"middle\" fill=\"#1c1a17\">Teachers<\/text><rect x=\"135\" y=\"203.0\" width=\"34\" height=\"27.0\" fill=\"#6e6a64\"/><rect x=\"135\" y=\"113.0\" width=\"34\" height=\"90.0\" fill=\"#c8c4bc\"/><rect x=\"135\" y=\"50.0\" width=\"34\" height=\"63.0\" fill=\"#2b2825\"/><text x=\"152\" y=\"243\" font-size=\"9\" text-anchor=\"middle\" fill=\"#1c1a17\">Science<\/text><text x=\"152\" y=\"254\" font-size=\"9\" text-anchor=\"middle\" fill=\"#1c1a17\">Teachers<\/text><rect x=\"200\" y=\"176.0\" width=\"34\" height=\"54.0\" fill=\"#6e6a64\"/><rect x=\"200\" y=\"122.0\" width=\"34\" height=\"54.0\" fill=\"#c8c4bc\"/><rect x=\"200\" y=\"50.0\" width=\"34\" height=\"72.0\" fill=\"#2b2825\"/><text x=\"217\" y=\"243\" font-size=\"9\" text-anchor=\"middle\" fill=\"#1c1a17\">Social<\/text><text x=\"217\" y=\"254\" font-size=\"9\" text-anchor=\"middle\" fill=\"#1c1a17\">Studies<\/text><text x=\"217\" y=\"265\" font-size=\"9\" text-anchor=\"middle\" fill=\"#1c1a17\">Teachers<\/text><rect x=\"265\" y=\"167.0\" width=\"34\" height=\"63.0\" fill=\"#6e6a64\"/><rect x=\"265\" y=\"104.0\" width=\"34\" height=\"63.0\" fill=\"#c8c4bc\"/><rect x=\"265\" y=\"50.0\" width=\"34\" height=\"54.0\" fill=\"#2b2825\"/><text x=\"282\" y=\"243\" font-size=\"9\" text-anchor=\"middle\" fill=\"#1c1a17\">English<\/text><text x=\"282\" y=\"254\" font-size=\"9\" text-anchor=\"middle\" fill=\"#1c1a17\">Teachers<\/text><text transform=\"rotate(-90 16 140)\" x=\"16\" y=\"140\" font-size=\"10\" text-anchor=\"middle\" fill=\"#1c1a17\">Percent<\/text><rect x=\"40\" y=\"277\" width=\"9\" height=\"9\" fill=\"#6e6a64\"/><text x=\"52\" y=\"285\" font-size=\"9\" text-anchor=\"start\" fill=\"#1c1a17\">Elementary School<\/text><rect x=\"140\" y=\"277\" width=\"9\" height=\"9\" fill=\"#c8c4bc\"/><text x=\"152\" y=\"285\" font-size=\"9\" text-anchor=\"start\" fill=\"#1c1a17\">Middle School<\/text><rect x=\"228\" y=\"277\" width=\"9\" height=\"9\" fill=\"#2b2825\"/><text x=\"240\" y=\"285\" font-size=\"9\" text-anchor=\"start\" fill=\"#1c1a17\">High School<\/text><\/svg>"
+  },
+  {
+   "n": 20,
+   "stem": "In the figure, what is the value of <i>x<\/i>?",
+   "opts": [
+    "20",
+    "40",
+    "60",
+    "80",
+    "100"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.geom",
+   "why": "The (3<i>x<\/i>)&deg; angle and the 60&deg; angle are vertical angles (directly opposite each other), so 3<i>x<\/i> = 60 and <i>x<\/i> = <b>20<\/b>. Check: 3<i>x<\/i> + 120 = 180 also gives 60. The trap is (C) 60, which is 3<i>x<\/i>, not <i>x<\/i>. Rule: opposite angles at a crossing are equal.",
+   "fig": "<svg role=\"img\" aria-label=\"A vertical line with arrows at both ends crossed by a slanted line running from upper left to lower right. The angle between the upward ray and the upper-left ray is labeled (3x) degrees; the angle between the upward ray and the lower-right ray is labeled 120 degrees; the angle between the downward ray and the lower-right ray is labeled 60 degrees.\" width=\"220\" height=\"200\" viewBox=\"0 0 220 200\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Georgia\"><line x1=\"110\" y1=\"10\" x2=\"110\" y2=\"190\" stroke=\"#1c1a17\" stroke-width=\"2\"/><line x1=\"20\" y1=\"60\" x2=\"205\" y2=\"155\" stroke=\"#1c1a17\" stroke-width=\"2\"/><polyline points=\"104,20 110,8 116,20\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><polyline points=\"104,180 110,192 116,180\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><polyline points=\"32,58 18,59 28,69\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><polyline points=\"191,155 207,156 197,145\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><text x=\"72\" y=\"78\" font-size=\"15\" text-anchor=\"start\" fill=\"#1c1a17\">(3<tspan font-style=\"italic\">x<\/tspan>)&deg;<\/text><text x=\"118\" y=\"95\" font-size=\"15\" text-anchor=\"start\" fill=\"#1c1a17\">120&deg;<\/text><text x=\"118\" y=\"142\" font-size=\"15\" text-anchor=\"start\" fill=\"#1c1a17\">60&deg;<\/text><\/svg>"
+  },
+  {
+   "n": 21,
+   "stem": "Which of the following expressions will be greatest when <i>x<\/i> = <sup>1<\/sup>&frasl;<sub>3<\/sub>?",
+   "opts": [
+    "3 &minus; <i>x<\/i>",
+    "<i>x<\/i> + 3",
+    "3<i>x<\/i>",
+    "<sup><i>x<\/i><\/sup>&frasl;<sub>3<\/sub>",
+    "<sup>3<\/sup>&frasl;<sub><i>x<\/i><\/sub>"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.frac",
+   "why": "Plug in <sup>1<\/sup>&frasl;<sub>3<\/sub>: 3 &minus; <sup>1<\/sup>&frasl;<sub>3<\/sub> &asymp; 2.67, <sup>1<\/sup>&frasl;<sub>3<\/sub> + 3 &asymp; 3.33, 3 &times; <sup>1<\/sup>&frasl;<sub>3<\/sub> = 1, <sup>1<\/sup>&frasl;<sub>3<\/sub> &divide; 3 = <sup>1<\/sup>&frasl;<sub>9<\/sub>, and 3 &divide; <sup>1<\/sup>&frasl;<sub>3<\/sub> = 3 &times; 3 = <b>9<\/b>. The trap is (B) <i>x<\/i> + 3, which looks biggest at a glance. Rule: dividing by a number smaller than 1 makes a result bigger."
+  },
+  {
+   "n": 22,
+   "stem": "<sup>1<\/sup>&frasl;<sub>5<\/sub>, <sup>2<\/sup>&frasl;<sub>7<\/sub>, <sup>3<\/sup>&frasl;<sub>9<\/sub>, <sup>4<\/sup>&frasl;<sub>&#9632;<\/sub><br><br>In the sequence above, the black square is equivalent to",
+   "opts": [
+    "7",
+    "<sup>20<\/sup>&frasl;<sub>2<\/sub>",
+    "<sup>22<\/sup>&frasl;<sub>2<\/sub>",
+    "<sup>24<\/sup>&frasl;<sub>2<\/sub>",
+    "13"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.logic",
+   "why": "Numerators go up by 1 and denominators go up by 2: 5, 7, 9, so the next denominator is 11. Only <sup>22<\/sup>&frasl;<sub>2<\/sub> equals 11, so the answer is <b><sup>22<\/sup>&frasl;<sub>2<\/sub><\/b>. The trap is (E) 13, which skips a step. Rule: track the top and the bottom of a fraction pattern separately."
+  },
+  {
+   "n": 23,
+   "stem": "When a number is multiplied by itself, the product is 202. Between which two integers is the number located?",
+   "opts": [
+    "10 and 11",
+    "14 and 15",
+    "20 and 21",
+    "40 and 41",
+    "100 and 101"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.arith",
+   "why": "14 &times; 14 = 196 and 15 &times; 15 = 225, and 202 is between them, so the number is between <b>14 and 15<\/b>. The trap is (E) 100 and 101, which halves 202 instead of taking a square root. Rule: know your squares up to 15 &times; 15."
+  },
+  {
+   "n": 24,
+   "stem": "The figure shown is formed by rectangular parts. What is the perimeter of the figure?",
+   "opts": [
+    "14.5 units",
+    "18 units",
+    "21 units",
+    "23 units",
+    "It cannot be determined from the information given."
+   ],
+   "ans": 3,
+   "sk": "ssat.q.area",
+   "why": "Horizontal edges: the top is 6.5 and the bottom pieces also add to 6.5, so 13. Vertical edges: left 4, up 1.5, down 1, and the right side is 4 &minus; 1.5 + 1 = 3.5, so 10. Total 13 + 10 = <b>23 units<\/b>. The trap is (C) 21 = 2 &times; (6.5 + 4), which treats the shape like a plain rectangle and loses the two notch walls. Rule: for step shapes, add every vertical piece; a notch adds extra wall length.",
+   "fig": "<svg role=\"img\" aria-label=\"An outline made of rectangular parts: top side 6.5, left side 4. From the bottom of the left side the bottom edge goes right 1.5, up 1.5, right across a notch, down 1, then right to the right side.\" width=\"280\" height=\"180\" viewBox=\"0 0 280 180\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Georgia\"><polygon points=\"40,30 235.0,30 235.0,135.0 145.0,135.0 145.0,105.0 85.0,105.0 85.0,150 40,150\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"3\"/><text x=\"137.5\" y=\"22\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1c1a17\">6.5<\/text><text x=\"26\" y=\"95\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1c1a17\">4<\/text><text x=\"62.5\" y=\"170\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1c1a17\">1.5<\/text><text x=\"92.0\" y=\"132.0\" font-size=\"14\" text-anchor=\"start\" fill=\"#1c1a17\">1.5<\/text><text x=\"133.0\" y=\"123.0\" font-size=\"14\" text-anchor=\"start\" fill=\"#1c1a17\">1<\/text><\/svg>",
+   "flag": "&#9733; Printed key says C (21). Working from the figure gives 23 (D): top 6.5 + bottom pieces 6.5 + verticals 4 + 1.5 + 1 + 3.5. 21 is only true for a plain 6.5 &times; 4 rectangle."
+  },
+  {
+   "n": 25,
+   "stem": "If the positive odd number R is multiplied by a different positive odd number, the answer MUST be",
+   "opts": [
+    "an odd positive number",
+    "an even positive number",
+    "0",
+    "an odd negative number",
+    "an even negative number"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.arith",
+   "why": "Odd &times; odd is always odd (try 3 &times; 5 = 15), and positive &times; positive is positive, so the answer is <b>an odd positive number<\/b>. The trap is (B): adding two odds gives an even, but multiplying does not. Rule: odd &times; odd = odd; odd + odd = even."
+  }
+ ],
+ "count": 25
+};
+const MINUTES = 30;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 10.4 · Reading A</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 10.4 &middot; Section 3, part 1</div>
+    <h1>Reading Comprehension &mdash; Part A (Questions 1&ndash;19)</h1>
+    <div class="meta">19 questions &middot; 19 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">19:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 10.4 &middot; <a href="SSAT-MockTest-1004-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading A",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 1 &middot; Questions 1&ndash;6",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">One of the most impressive tourist attractions in East Africa is the annual<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>migration of millions of zebra, wildebeest, and antelope. The largest group<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>by far is that of the wildebeest, with nearly 1.5 million animals. Smaller<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>groups of gazelle, zebra, and eland also travel a similar path. Each year, these<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>animals begin the trek from the Serengeti Plains in Tanzania. In search of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>food and water, they travel north to Kenya before returning to Tanzania,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>traveling over 1,800 miles. Leopards, hyenas, lions, and wild dogs follow the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>herd, waiting for a meal. While the herd is constantly threatened by these<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>land-based predators, they also face additional threats as they cross the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>Grumeti and Mara rivers. Crocodiles lie in wait for any animal unfortunate<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>enough to stray too close.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">In order to survive their migration, wildebeest have developed several<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>techniques to defend themselves. While the open land of their typical habitat,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the savannah, makes it easier to spot lions and other hunters, the herd still<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>requires defensive techniques to keep themselves safe. One of their most<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>effective techniques is herding. With a maximum running speed of about 50<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>miles per hour, wildebeest herds travel quickly. Many predators are<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>territorial, and will not follow the herd once it leaves the predator’s land.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Even if the predator is in pursuit, the herd can often outrun lions, leopards,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>and other hunters. When the herd runs as a group, the younger animals are<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>protected by the older, larger ones. It can be extremely dangerous for a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>predator to attack the herd as a whole because wildebeest are very strong and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>can seriously injure their attackers. Typically, predators prefer to isolate a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>sick or young animal and avoid confronting the entire herd. Additionally, the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span>wildebeest take turns guarding against night attacks. These behaviors make it<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>more difficult for predators to catch an animal alone or unaware, increasing<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the herd animals’ chance of survival. Wildebeest also listen to the alarm calls<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>of other species, taking advantage of warnings from other animals that have<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>spotted predators.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">30<\/span><span style=\"text-indent:26px;display:inline-block\">Despite defensive herding behavior and diligent awareness, not all<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>wildebeest survive the annual migration. Many animals, particularly the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>young, ill, or weak, are caught by large carnivores waiting along their travel<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>path. While these losses are tragic for the individual, most of the herd<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>survives to begin a new migration.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 1,
+   "stem": "The passage implies that wildebeest remain safe from predators primarily because",
+   "opts": [
+    "they have developed strong herd cooperation.",
+    "their predators are smaller than an average wildebeest.",
+    "predators prefer to hunt zebra and gazelle.",
+    "wildebeest migrate to areas where there are no predators.",
+    "wildebeest listen to the alarm calls of other animals."
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "Paragraph 2 calls herding &ldquo;one of their most effective techniques&rdquo; (lines 15&ndash;16): running as a group, protecting the young and taking turns on guard. That is <b>strong herd cooperation<\/b>. The trap is (E): alarm calls are mentioned, but only as an extra (&ldquo;also&rdquo;), not the main reason. Watch for words like <i>primarily<\/i> &mdash; they ask for the biggest idea, not any true detail."
+  },
+  {
+   "n": 2,
+   "stem": "The author defines herding as",
+   "opts": [
+    "predators driving wildebeest toward a specific location.",
+    "wildebeest becoming confused when surrounded by a large group of animals.",
+    "wildebeest gathering together to hunt down predators.",
+    "a behavior which allows predators to isolate a sick or young animal.",
+    "wildebeest running together for safety."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.detail",
+   "why": "Lines 16&ndash;21 explain herding: the herd travels quickly, outruns hunters, and &ldquo;when the herd runs as a group, the younger animals are protected.&rdquo; So herding is <b>wildebeest running together for safety<\/b>. (D) is the trap &mdash; isolating a weak animal is what predators try to do <i>against<\/i> the herd. Wildebeest never hunt (C); they defend."
+  },
+  {
+   "n": 3,
+   "stem": "In line 23, &ldquo;isolate&rdquo; most nearly means",
+   "opts": [
+    "hastily devour.",
+    "separate from the group.",
+    "prioritize over others.",
+    "surround.",
+    "attack."
+   ],
+   "ans": 1,
+   "sk": "ssat.r.vocab",
+   "why": "Predators &ldquo;prefer to isolate a sick or young animal and avoid confronting the entire herd&rdquo; (lines 23&ndash;24). The contrast with &ldquo;entire herd&rdquo; shows isolate means <b>separate from the group<\/b>. (E) attack is tempting because predators do attack eventually, but the word describes cutting the animal off first. Try plugging each choice back into the sentence."
+  },
+  {
+   "n": 4,
+   "stem": "Which sentence best expresses the main idea of the passage?",
+   "opts": [
+    "Wildebeest travel very quickly.",
+    "There are many predators that prey on wildebeest.",
+    "Wildebeest employ several protective mechanisms.",
+    "Some wildebeest do not survive their annual migrations.",
+    "Every year there is a great migration of large mammals in East Africa."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.main",
+   "why": "The longest paragraph begins &ldquo;wildebeest have developed several techniques to defend themselves&rdquo; (lines 12&ndash;13) and the rest of the passage describes those techniques. So the main idea is <b>wildebeest employ several protective mechanisms<\/b>. (E) is the trap: it only describes the opening, not the point. Choices (A), (B), (D) are true details that are too narrow."
+  },
+  {
+   "n": 5,
+   "stem": "Which sentence best describes the organization of the passage?",
+   "opts": [
+    "An argument is put forward and refuted.",
+    "A term is defined and its meaning explained through examples.",
+    "A theory is proposed, considered, and modified.",
+    "Different behaviors are compared and contrasted.",
+    "A process is presented and explained."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.main",
+   "why": "The passage introduces the migration (paragraph 1), explains how the herd survives it (paragraph 2), and ends with how it turns out (paragraph 3). That is <b>a process presented and explained<\/b>. (D) is tempting because several behaviors are listed, but they are never set against each other. Nothing is argued or refuted, so (A) and (C) are out."
+  },
+  {
+   "n": 6,
+   "stem": "According to the passage, wildebeest participate in the annual migration because they",
+   "opts": [
+    "are accustomed to their nomadic lifestyle.",
+    "require significant exercise to remain healthy.",
+    "need food and water.",
+    "rely on predators to eliminate sick wildebeest.",
+    "avoid predators more easily when the herd is moving."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.detail",
+   "why": "Lines 5&ndash;6 say it directly: &ldquo;In search of food and water, they travel north to Kenya.&rdquo; So they migrate because they <b>need food and water<\/b>. (E) mixes up two ideas &mdash; running helps them survive the trip, but it is not why they go. For &ldquo;according to the passage&rdquo; questions, find the line that says it."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 2 &middot; Questions 7&ndash;11",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">People might think you’re a bit vain if you look at yourself in the mirror<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>too regularly, but there is a great deal more you could be considering about<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the mirror itself than they might realize. Mirrors inspire many fascinating<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>questions that go far beyond simply offering the ability to check your<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>reflection. How do mirrors even work? What is the history behind mirrors?<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>And what are mirrors made of?<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">A mirror’s reflective power takes place when photons, or particles of light,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>coming from an object strike a smooth surface and bounce back at the same<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>angle. If you’re looking at your own reflection, for example, photons are<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>bouncing off your face to the mirror, which reflects them back at you.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Your eyes see these reflected photons as a mirror image. The term<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>“mirror image” means that the image you see reflected is reversed. If you<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>wear clothing with text on it and stand in front of a mirror, you can notice<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>this: the words on the shirt appear backward in the mirror.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span style=\"text-indent:26px;display:inline-block\">For a mirror to work, the surface must be smooth, because rough surfaces<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>scatter light instead of reflecting it. However, not all smooth surfaces reflect<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>light. Think of paper, for example. It certainly has a smooth surface, but the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>material absorbs the photons so there is no reflection.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The very first mirrors were probably calm, dark pools of water, or<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>motionless water held in containers made of rock or clay. Historians have<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>inferred this from the study of language. Mandarin Chinese gives us a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>window into the past, since it is one of the oldest languages. After 722<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>B.C., the characters for mirror, known as <i>jian<\/i> and <i>jing<\/i>, are best<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>translated as “a [large] tub filled with water.”<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span style=\"text-indent:26px;display:inline-block\">The first manufactured mirrors were likely polished stones made from<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>obsidian, a type of volcanic glass. Later, large pieces of polished metal began<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>to be used, but generally only by the upper class because they were so<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>expensive.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">These days, mirrors are accessible to most people of all walks of life.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">30<\/span><span>Most modern mirrors that you encounter are a type of mirror called a plane<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>mirror. Plane mirrors are flat, and usually made out of clear glass that is<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>coated on one side with a thin film of metal.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 7,
+   "stem": "The primary purpose of this passage is to",
+   "opts": [
+    "describe some of the technical uses of mirrors.",
+    "explain the historical significance of mirrors.",
+    "explain how mirrors are manufactured.",
+    "suggest that mirrors were first invented in China.",
+    "describe some scientific and historical information about mirrors."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.main",
+   "why": "The opening asks three questions: how do mirrors work, what is their history, and what are they made of (lines 5&ndash;6). The passage answers with science (photons) and history (water pools, obsidian), so its purpose is to <b>describe some scientific and historical information about mirrors<\/b>. (B) is the trap: it covers only half the passage. A good main-purpose answer covers every paragraph."
+  },
+  {
+   "n": 8,
+   "stem": "In line 25, &ldquo;manufactured&rdquo; most nearly means",
+   "opts": [
+    "produced",
+    "composed",
+    "mined",
+    "organized",
+    "framed"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;The first manufactured mirrors were likely polished stones&rdquo; &mdash; mirrors that people <i>made<\/i>, as opposed to natural pools of water. Manufactured means <b>produced<\/b>. (C) mined is tempting because the stones came from the ground, but the word is about making the mirror, not digging it up. <i>Manu<\/i> = hand: made by hand."
+  },
+  {
+   "n": 9,
+   "stem": "According to the information provided in lines 7-14, when photons coming from an object hit a smooth surface,",
+   "opts": [
+    "very few are absorbed and the light scatters.",
+    "the light reflects back as a mirror image.",
+    "the light reflects back at an opposite angle.",
+    "all the light is absorbed before it bounces back.",
+    "the words on your shirt will be reflected backward in that surface."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.detail",
+   "why": "Lines 7&ndash;8 say photons &ldquo;strike a smooth surface and bounce back at the same angle&rdquo; &mdash; they leave on the opposite side of the mirror line, tilted just as much, so the key calls this <b>the light reflects back at an opposite angle<\/b>. (A) and (D) describe rough surfaces and paper, from a later paragraph. (E) is too narrow: it is only one example, and it only works on a mirror.",
+   "flag": "Printed key C (&ldquo;opposite angle&rdquo;) sits awkwardly with the text&rsquo;s &ldquo;same angle&rdquo; (line 8). B (&ldquo;reflects back as a mirror image&rdquo;) is also defensible from lines 11&ndash;12. Kept the key."
+  },
+  {
+   "n": 10,
+   "stem": "The author of the passage does all of the following EXCEPT",
+   "opts": [
+    "mention that polished stones can have reflective properties.",
+    "indicate that the first mirrors were created by accident.",
+    "define photons as particles of light.",
+    "describe what modern mirrors are made of.",
+    "provide contextual linguistic history."
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "Check each choice against the text: polished stones (line 25), photons as &ldquo;particles of light&rdquo; (line 7), modern plane mirrors (lines 30&ndash;32), and Chinese words for mirror (lines 21&ndash;24) all appear. Nothing says the first mirrors were <b>created by accident<\/b> &mdash; pools of water were natural, not an accident. For EXCEPT questions, cross off what you can find; the leftover is the answer."
+  },
+  {
+   "n": 11,
+   "stem": "In line 1, &ldquo;vain&rdquo; most nearly means",
+   "opts": [
+    "appreciative",
+    "noble",
+    "conceited",
+    "foolish",
+    "lazy"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.vocab",
+   "why": "Someone who looks at themselves in the mirror &ldquo;too regularly&rdquo; is thought to be too proud of their looks &mdash; <b>conceited<\/b>. (D) foolish is the trap, because &ldquo;in vain&rdquo; can mean &ldquo;uselessly.&rdquo; The mirror context picks the self-admiring meaning."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 3 &middot; Questions 12&ndash;15",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">When Christine Hà won Masterchef, an amateur cooking competition, it<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>came as a surprise to many, including herself. Hà had been working as a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>software consultant when her vision began to deteriorate. Hà learned that<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>she suffers from an autoimmune disorder called neuromyelitis optica, which<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>leads to severely impaired vision. As her vision failed, she left her job and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>pursued her passion for cooking as a self-taught chef.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">While learning to cook with only four senses was certainly challenging,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Hà believes that using limited senses taught her to pay close attention to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>details in her dishes. For example, while chefs with vision may focus on<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>speed when cutting vegetables, Hà is very careful when using her knives,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>focusing on cutting precisely. When she has finished a dish, she uses her<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>hands to create an intricate, beautifully-constructed plate of food, based off<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the design in her mind.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">As a visually-impaired chef, Hà has trained her other four senses to be<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>very sensitive to her environment. Now, she is able to listen to several<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>different conversations happening simultaneously. Additionally, and most<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>importantly, her sense of taste and smell have heightened: she can<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>distinguish between different tastes and scents faster than other people.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">After becoming the first blind contestant to win the competition, Hà<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>went on to host a cooking show, called “Four Senses,” which was geared<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>toward visually-impaired viewers, and to open a Vietnamese gastropub<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>called The Blind Goat. Pursuing her love for writing, she also published a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>cookbook and is at work on a memoir about her experiences. Hà’s many<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>accomplishments speak to the power of adapting and persevering through<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span>hard times. As she has stated, “Everyone in this world is dealt a different<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>hand--some better, some worse than others--but what’s more important is<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>how you play that hand.”<\/span><\/div><\/div>"
+  },
+  {
+   "n": 12,
+   "stem": "What is the tone of the last two sentences?",
+   "opts": [
+    "Educational",
+    "Inspirational",
+    "Questioning",
+    "Divisive",
+    "Yearning"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.tone",
+   "why": "The last sentences praise &ldquo;the power of adapting and persevering through hard times&rdquo; and quote Hà: what matters is &ldquo;how you play that hand.&rdquo; That encourages the reader &mdash; <b>inspirational<\/b>. (A) educational is the trap; the passage informs, but these lines are meant to lift you up. Tone questions ask how the words make you feel."
+  },
+  {
+   "n": 13,
+   "stem": "In the second paragraph, the author",
+   "opts": [
+    "uses logic to arrive at a conclusion",
+    "compares and contrasts ideas",
+    "uses examples to illustrate a point",
+    "uses metaphors to describe a sensation",
+    "employs emotional language to emphasize the importance of perseverance"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.main",
+   "why": "Paragraph 2 makes a point (limited senses taught Hà to pay attention to details) and then says &ldquo;For example&rdquo; (line 9) &mdash; careful knife work and an intricate plate. So the author <b>uses examples to illustrate a point<\/b>. (B) is tempting because chefs with vision are mentioned, but that is part of the example, not the paragraph&rsquo;s job. The signal words &ldquo;for example&rdquo; often answer this type."
+  },
+  {
+   "n": 14,
+   "stem": "The author implies that Christine Hà",
+   "opts": [
+    "did not receive formal training in the culinary arts",
+    "is committed to fighting for equal rights for people with disabilities",
+    "is better at cooking than at business",
+    "feels most proud of winning Masterchef",
+    "has been successful due to luck rather than hard work"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "Line 6 calls her &ldquo;a self-taught chef,&rdquo; and she had worked as a software consultant. So she <b>did not receive formal training in the culinary arts<\/b>. (B) is a trap: her show was geared toward visually-impaired viewers, but no fight for rights is mentioned. (E) is the opposite of the passage&rsquo;s message about persevering."
+  },
+  {
+   "n": 15,
+   "stem": "According to the passage,",
+   "opts": [
+    "an excellent dish depends on details",
+    "chefs with vision are usually not detail-oriented",
+    "Hà has always had impaired vision",
+    "it is not possible to design and arrange a dish without sight",
+    "Hà&rsquo;s sense of hearing improved after her loss of vision"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.detail",
+   "why": "Lines 8&ndash;9 say limited senses taught her &ldquo;to pay close attention to details in her dishes,&rdquo; and the example shows that care makes an intricate, beautiful plate &mdash; so <b>an excellent dish depends on details<\/b>. (B) goes too far (sighted chefs focus on speed, but nobody says they ignore detail), and (C) and (D) are contradicted by the passage. Watch out for answers that stretch a comparison into an insult.",
+   "flag": "E is also defensible: lines 14&ndash;16 say Hà trained her other senses and &ldquo;now&rdquo; can listen to several conversations at once, which suggests her hearing improved. Kept the printed key A."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 4 &middot; Questions 16&ndash;19",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"text-align:center;font-weight:bold;margin-bottom:6px\">Excerpt from <i>Hans Brinker<\/i> by Mary Mapes Dodge, 1873<\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Holland is as wonderful today as it was twenty years ago. In fact, more<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>wonderful, for every day increases the marvel of its not being washed away<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>by the sea. Its cities have grown, but it is Holland still, and always will be--full<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>of oddity, courage, and industry--the pluckiest little country on earth.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span style=\"text-indent:26px;display:inline-block\">Today an American boy and I, seeing some children enter an old house in<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the business part of Amsterdam, followed them in--and what do you think we<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>found? An old woman, here in the middle of summer, selling hot water and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>fire! She makes her living by it. All day long she sits tending her great fires of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>peat and keeping the shining copper tanks above them filled with water. The<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>children who come and go carry away in a curious stone pail their kettle of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>boiling water and their blocks of burning peat. For these they give her a Dutch<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>cent, which is worth less than half of one of ours. In this way persons who<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>cannot afford to keep a fire burning in hot weather may yet have their cup of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>tea or coffee and bit of boiled fish and potato.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span style=\"text-indent:26px;display:inline-block\">After leaving the old fire woman, who nodded a pleasant good-bye to us,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and willingly put our stivers in her great outside pocket, we drove through the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>streets enjoying the singular sights of a public washing day. Yes, in certain<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>quarters of the city, away from the canals, the streets were lively with<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>washerwomen hard at work. Hundreds of them in clumsy wooden shoes, with<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>their tucked-up skirts, bare arms, and close-fitting caps, were bending over tall<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>wooden tubs that reached as high as their waists--gossiping and rubbing,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>rubbing and gossiping--with perfect unconcern, in the public thoroughfare,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and all washing with cold water instead of using hot, as we do. What a grand<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>thing it would be for our old fire woman if boiling water were suddenly to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span>become the fashion on these public washing days!<\/span><\/div><\/div>"
+  },
+  {
+   "n": 16,
+   "stem": "The author&rsquo;s attitude toward Holland can best be described as",
+   "opts": [
+    "unenthusiastic",
+    "matter-of-fact",
+    "ecstatic",
+    "skeptical",
+    "appreciative"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.tone",
+   "why": "The author calls Holland &ldquo;wonderful&rdquo; and &ldquo;the pluckiest little country on earth&rdquo; (lines 1&ndash;4) and enjoys its &ldquo;singular sights.&rdquo; That is warm admiration &mdash; <b>appreciative<\/b>. (C) ecstatic is the trap: it is positive but far too extreme for this calm, pleased voice. Pick the attitude word whose strength matches the text."
+  },
+  {
+   "n": 17,
+   "stem": "What is the most likely meaning of &lsquo;singular&rsquo; as used in line 17?",
+   "opts": [
+    "unique",
+    "only",
+    "exciting",
+    "unfortunate",
+    "enjoyable"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.vocab",
+   "why": "The &ldquo;singular sights of a public washing day&rdquo; are hundreds of washerwomen scrubbing in the street &mdash; an unusual, one-of-a-kind sight. Singular here means <b>unique<\/b>. (B) only is the trap: singular can mean &ldquo;just one,&rdquo; but there are many sights here. (E) enjoyable describes the author&rsquo;s feeling, not the word."
+  },
+  {
+   "n": 18,
+   "stem": "It can be inferred from the passage that the washerwomen",
+   "opts": [
+    "could clean clothes more effectively with hot water.",
+    "would burn their hands if they used hot water.",
+    "take up very little space in the streets.",
+    "rarely speak to each other while they&rsquo;re washing.",
+    "could support the fire woman&rsquo;s trade if they used hot water."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "Lines 23&ndash;25: &ldquo;What a grand thing it would be for our old fire woman if boiling water were suddenly to become the fashion on these public washing days!&rdquo; She sells hot water, so if the washerwomen used it, they <b>could support the fire woman&rsquo;s trade<\/b>. (D) is wrong &mdash; they are &ldquo;gossiping and rubbing.&rdquo; (A) may be true in real life, but the passage never says it."
+  },
+  {
+   "n": 19,
+   "stem": "The style of this passage is most like that found in a(n)",
+   "opts": [
+    "newspaper article",
+    "encyclopedia entry",
+    "fairy tale",
+    "historical fiction novel",
+    "personal memoir"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.tone",
+   "why": "The source line tells you this is an excerpt from <i>Hans Brinker<\/i>, a novel, written in a story voice set in an earlier time &mdash; so the key says <b>historical fiction novel<\/b>. (E) personal memoir is the tempting choice because a narrator says &ldquo;an American boy and I.&rdquo; Always read the title line above a passage: it often tells you the genre.",
+   "flag": "E (personal memoir) is defensible: the excerpt is a first-person account of the narrator&rsquo;s own visit to Amsterdam. Also, an 1873 writer describing her own present day is not really &lsquo;historical&rsquo; fiction. Kept the printed key D."
+  }
+ ],
+ "count": 19
+};
+const MINUTES = 19;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 10.4 · Reading B</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 10.4 &middot; Section 3, part 2</div>
+    <h1>Reading Comprehension &mdash; Part B (Questions 20&ndash;40)</h1>
+    <div class="meta">21 questions &middot; 21 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">21:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 10.4 &middot; <a href="SSAT-MockTest-1004-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading B",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 5 &middot; Questions 20&ndash;24",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">While reading is often a silent, solitary activity, poetry is a literary<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>genre originally intended to be spoken aloud. More than other forms of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>literature, poetry uses the inherent musicality of language. The earliest<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>poetry predates writing, and was used as a way to remember histories and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>laws. Since these were never written down, only recited or sung, people<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>needed a system for remembering them. This is why, for much of history,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>poetry has used meter and rhyme – two characteristics that help people<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>memorize many words at once.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">One traditional form of poetry that follows a particular kind of meter and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>rhyme scheme is the sonnet. Taking its name from the Italian word<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span><i>sonetto<\/i>, which means “little song,” the sonnet is a short, fourteen-line<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>poem written in a type of metrical line called iambic pentameter.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The rhythm of iambic pentameter is determined by groups of syllables<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>called “feet.” The word “iambic” describes the type of foot that is used: one<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>unstressed syllable followed by one stressed syllable. In English, the words<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>“unite” and “provide” are both pronounced using the iambic rhythm, since<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the words are made up of two syllables and the stress is on the second<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>syllable (“u-NITE” and “pro-VIDE”). The word “pentameter” tells us how<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>many iambic feet occur in each line: “penta” is a Latin root that means<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>“five”.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">While this may seem confusing, an easy way to think about how iambic<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>pentameter rhythm works is to imagine the sound of a human heartbeat<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>repeated five times: da-DUM da-DUM da-DUM da-DUM da-DUM.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Now, imagine humming this rhythm along to the sounds of the words in<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span>the following sentence: “In metric verse the meter keeps the beat.” The<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>opening line of William Shakespeare’s “Sonnet 2” provides another good<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>example of the da-DUM rhythm of iambic pentameter: “When forty<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>winters shall besiege thy brow.”<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">In addition to using iambic pentameter in sonnets, Shakespeare also<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">30<\/span><span>used this type of meter to write dialogue for the characters in his plays.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Though he didn’t use iambic pentameter for every line, many of his most<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>famous and oft-quoted lines are written in this form.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 20,
+   "stem": "Which of the following would the author most likely write about next?",
+   "opts": [
+    "the meaning of Shakespeare&rsquo;s &ldquo;Sonnet 2&rdquo;",
+    "poetry that is meant to be read silently",
+    "the type of rhyme scheme found in sonnets",
+    "types of poetry that do not follow the meter and rhyme used in sonnets",
+    "Shakespeare&rsquo;s most famous plays"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.infer",
+   "why": "The passage says sonnets follow &ldquo;a particular kind of meter and rhyme scheme&rdquo; (lines 9&ndash;10), then explains only the meter. The natural next topic is <b>the type of rhyme scheme found in sonnets<\/b>. (E) is the trap because the last paragraph mentions his plays, but only to show more iambic pentameter. A &ldquo;next&rdquo; question asks what the author promised but has not covered yet."
+  },
+  {
+   "n": 21,
+   "stem": "What does the passage mainly discuss?",
+   "opts": [
+    "the type of rhyme scheme used in English sonnets",
+    "the composition of Shakespeare&rsquo;s sonnets",
+    "the importance of reading poetry out loud",
+    "the type of meter used in traditional sonnets",
+    "how words in poetry sound like a human heartbeat"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.main",
+   "why": "Most of the passage explains iambic pentameter &mdash; feet, stresses, &ldquo;penta&rdquo; = five &mdash; the meter that sonnets use. So it mainly discusses <b>the type of meter used in traditional sonnets<\/b>. (E) is just one comparison used to explain it, and (A) is never explained. Main-idea answers cover most of the paragraphs, not one image."
+  },
+  {
+   "n": 22,
+   "stem": "The word &lsquo;scheme&rsquo; in line 10 most nearly means",
+   "opts": [
+    "pattern",
+    "range",
+    "sound",
+    "fit",
+    "strategy"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;A particular kind of meter and rhyme scheme&rdquo; means the way the rhymes are arranged, a <b>pattern<\/b>. (E) strategy is the trap: scheme often means a plan or plot, but poems don&rsquo;t plot anything. Pick the meaning that fits the context, not the most common one."
+  },
+  {
+   "n": 23,
+   "stem": "In line 2, &lsquo;genre&rsquo; most nearly means",
+   "opts": [
+    "approach",
+    "medium",
+    "method",
+    "type",
+    "grade"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;Poetry is a literary genre&rdquo; means poetry is a kind or category of literature &mdash; a <b>type<\/b>. (B) medium is tempting, but a medium is the material used (paint, film), not a category. Try it out: &ldquo;poetry is a literary type&rdquo; makes sense."
+  },
+  {
+   "n": 24,
+   "stem": "It can be inferred from the passage that",
+   "opts": [
+    "poetry was invented in Europe.",
+    "Shakespeare is the most famous author of sonnets.",
+    "the word &lsquo;video&rsquo; is pronounced using iambic rhythm.",
+    "sonnets can only be written in English.",
+    "the sonnet likely originated in Italy."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "The sonnet takes &ldquo;its name from the Italian word <i>sonetto<\/i>&rdquo; (lines 10&ndash;11), so <b>the sonnet likely originated in Italy<\/b>. (C) is a trap: VI-de-o puts the stress first, the opposite of iambic. (B) may be true in real life, but the passage never says &ldquo;most famous.&rdquo;"
+  },
+  {
+   "type": "passage",
+   "label": "Passage 6 &middot; Questions 25&ndash;28",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"text-align:center;font-weight:bold;margin-bottom:6px\">Excerpt from <i>Little Lord Fauntleroy<\/i> by Frances Hodgson Burnett, 1886<\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">There were groups at the gates and in the porch, and there had been<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>much discussion as to whether my lord would really appear or not. When this<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>discussion was at its height, one good woman suddenly uttered an<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>exclamation.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span style=\"text-indent:26px;display:inline-block\">‘Eh,’ she said, ‘that must be the mother, pretty young thing.’ All who<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>heard turned and looked at the slender figure in black coming up the path.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Soon she could not help being attracted by the fact that her arrival had<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>created some sort of sensation. She first noticed it because an old woman in a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>red cloak made a bobbing courtesy to her, and then another did the same<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>thing and said, ‘God bless you, my lady!’ She flushed rather shyly and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>smiled and bowed too, and said, ‘Thank you,’ in a gentle voice to the old<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>woman who had blessed her. To a person who had always lived in a bustling,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>crowded American city this simple deference was very novel, and at first just<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>a little embarrassing; but after all, she could not help liking and being<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>touched by the friendly warm-heartedness of which it seemed to speak. She<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>had scarcely passed through the stone porch into the church before the great<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>event of the day happened. The carriage from the Castle, with its handsome<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>horses and tall liveried servants, bowled around the corner and down the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>green lane.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span style=\"text-indent:26px;display:inline-block\">‘Here they come!’ went from one looker-on to another.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">And then the carriage drew up, and Thomas stepped down and opened<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the door, and a little boy with a splendid mop of bright waving hair, jumped<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>out.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Every man, woman, and child looked curiously upon him.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span style=\"text-indent:26px;display:inline-block\">He stood there in the sunlight looking up at the Earl, as Thomas helped<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>that nobleman out, with the most affectionate interest that could be imagined.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>The instant he could help, he put out his hand and offered his shoulder as if<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>he had been seven feet high. It was plain enough to every one that however it<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>might be with other people, the Earl of Dorincourt struck no terror into the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">30<\/span><span>breast of his grandson.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 25,
+   "stem": "The passage implies that the woman being blessed",
+   "opts": [
+    "disliked living in America.",
+    "moved to the country unwillingly.",
+    "has a mild temperament.",
+    "knows the older women well.",
+    "enjoys solitary activities."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.infer",
+   "why": "She &ldquo;flushed rather shyly and smiled and bowed&rdquo; and thanked the old woman &ldquo;in a gentle voice&rdquo; (lines 10&ndash;12). Shy, gentle and polite means she <b>has a mild temperament<\/b>. (D) is the trap &mdash; she is a newcomer, which is why the bows feel &ldquo;very novel.&rdquo; Nothing says she disliked America (A)."
+  },
+  {
+   "n": 26,
+   "stem": "It can be inferred from the passage that the Earl",
+   "opts": [
+    "is a generally disliked nobleman.",
+    "frightens some of his subjects.",
+    "must always enter the church first.",
+    "frequently has his grandson accompany him.",
+    "regularly inspires widespread speculation."
+   ],
+   "ans": 1,
+   "sk": "ssat.r.infer",
+   "why": "Lines 28&ndash;30: &ldquo;however it might be with other people, the Earl of Dorincourt struck no terror into the breast of his grandson.&rdquo; That hints that he <b>frightens some of his subjects<\/b>. (A) goes too far: being feared is not the same as being disliked. Look for &ldquo;other people&rdquo; contrasts &mdash; they often hold the inference."
+  },
+  {
+   "n": 27,
+   "stem": "In the context of the passage, &lsquo;deference&rsquo; (line 13) most nearly means",
+   "opts": [
+    "favor",
+    "gift",
+    "generosity",
+    "action",
+    "respect"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.vocab",
+   "why": "The &ldquo;deference&rdquo; is the bobbing curtsies and &ldquo;God bless you, my lady!&rdquo; &mdash; polite signs of <b>respect<\/b>. (A) favor and (C) generosity are traps; the women are honoring her, not giving her anything. Deference comes from &ldquo;defer&rdquo; = to yield to someone out of respect."
+  },
+  {
+   "n": 28,
+   "stem": "What does the passage mainly discuss?",
+   "opts": [
+    "country manners",
+    "appreciation for a woman",
+    "class distinctions",
+    "a blessing ceremony",
+    "an eagerly anticipated arrival"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.main",
+   "why": "Crowds wait at the gates, wondering &ldquo;whether my lord would really appear&rdquo; (line 2); then &ldquo;Here they come!&rdquo; and everyone stares at the boy. It is about <b>an eagerly anticipated arrival<\/b>. (B) is the trap: the mother&rsquo;s welcome is only the middle part. (D) is wrong &mdash; there is no ceremony, just people saying &ldquo;God bless you.&rdquo;"
+  },
+  {
+   "type": "passage",
+   "label": "Passage 7 &middot; Questions 29&ndash;34",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Although many Americans take it for granted, the concept of “school<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>lunch” is a relatively recent one. In past centuries, few children other<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>than those from upper-class families received a formal education.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>However, that fact changed during the 19th century. During the Industrial<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>Revolution, many children began to work in factories instead of on farms.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Writers and activists reacted to what they saw as an exploitation of child<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>labor by arguing that childhood is a time of simplicity that should be<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>safeguarded. In response to these protests, governments in Europe and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>North America first passed child labor laws, then created programs for<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>mandatory education.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">All children, not just the wealthy and aristocratic, now had to attend<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>school. And, since children were spending most of their weekdays in a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>school building, they had to somehow be fed! In the United States, the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>first school lunch programs were started by welfare organizations, whose<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>goals were to provide all children, regardless of their economic status,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>with nutritious food, and to teach them healthy eating habits. In the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Great Depression, the government became involved in these programs;<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>for the next fifty years, the federal government provided school lunch<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>programs to American students without much pushback.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span style=\"text-indent:26px;display:inline-block\">Throughout the 1980s and 1990s, however, there were many cuts to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>school lunch programs--nutrition standards became less of a priority<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>than saving money. Famously, ketchup was declared a “vegetable” to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>prevent having to buy actual vegetables. Significantly smaller lunch<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>portions and poor nutrition standards even led TIME magazine to state<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span>that American schools were “flunking lunch.” Most often, these changes<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>impacted low-income children who could not afford to bring their own<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>healthy lunches to school. During this same period, childhood obesity<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>rates in the United States dramatically increased, also primarily among<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>poorer children. Suddenly, school lunches became a key point in a nation-<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">30<\/span><span>wide debate over how to help all children be healthy and happy.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">After decades of debate, Congress finally passed the Healthy, Hunger-<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Free Kids Act In 2010, which required the school meal programs to meet<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>new nutrition standards. This piece of legislation was meant to return<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>school lunches to the intentions of the original programs: to provide<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">35<\/span><span>nutritious and satisfying meals to all children. Since the act passed, new<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>nutrition standards have been established for school lunches. Now,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>school lunches must include an increased portion of whole grains, fruit<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and vegetables, while transfats and sodium amounts have been lowered.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">While there were some anecdotal reports that these healthier lunches<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">40<\/span><span>were ending up in the trash, research suggests otherwise. A 2015 study,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>which followed 500 children in urban schools for two years, found a 19%<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>increase in vegetable intake among the study’s subjects. These findings<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>should be encouraging to everyone invested in a common goal: to make<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>sure all children eat well and learn healthy eating habits, so they can<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">45<\/span><span>grow physically and mentally strong.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 29,
+   "stem": "The primary purpose of the passage is to",
+   "opts": [
+    "explain why the obesity rate has increased among American schoolchildren",
+    "recount many of the author&rsquo;s favorite school lunches from their childhood",
+    "describe the context and history of school lunch programs in the United States",
+    "discuss the advantages and disadvantages of healthy eating habits",
+    "provide anecdotal reports to support healthy school lunches"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.main",
+   "why": "The passage moves in time order: the Industrial Revolution, the first programs, the Great Depression, cuts in the 1980s&ndash;90s, the 2010 law and a 2015 study. That is <b>describing the context and history of school lunch programs<\/b>. (A) is a trap: obesity is one detail in paragraph 3. (E) is backwards &mdash; the anecdotes in line 39 are the ones the author argues <i>against<\/i>."
+  },
+  {
+   "n": 30,
+   "stem": "In line 3, &ldquo;formal&rdquo; most nearly means",
+   "opts": [
+    "systematic",
+    "ceremonial",
+    "lengthy",
+    "quality",
+    "expensive"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.vocab",
+   "why": "A &ldquo;formal education&rdquo; is organized schooling with a set plan &mdash; <b>systematic<\/b>. (B) ceremonial is the trap: &ldquo;formal&rdquo; can mean fancy, like a formal dinner, but that does not fit education. (E) expensive is tempting because rich children got it, but that is a different idea."
+  },
+  {
+   "n": 31,
+   "stem": "The author of the passage does all of the following EXCEPT",
+   "opts": [
+    "emphasize the importance of healthy eating habits for children",
+    "acknowledge that some vegetables are more healthy than others",
+    "discuss the history of school lunch programs in the United States",
+    "suggest that cuts to school lunch programs affected primarily low-income children",
+    "suggest that nutrition standards should include vegetables"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "You can find (A) in the last sentence, (C) all through, (D) in lines 25&ndash;27, and (E) in the ketchup story and the new rules. The author never compares one vegetable with another, so the exception is <b>acknowledge that some vegetables are more healthy than others<\/b>. Ketchup was only <i>declared<\/i> a vegetable &mdash; that is the trap."
+  },
+  {
+   "n": 32,
+   "stem": "The author&rsquo;s tone in lines 22-23 (&ldquo;Famously...vegetables.&rdquo;) is best described as",
+   "opts": [
+    "thoughtful",
+    "matter-of-fact",
+    "cynical",
+    "shocked",
+    "nonchalant"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.tone",
+   "why": "&ldquo;Ketchup was declared a &lsquo;vegetable&rsquo; to prevent having to buy actual vegetables&rdquo; &mdash; the quotation marks around &ldquo;vegetable&rdquo; mock the decision and suggest money-saving motives. That doubting, mocking tone is <b>cynical<\/b>. (B) matter-of-fact is the trap: the sentence states a fact, but the quote marks and &ldquo;actual&rdquo; add an edge. Watch for scare quotes; they signal attitude."
+  },
+  {
+   "n": 33,
+   "stem": "The purpose of the last sentence (lines 42-45) is to",
+   "opts": [
+    "suggest that nutritious school meals are more than just physically beneficial",
+    "offer a simple principle to guide all future legislation",
+    "convince readers that a balanced diet is the most important part of a good education",
+    "describe the universal agreement that school lunches should be provided to all students",
+    "refer back to the discussion of the Industrial Revolution"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "The last sentence ends with children who can &ldquo;grow physically <i>and mentally<\/i> strong.&rdquo; So good meals are <b>more than just physically beneficial<\/b>. (C) goes too far &mdash; &ldquo;most important part of a good education&rdquo; is never claimed. (D) is wrong because the passage shows decades of debate, not universal agreement."
+  },
+  {
+   "n": 34,
+   "stem": "In context, what conclusion can be drawn from the mention of the Industrial Revolution in the first paragraph?",
+   "opts": [
+    "The Industrial Revolution did not affect privileged, aristocratic families.",
+    "The Industrial Revolution led to a rise in factories and a need for factory labor.",
+    "The Industrial Revolution was a major cause of the Great Depression.",
+    "During the Industrial Revolution, food became much less healthy and nutritious.",
+    "The Industrial Revolution primarily occurred in the United States."
+   ],
+   "ans": 1,
+   "sk": "ssat.r.infer",
+   "why": "Lines 4&ndash;5: &ldquo;During the Industrial Revolution, many children began to work in factories instead of on farms.&rdquo; That only makes sense if there were more factories needing workers, so <b>it led to a rise in factories and a need for factory labor<\/b>. (C) links two events the passage never connects. (E) is wrong &mdash; laws were passed in Europe and North America."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 8 &middot; Questions 35&ndash;40",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Have you ever wondered why you received your mother’s brown eyes<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and a combination of your father’s straight hair and your mother’s curly hair,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>leaving yours an irrevocable wave? Or perhaps you have a temper that is<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>remarkably similar to others in your family, and you’ve wondered if it was<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>due to nature or nurture. Many human societies have long known that people<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>often display a combination of their parents’ traits, or genes, but it is only<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>since the mid 1880s that humans have known exactly where this<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>“information” was stored in the human body.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Chromosomes are a combination of protein and nucleic acids that are<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>located within the cells of each human being. These chromosomes carry the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>information of our biological makeup, and this map is coded in our genes.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Genes hold directions for making the proteins that constitute the majority of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>our cellular structures. Genes hold the secrets that determine the pigment of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>your skin, your gender, and your blood type.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span style=\"text-indent:26px;display:inline-block\">Healthy humans are all born with twenty-three pairs of chromosomes<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>which carry all the genetic information inherited from one’s biological<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>parents; one half of each set comes from the mother, and the other from the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>father. Some traits are considered dominant, and others are recessive. For<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>example, if your mother has brown eyes, you are much more likely to display<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>that trait because brown eyes are dominant over blue. However, the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>dominance patterns of some traits are not as straightforward. Most people<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>who have one parent with straight hair, and one with curly hair end up with a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>combination of the two hair types rather than displaying one or the other.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Still other traits, like your temper, may be significantly determined by<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span>environment.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The entire human genome is made of roughly 21,000 genes. Fruit flies<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>have 13,600, and oddly enough, mice have roughly 23,000 genes. It took<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>scientists eleven years to discover what each piece of the human genome<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>codes for. The project was completed in February of 2001. With this map of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">30<\/span><span>the human genome, we can better understand our own biological makeup and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>can even use “gene therapy” to cure certain genetic diseases.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 35,
+   "stem": "Which of the following titles best summarizes the content of the passage?",
+   "opts": [
+    "Advantages and Disadvantages of Gene Therapy",
+    "The Inheritance of Eye Color",
+    "An Introduction to Chromosomes and Genetics",
+    "An Introduction to Dominant and Recessive Genes",
+    "Cell Structures and Functions"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.main",
+   "why": "The passage covers chromosomes, genes, inherited traits and the human genome &mdash; a broad first look: <b>An Introduction to Chromosomes and Genetics<\/b>. (D) is the trap: dominant and recessive traits fill only part of paragraph 3. (A) and (B) are single details. A good title covers the whole passage."
+  },
+  {
+   "n": 36,
+   "stem": "The passage provides information to support all of the following statements EXCEPT?",
+   "opts": [
+    "Human temperaments are likely environmentally influenced.",
+    "Genetic information is coded in chromosomes.",
+    "Chromosomes are located in human cells.",
+    "Fruit flies have fewer genes than humans.",
+    "Both brown eyes and curly hair are dominant traits."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.detail",
+   "why": "Brown eyes are called dominant (line 20), but curly hair is not: straight-and-curly parents usually give a <i>combination<\/i> (lines 22&ndash;23). So the unsupported statement is <b>both brown eyes and curly hair are dominant traits<\/b>. Check the others: temper and environment (lines 24&ndash;25), cells (line 10), fruit flies 13,600 versus 21,000 (lines 26&ndash;27). In EXCEPT questions, a half-true choice is a common trap."
+  },
+  {
+   "n": 37,
+   "stem": "In line 18, &ldquo;recessive&rdquo; most nearly means",
+   "opts": [
+    "prevailing.",
+    "imperative.",
+    "dominant.",
+    "immobilized.",
+    "subordinate."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;Some traits are considered dominant, and others are recessive&rdquo; &mdash; recessive is set against dominant, so it means the weaker, lower-ranked one: <b>subordinate<\/b>. (A) prevailing and (C) dominant are the opposite. <i>Re-cede<\/i> = to go back or step back."
+  },
+  {
+   "n": 38,
+   "stem": "According to the passage, humans have",
+   "opts": [
+    "13,600 chromosomes.",
+    "23,000 chromosomes.",
+    "46 chromosomes.",
+    "23 chromosomes.",
+    "21,000 chromosomes."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.detail",
+   "why": "Line 15: humans have &ldquo;twenty-three pairs of chromosomes.&rdquo; 23 pairs &times; 2 = <b>46 chromosomes<\/b>. (D) 23 is the trap if you miss the word &ldquo;pairs,&rdquo; and 21,000 (E) is the number of <i>genes<\/i>, not chromosomes. Read units carefully: pairs, genes and chromosomes are all different things."
+  },
+  {
+   "n": 39,
+   "stem": "From the various gene counts listed for various living creatures we can infer that",
+   "opts": [
+    "information within a particular gene is not always the same between one organism and another.",
+    "chromosome composition does not vary among species.",
+    "an organism&rsquo;s size may not increase with increasing gene count.",
+    "chromosome count does not vary widely across species.",
+    "an organism&rsquo;s structure is determined by gene count."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.infer",
+   "why": "Lines 26&ndash;27: humans have about 21,000 genes, but &ldquo;oddly enough, mice have roughly 23,000.&rdquo; A small mouse has <i>more<\/i> genes than a human, so <b>an organism&rsquo;s size may not increase with increasing gene count<\/b>. (A) is the trap: the counts tell you how many genes there are, not what is inside one gene. (B) and (D) talk about chromosomes, but the list gives gene counts."
+  },
+  {
+   "n": 40,
+   "stem": "It can be inferred that the author specifies &ldquo;biological parents&rdquo; (lines 16-17) to",
+   "opts": [
+    "specify whose parents are being identified.",
+    "reinforce the source of genetic information that contributes to one&rsquo;s traits.",
+    "explain how genes impact family relationships.",
+    "clarify a previous question about where information is stored in the body.",
+    "downplay the influence of environmental factors."
+   ],
+   "ans": 1,
+   "sk": "ssat.r.infer",
+   "why": "Genetic information is &ldquo;inherited from one&rsquo;s biological parents&rdquo; &mdash; half from the mother, half from the father. The word <i>biological<\/i> stresses that genes come from birth parents, so it serves to <b>reinforce the source of genetic information<\/b>. (A) is the trap: it just repeats the question in other words without saying <i>why<\/i>. Purpose questions want the reason, not a restatement."
+  }
+ ],
+ "count": 21
+};
+const MINUTES = 21;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

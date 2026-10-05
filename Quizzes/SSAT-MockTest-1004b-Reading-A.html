@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 10.4b · Reading A</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 10.4b &middot; Section 3, part 1</div>
+    <h1>Reading Comprehension &mdash; Part A (Questions 1&ndash;18)</h1>
+    <div class="meta">18 questions &middot; 18 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">18:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 10.4b &middot; <a href="SSAT-MockTest-1004b-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading A",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 1 &middot; Questions 1&ndash;5",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"text-align:center;font-weight:bold;margin-bottom:6px\">Excerpt from <i>Heidi<\/i> by Johanna Spyri, 1881<\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The early light of morning lay rosy red upon the mountains, and a fresh<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>breeze rustled through the fir trees and set their ancient branches waving to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and fro. The sound awoke Heidi and she opened her eyes. The roaring in the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>trees always stirred a strong emotion within her and seemed to draw her<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>irresistibly to them. So she jumped out of bed and dressed herself as quickly<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>as she could. When she went down her ladder she found her grandfather had<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>already left the hut. He was standing outside looking at the sky and examining<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the landscape as he did every morning, to see what sort of weather it was<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>going to be.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span style=\"text-indent:26px;display:inline-block\">Heidi began her daily work as usual, but she did not get on with it very fast.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>It was so lovely out of doors today, and every minute something happened to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>interrupt her in her work. Now it was a bright beam of sun shining cheerfully<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>through the open window, and seeming to say, &ldquo;Come out, Heidi, come out!&rdquo;<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Heidi felt she could not stay indoors, and she ran out in answer to the call. The<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>sunlight lay sparkling on everything around the hut and on all the mountains<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and far away down in the valley, and the grass slope looked so golden and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>inviting that she was obliged to sit down for a few minutes and look about her.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Then she suddenly remembered that her stool was left standing in the middle<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>of the floor and that the table had not been rubbed, and she jumped up and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>ran inside again. But it was not long before the fir trees began their old song;<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Heidi felt it in all her limbs, and again the desire to run outside was irresistible,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and she was off to play and leap to the tune of the waving branches. The<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>grandfather, who was busy in his work-shed, stepped out from time to time<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>smiling to watch her at her gambols.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 1,
+   "stem": "The passage is primarily concerned with",
+   "opts": [
+    "a description of the weather and nature.",
+    "a young girl&rsquo;s love of the outdoors.",
+    "the difficulties children have in completing chores.",
+    "the importance of balancing time spent inside and outside.",
+    "the relationship between a granddaughter and grandfather."
+   ],
+   "ans": 1,
+   "sk": "ssat.r.main",
+   "why": "Almost every sentence shows Heidi being pulled outside: the roaring trees &ldquo;draw her irresistibly&rdquo; (lines 4&ndash;5), the sun calls &ldquo;Come out, Heidi&rdquo; (line 13), and in the end &ldquo;the desire to run outside was irresistible&rdquo; (line 21). So it is about <b>a young girl&rsquo;s love of the outdoors<\/b>. The weather and the grandfather are part of the scene, but they are not the main point. Rule: the main idea is what keeps coming back in every paragraph."
+  },
+  {
+   "n": 2,
+   "stem": "What is the most likely meaning of the word &ldquo;gambols&rdquo; (line 24), as used in this passage?",
+   "opts": [
+    "exhiliration",
+    "entertainment",
+    "strolling",
+    "activity",
+    "frolicking"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.vocab",
+   "why": "Just before, Heidi &ldquo;was off to play and leap to the tune of the waving branches&rdquo; (line 22). Playing and leaping happily is <b>frolicking<\/b>. &ldquo;Activity&rdquo; is too general, and &ldquo;strolling&rdquo; is too slow and calm. Rule: the sentence before a vocab word often describes it for you."
+  },
+  {
+   "n": 3,
+   "stem": "The place that Heidi and her grandfather live is",
+   "opts": [
+    "simple",
+    "lavish",
+    "unsheltered",
+    "in the valley",
+    "crowded"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "They live in a &ldquo;hut&rdquo; (line 7); Heidi climbs down a ladder, and her chores are setting a stool straight and rubbing a table. That is a <b>simple<\/b> home. &ldquo;In the valley&rdquo; is the trap: the valley is &ldquo;far away down&rdquo; (line 16), so they live up on the mountain. Rule: small details like &ldquo;hut&rdquo; and &ldquo;ladder&rdquo; tell you about a setting."
+  },
+  {
+   "n": 4,
+   "stem": "The sun seeming to say &ldquo;Come out, Heidi, come out!&rdquo; (line 13) is an example of",
+   "opts": [
+    "metaphor",
+    "simile",
+    "symbolism",
+    "personification",
+    "clich&eacute;"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.tone",
+   "why": "The sunbeam &ldquo;seeming to say&rdquo; something gives a human action (speaking) to a non-human thing. That is <b>personification<\/b>. There is no &ldquo;like&rdquo; or &ldquo;as,&rdquo; so it is not a simile. Rule: when a thing talks, feels or acts like a person, it&rsquo;s personification."
+  },
+  {
+   "n": 5,
+   "stem": "According to the passage, which of the following statements is true?",
+   "opts": [
+    "Heidi lives near fir trees.",
+    "Heidi speaks to the sun beams.",
+    "It is cloudy and windy outside.",
+    "Heidi does none of her chores.",
+    "Heidi plays with her grandfather."
+   ],
+   "ans": 0,
+   "sk": "ssat.r.detail",
+   "why": "Line 2 says a breeze &ldquo;rustled through the fir trees,&rdquo; and their sound wakes Heidi in bed, so <b>Heidi lives near fir trees<\/b>. The sun &ldquo;seems&rdquo; to speak to her, not the other way round; the sunlight is &ldquo;sparkling,&rdquo; so it isn&rsquo;t cloudy; and the grandfather only watches her play. Rule: check each choice against the exact words."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 2 &middot; Questions 6&ndash;9",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Look at the label of any hygiene product, processed food item, or<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>cleaning product in your household, and you will likely see a long list of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>chemicals you can barely pronounce. While some of these complex names<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>refer to a safe, non-toxic substance, others refer to compounds with more<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>dubious effects. Finding alternatives to items containing chemicals like butyl<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>cellosolve is easier than you might imagine. In fact, there are many<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>single-ingredient products that are safe to breathe, touch, and even ingest.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>My personal favorite is raw honey.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Honey is a beauty and health wonder unto itself. The ancient Egyptians<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>made offerings of honey to their gods and Cleopatra herself was said to have<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>bathed in a mixture of milk and honey. But one need not be an Egyptian<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>pharaoh to obtain such luxuries. Replace your usual body wash with honey,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and you will be amazed by how smooth your skin becomes. Not only does<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>honey moisturize and exfoliate, but it also has mild antiseptic properties that<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>help keep you clean! Yes, raw honey is a natural antiseptic; you can actually<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>dab it onto scrapes and burns to help keep them from getting infected.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">With all of this sweet honey going around, you might be tempted to eat a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>spoonful or two. Go ahead and indulge in this sweet treat. Ingested raw<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>honey has anti-inflammatory properties, which help soothe asthma, arthritis,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>and other ailments related to inflammation. Additionally, raw honey acts as<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>an antioxidant at the cellular level; it can help protect your cells from<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>premature senescence by protecting them from free radicals in the body.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Studies have also indicated that honey improves athletic performance as it<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>speeds up basal metabolism.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span style=\"text-indent:26px;display:inline-block\">While its uses are multitude, honey is not the only multi-purpose<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>wonder-product. Look into alternative uses for salt, vinegar, olive oil, and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>baking soda; you will be amazed by the power of these regular household<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>items.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 6,
+   "stem": "What is the general tone of the passage?",
+   "opts": [
+    "informative and condescending",
+    "critical and judgmental",
+    "philosophical and lamenting",
+    "cynical and sardonic",
+    "instructive and persuasive"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.tone",
+   "why": "The author gives directions (&ldquo;Replace your usual body wash with honey,&rdquo; &ldquo;Go ahead and indulge&rdquo;) and tries to win you over (&ldquo;you will be amazed&rdquo;). That is <b>instructive and persuasive<\/b>. &ldquo;Informative&rdquo; fits, but nothing is condescending (talking down to you), so A fails on its second word. Rule: in a two-word tone choice, both words must fit."
+  },
+  {
+   "n": 7,
+   "stem": "The author most likely cited the uses of honey in ancient Egypt in order to",
+   "opts": [
+    "point out honey&rsquo;s long history in human consumption and health.",
+    "point out that honey was once a rare and valued commodity.",
+    "compare and contrast ancient and modern uses of honey.",
+    "capture the reader&rsquo;s attention so whet their appetite.",
+    "reveal honey&rsquo;s medicinal uses in ancient Egypt."
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "Mentioning gods and Cleopatra&rsquo;s milk-and-honey bath (lines 9&ndash;11) shows that people have valued honey for thousands of years, so the purpose is to <b>point out honey&rsquo;s long history in human consumption and health<\/b>. The passage never says honey was rare, and the Egypt examples are about beauty and offerings, not medicine. Rule: ask why the author brought up an example, not just what it says."
+  },
+  {
+   "n": 8,
+   "stem": "This passage is primarily about",
+   "opts": [
+    "unconventional methods for obtaining a healthy lifestyle.",
+    "how to treat scrapes burns with raw honey.",
+    "the cosmetic properties of honey.",
+    "uses of honey in Ancient Egypt.",
+    "the versatile uses of honey."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.main",
+   "why": "The passage covers honey for skin, for cuts and burns, for eating, for inflammation and for athletes&mdash;many different uses. That is <b>the versatile uses of honey<\/b> (versatile = useful in many ways). Scrapes, cosmetics and Egypt are each just one part. Rule: pick the choice that covers every paragraph."
+  },
+  {
+   "n": 9,
+   "stem": "According to the passage, raw honey has all the following properties EXCEPT",
+   "opts": [
+    "antiseptic",
+    "anticoagulant",
+    "antioxidant",
+    "moisturizing",
+    "exfoliating"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "Find each one: moisturize and exfoliate (line 14), antiseptic (line 15), antioxidant (line 21). The word &ldquo;anticoagulant&rdquo; (stops blood clotting) never appears, so the answer is <b>anticoagulant<\/b>. Be careful: the passage does say &ldquo;anti-inflammatory,&rdquo; which is a different &ldquo;anti-&rdquo; word. Rule: on EXCEPT questions, cross off every choice you can find."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 3 &middot; Questions 10&ndash;14",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Around twenty-five hundred years ago, in the land of India, there was a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>great king. When the queen became pregnant, the court advisor was<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>summoned. This advisor informed them that they would have a son, and this<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>son would achieve one of two destinies: He would be either a great ruler and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>found an empire, or become a great religious teacher. Preferring the former<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>over the latter, the king secluded the young prince in decadent palaces,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>making sure he had everything he could possibly want. The prince grew up<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>isolated from all forms of pain, discomfort, and suffering.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">In his teens, the prince decided he wanted to see the kingdom he would<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>one day rule. His father agreed, on the condition that the streets were cleared<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and his son venture out with a trusted charioteer. Eventually the prince<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>happened upon a sick man, an old man, and a dead man, and each time the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>charioteer assured the prince that everyone gets sick, grows old, and dies.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Lastly, the pair came upon a man sitting cross legged on the side of the road.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>When the prince asked who he was, the charioteer replied that he was a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>renunciate, a wandering holy man striving for enlightenment.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The prince, Siddhartha Gautama, went on to renounce his kingdom,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>wealth, and family, to eventually become the Buddha, the Awakened One.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>He spent the rest of his life teaching <i>dharma<\/i>, what he summarized as<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>&ldquo;suffering, and the way out of suffering.&rdquo; It is in the wake of Gautama the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Buddha that the religion of Buddhism emerged.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 10,
+   "stem": "The general tone of this passage is",
+   "opts": [
+    "entertaining.",
+    "skeptical.",
+    "fantastical.",
+    "morose.",
+    "respectful."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.tone",
+   "why": "The author tells the Buddha&rsquo;s story plainly and with honor, calling him &ldquo;the Awakened One&rdquo; and the renunciate a &ldquo;holy man striving for enlightenment.&rdquo; The tone is <b>respectful<\/b>. &ldquo;Morose&rdquo; (gloomy) is a trap: the story mentions sickness and death, but the author&rsquo;s attitude isn&rsquo;t gloomy. Rule: tone is the author&rsquo;s attitude, not the topic."
+  },
+  {
+   "n": 11,
+   "stem": "According to the passage, the prince was curious about",
+   "opts": [
+    "the nature of romantic love.",
+    "the thinking of the court advisor.",
+    "his charioteer&rsquo;s personal life.",
+    "his parents&rsquo; values and attitudes.",
+    "daily life in the kingdom."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.detail",
+   "why": "Lines 9&ndash;10: &ldquo;the prince decided he wanted to see the kingdom he would one day rule.&rdquo; He had grown up shut away in palaces, so he wanted to see <b>daily life in the kingdom<\/b>. He asks the charioteer about a stranger, not about the charioteer himself. Rule: &ldquo;According to the passage&rdquo; means the answer is stated&mdash;find the line."
+  },
+  {
+   "n": 12,
+   "stem": "In line 16, the word &ldquo;renunciate&rdquo; could best be replaced by",
+   "opts": [
+    "advisor",
+    "jester",
+    "crusader",
+    "diviner",
+    "monk"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.vocab",
+   "why": "The passage defines it right after the comma: &ldquo;a wandering holy man striving for enlightenment&rdquo; (line 16). The closest word is <b>monk<\/b>. &ldquo;Diviner&rdquo; (fortune-teller) sounds religious, but it&rsquo;s someone who predicts the future, like the court advisor. Rule: look for a definition set off by commas right after a hard word."
+  },
+  {
+   "n": 13,
+   "stem": "Which one of the following did the prince NOT learn?",
+   "opts": [
+    "Everyone dies.",
+    "Everyone experiences illness.",
+    "People grow old.",
+    "There is no escape from suffering.",
+    "It is possible to pursue wisdom instead of wealth."
+   ],
+   "ans": 3,
+   "sk": "ssat.r.detail",
+   "why": "The charioteer teaches him that everyone gets sick, grows old and dies (line 13), and the renunciate shows him a life spent seeking enlightenment instead of riches. But the Buddha later taught &ldquo;the way out of suffering&rdquo; (line 20), the opposite of <b>There is no escape from suffering<\/b>. Rule: on NOT questions, the answer often contradicts the passage."
+  },
+  {
+   "n": 14,
+   "stem": "The king seems to",
+   "opts": [
+    "value sons more than daughters.",
+    "value wisdom more than power.",
+    "value power more than wisdom.",
+    "love his queen with all his heart.",
+    "distrust his court advisor."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.infer",
+   "why": "Offered two futures for his son&mdash;great ruler or great religious teacher&mdash;the king preferred &ldquo;the former over the latter&rdquo; (lines 5&ndash;6), meaning the ruler. So he seems to <b>value power more than wisdom<\/b>. Choice B flips it. Rule: &ldquo;former&rdquo; means the first one mentioned, &ldquo;latter&rdquo; the second."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 4 &middot; Questions 15&ndash;18",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"text-align:center;font-weight:bold;margin-bottom:6px\">Excerpt from &ldquo;The Coal Picker&rdquo; by Amy Lowell, 1914<\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">He perches in the slime, inert,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Bedaubed with iridescent dirt.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>The oil upon the puddles dries<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>To colours like a peacock&rsquo;s eyes.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>And half-submerged tomato-cans<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Shine scaly, as leviathans<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Oozily crawling through the mud.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>The ground is here and there bestud<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>With lumps of only part-burned coal.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>His duty is to glean the whole,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>To pick them from the filth, each one,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>To hoard them for the hidden sun<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Which glows within each fiery core<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>And waits to be made free once more.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>Their sharp and glistening edges cut<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>His stiffened fingers. Through the smut<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Gleam red the wounds which will not shut.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Wet through and shivering he kneels<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>And digs the slippery coals; like eels<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>They slide about. His force all spent,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>He counts his small accomplishment.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>A half-a-dozen clinker-coals<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Which still have fire in their souls.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Fire! And in his thought there burns<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span>The topaz fire of votive urns.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 15,
+   "stem": "Which word best describes the mood of the man in the last two lines of the excerpt?",
+   "opts": [
+    "downtrodden",
+    "angry",
+    "fearful",
+    "absorbed",
+    "satisfied"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.tone",
+   "why": "In the last two lines, &ldquo;in his thought there burns / The topaz fire of votive urns&rdquo;&mdash;he is lost in a glowing daydream about the fire his coals will make. That mood is <b>absorbed<\/b> (deep in thought). &ldquo;Satisfied&rdquo; is tempting because he has just counted his coals, but the last two lines are about what fills his mind. Rule: read exactly the lines the question names.",
+   "flag": "E (satisfied) is also defensible: line 21 &ldquo;He counts his small accomplishment&rdquo; and the excited &ldquo;Fire!&rdquo; suggest contentment. The key&rsquo;s D fits &ldquo;in his thought there burns&rdquo; best."
+  },
+  {
+   "n": 16,
+   "stem": "Which of the following lines appeals primarily to the visual sense?",
+   "opts": [
+    "&ldquo;Their sharp and glistening edges cut&rdquo;",
+    "&ldquo;The oil upon the puddles dries / To colours like a peacock&rsquo;s eyes&rdquo;",
+    "&ldquo;Oozily crawling through the mud&rdquo;",
+    "&ldquo;the slippery coals; like eels / They slide about&rdquo;",
+    "&ldquo;A half-a-dozen clinker-coals&rdquo;"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "Colors are something you can only see, and &ldquo;colours like a peacock&rsquo;s eyes&rdquo; paints a shimmering picture. So <b>&ldquo;The oil upon the puddles dries / To colours like a peacock&rsquo;s eyes&rdquo;<\/b> is the visual line. &ldquo;Sharp&hellip; edges cut&rdquo; and &ldquo;slippery coals&rdquo; appeal mostly to touch. Rule: sort imagery by sense&mdash;color = sight, sharp/slippery = touch."
+  },
+  {
+   "n": 17,
+   "stem": "What does the word &lsquo;hoard&rsquo; mean in line 12?",
+   "opts": [
+    "cherish",
+    "carry",
+    "burn",
+    "exploit",
+    "amass"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.vocab",
+   "why": "He picks the coals &ldquo;from the filth, each one&rdquo; and saves them up&mdash;to hoard is to collect and store a supply, which is to <b>amass<\/b>. &ldquo;Cherish&rdquo; is tempting because people hoard things they value, but hoarding is about gathering, not loving. Rule: a vocab answer must match what the person is actually doing in the line."
+  },
+  {
+   "n": 18,
+   "stem": "The poem is mainly about",
+   "opts": [
+    "a man searching in the mud.",
+    "a homeless man.",
+    "a man who longs to run away from his current life.",
+    "a man&rsquo;s attempt to build a fire.",
+    "a coal mine."
+   ],
+   "ans": 0,
+   "sk": "ssat.r.main",
+   "why": "The whole poem shows a man in &ldquo;slime&rdquo; and &ldquo;mud,&rdquo; kneeling and digging to &ldquo;glean&rdquo; bits of coal (lines 10&ndash;19). That is <b>a man searching in the mud<\/b>. He dreams of fire, but he never builds one, and the poem never says he is homeless or that this is a mine. Rule: don&rsquo;t add facts the poem doesn&rsquo;t give."
+  }
+ ],
+ "count": 18
+};
+const MINUTES = 18;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

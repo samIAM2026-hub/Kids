@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 10.4b · Reading B</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 10.4b &middot; Section 3, part 2</div>
+    <h1>Reading Comprehension &mdash; Part B (Questions 19&ndash;40)</h1>
+    <div class="meta">22 questions &middot; 22 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">22:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 10.4b &middot; <a href="SSAT-MockTest-1004b-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading B",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 5 &middot; Questions 19&ndash;24",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">In the 15th and 16th centuries, European exploration and colonization<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>initiated the Columbian exchange, in which ideas, cultures, plants, animals,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and diseases were shared between the Americas and Europe.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">One life-saving benefit Europeans derived from this exchange was the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>cure for scurvy. Between 1500 and 1800, millions of sailors perished due to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>scurvy, a disease caused by lack of vitamin C. The provisions available for<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>long sea voyages at the time rarely included any fresh or preserved foods<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>containing appreciable amounts of this essential vitamin.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The cure for scurvy came to Europe from the medicinal knowledge of the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>St. Lawrence Iroquoians living near what is now Montreal, Canada. According<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>to the book <i>Indian Givers<\/i> by Jack Weatherford, the French explorer Jacques<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Cartier was traveling on the St. Lawrence River in the winter of 1535 when his<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>ships became trapped and frozen in the river. He and his men went to shore<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>to wait for the warmer temperatures of spring to thaw the ships free.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span style=\"text-indent:26px;display:inline-block\">These French explorers survived in part by trading with the local people<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>for whom the icy land was home. Cartier noticed that some of the native<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>people showed signs of scurvy, and not knowing the cause or nature of the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>disease, he forbade his men to mingle too closely with the locals, fearing<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>scurvy was communicable. Despite his precautions, his men soon became<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>sick with scurvy as well. They grew weak and within a few months a quarter of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>them had died.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">However, the Iroquoians knew scurvy was not contagious. Eventually<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Cartier came to see that while the Iroquoians also developed scurvy, they did<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>not die from it. He asked them for a cure and they showed him how to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span>concoct a healing tonic from the bark and needles of a local type of evergreen<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>tree. Since scurvy results from a vitamin C deficiency and this unpleasant<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>beverage offered a high dose of vitamin C, each of his men who drank the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>tonic recovered his health in just over a week&rsquo;s time.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 19,
+   "stem": "As used in the passage in line 19, &ldquo;communicable&rdquo; most nearly means",
+   "opts": [
+    "forbidden.",
+    "talkative.",
+    "curable.",
+    "appreciative.",
+    "infectious."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.vocab",
+   "why": "Cartier kept his men away from sick locals, &ldquo;fearing scurvy was communicable&rdquo;&mdash;he feared it could spread from person to person. That means <b>infectious<\/b>. &ldquo;Talkative&rdquo; is the trap from &ldquo;communicate.&rdquo; Line 22 even gives the synonym: the Iroquoians knew scurvy &ldquo;was not contagious.&rdquo; Rule: use the context, not the look of the word."
+  },
+  {
+   "n": 20,
+   "stem": "The passage is primarily concerned with describing how",
+   "opts": [
+    "the French explorer Cartier saved his men from dying.",
+    "many Europeans and Indians died from curable diseases.",
+    "vitamin C deficiencies have harmed people in both Europe and the Americas.",
+    "Europeans learned a cure for scurvy from the knowledge of native people.",
+    "scurvy was spread throughout the Americas."
+   ],
+   "ans": 3,
+   "sk": "ssat.r.main",
+   "why": "Line 9 states the big idea: &ldquo;The cure for scurvy came to Europe from the medicinal knowledge of the St. Lawrence Iroquoians,&rdquo; and the Cartier story shows how. So it describes how <b>Europeans learned a cure for scurvy from the knowledge of native people<\/b>. Choice A is just the example, and Cartier didn&rsquo;t save his men himself&mdash;the Iroquoians showed him the cure. Rule: the example serves the main idea; it isn&rsquo;t the main idea."
+  },
+  {
+   "n": 21,
+   "stem": "Which can be concluded from the last sentence?",
+   "opts": [
+    "The Iroquoian tonic for scurvy was successful in curing scurvy in Europeans.",
+    "Humans need to ingest a high dose of Vitamin C daily in order to remain healthy.",
+    "The Europeans preserved the tonic and took it back to Europe.",
+    "The Iroquoians helped the Europeans survive the winter by concocting large doses of medicine for them.",
+    "Cartier&rsquo;s whole crew survived the winter after drinking the tonic."
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "The last sentence says &ldquo;each of his men who drank the tonic recovered his health.&rdquo; So <b>The Iroquoian tonic for scurvy was successful in curing scurvy in Europeans<\/b>. Choice E is the trap: a quarter of the crew had already died (lines 20&ndash;21), so not the whole crew survived. The Iroquoians showed Cartier how to make it rather than making it for them. Rule: a conclusion must stay inside what the sentence proves."
+  },
+  {
+   "n": 22,
+   "stem": "The passage supplies information to answer which question?",
+   "opts": [
+    "What is the cause of scurvy?",
+    "How old was Cartier when he arrived to what is now Canada?",
+    "In what season did the Iroquoians learn to cure scurvy?",
+    "With how many ships was Cartier travelling?",
+    "How many months was Cartier in the Americas?"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.detail",
+   "why": "Line 6 says scurvy is &ldquo;a disease caused by lack of vitamin C,&rdquo; so the passage answers <b>What is the cause of scurvy?<\/b> It mentions &ldquo;ships&rdquo; and &ldquo;winter,&rdquo; but never gives a number of ships, Cartier&rsquo;s age, or when the Iroquoians first learned the cure. Rule: the answer must be stated, not just the topic mentioned."
+  },
+  {
+   "n": 23,
+   "stem": "According to the passage, Cartier asked the Iroquoians if they knew a cure for scurvy because",
+   "opts": [
+    "he knew the Indians had a plethora of useful medicinal knowledge.",
+    "he was afraid he too would die of disease.",
+    "he noticed that Iroquoians sick with scurvy did not die from it.",
+    "the Iroquoians were helpful trading partners.",
+    "there were no other people living within several miles of his location."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.detail",
+   "why": "Lines 23&ndash;24: &ldquo;Cartier came to see that while the Iroquoians also developed scurvy, they did not die from it. He asked them for a cure.&rdquo; So he asked because <b>he noticed that Iroquoians sick with scurvy did not die from it<\/b>. They were trading partners (choice D), but that is not the reason the passage gives. Rule: find the sentence right before the action&mdash;it often holds the reason."
+  },
+  {
+   "n": 24,
+   "stem": "The author&rsquo;s tone in this passage can best be described as",
+   "opts": [
+    "whimsical.",
+    "casual.",
+    "explanatory.",
+    "critical.",
+    "nostalgic."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.tone",
+   "why": "The passage explains a historical event step by step: what scurvy is, what happened to Cartier, and why the tonic worked (&ldquo;Since scurvy results from a vitamin C deficiency&hellip;&rdquo;). That tone is <b>explanatory<\/b>. It isn&rsquo;t playful (whimsical) or chatty (casual). Rule: a history passage that gives causes and facts is usually informative or explanatory."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 6 &middot; Questions 25&ndash;30",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Many people express dismay over the inevitable downfall of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>society brought on by smart phones and social media sites. They cite<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>studies linking increased use of technology with decreased rates of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>eye contact, shortened attention spans, and decreased ability to focus.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>These fears paint a pretty bleak picture: within a generation, most<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>people will look like a bunch of socially awkward homebodies glued<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>to computer games, reality shows, and social media newsfeeds.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">These rants are more of a reflection of an older generation&rsquo;s<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>misplaced nostalgia over the fairytale &ldquo;good old days&rdquo; than a true<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>prediction of what is to come. Focus should be placed more on<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>updating conventions of courtesy than on fears of the collapse of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>civilization.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">As much harm as these technologies may have done, they have also<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>produced benefits. They allow people to connect with one another in<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>unprecedented ways and with mind-boggling speed. They provide a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>platform for everyday people to become information producers to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>audiences of millions. More and more people can work from<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>anywhere with an Internet connection. More and more books and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>sources can be catalogued online, and more information is available<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>to everyday people with the push of a button. All of this is made<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>possible in an increasingly technological world.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Despite bleak predictions about the future, chances are that our<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>future social worlds will be more similar to today&rsquo;s than different.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Regardless of advances in technology, we still want the same<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span>fundamental things, like human connection. We are a fundamentally<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>social species, and although technology has made it easier to connect<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>regardless of social space and proximity, it does not eliminate the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>need for face-to-face contact.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 25,
+   "stem": "According to the passage, which of the following is NOT a harmful effect of Internet technology?",
+   "opts": [
+    "decreased rates of eye contact",
+    "increased rates of face-to-face contact",
+    "shortened attention spans",
+    "diminished ability to focus",
+    "addiction to computer games"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "Lines 3&ndash;4 list the feared harms: decreased eye contact, shortened attention spans, decreased ability to focus, and line 7 mentions people &ldquo;glued to computer games.&rdquo; <b>Increased rates of face-to-face contact<\/b> isn&rsquo;t a harm at all&mdash;and the passage never says technology increases it. Rule: on NOT questions, the odd one out often doesn&rsquo;t fit the list&rsquo;s direction."
+  },
+  {
+   "n": 26,
+   "stem": "The author would most likely disagree with which of the following statements?",
+   "opts": [
+    "The Internet is altering humans&rsquo; mental habits and changing the way we think.",
+    "Face-to-face communication is still necessary for healthy human relationships.",
+    "The Internet is becoming a universal medium and the conduit for most of the information people receive.",
+    "The Internet is decreasing human intelligence.",
+    "There are both advantages and disadvantages to social networking sites."
+   ],
+   "ans": 3,
+   "sk": "ssat.r.infer",
+   "why": "The author calls the gloomy predictions &ldquo;rants&rdquo; and &ldquo;misplaced nostalgia&rdquo; (lines 8&ndash;9) and lists many benefits, so the author would reject the gloomiest claim: <b>The Internet is decreasing human intelligence<\/b>. Choices B and E match what the author actually says (lines 27&ndash;28 and 13). Rule: for &ldquo;disagree&rdquo; questions, find the choice that sounds like the people the author argues against."
+  },
+  {
+   "n": 27,
+   "stem": "In line 15, &ldquo;mind-boggling&rdquo; most nearly means",
+   "opts": [
+    "doubtful.",
+    "compulsive.",
+    "impressive.",
+    "rushed.",
+    "thrilling."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;Mind-boggling speed&rdquo; is speed so great it&rsquo;s hard to imagine&mdash;in other words, <b>impressive<\/b>. It is listed among the benefits, so it&rsquo;s positive and amazed, not &ldquo;doubtful&rdquo; or &ldquo;rushed.&rdquo; &ldquo;Thrilling&rdquo; adds excitement the sentence doesn&rsquo;t express. Rule: a word in a list of benefits will carry a positive meaning."
+  },
+  {
+   "n": 28,
+   "stem": "As used in the sentence, &ldquo;dismay&rdquo; (line 1) most nearly means",
+   "opts": [
+    "sympathy.",
+    "debate.",
+    "disquiet.",
+    "doubt.",
+    "curiosity."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.vocab",
+   "why": "People &ldquo;express dismay over the inevitable downfall of society&rdquo;&mdash;they are worried and upset. Dismay means alarm or worry, which is <b>disquiet<\/b> (dis- = not, quiet = calm). &ldquo;Doubt&rdquo; is the trap: they aren&rsquo;t unsure; they are convinced society is falling and upset about it. Rule: break a word into parts&mdash;dis + quiet = not calm."
+  },
+  {
+   "n": 29,
+   "stem": "This passage was probably taken from",
+   "opts": [
+    "a textbook on information science.",
+    "a government contract.",
+    "a short story.",
+    "a scientific journal.",
+    "an editorial analysis."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "The author gives strong opinions (&ldquo;These rants are more of a reflection&hellip;,&rdquo; &ldquo;Focus should be placed more on&hellip;&rdquo;) and argues a point. Opinion writing that analyzes an issue appears in <b>an editorial analysis<\/b>. A textbook or scientific journal would stay neutral and cite data, and there are no characters, so it isn&rsquo;t a short story. Rule: &ldquo;should&rdquo; and name-calling like &ldquo;rants&rdquo; signal opinion writing."
+  },
+  {
+   "n": 30,
+   "stem": "The author&rsquo;s attitude toward advancements in technology is best described as",
+   "opts": [
+    "critical.",
+    "accusatory.",
+    "disinterested.",
+    "heavy-hearted.",
+    "positive."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.tone",
+   "why": "The author admits some harm but spends a whole paragraph on benefits (&ldquo;unprecedented ways,&rdquo; &ldquo;mind-boggling speed&rdquo;) and dismisses the fears as &ldquo;rants.&rdquo; Overall the attitude is <b>positive<\/b>. &ldquo;Critical&rdquo; describes the author&rsquo;s view of the <i>worriers<\/i>, not of technology. Rule: be sure you know what the attitude question is about."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 7 &middot; Questions 31&ndash;35",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">In the Western world, at least as far back as Aristotle (about 2,300 years<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>ago), people have been trying to explain what makes something funny.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>However, it is easier to categorize types of humor and to identify elements of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>humor than it is to construct a theory of humor.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span style=\"text-indent:26px;display:inline-block\">Some types of humor include slapstick, parody, and satire. Slapstick<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>often involves silly accidents in which no one is actually hurt. In parody and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>satire, the humorist mimics a person or group to make fun of or criticize<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>them. Irony and sarcasm are similar in that humorists may say the opposite of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>what they mean, or there may be a contradiction between expectations and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>reality. For example, if you get a cat to resolve your rat problem, but then<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>have more trouble with the cat than you ever did with rats, a friend might<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>point out the irony of the situation. Other forms of humor include spoof,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>farce, black humor, puns, and surrealism.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">In terms of the elements of humor, analysts emphasize that humor must<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>have structure, content, and context. Content refers to the subject of the joke,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>such as cats or politics, while context refers to the time and place of an event.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Forming a theory of what makes something funny &ndash; or not funny &ndash; that<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>encompasses all types of humor is the greatest challenge in humor analysis.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Aristotle thought that the essence of humor was feeling superior to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>others, known as the &lsquo;superiority&rsquo; theory. In the early 1900s, psychologist<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Sigmund Freud expanded on an existing theory that laughter was an<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>expression of our subconscious relief following the build-up of tension. A<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>later theory, known as the incongruity theory, has been the dominant<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>explanation of humor for the last few decades. According to this theory, we<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span>laugh when what we expect to happen is not what actually happens. The<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>problem with all of these theories is that each explains some types of humor<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>but fails to explain others, and none of them hold up well when studied in<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>human experiments.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Marketing and psychology professor Peter McGraw tried to overcome<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">30<\/span><span>these limitations with his benign violation theory. To be funny, something<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>has to include a violation (seem wrong or threatening) and be benign (feel<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>acceptable or safe). For example, a joke about an accident might be funny to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>most listeners, but not to someone who has just been in a bad one. McGraw<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>says the joke must be a balance of violation (too safe and it&rsquo;s boring) and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">35<\/span><span>acceptability (too offensive and it&rsquo;s not funny) to be regarded as funny by a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>listener.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 31,
+   "stem": "The topic that is least developed in the passage is",
+   "opts": [
+    "theories of humor.",
+    "categories of humor.",
+    "the content of humor.",
+    "analysis of humor.",
+    "the structure of humor."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.main",
+   "why": "Line 15 says humor must have &ldquo;structure, content, and context,&rdquo; then defines content and context&mdash;but never explains structure. So the least developed topic is <b>the structure of humor<\/b>. Theories and categories get whole paragraphs. Rule: for &ldquo;least developed,&rdquo; look for something named but never explained."
+  },
+  {
+   "n": 32,
+   "stem": "The example in lines 32&ndash;33 supports the idea that which of the following is true?",
+   "opts": [
+    "To be funny, a joke must feel safe.",
+    "Jokes about accidents are categorized as &lsquo;slapstick.&rsquo;",
+    "People who find a joke funny are likely to laugh in order to relieve tension.",
+    "People who find a joke funny are likely to feel superior to the accident victims.",
+    "Offensive jokes are always funny to those who are not the subject of ridicule."
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "An accident joke is funny to most people but not to someone who was just in a bad accident&mdash;for that person it doesn&rsquo;t feel safe. This illustrates McGraw&rsquo;s point that a joke must be &ldquo;benign (feel acceptable or safe)&rdquo; (lines 31&ndash;32): <b>To be funny, a joke must feel safe<\/b>. Choices C and D bring in Freud and Aristotle, which are different theories. Rule: an example supports the idea right next to it."
+  },
+  {
+   "n": 33,
+   "stem": "According to the passage, research experiments using real people",
+   "opts": [
+    "can&rsquo;t tell us much about humor.",
+    "reveal that some subjects, like cats, are funnier than others.",
+    "show us existing weaknesses in various theories of humor.",
+    "reveal that incongruity theory is more useful than superiority theory.",
+    "help prove McGraw&rsquo;s benign violation theory."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.detail",
+   "why": "Lines 26&ndash;28: the theories each fail somewhere, &ldquo;and none of them hold up well when studied in human experiments.&rdquo; So experiments <b>show us existing weaknesses in various theories of humor<\/b>. The passage never says experiments prove McGraw right&mdash;it only says he &ldquo;tried to overcome these limitations.&rdquo; Rule: don&rsquo;t give a source credit for more than the text says."
+  },
+  {
+   "n": 34,
+   "stem": "As it is used in line 30, &lsquo;benign&rsquo; most nearly means",
+   "opts": [
+    "authentic.",
+    "beneficial.",
+    "welcoming.",
+    "harmless.",
+    "factual."
+   ],
+   "ans": 3,
+   "sk": "ssat.r.vocab",
+   "why": "The passage defines it in line 31: &ldquo;benign (feel acceptable or safe).&rdquo; Something safe is <b>harmless<\/b>. &ldquo;Beneficial&rdquo; is the trap&mdash;both start with &ldquo;bene-&rdquo; (good), but benign means &ldquo;not harmful,&rdquo; not &ldquo;helpful.&rdquo; Rule: when the passage puts a definition in parentheses, use it."
+  },
+  {
+   "n": 35,
+   "stem": "It can be inferred from reading the passage that",
+   "opts": [
+    "it can be hard to predict what any single individual will find funny.",
+    "analyzing humor is not very complex.",
+    "it is harder to identify all the categories of humor than to develop theories to explain it.",
+    "studying humor is seldom a serious enterprise.",
+    "laughter is governed by our subconscious."
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "Every theory &ldquo;fails to explain others&rdquo; (line 27), and the same accident joke is funny to one person and not to another (lines 32&ndash;33). So <b>it can be hard to predict what any single individual will find funny<\/b>. Choice C reverses lines 3&ndash;4, which say categorizing is <i>easier<\/i> than building a theory. Rule: watch for choices that flip the passage&rsquo;s comparison."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 8 &middot; Questions 36&ndash;40",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Now over eight hundred years old, Notre Dame is one of the largest and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>most well-known churches in the world. Originally constructed in the twelfth<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>century, the structure is one of the finest examples of French Gothic<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>architecture still in existence. However, changes over the years have resulted<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>in a unique mix of styles, uniting many eras of art and architecture.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The history of Notre Dame began in 1160, when the Bishop Maurice de<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Sully had the previous Paris cathedral, Saint-Etienne, demolished to make<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>way for a new, grander place of worship. Construction of the facility began<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>in 1163. It took nineteen years of work before the High Altar was officially<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>consecrated in 1182. During the initial construction period, many architects<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>worked on the project. They each put a unique, personal stamp on their<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>respective parts of the church, which is one reason why Notre Dame has so<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>many striking aspects in different styles. Most notably, the elaborate, stained-<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>glass rose window was designed by one of these initial architects.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span style=\"text-indent:26px;display:inline-block\">While the cathedral was not originally designed with flying buttresses,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>ongoing construction led to a need for additional support structures. The<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>addition of these distinctive arches on the outside of the building allowed the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>cathedral to reach its impressive height of 226 feet. Notre Dame&rsquo;s exterior<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>construction is also famous for its gargoyles, which were built to serve as a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>functional system for rainwater run-off. Today, there is a more modern<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>system, and the gargoyles serve only as decorative guardians for the church.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">During the French Revolution in the late eighteenth century, many of the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>cathedral&rsquo;s treasures were destroyed or looted. Statues were beheaded,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>windows were smashed, and the cathedral was used as a warehouse for<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">25<\/span><span>storing food. In 1845, a restoration program began. The project was<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>controversial because one of the architects, Eug&egrave;ne Viollet-le-Duc, took<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>advantage of the opportunity to add his own touches to the building,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>including the addition of the chimeras now perched on the <i>Galerie des<\/i><\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span><i>Chim&egrave;res<\/i>.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">30<\/span><span style=\"text-indent:26px;display:inline-block\">World War II caused even more damage to Notre Dame. Several of the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>stained-glass windows were hit by stray bullets and needed to be repaired<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>after the war. However, reconstruction left the windows with a different<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>pattern than before.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Most recently, in 1991 another restoration program was launched. The<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">35<\/span><span>aim of this program was preservation rather than reconstruction. Experts<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>worked to repair and clean the current architecture, rather than to add new<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>installations. The current goal concerning restorations to Notre Dame is to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>preserve the monument in its current state for as long as possible.<\/span><\/div><\/div>",
+   "src": "<i>Note: In April 2019, a massive fire engulfed Notre Dame as it was undergoing renovations. Though the structure was saved from total destruction, the cathedral&rsquo;s spire and part of its roof collapsed. Funds were quickly raised to restore the damage, which is currently planned to be completed within five years.<\/i>"
+  },
+  {
+   "n": 36,
+   "stem": "Which sentence best expresses the main idea of the passage?",
+   "opts": [
+    "Flying buttresses are an important part of Notre Dame&rsquo;s architecture.",
+    "Modern restoration efforts are superior to older ones.",
+    "Notre Dame&rsquo;s structure includes many different architectural styles.",
+    "Notre Dame is a large tourist attraction in Paris.",
+    "Several catastrophic events have caused damage to Notre Dame&rsquo;s architecture."
+   ],
+   "ans": 2,
+   "sk": "ssat.r.main",
+   "why": "Line 5 sets the theme&mdash;changes &ldquo;have resulted in a unique mix of styles&rdquo;&mdash;and each paragraph adds another layer: many architects, buttresses, Viollet-le-Duc&rsquo;s chimeras, new window patterns. So the main idea is <b>Notre Dame&rsquo;s structure includes many different architectural styles<\/b>. Choice E covers only the damage paragraphs. Rule: a thesis in the first paragraph is often the main idea."
+  },
+  {
+   "n": 37,
+   "stem": "According to the passage, the many architectural styles of the original building are indirectly due to",
+   "opts": [
+    "several architects&rsquo; dismissal for inferior work",
+    "the very long construction period",
+    "Bishop de Sully changing his mind about the design he wanted",
+    "the purchase of building materials from different places",
+    "World War II"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "It took nineteen years just to consecrate the High Altar, and &ldquo;During the initial construction period, many architects worked on the project,&rdquo; each leaving &ldquo;a unique, personal stamp&rdquo; (lines 9&ndash;12). The long build brought in many architects, so the styles are indirectly due to <b>the very long construction period<\/b>. World War II came centuries later, not during the original building. Rule: &ldquo;indirectly&rdquo; means look one step back in the cause chain."
+  },
+  {
+   "n": 38,
+   "stem": "The author would be most likely to disagree with which of the following statements?",
+   "opts": [
+    "Notre Dame is an important historical landmark.",
+    "Restoration efforts should include work to modernize the cathedral.",
+    "The Gothic period is an important era in architecture.",
+    "Repair work over the centuries has changed the appearance of the cathedral.",
+    "Restoration efforts that seek to change the appearance of the cathedral are a mistake."
+   ],
+   "ans": 1,
+   "sk": "ssat.r.infer",
+   "why": "The last paragraph praises the current aim of &ldquo;preservation rather than reconstruction&rdquo; and keeping the monument &ldquo;in its current state&rdquo; (lines 35&ndash;38). So the author would disagree that <b>Restoration efforts should include work to modernize the cathedral<\/b>. Choice D is something the passage actually shows (the windows got a new pattern). Rule: find the author&rsquo;s view, then pick its opposite."
+  },
+  {
+   "n": 39,
+   "stem": "According to the passage, flying buttresses were a necessary addition to the cathedral because",
+   "opts": [
+    "they were an important part of Gothic design",
+    "they helped with rainwater run-off",
+    "the arches made the exterior more visually interesting",
+    "they repaired damage to the fa&ccedil;ade of the building",
+    "they supported the unstable walls"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.detail",
+   "why": "Lines 15&ndash;16: &ldquo;ongoing construction led to a need for additional support structures.&rdquo; Buttresses were added for support, so <b>they supported the unstable walls<\/b>. Rainwater run-off is the job of the gargoyles (line 20)&mdash;a classic mix-up trap. Rule: match each feature in the passage with its own job."
+  },
+  {
+   "n": 40,
+   "stem": "The word &ldquo;consecrated&rdquo; (line 10) most nearly means",
+   "opts": [
+    "made holy",
+    "demolished",
+    "designed",
+    "removed from the site",
+    "acknowledged"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.vocab",
+   "why": "The High Altar in a cathedral was &ldquo;officially consecrated&rdquo; when the work was done&mdash;dedicated to God as a sacred place. That means <b>made holy<\/b>. &ldquo;Acknowledged&rdquo; sounds official but has no religious meaning. Rule: think about the setting&mdash;an altar in a church points to a religious word."
+  }
+ ],
+ "count": 22
+};
+const MINUTES = 22;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
