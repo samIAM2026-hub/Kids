@@ -291,20 +291,12 @@
   tbody tr.arch{opacity:.5}
   tbody tr.arch:hover{opacity:.85}
   .b-arch{background:rgba(147,162,189,.13);color:var(--mute);border:1px solid var(--line)}
-  .b-sug{background:rgba(201,162,77,.14);color:var(--gold);border:1px solid var(--gold2)}
-  .sugbox{margin:10px 0;padding:10px 12px;border:1px solid var(--gold2);border-radius:8px;background:rgba(201,162,77,.07);font-size:13px;line-height:1.6}
-  .sugbox .suglist{display:flex;flex-wrap:wrap;gap:4px 14px;margin:6px 0 8px}
-  .sugbox .suglist i{color:var(--mute);font-style:normal;font-size:11px}
-  .sugbox .fchip{margin-right:6px}
   .archnote{font-size:11.5px;color:var(--mute);margin-top:-6px;margin-bottom:10px}
   /* 每行的归档开关：安静地待在类型下面，点一下就归档 / 放回来 */
   .archbtn,.linkedit{font:inherit;font-size:10.5px;font-weight:600;color:var(--mute);background:none;
            border:1px solid var(--line);border-radius:5px;padding:2px 7px;cursor:pointer;white-space:nowrap}
   .archbtn:hover,.linkedit:hover{color:var(--cream);border-color:var(--gold2)}
   .archbtn:disabled,.linkedit:disabled{opacity:.45;cursor:default}
-  .archbtn.keep{opacity:.5}
-  .archbtn.keep.on,.archbtn.keep:hover{opacity:1}
-  .archbtn.keep.on{color:var(--gold);border-color:var(--gold2);background:rgba(201,162,77,.12)}
   .archline{margin-top:4px;display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap}
 
   /* ---------- 自定义链接: the little form at the top of 题库 ---------- */
@@ -363,9 +355,6 @@
   .bsearch{flex:1 1 220px;min-width:160px;max-width:340px;font-family:inherit;font-size:13px;background:var(--card);
            border:1.5px solid var(--line);border-radius:999px;color:var(--cream);padding:7px 14px;outline:none}
   .bsearch:focus{border-color:var(--gold2)}
-  /* 今天页上的「建议归档」条 */
-  .todo .sugline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex-basis:100%}
-  .todo .sugline .fchip{padding:4px 11px}
   .archdone{font-size:10.5px;color:var(--mute)}
   /* 使用次数（只记在这台设备上） */
   .foot{margin:40px 0 90px;text-align:center;font-size:11px;color:var(--mute)}
@@ -574,6 +563,7 @@
   .estools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
   .estools .saved{font-size:11px;color:var(--mute)}
   .esmeta{font-size:12px;color:var(--mute);margin-top:10px}
+  .esclash{border:1px solid var(--amber);background:rgba(224,163,62,.12);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:13px;line-height:1.7}
   .essum{white-space:pre-wrap;font-size:13.5px;line-height:1.65;background:var(--card);border:1px solid var(--line);
          border-radius:8px;padding:10px 13px;margin-top:10px}
   .esact{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 8px}
@@ -1074,8 +1064,6 @@ async function loadAll(){
   UNF = {};
   progSnap.docs.forEach(d=>{ const u = toUnf(d.id, d.data()); if(u) UNF[d.id] = u; });
   buildEst();   // 用时估算要等题库和成绩都到齐才算得出来
-  // 做完的派件只「建议归档」，不自己收（Sam 2026-09-22：我不点归档，就别动）。
-  // 2026-09-27 起建议直接挂在「今天」最上面那条里，点一下就收（todoStrip），不再弹提示叫他去题库。
 }
 
 const attFor = id => ATT.filter(a => a.id===id);   // ATT is already newest-first
@@ -1125,8 +1113,11 @@ function scoreTries(tries){
            first: prac ? sum(false) : s[0]||tries[0], last: prac ? sum(true) : s[s.length-1]||tries[tries.length-1] };
 }
 // One kid, one paper, one day: its tries (oldest first), when the last was handed in, and its scores.
+// 题库里是 quiz 的那几份，只打开看了 15 秒、一题没交的那条「看过」记录不算一遍（countsAsDone，和归档同一个口径）——
+// 不然今天页、派发记录、题库都会写「✓ 完成」。题库里没有的（看批改、撤掉的链接）照旧算。
 function dayResult(k, id, d){
-  const tries = ATT.filter(a=>a.kid===k && a.id===id && a.date===d).reverse();   // ATT is newest-first
+  const b = BANK_BY_ID[id];
+  const tries = ATT.filter(a=>a.kid===k && a.id===id && a.date===d && (!b || countsAsDone(a, b))).reverse();   // ATT is newest-first
   return tries.length ? Object.assign({ tries, end: tries[tries.length-1].at }, scoreTries(tries)) : null;
 }
 
@@ -1234,7 +1225,13 @@ async function pullNewAttempts(){
     .where('submittedAt','>',firebase.firestore.Timestamp.fromDate(newest)).orderBy('submittedAt','desc').get();
   const have = new Set(ATT.map(a=>a.aid));
   const add = snap.docs.map(toAtt).filter(a=>a && !have.has(a.aid));
-  if(add.length){ ATT = add.concat(ATT); buildEst(); }
+  if(add.length){ ATT = add.concat(ATT); buildEst(); listsStale(); }
+}
+// 有新交上来的东西：写作、朗读录音的列表要重读。正在批的那篇、正在听的录音不打断 —— 先记下，离开时再重读。
+function listsStale(){
+  if(V==='essay' && WR.cur) WR.stale = true; else WR.list = null;
+  if(V==='audio') RC.stale = true; else RC.list = null;
+  if(V==='essay' && !WR.cur) render();
 }
 // full：有新卷子交上来，完成数、平均分都要变 → 整页重画，但家长正在改日期、在输入框里打字时不打断，只换状态。
 function refreshToday(full){
@@ -1280,11 +1277,6 @@ addEventListener('resize', closeTip);
 
 // 今天's strip of what is waiting on a parent. Empty → no strip at all.
 function todoStrip(){
-  const sug = archiveSuggestions();
-  const sugLine = sug.length ? `<span class="sugline"><span>📦 ${sug.length} 份派件都做完了，建议归档：${
-      sug.slice(0,4).map(([b])=>esc(b.t)).join('、')}${sug.length>4?' 等':''}</span>
-    <button class="fchip on" data-sug="1" data-ids="${esc(sug.map(([b])=>b.docId).join(' '))}">全部归档</button>
-    <button class="fchip" data-gobank="1">去题库挑</button></span>` : '';
   const items = ['grace','warren'].map(k=>{
     const todo = ATT.filter(a=>a.kid===k && a.handin && ess(a).todo);
     if(!todo.length) return '';
@@ -1292,7 +1284,7 @@ function todoStrip(){
     const by = WritingKinds.list.map(wk=>[wk, todo.filter(a=>(WritingKinds.ofPage(a.id)||WritingKinds.byKey.exam)===wk).length]).filter(x=>x[1]);
     return `<button data-gokid="${k}" data-gov="essay">${KID[k].av} ${KID[k].n} ${by.map(([wk,n])=>`${esc(wk.zh)} ${n} 篇`).join(' · ')}待批 ›</button>`;
   }).filter(Boolean);
-  return items.length || sugLine ? `<div class="todo"><span class="lbl">待你处理</span>${items.join('')}${sugLine}</div>` : '';
+  return items.length ? `<div class="todo"><span class="lbl">待你处理</span>${items.join('')}</div>` : '';
 }
 
 function viewToday(){
@@ -1343,7 +1335,8 @@ function viewToday(){
     const unf = unfOn(k, day, day).filter(u=>list.some(it=>it.id===u.id)), unfS = unfSum(unf);
     // 看批改不用派，孩子自己打开的，也算进这天的实际用时（Sam 2026-09-26）
     const reads = reviewReads(k, day, day), readS = reads.reduce((s,g)=>s+g.active, 0);
-    const spent = unfS + readS + list.reduce((s,it)=>{ const r = doneOf(it); return s + (r ? r.tries.reduce((x,a)=>x+estSecs(a),0) : 0); }, 0);
+    // 时间按这天全部交过的记录算（只开着看了一会儿、不算「完成」的那条也是坐过的时间）
+    const spent = unfS + readS + list.reduce((s,it)=>s + ATT.filter(a=>a.kid===k && a.id===it.id && a.date===day).reduce((x,a)=>x+estSecs(a),0), 0);
     const inc = [unfS?`没交卷 ${dur(unfS)}`:'', readS?`看批改 ${dur(readS)}`:''].filter(Boolean);
     const spentTxt = dur(spent) + (inc.length ? `（含${inc.join('、')}）` : '');
     html += kidCard('today', k, list.length?'已派 '+list.length+' 份':isToday?'今天还没派':'这天没派',
@@ -1382,7 +1375,7 @@ function viewToday(){
         const tm = [at?'派于 '+stamp(at):'', it.movedFrom?'从 '+ymd(it.movedFrom)+' 挪来':'', again].filter(Boolean).join(' · ');
         // 做完了的那份，这里直接能归档（Sam 2026-09-27：不用再跑去题库）
         const bk = BANK_BY_ID[it.id];
-        const arch = !r || !bk || bk.keep ? '' : bk.archived ? `<span class="archdone" title="已归档 ${ymd(bk.archivedOn||'')}">已归档</span>`
+        const arch = !r || !bk ? '' : bk.archived ? `<span class="archdone" title="已归档 ${ymd(bk.archivedOn||'')}">已归档</span>`
 
           : `<button class="mini" data-arch="${esc(it.id)}" data-to="1" title="从题库的在用列表收起来，不删文件、不动成绩，也不从孩子的作业里拿掉">归档</button>`;
         html += `<div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
@@ -1425,13 +1418,14 @@ const DP_RANGES = [[7,'最近 7 天'],[30,'最近 30 天'],[90,'最近 90 天'],
 
 // One row per assigned item: what it was, when it went out, and how it was marked that day.
 function dispatchRows(k){
-  const from = DP.days ? shiftDay(iso(today), -DP.days + 1) : '';
+  const T = iso(today), from = DP.days ? shiftDay(T, -DP.days + 1) : '';
   const out = [];
   DAYS[k].filter(d => !from || d.date >= from).forEach(d=>{
     const pulled = new Map(d.withdrawn.map(p => [p.id, p]));
     d.items.forEach(it=>{
       const r = dayResult(k, it.id, d.date);
-      out.push({ date: d.date, it, r, pulled: pulled.get(it.id) || null,
+      // wait：以后排着的（later）、今天的还没做（today）—— 都不算「没做」，和题库的派发历史同一个说法（histState）
+      out.push({ date: d.date, it, r, pulled: pulled.get(it.id) || null, wait: r ? '' : d.date > T ? 'later' : d.date === T ? 'today' : '',
                  done: !!r, pct: r && r.scored ? r.last.pct : null });
     });
     // Withdrawn items are no longer in items[] — they still belong in a record of what went out.
@@ -1449,16 +1443,16 @@ function viewDispatch(){
   kidsShown().forEach(k=>{
     const all = dispatchRows(k);
     // A withdrawn item was taken back, so it is not counted as homework that went undone.
-    const live = all.filter(r => !r.pulled);
-    const done = live.filter(r => r.done), miss = live.filter(r => !r.done);
+    const live = all.filter(r => !r.pulled && r.wait!=='later');
+    const done = live.filter(r => r.done), miss = live.filter(r => !r.done && !r.wait);
     const scored = done.filter(r => r.pct != null);
     const avg = scored.length ? Math.round(scored.reduce((n,r)=>n+r.pct,0)/scored.length) : null;
-    const rows = DP.missOnly ? all.filter(r => !r.done && !r.pulled) : all;
+    const rows = DP.missOnly ? all.filter(r => !r.done && !r.pulled && !r.wait) : all;
     html += `<h2 class="sec">${KID[k].av} ${KID[k].n} · 派发记录${qm(`派出去的每一份都在这里，按派发的那天排，最新的在上面。
       分数是<b>派发那天</b>判的分 —— 同一份以后又做了一遍，这一行不会跟着变，去「完成记录」看那天的。
-      <b>没做</b>＝派了但那天没有交卷记录。撤回的那几份不算在「没做」里。`)}</h2>
+      <b>没做</b>＝派了但那天没有交卷记录。撤回的、以后排着的、今天还没做的都不算在「没做」里。`)}</h2>
       <div class="hmet">
-        <div><div class="v">${live.length}</div><div class="k">派了${qm('这段时间里派给他的份数，撤回的不算')}</div></div>
+        <div><div class="v">${live.length}</div><div class="k">派了${qm('这段时间里派给他、到今天为止的份数，撤回的和以后排着的不算')}</div></div>
         <div><div class="v">${done.length}</div><div class="k">做了${qm('派发那天有交卷记录的份数')}</div></div>
         <div><div class="v" style="color:${miss.length?'var(--red)':'var(--green)'}">${miss.length}</div><div class="k">没做${qm('派了、那天没交卷，也没有撤回')}</div></div>
         <div><div class="v" style="color:${avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</div><div class="k">平均分${qm(scored.length?`有分数的 ${scored.length} 份，每份取那天最后一遍的分数再平均`:'这段时间没有打分的成绩')}</div></div>
@@ -1476,11 +1470,13 @@ function viewDispatch(){
       const at = tsDate(r.it.at), n = r.r ? r.r.tries.length : 0;
       const newday = r.date !== last; last = r.date;
       const st = r.pulled ? `<span class="chipst st-open">已撤回</span>`
+        : r.wait==='later' ? `<span class="chipst st-open">排着，还没到</span>`
+        : r.wait==='today' ? `<span class="chipst st-open">今天 · 还没做</span>`
         : !r.done ? `<span class="chipst st-open">没做</span>`
         : `<span class="chipst ${r.pct==null||r.pct>=PASS?'st-done':'st-low'}">${r.pct==null?'✓ 完成':r.pct+'%'}</span>`;
       const extra = n>1 && r.r.first.pct!=null && r.r.first.pct!==r.pct ? `<span class="dflag">这天 ${n} 遍 · 第一遍 ${r.r.first.pct}%</span>` : '';
       const flags = (r.it.movedFrom ? `<span class="dflag">从 ${ymd(r.it.movedFrom)} 挪来</span>` : '') + extra;
-      html += `<tr class="${newday?'newday ':''}${!r.done&&!r.pulled?'miss':''}">
+      html += `<tr class="${newday?'newday ':''}${!r.done&&!r.pulled&&!r.wait?'miss':''}">
         <td class="dday">${newday?`<b>${ymd(r.date)}</b> 周${wdOf(r.date)}`:''}</td>
         <td class="dt"><b>${openLink(r.it.href, esc(r.it.t))}</b>${flags}
           <span>${esc(r.it.subj||'')}${r.it.book?' · '+esc(r.it.book):''}${r.it.n?' · '+r.it.n+(r.it.type==='quiz'?' 题':' 项'):''}</span></td>
@@ -1756,9 +1752,7 @@ function archCell(b){
   return b.archived
     ? `<span class="badge b-arch"${why?` title="${esc(why)}"`:''}>已归档</span>
        <button class="archbtn" data-arch="${esc(b.docId)}" data-to="0" title="放回在用列表">放回</button>`
-    : `${SUG.has(b.docId)?`<span class="badge b-sug" title="派出去都做完了（完成 ${ymd(SUG.get(b.docId))}），建议归档。不点就不动">建议归档</span> `:''}<button class="archbtn" data-arch="${esc(b.docId)}" data-to="1" title="从默认列表里收起来，不删文件、不动成绩">归档</button>
-       ${!SUGGEST_ARCHIVE?'':`<button class="archbtn keep${b.keep?' on':''}" data-keep="${esc(b.docId)}" data-to="${b.keep?'0':'1'}"
-               title="${b.keep?'已钉住：做完也不提示归档。点一下取消':'钉住：常年重复派的，做完也不提示归档'}">📌${b.keep?' 钉住':''}</button>`}`;
+    : `<button class="archbtn" data-arch="${esc(b.docId)}" data-to="1" title="从默认列表里收起来，不删文件、不动成绩">归档</button>`;
 }
 
 // 归档 = 从默认题库列表里收起来。文件留着、历史成绩照样指得到、归档的还能派作业（§三之二）。
@@ -1772,7 +1766,7 @@ async function setArchived(ids, on){
     // 手动归档的也顺手记一笔完成日期（算得出来才记），归档列表里两个日期就是一套的
     ? Object.assign({ archived:true, archivedOn: t, archivedWhy: '家长手动归档' },
                     doneDate(BANK_BY_ID[id]) ? { doneOn: doneDate(BANK_BY_ID[id]) } : {})
-    // 放回 = 「我还要用它」。记下放回的日子：在那之后没有新的完成，就不会再建议归档。
+    // 放回 = 「我还要用它」。记下放回的日子：再归档时完成日期只认那天以后的。
     : { archived:false, archivedOn: del, archivedWhy: del, doneOn: del, reopenedOn: t }, { merge:true }));
   await batch.commit();
   // BANK 和 BANK_BY_ID 指的是同一批对象，改一处两边都跟上，不用重新拉一次题库
@@ -1784,33 +1778,13 @@ async function setArchived(ids, on){
   });
 }
 
-// 📌 钉住 = 常年要重复派的那几份（作文本、打字游戏、每周的复习页），做完也不提示归档。
-async function setKeep(id, on){
-  const del = firebase.firestore.FieldValue.delete();
-  await db.collection('bank').doc(id).set({ keep: on ? true : del }, { merge:true });
-  const b = BANK_BY_ID[id];
-  if(b){ if(on) b.keep = true; else delete b.keep; }
-}
 
-/* ===================== 完成建议归档 (Sam 2026-09-20，09-22 改成只建议) =====================
-   09-20：「只要派件完成的作业就归档，然后写归档日期和完成日期」。
-   09-22 改口：「布置完毕给我个建议是否归档；我不归档，就不要自动归档」——
-   现在只算出建议、列在题库最上面，家长点「全部归档」或单行「归档」才写。
-   完成的口径（Sam 定的）：
-   · 派出去、孩子交了卷就算完成 —— 不看分数高低；练习页 / 参考页回传的「完成」也算；
-   · 但 quiz 得真交出点东西来（realTry）：判了分、练习游戏跑完一轮、或者写作台交了一篇。
-     光打开页面 15 秒 quiz-report.js 也会写一条没分数的记录（VIEW_MIN_SECS），那不算做完
-     —— Sam 2026-09-21 定的，起因是 Unknown Word Drill 只开了 58 秒没分数，却要被记成完成；
-   · 两个孩子都派过的那一份，要两个人都交了才归档（免得 Warren 还没做，它就从列表里消失了）；
-   · 撤回的不算「要做」—— 撤回之后它就不在那天的 items[] 里了；
-   · 完成日期 = 变成「都做完」的那一天，也就是两个孩子各自第一次交卷里较晚的那个。
-   归档只是从默认列表里收起来：文件、成绩、已经派出去的作业都不动（§三之二）。
-   三个刹车：
-   · 今天或以后还排在派单上的，一份都不收（scheduled）—— 免得上午刚派、孩子做完，下午就找不着了，
-     也免得下周要做的东西今天就从「在用」里消失（Grace 的 Class Vocab 一次派到周五）；
-   · 「放回在用」写下 reopenedOn，在那之后没有新的完成就不会再被收回去；
-   · 行上那颗 📌 钉住的，做完也不提示归档；
-   · 点过「先不归档，别再提示」的（sugOffOn），完成日期没变晚就不再提。 */
+/* ===================== 完成的口径（归档记完成日期、今天页 / 派发记录判「完成」都用它） =====================
+   · 交了卷就算完成 —— 不看分数高低；练习页 / 参考页回传的「完成」也算；
+   · 但 quiz 得真交出点东西来（realTry）：光打开页面 15 秒 quiz-report.js 也会写一条没分数的记录（VIEW_MIN_SECS），
+     那不算做完 —— Sam 2026-09-21 定的，起因是 Unknown Word Drill 只开了 58 秒没分数，却要被记成完成；
+   · 两个孩子都派过的那一份，要两个人都交了才有完成日期；撤回的不算「要做」。
+   「建议归档」（09-20 起）2026-10-04 Sam 说不要了，代码已删；要找回去看 git bea59a4。 */
 // 这条记录算不算「真交了」：判了分 / 练习游戏跑完一轮（firstTry 是个数）/ 写作台交了一篇。
 // ref 和自定义链接没有分数可言（孩子自己点「✓ I'm done」），有记录就算，不走这道闸。
 const realTry = a => a.pct!=null || (a.practice && a.practice.firstTry!=null) || a.handin;
@@ -1838,48 +1812,6 @@ function doneDate(b){
   return out;
 }
 
-// 建议归档的那几份：[[b, 完成日期], …]。只算，不写 —— 归不归档由家长点（Sam 2026-09-22）。
-// 2026-10-04 Sam：「建议归档不用再建议了，我自己手动做」—— 整个关掉：题库顶上那块、今天页那条、
-// 行上的「建议归档」标签都靠这里返回空来消失。下面的算法留着，哪天要再打开，删掉这一行就行。
-const SUGGEST_ARCHIVE = false;
-function archiveSuggestions(){
-  if(!SUGGEST_ARCHIVE) return [];
-  const out = [];
-  BANK.forEach(b=>{
-    if(b.archived || b.keep) return;
-    if(scheduled(b.docId)) return;                      // 今天或以后还排着 → 先不提
-    // 点过「先不归档」的，只认那天之后的新成绩（和「放回」一个算法，门槛挪到 sugOffOn 的第二天）
-    let bb = b;
-    if(b.sugOffOn){
-      const next = new Date(b.sugOffOn + 'T12:00'); next.setDate(next.getDate() + 1);
-      if(iso(next) > (b.reopenedOn||'')) bb = Object.assign({}, b, { reopenedOn: iso(next) });
-    }
-    const d = doneDate(bb);                             // 放回 / 先不归档之后没有新完成的，这里就返回 ''
-    if(d) out.push([b, d]);
-  });
-  return out;
-}
-// 「先不归档」= 这一批这次不收，也别再提；记 sugOffOn = 今天。之后「完成日期」变得比它晚
-// （放回后又做了一遍）才会再提。只写这一个字段，归档状态一点不动。
-async function dismissSuggestions(ids){
-  const t = iso(today), batch = db.batch();
-  ids.forEach(id => batch.set(db.collection('bank').doc(id), { sugOffOn: t }, { merge:true }));
-  await batch.commit();
-  ids.forEach(id => { const b = BANK_BY_ID[id]; if(b) b.sugOffOn = t; });
-}
-// 题库最上面那条「建议归档」：列出来，家长点了才动。
-let SUG = new Map();
-function sugBox(){
-  const list = archiveSuggestions();
-  SUG = new Map(list.map(([b, d]) => [b.docId, d]));
-  if(!list.length) return '';
-  const ids = list.map(([b]) => b.docId).join(' ');
-  return `<div class="sugbox"><b>建议归档 ${list.length} 份</b> —— 派出去的都做完了（行上标着 <span class="badge b-sug">建议归档</span>）。不点就不动。
-    <div class="suglist">${list.map(([b, d]) => `<span>${esc(b.ic||'')} ${esc(b.t)} <i>完成 ${ymd(d)}</i></span>`).join('')}</div>
-    <button class="fchip on" data-sug="1" data-ids="${esc(ids)}">全部归档</button>
-    <button class="fchip" data-sug="0" data-ids="${esc(ids)}" title="这一批不收，也不再提示；哪份又做了一遍才会再提">先不归档，别再提示</button>
-    <span class="crumb">只想收其中几份：点那几行的「归档」就行</span></div>`;
-}
 
 /* ===================== 派过没有 · 派发历史（Sam 2026-09-27） =====================
    「是否更方便的查看是否已派发过，派发历史」。原来题库只标「今天已派」，最右那格是最近一次成绩 ——
@@ -1902,7 +1834,8 @@ function buildHist(){
       if(a.kid!==k || !a.date || a.demo || isReviewRead(a.id) || seen.has(a.id+'|'+a.date)) return;
       seen.add(a.id+'|'+a.date);
       if((DAYS[k]||[]).some(d=>d.date===a.date && (d.items.some(it=>it.id===a.id) || d.withdrawn.some(p=>p.id===a.id)))) return;
-      add(a.id, { k, date:a.date, it:null, pulled:null, r:dayResult(k, a.id, a.date), self:true });
+      const r = dayResult(k, a.id, a.date);
+      if(r) add(a.id, { k, date:a.date, it:null, pulled:null, r, self:true });   // 只开着看了一会儿的不算「自己做过」
     });
   });
   HIST.forEach(list => list.sort((x,y)=>y.date.localeCompare(x.date)));
@@ -2070,9 +2003,7 @@ async function saveLink(btn){
   const data = { t:f.t, href:url, d:f.d, type:'link', kid:f.kid, subj:f.subj, book:'', kind:'loose',
                  n:0, ic:f.ic || '🔗', custom:true,
                  mins: mins==null ? firebase.firestore.FieldValue.delete() : mins };
-  // 自定义链接多半是常年重复派的（读书会、老师的平台），所以新加的默认 📌 钉住 ——
-  // 不然「完成即归档」会在孩子第一次点 Done 之后就把它收进归档。要收随时手动点。
-  if(isNew){ data.added = iso(today); data.archived = false; data.keep = true; }
+  if(isNew){ data.added = iso(today); data.archived = false; }
   else data.updated = iso(today);
   btn.disabled = true;
   try {
@@ -2168,7 +2099,7 @@ function viewBank(){
       <button class="fchip" data-act="newlink" title="题库里没有的东西：别的网站上的课、读书会">＋ 自定义链接</button>
       ${F.sort==='time'?'':`<button class="fchip icon" data-act="expand" title="全部展开" aria-label="全部展开"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg><span class="txt">全部展开</span></button>
       <button class="fchip icon" data-act="collapse" title="全部收起" aria-label="全部收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg><span class="txt">全部收起</span></button>`}</div>`;
-  html += sugBox() + linkForm();
+  html += linkForm();
   if(!rows.length) return html + `<p class="empty">没有匹配的内容。</p>`;
 
   if(F.q.trim()){
@@ -2933,7 +2864,7 @@ const bar = document.getElementById('assignbar');
 // A note is { s, e, quote, kind, fix, note } on characters s..e of the text (JS/writing-review.js draws them).
 const WR_MAX = 60;
 let WR = { list:null, drafts:{}, err:'', loading:false, kid:'all', wk:'all', cur:'', editing:false, diff:false, setup:false,
-           ed:null, sel:null, aiBusy:false };
+           ed:null, sel:null, stale:false };
 // by 'claude': marked from the chat window on Sam's Mac (homework-system/writing-review.mjs), no API key.
 const WHO_ZH = { dad:'爸爸', mom:'妈妈', claude:'Claude' };
 const WR_KIND = { fix:'要改', good:'写得好', note:'批注' };
@@ -3173,15 +3104,16 @@ const seenText = w => { const rs = reviewReadSecs(w.id);
 // Writing Lab 的 SSAT 故事是 promptKind:'story'，ISEE 题目是 'essay'。
 // 申请文书 2026-09-25 起不在作业系统里了，在 arbutus（Sam 定）。
 // 演讲课（Writing/Speech-Studio.html）：一课若干步，每步单独交一次，手批，不按 ISEE/SSAT 判分口径走 ——
-// 见 HOMEWORK-SYSTEM.md 2026-09-20 演讲工作台。2026-09-27 起改成四步（pid speech-L<课>-s<步>）：
-// 找素材 · 填课本那张表 · 开头和结尾 · 成稿朗读录音。之前交的五步版 pid 是 speech-L<课>-d<步>，照旧能显示。
-const SPEECH_STEP = { s: { 1:'找素材 · 三个故事', 2:'填表 · YOUR SPEECH', 3:'开头和最后一句', 4:'成稿 + 朗读录音' },
+// 见 HOMEWORK-SYSTEM.md 2026-09-20 演讲工作台。2026-10-04 起一课一步：读课件、一次写完整篇
+// （pid speech-L<课>-w1）。之前的四步版（09-27，-s<步>：找素材 · 填表 · 开头和结尾 · 成稿）和五步版（-d<步>）照旧能显示，标「旧 X 步版」。
+const SPEECH_STEP = { w: { 1:'整篇演讲 + 朗读录音' },   // 2026-10-04 起：读课件 → 一次写完整篇（pid speech-L<课>-w1）
+                      s: { 1:'找素材 · 三个故事', 2:'填表 · YOUR SPEECH', 3:'开头和最后一句', 4:'成稿 + 朗读录音' },
                       d: { 1:'用自己的话复述技术点', 2:'三个开场白', 3:'骨架 · 意图 + 三个论点',
                            4:'结尾 · 三种收尾 + takeaway', 5:'成稿 + 朗读录音' } };
-const speechAt = w => /^speech-L(\d+)-([ds])(\d)$/.exec(w && w.pid || '');
+const speechAt = w => /^speech-L(\d+)-([dsw])(\d)$/.exec(w && w.pid || '');
 const wkOf = w => WritingKinds.of(w);
 const promptLabel = w => { const k = wkOf(w).key;
-  return k==='speech' ? (m => m ? `Lesson ${m[1]} · 第 ${m[3]} 步 ${SPEECH_STEP[m[2]][+m[3]]||''}${m[2]==='d'?'（旧五步版）':''}` : '')(speechAt(w))
+  return k==='speech' ? (m => m ? (m[2]==='w' ? `Lesson ${m[1]} · ${SPEECH_STEP.w[1]}` : `Lesson ${m[1]} · 第 ${m[3]} 步 ${SPEECH_STEP[m[2]][+m[3]]||''}${m[2]==='d'?'（旧五步版）':'（旧四步版）'}`) : '')(speechAt(w))
     : k==='exam' ? (w.promptKind==='story' ? 'SSAT 故事开头' : 'ISEE 题目') : ''; };
 
 // 每门课的批改口径（给 🤖 按钮用）在 JS/writing-kinds.js 的 rubric 里，writing-review.mjs 也读同一份。
@@ -3291,13 +3223,13 @@ function editorView(w){
   const ed = WR.ed;
   if(!ed || ed.id!==w.id){ openEditor(w); return `<p class="empty">正在读草稿…</p>`; }
   if(ed.loading) return `<p class="empty">正在读草稿…</p>`;
-  if(isRedraft(w) && !wrMany(w)) return checksEditorView(w);
+  if(isRedraft(w) && !wrMany(w)) return clashBox(ed) + checksEditorView(w);
   const prev = isRedraft(w) && WR.list.find(x=>x.id===w.prevId), left = ed.checks.filter(c=>!c.status).length;
   const ckBlock = !isRedraft(w) ? '' : `<div class="subhd">先对照上一稿${prev?`（第 ${prev.draftNo||1} 稿）`:''} · ${ckCount(ed.checks)}${left?` · 还有 ${left} 条没选`:''}</div>
     ${ed.checks.length ? ed.checks.map(checkEdit).join('') : `<p class="empty">${prev ? '上一稿没有「要改」的批注。' : '上一稿不在最近 '+WR_MAX+' 篇里，读不到它的批注。'}</p>`}
     <div class="subhd">再逐句批这一稿</div>`;
-  return `<div class="estools">
-      <button class="btn" data-wai ${WR.aiBusy?'disabled':''}>${WR.aiBusy?'Claude 正在读…（半分钟左右）':'🤖 让 Claude 先出草稿'}</button>
+  return clashBox(ed) + `<div class="estools">
+      <button class="btn" data-wai ${ed.aiBusy?'disabled':''}>${ed.aiBusy?'Claude 正在读…（半分钟左右）':'🤖 让 Claude 先出草稿'}</button>
       <button class="mini" data-wsetup>⚙︎ Claude 设置</button>
       <span class="saved" id="wrsaved">${esc(ed.saved)}</span></div>
     ${WR.setup ? '<div class="kaipbox" id="kaipbox"></div>' : ''}
@@ -3322,11 +3254,27 @@ function editorView(w){
 }
 
 // The marking being edited: the saved draft if there is one, else what was sent, else empty.
+// 爸爸妈妈各开一台设备、Claude 也会从聊天窗口存草稿（2026-10-04）：打开时作文和草稿都现读一遍，
+// 存草稿 / 发出时再核对一次 —— 草稿上的 tok 是上一次谁存的记号，作文上看 status + review.at。
+// 对不上就不写，让家长自己选（clashBox），不再「后存的悄悄盖掉先存的」。
+const wrBase = f => (f.status||'') + '|' + (f.review && f.review.at && f.review.at.toMillis ? f.review.at.toMillis() : '');
+function wrFresh(w, f){
+  ['status','review','skipped','seenAt'].forEach(k=>{ if(k in f) w[k] = f[k]; else delete w[k]; });
+  const a = ATT.find(x=>x.aid===w.attemptId);
+  if(a && f.status==='reviewed'){ a.reviewed = true; a.skipped = false; }
+}
 async function openEditor(w){
   WR.ed = { id:w.id, notes:[], checks:[], summary:'', score:null, saved:'', loading:true, dirty:false };
-  const ed = WR.ed;
+  const ed = WR.ed, editing = WR.editing;
   try {
-    const d = await db.doc('reviewDrafts/'+w.id).get();
+    const [d, ws] = await Promise.all([db.doc('reviewDrafts/'+w.id).get(), db.doc('writings/'+w.id).get()]);
+    if(ws.exists) wrFresh(w, ws.data());
+    if(w.status==='reviewed' && !editing){   // 列表上还是待批改，其实另一位家长已经批完发出去了
+      if(WR.ed===ed){ WR.ed = null; if(V==='essay') render(); }
+      toast(`这篇${WHO_ZH[w.review && w.review.by]||'别人'}已经批过、发出去了`);
+      return;
+    }
+    ed.base = wrBase(w); ed.had = d.exists; ed.tok = d.exists ? d.data().tok : undefined;
     const src = d.exists ? d.data() : (w.review || {});
     // 对照表：存过的就用存过的，否则把上一稿的「要改 / 批注」列出来，状态空着。
     const prev = isRedraft(w) && w.prevId && (WR.list||[]).find(x=>x.id===w.prevId);
@@ -3343,19 +3291,79 @@ async function openEditor(w){
 
 let wrTimer = 0;
 function wrSaved(t){ if(WR.ed) WR.ed.saved = t; const el = document.getElementById('wrsaved'); if(el) el.textContent = t; }
-function wrSave(){ if(!WR.ed) return; WR.ed.dirty = true; wrSaved('正在存草稿…'); clearTimeout(wrTimer); wrTimer = setTimeout(wrFlush, 1000); }
-async function wrFlush(){
-  clearTimeout(wrTimer);
-  const ed = WR.ed;
-  if(!ed || !ed.dirty) return;
+const WR_CLASH_TXT = '⚠ 没存：先在上面选用哪一份';
+function wrSave(){ if(!WR.ed) return; WR.ed.dirty = WR.ed.touched = true;
+  if(WR.ed.clash) return wrSaved(WR_CLASH_TXT);
+  wrSaved('正在存草稿…'); clearTimeout(wrTimer); wrTimer = setTimeout(wrFlush, 1000); }
+// ed 默认是正在编辑的那篇；Claude 草稿回来时家长可能已经换了一篇，就把那份 ed 传进来单独存。
+function wrFlush(ed = WR.ed){
+  if(ed===WR.ed) clearTimeout(wrTimer);
+  if(!ed || !ed.dirty || ed.loading || ed.clash) return Promise.resolve();
   ed.dirty = false;
-  try {
-    await db.doc('reviewDrafts/'+ed.id).set({ notes:ed.notes, checks:ed.checks, summary:ed.summary, score:ed.score, by:meAs(),
+  const ref = db.doc('reviewDrafts/'+ed.id), tok = Math.random().toString(36).slice(2, 10);
+  return ed.flushP = db.runTransaction(async tx=>{
+    const s = await tx.get(ref);
+    if(s.exists !== !!ed.had || (s.exists && s.data().tok !== ed.tok))
+      throw Object.assign(new Error('clash'), { clash: Object.assign({ exists: s.exists }, s.exists ? s.data() : {}) });
+    tx.set(ref, { notes:ed.notes, checks:ed.checks, summary:ed.summary, score:ed.score, by:meAs(), tok,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  }).then(()=>{
+    ed.had = true; ed.tok = tok;
     if(WR.ed===ed) wrSaved('草稿已存 ' + hm(new Date()));
-  } catch(e){ ed.dirty = true; if(WR.ed===ed) wrSaved('草稿没存上：' + (e.code||e.message) + '，稍后会再试'); }
+  }, e=>{
+    ed.dirty = true;
+    if(e && e.clash){ ed.clash = e.clash; ed.saved = WR_CLASH_TXT;
+      if(WR.ed===ed && V==='essay'){ render(); toast(`${WHO_ZH[e.clash.by]||'别人'}刚改过这篇的草稿，你的改动还没存 —— 看最上面`, true); }
+      return; }
+    if(WR.ed===ed){ wrSaved('草稿没存上：' + (e.code||e.message) + '，15 秒后再试'); clearTimeout(wrTimer); wrTimer = setTimeout(wrFlush, 15000); }
+  });
+}
+// 对不上时编辑器顶上这一块：c 是草稿那边现在的样子（clash），或者作文已经被别人发出去了（sent）。
+function clashBox(ed){
+  if(ed.sent){ const r = ed.sent.review || {};
+    return `<div class="esclash">⚠ 没发出去：这篇${WHO_ZH[r.by]||'别人'}${r.at&&r.at.toDate?' '+stamp(r.at.toDate()):''}已经批过、发给孩子了。你的批改还留在草稿里。
+      <button class="mini" data-wclash="seesent">看已经发出的那份</button> <button class="mini" data-wclash="sendmine">还是发我的（替换掉）</button></div>`; }
+  const c = ed.clash;
+  if(!c) return '';
+  return `<div class="esclash">⚠ ${c.exists ? `${WHO_ZH[c.by]||'别人'}${c.updatedAt&&c.updatedAt.toDate?' '+stamp(c.updatedAt.toDate()):''} 刚改过这篇的草稿`
+      : '这篇的草稿刚被别人发出去或删掉了'}，你最近的改动<b>还没存</b>。
+    <button class="mini" data-wclash="load">看最新的（丢掉我刚才的改动）</button> <button class="mini" data-wclash="mine">用我的覆盖</button></div>`;
+}
+function wrClash(how){
+  const ed = WR.ed; if(!ed) return;
+  if(how==='load' || how==='seesent'){
+    if(how==='seesent') WR.editing = false;
+    ed.dirty = false; WR.ed = null; render(); return;
+  }
+  if(how==='mine'){ const c = ed.clash; ed.had = c.exists; ed.tok = c.tok; ed.clash = null; wrSave(); render(); return; }
+  if(how==='sendmine'){ const s = ed.sent; ed.base = wrBase(s); ed.sent = null; render(); wrSend(ed.sentHow); }
+}
+// 「不改了」：这次改的不要了 —— 删掉这次存下的草稿，已经发给孩子的那份不动。
+async function wrCancel(){
+  const ed = WR.ed;
+  if(ed && ed.touched && !confirm('放弃这次的修改？已经发给孩子的那份不变。')) return;
+  clearTimeout(wrTimer);
+  if(ed && ed.touched && !ed.clash){   // 撞上了别人的草稿就不删，那份是别人的
+    ed.dirty = false;
+    try { await ed.flushP; } catch(e){}
+    db.doc('reviewDrafts/'+ed.id).delete().catch(e=>console.warn('[作文] draft not deleted:', e.code||e));
+    delete WR.drafts[ed.id];
+  }
+  WR.editing = false; WR.ed = null; render();
 }
 document.addEventListener('visibilitychange', ()=>{ if(document.hidden) wrFlush(); });
+// 页面开着过了午夜（iPad 主屏幕上那个常这样）：today 是打开时定的，一直不变 —— 今天页、实时计时、派发日期都会停在昨天。
+// 回到这页时发现换了一天 → 先把批改草稿存好，再整页重开。草稿没存上就先不重开，免得丢。
+const BOOT_DAY = iso(today);
+async function newDayCheck(){
+  if(document.hidden || iso(new Date())===BOOT_DAY) return;
+  try { await wrFlush(); } catch(e){}
+  if(WR.ed && (WR.ed.dirty || WR.ed.clash || WR.ed.aiBusy)) return;
+  location.reload();
+}
+document.addEventListener('visibilitychange', newDayCheck);
+window.addEventListener('pageshow', newDayCheck);
+window.addEventListener('focus', newDayCheck);
 
 function addNote(sel){
   const w = wrCur(), ed = WR.ed;
@@ -3448,7 +3456,7 @@ async function aiDraft(){
       ...WritingReview.ordered(prev.review.notes).map(n=>`- [${n.kind}] "${n.quote}"${n.fix?' -> '+n.fix:''}${n.note?' ('+n.note+')':''}`)] : []),
     '', 'THE STUDENT\'S WRITING (verbatim, between the markers):', '<<<WRITING', w.text, 'WRITING>>>'
   ].join('\n');
-  WR.aiBusy = true; render();
+  ed.aiBusy = true; render();
   try {
     const fb = await KidsAI.askJSON({ system: WR_AI_SYS, user, maxTokens: 4000 });
     const from = {}, notes = [];
@@ -3464,11 +3472,15 @@ async function aiDraft(){
     Object.assign(ed, { notes: WritingReview.ordered(notes),
       summary: [String(fb.summary||'').trim(), ...(next.length ? ['', 'Next time:', ...next.map(x=>'• '+x)] : [])].join('\n').trim(),
       score: Math.min(6, Math.max(1, Math.round(Number(fb.score)))) || null });
-    wrSave();
-    toast('Claude 的草稿好了：删改之后再发');
+    if(WR.ed===ed){ wrSave(); toast('Claude 的草稿好了：删改之后再发'); }
+    else {   // 等的那半分钟里家长换去了别的作文：照样存成那篇的草稿
+      ed.dirty = ed.touched = true; await wrFlush(ed);
+      toast(ed.dirty ? `Claude 给「${(w.prompt||'').slice(0,20)}」的草稿没存上，回去再点一次 🤖` : `Claude 给「${(w.prompt||'').slice(0,20)}」的草稿存好了，打开那篇就能看到`, ed.dirty);
+      if(!ed.dirty && WR.ed && WR.ed.id===ed.id && !WR.ed.dirty){ WR.ed = null; if(V==='essay') render(); }   // 又回到了这篇：重读一次
+    }
   } catch(e){ toast(e.message || String(e), true); }
-  WR.aiBusy = false;
-  if(V==='essay') render();
+  ed.aiBusy = false;
+  if(V==='essay' && WR.ed===ed) render();
 }
 
 // how: drafts:'many' 的课那两颗键里点的是哪一颗（'final' / 'more'）；别的课不看它，改稿发出去就是定稿。
@@ -3489,15 +3501,35 @@ async function wrSend(how){
     at: firebase.firestore.FieldValue.serverTimestamp() };
   if(many) review.final = final;
   if(redo) review.checks = ed.checks.map(c=>({ quote:c.quote||'', fix:c.fix||'', why:c.why||'', status:c.status||'', note:(c.note||'').trim() }));
-  clearTimeout(wrTimer); ed.dirty = false;
-  const b = db.batch();
-  b.update(db.doc('writings/'+w.id), { status:'reviewed', review, seenAt: firebase.firestore.FieldValue.delete(),
-    skipped: firebase.firestore.FieldValue.delete() });
-  b.delete(db.doc('reviewDrafts/'+w.id));
-  try { await b.commit(); delete WR.drafts[w.id]; }
-  catch(e){ console.error(e); ed.dirty = true; toast('没发出去：' + (e.code||e.message) + '，批改还在草稿里', true); return; }
+  clearTimeout(wrTimer);
+  try { await ed.flushP; } catch(e){}
+  if(ed.clash){ toast('草稿刚被别人改过，先在上面选一下用哪份', true); return; }
+  ed.dirty = false;
+  const wref = db.doc('writings/'+w.id), dref = db.doc('reviewDrafts/'+w.id);
+  try {
+    await db.runTransaction(async tx=>{
+      const [ws, ds] = await Promise.all([tx.get(wref), tx.get(dref)]);
+      const f = ws.data() || {};
+      // 打开以后另一位家长已经发出了一份（或者又改发了一次）→ 不盖，让家长选
+      if(wrBase(f) !== ed.base) throw Object.assign(new Error('sent'), { sent: f, draft: ds.exists ? ds.data() : null });
+      if(ds.exists !== !!ed.had || (ds.exists && ds.data().tok !== ed.tok))
+        throw Object.assign(new Error('clash'), { clash: Object.assign({ exists: ds.exists }, ds.exists ? ds.data() : {}) });
+      tx.update(wref, { status:'reviewed', review, seenAt: firebase.firestore.FieldValue.delete(),
+        skipped: firebase.firestore.FieldValue.delete() });
+      tx.delete(dref);
+    });
+    delete WR.drafts[w.id];
+  } catch(e){
+    ed.dirty = true;
+    if(e && e.sent){
+      wrFresh(w, e.sent); WR.editing = true; Object.assign(ed, { sent: e.sent, sentHow: how, had: !!e.draft, tok: e.draft ? e.draft.tok : undefined });
+      wrFlush(ed); render(); window.scrollTo({ top:0 }); return;   // 自己这份留成草稿
+    }
+    if(e && e.clash){ ed.clash = e.clash; render(); window.scrollTo({ top:0 }); return; }
+    console.error(e); toast('没发出去：' + (e.code||e.message) + '，批改还在草稿里', true); return;
+  }
   // The attempt carries the score for 完成记录 / 今日作业. If that fails the marking is still sent.
-  db.doc('attempts/'+w.attemptId).update({ 'practice.firstTry': ed.score, 'practice.reviewed': true,
+  if(w.attemptId) db.doc('attempts/'+w.attemptId).update({ 'practice.firstTry': ed.score, 'practice.reviewed': true,
       'practice.skipped': firebase.firestore.FieldValue.delete() })
     .catch(e=>console.warn('[作文] attempt not updated:', e.code||e));
   Object.assign(w, { status:'reviewed', review: Object.assign({}, review, { at: firebase.firestore.Timestamp.now() }) });
@@ -3535,10 +3567,12 @@ function wireEssay(){
   on('[data-wrretry]', 'click', ()=>{ WR.list = null; WR.err = ''; render(); });
   on('.fchip[data-wk]', 'click', el=>{ WR.kid = el.dataset.wk; render(); });
   on('[data-wid]', 'click', el=>{ wrFlush(); Object.assign(WR, { cur:el.dataset.wid, editing:false, diff:false, ed:null }); render(); window.scrollTo({ top:0 }); });
-  on('[data-wback]', 'click', ()=>{ wrFlush(); Object.assign(WR, { cur:'', editing:false, diff:false, ed:null }); render(); window.scrollTo({ top:0 }); });
+  on('[data-wback]', 'click', ()=>{ wrFlush(); Object.assign(WR, { cur:'', editing:false, diff:false, ed:null });
+    if(WR.stale){ WR.list = null; WR.stale = false; } render(); window.scrollTo({ top:0 }); });
   on('[data-wdiff]', 'click', ()=>{ WR.diff = !WR.diff; render(); });
   on('[data-wedit]', 'click', ()=>{ WR.editing = true; WR.ed = null; render(); });
-  on('[data-wcancel]', 'click', ()=>{ wrFlush(); WR.editing = false; WR.ed = null; render(); });
+  on('[data-wcancel]', 'click', wrCancel);
+  on('[data-wclash]', 'click', el=>wrClash(el.dataset.wclash));
   on('[data-wsetup]', 'click', ()=>{ WR.setup = !WR.setup; render(); });
   on('[data-wai]', 'click', aiDraft);
   on('[data-wsend]', 'click', el=>wrSend(el.dataset.wsend));
@@ -3663,7 +3697,7 @@ function render(){
   const ag = document.getElementById('archgo');
   ag.textContent = allArch ? '放回在用' : '归档';
   ag.dataset.to = allArch ? '0' : '1';
-  // 单份归档 / 放回、建议归档那条：题库和「今天」都有
+  // 单份归档 / 放回：题库和「今天」都有
   viewEl.querySelectorAll('button[data-arch]').forEach(btn=>btn.addEventListener('click', async ()=>{
     const id = btn.dataset.arch, on = btn.dataset.to==='1', b = BANK_BY_ID[id];
     btn.disabled = true;
@@ -3676,19 +3710,6 @@ function render(){
       toast('归档没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
     }
   }));
-  viewEl.querySelectorAll('button[data-sug]').forEach(btn=>btn.addEventListener('click', async ()=>{
-    const ids = btn.dataset.ids.split(' ').filter(Boolean), on = btn.dataset.sug==='1';
-    viewEl.querySelectorAll('button[data-sug]').forEach(x=>x.disabled = true);
-    try {
-      if(on){ await setArchived(ids, true); toast(`已归档 ${ids.length} 份 —— 在题库「归档」里，点「放回」能拿回来`); }
-      else { await dismissSuggestions(ids); toast(`这 ${ids.length} 份先不归档，也不再提示`); }
-      render();
-    } catch(e){
-      console.error(e); viewEl.querySelectorAll('button[data-sug]').forEach(x=>x.disabled = false);
-      toast('没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
-    }
-  }));
-  viewEl.querySelectorAll('[data-gobank]').forEach(b=>b.addEventListener('click',()=>go('bank')));
   viewEl.querySelectorAll('[data-gotoday]').forEach(b=>b.addEventListener('click',()=>go('today')));
 
   if(V==='bank'){
@@ -3706,18 +3727,6 @@ function render(){
     // Re-render on every pick so the subject's "已选 N" and the shelf's select-all stay in step.
     viewEl.querySelectorAll('input.pick').forEach(cb=>cb.addEventListener('change',()=>{
       cb.checked?SEL.add(cb.dataset.id):SEL.delete(cb.dataset.id); render(); }));
-    viewEl.querySelectorAll('button.archbtn[data-keep]').forEach(btn=>btn.addEventListener('click', async ()=>{
-      const id = btn.dataset.keep, on = btn.dataset.to==='1', b = BANK_BY_ID[id];
-      btn.disabled = true;
-      try {
-        await setKeep(id, on);
-        toast(on ? `已钉住「${b?b.t:''}」，做完也不提示归档` : `取消钉住「${b?b.t:''}」，做完会提示归档`);
-        render();
-      } catch(e){
-        console.error(e); btn.disabled = false;
-        toast('没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
-      }
-    }));
     // 派发历史：点最右那格展开 / 收起
     viewEl.querySelectorAll('[data-hist]').forEach(b=>b.addEventListener('click',()=>{
       const id = b.dataset.hist; OPEN_HIST.has(id)?OPEN_HIST.delete(id):OPEN_HIST.add(id); render(); }));
@@ -3775,11 +3784,13 @@ function render(){
 // Every move between views goes through here. v = the view; kid = whose page (ignored for 今天 / 题库).
 function go(v, kid){
   wrFlush();   // an unsaved bit of marking in 作文 goes to its draft before the view changes
+  if(RC.stale && V!==v){ RC.list = null; RC.stale = false; }
   KV = v==='today' || v==='bank' || v==='usage' ? null : kid || KV || 'grace';
   if(KV) KSUB = v;
   // An essay left open on one kid's page must not show up on the other kid's.
   const w = wrCur();
   if(w && w.kid!==KV){ WR.cur = ''; WR.editing = false; WR.diff = false; WR.ed = null; }
+  if(WR.stale && !(v==='essay' && WR.cur)){ WR.list = null; WR.stale = false; }
   V = v;
   navSync(); render(); window.scrollTo({ top:0 });
 }
@@ -3850,10 +3861,8 @@ function useKey(el){
   if(d.act) return 'bank:'+d.act;
   if(d.never) return 'bank:never';
   if(d.hist) return 'bank:hist';
-  if(d.keep) return 'bank:pin';
   if(d.archgrp) return 'arch:group';
   if(d.arch) return V==='today' ? 'arch:today' : 'arch:row';
-  if(d.sug) return 'arch:sug'+d.sug+(V==='today'?':today':'');
   if(d.edlink) return 'bank:editlink';
   if(d.fr) return 'focus:range';
   if(d.rd) return 'reading:range';
@@ -3891,12 +3900,11 @@ const USE_WATCH = [
   ['bank:kid=warren','题库 · Warren'], ['bank:kid=grace','题库 · Grace'], ['bank:kid=all','题库 · 全部'],
   ['bank:arch=archived','题库 · 看归档'], ['bank:sort=time','题库 · 按时间'], ['bank:sort=group','题库 · 按科目分组'],
   ['bank:expand','题库 · 全部展开'], ['bank:collapse','题库 · 全部收起'], ['bank:newlink','题库 · ＋ 自定义链接'], ['bank:editlink','题库 · 编辑链接'],
-  ['bank:pin','题库 · 📌 钉住'], ['bank:selall','题库 · 整组勾选'], ['bank:pick','题库 · 勾选单份'],
+  ['bank:selall','题库 · 整组勾选'], ['bank:pick','题库 · 勾选单份'],
   ['bank:subject','题库 · 展开科目'], ['bank:shelf','题库 · 展开书架'], ['open:bank','题库 · 打开看题'],
 
   ['assign:go','派发（按钮）'], ['key:enter','派发（Enter 键）'], ['assign:arch','底部条 · 归档'], ['key:a','底部条 · 归档（A 键）'],
   ['arch:row','单行 · 归档/放回'], ['arch:group','书架 · 整组归档'], ['arch:today','今天页 · 归档'],
-  ['arch:sug1:today','今天页 · 建议归档「全部归档」'], ['arch:sug1','题库 · 建议归档「全部归档」'], ['arch:sug0','题库 · 先不归档'],
   ['today:move','今天 · 改日期'], ['today:pull','今天 · 撤回'], ['today:day','今天 · 翻前一天/后一天'],
   ['dispatch:range','派发记录 · 换时间段'], ['dispatch:missonly','派发记录 · 只看没做的'],
   ['focus:range','专注情况 · 换时间段'], ['reading:range','阅读写作 · 换时间段'],
@@ -3926,6 +3934,10 @@ document.getElementById('assgo').addEventListener('click', async ()=>{
   const kids = k==='both' ? ['grace','warren'] : [k];   // 两个人: e.g. Chinese homework both of them do
   const d = document.getElementById('assdate').value || iso(today);
   const ids = [...SEL], go = document.getElementById('assgo');
+  // 题库「全部」里勾了 Grace 的、「派给」却停在 Warren（或选了「两个人」）：先问一句，别悄悄派错人。
+  const odd = kids.flatMap(kk => ids.map(id => BANK_BY_ID[id])
+    .filter(b => b && b.kid && b.kid!=='both' && b.kid!==kk).map(b => `· ${b.t}（${KID[b.kid] ? KID[b.kid].n : b.kid} 的）→ 派给 ${KID[kk].n}`));
+  if(odd.length && !confirm(`下面这几份不是派给的那个孩子的：\n${odd.join('\n')}\n\n确定还是这样派？`)) return;
   go.disabled = true;
   try {
     const refs = kids.map(kk=>dayRef(kk, d));
@@ -4031,22 +4043,29 @@ async function moveItem(k, id, to, btn){
   const from = TD, it = ASSIGN[k].find(x=>x.id===id);
   if(!it) return;
   if(!to || to===from) return toast('选一个别的日期', true);
+  // 这天已经做过了（比如 80% 想让他明天重做）：这天那一行和成绩留着，只在新日期再派一次 —— 不然这天的记录就整条没了。
+  const r = dayResult(k, id, from), keep = !!r;
+  if(keep && !confirm(`${KID[k].n} ${from} 已经做过这份${r.scored?`（${r.last.pct}%）`:''}。\n\n这天的记录会留着，在 ${to} 再派一次。确定？`)) return;
   btn.disabled = true;
   const src = dayRef(k, from), dst = dayRef(k, to);
+  let wrote = false;
   try {
     await db.runTransaction(async tx=>{
+      wrote = false;
       const [s, t] = await Promise.all([tx.get(src), tx.get(dst)]);
       const sItems = (s.data()||{}).items || [], tItems = (t.data()||{}).items || [];
       const cur = sItems.find(i=>i.id===id);
       if(!cur) return;
       const now = firebase.firestore.FieldValue.serverTimestamp();
-      tx.set(src, { items: sItems.filter(i=>i.id!==id), updatedAt: now }, { merge:true });
-      if(!tItems.some(i=>i.id===id))
-        tx.set(dst, { items: [...tItems, { ...cur, movedFrom: from }], updatedAt: now }, { merge:true });
+      if(!keep) tx.set(src, { items: sItems.filter(i=>i.id!==id), updatedAt: now }, { merge:true });
+      // 新日期上以前撤回过这份的话，挪过去就不算撤回了（和派发一样）
+      if(!tItems.some(i=>i.id===id) && (wrote = true))
+        tx.set(dst, { items: [...tItems, { ...cur, movedFrom: from, ...(keep ? { at: firebase.firestore.Timestamp.now() } : {}) }],
+          withdrawn: ((t.data()||{}).withdrawn || []).filter(p=>p.id!==id), updatedAt: now }, { merge:true });
     });
     MOVING = ''; await Promise.all([loadDay(from), to===iso(today) ? loadDay(to) : null, loadDays()]); render();
 
-    toast(`已把「${it.t}」从 ${from} 挪到 ${to}`);
+    toast(keep ? (wrote ? `「${it.t}」在 ${to} 再派了一次，${from} 那天的记录留着` : `${to} 那天已经有「${it.t}」了，没有改动`) : `已把「${it.t}」从 ${from} 挪到 ${to}`);
   } catch(e){
     console.error(e); btn.disabled = false;
     toast('改日期失败：' + (e.code||e.message) + '，没有改动', true);
@@ -4070,6 +4089,9 @@ document.getElementById('demodel').addEventListener('click', async ()=>{
 
 document.getElementById('reload').addEventListener('click', async ()=>{
   RD.data = null; RD.err = ''; RD.loading = false;
+  // 写作、朗读录音也重读（正在批的那篇不打断，回到列表时再读）
+  RC.list = null; RC.stale = false;
+  if(V==='essay' && WR.cur) WR.stale = true; else WR.list = null;
   try { await loadAll(); render(); toast('已刷新'); }
   catch(e){ console.error(e); toast('刷新失败：' + (e.code||e.message), true); }
 });
