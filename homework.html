@@ -591,6 +591,9 @@ function viewToday(){
 // "Fri" for a day this week, "Sep 28" further back.
 const fromDay = d => { const x = new Date(d+'T12:00:00');
   return today - x < 6*864e5 ? x.toLocaleDateString('en-US', { weekday:'short' }) : x.toLocaleDateString('en-US', { month:'short', day:'numeric' }); };
+// Carried over (HOMEWORK-SYSTEM.md 2026-10-05): "↪ 2 days late · from Fri", counted from the first day it was assigned.
+const lateTag = it => { const o = it.origin||it.movedFrom, n = Math.round((new Date(iso(today)+'T12:00:00') - new Date(o+'T12:00:00')) / 864e5);
+  return n > 0 ? `↪ ${n} day${n>1?'s':''} late · from ${fromDay(o)}` : `↪ From ${fromDay(o)}`; };
 // One homework card; a = today's attempt at it, if any.
 function card(it, a){
   const scored = a && a.pct!=null;
@@ -613,7 +616,7 @@ function card(it, a){
     <span class="ic">${esc(it.ic)||'📄'}</span>
     <div class="body">
       <div class="t">${esc(it.t)}</div>
-      <div class="meta"><span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book)}${size}${it.carried?`<span class="carry">↪ From ${fromDay(it.origin||it.movedFrom)}</span>`:''}</div>
+      <div class="meta"><span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book)}${size}${it.carried?`<span class="carry">${lateTag(it)}</span>`:''}</div>
       ${status}
     </div>
     ${btn}

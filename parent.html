@@ -202,6 +202,8 @@
   .mini.bad:hover{color:var(--red);border-color:var(--red)}
   .mini:disabled{opacity:.35;cursor:not-allowed}
   .moverow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:0 0 10px 27px;font-size:12px;color:var(--mute)}
+  .late{display:inline-block;margin-left:6px;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;
+    color:var(--red);border:1px solid var(--red);vertical-align:1px}
   .carryrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12.5px;color:var(--mute);margin:8px 0 12px}
   .pulled{font-size:11.5px;color:var(--mute);margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)}
   .recent{color:var(--gold)}
@@ -1386,7 +1388,7 @@ function viewToday(){
       <button class="fchip" data-day="${shiftDay(day,1)}">${dayName(shiftDay(day,1), '后一天')} ›</button>
       ${isToday?'':`<button class="fchip" data-day="${iso(today)}">回到今天</button>`}
     </div>
-    <div class="carryrow">没做完自动顺延到第二天${qm(`开着的话：前一天（最远倒推 ${CARRY_DAYS} 天）派的、到昨天都没交的，第二天自动挪到「今天」，标「从 10-03 顺延」。
+    <div class="carryrow">没做完自动顺延到第二天${qm(`开着的话：前一天（最远倒推 ${CARRY_DAYS} 天）派的、到昨天都没交的，第二天自动挪到「今天」，标「延后一天」「延后两天」…（从最早派的那天算）。
       原来那天会写一行「没做完，顺延到 …」，派发记录里那天照样算没做。打分的卷子要交了卷才算做完，参考 / 链接打开过就算。
       今天撤回的那份不会再挪回来；不想让它再往后挪，就撤回。这一页每天第一次打开时挪；孩子先登录也看得到（他那边标 From Fri）。`)}
       ${['grace','warren'].map(k=>{ const on = !!(CARRY[k] && CARRY[k].on);
@@ -1467,14 +1469,14 @@ function viewToday(){
         const spentIt = (r ? r.tries.reduce((x,a)=>x+estSecs(a),0) : 0) + (u ? u.active : 0);
         const tmEst = r ? `<span class="est done" title="这天页面开在最前面的时间，几遍加起来（切到别的 APP、锁屏那段不算）${u?'；含没交卷的那段 —— '+UNF_TIP:''}">实际用时 ${dur(spentIt)}${u?`（含没交卷 ${dur(u.active)}）`:''}</span>`
           : estChip(it, k) + (u && !liveOf(key, false) ? ` · <span class="est done" title="${UNF_TIP}">没交卷，已用 ${dur(u.active)} · ${unfDone(u)}</span>` : '');
-        const tm = [at?'派于 '+stamp(at):'', moveTxt(it), again].filter(Boolean).join(' · ');
+        const tm = [at?'派于 '+stamp(at):'', it.carried ? '' : moveTxt(it, TD), again].filter(Boolean).join(' · ');
         // 做完了的那份，这里直接能归档（Sam 2026-09-27：不用再跑去题库）
         const bk = BANK_BY_ID[it.id];
         const arch = !r || !bk ? '' : bk.archived ? `<span class="archdone" title="已归档 ${ymd(bk.archivedOn||'')}">已归档</span>`
 
           : `<button class="mini" data-arch="${esc(it.id)}" data-to="1" title="从题库的在用列表收起来，不删文件、不动成绩，也不从孩子的作业里拿掉">归档</button>`;
         html += `<div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
-          <b>${openLink(it.href, esc(it.t))}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
+          <b>${openLink(it.href, esc(it.t))}${it.carried && it.movedFrom ? `<span class="late">${moveTxt(it, TD)}</span>` : ''}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
           <span class="tm">${tmEst}${tm?' · '+tm:''}</span>
           </span><span class="acts">${st}${arch}
             <button class="mini" data-move="${esc(key)}">改日期</button>
@@ -1504,8 +1506,14 @@ function viewToday(){
   return html + `</div>`;
 }
 
-// 「从 10-03 挪来」（手动改日期）/「从 10-02 顺延」（自动；连着顺延好几天写最早那天）
-const moveTxt = it => !it.movedFrom ? '' : it.carried ? '从 '+ymd(it.origin||it.movedFrom)+' 顺延' : '从 '+ymd(it.movedFrom)+' 挪来';
+// 「从 10-03 挪来」（手动改日期）/「延后两天 · 10-03 派的」（自动顺延；day = 它现在排在哪天，
+// 天数从最早派的那天 origin 算起，所以连着顺延会一天天变成延后一天、两天、三天 —— Sam 2026-10-05）
+const CN_NUM = ['零','一','两','三','四','五','六','七','八','九','十'];
+const lateDays = (it, day) => Math.round((new Date(day+'T12:00:00') - new Date((it.origin||it.movedFrom)+'T12:00:00')) / 864e5);
+const moveTxt = (it, day) => { if(!it.movedFrom) return '';
+  if(!it.carried) return '从 '+ymd(it.movedFrom)+' 挪来';
+  const n = lateDays(it, day);
+  return n > 0 ? '延后'+(CN_NUM[n] || n)+'天 · '+ymd(it.origin||it.movedFrom)+' 派的' : '从 '+ymd(it.origin||it.movedFrom)+' 顺延'; };
 
 /* ===================== 派发记录 (dispatch record) =====================
    Sam 2026-09-19: 「所有派发的作业都要有派发记录，并且要有当时判的分数」.
@@ -1580,7 +1588,7 @@ function viewDispatch(){
         : !r.done ? `<span class="chipst st-open">没做</span>`
         : `<span class="chipst ${r.pct==null||r.pct>=PASS?'st-done':'st-low'}">${r.pct==null?'✓ 完成':r.pct+'%'}</span>`;
       const extra = n>1 && r.r.first.pct!=null && r.r.first.pct!==r.pct ? `<span class="dflag">这天 ${n} 遍 · 第一遍 ${r.r.first.pct}%</span>` : '';
-      const flags = (r.it.movedFrom ? `<span class="dflag">${moveTxt(r.it)}</span>` : '')
+      const flags = (r.it.movedFrom ? `<span class="dflag">${moveTxt(r.it, r.date)}</span>` : '')
         + (r.carriedTo ? `<span class="dflag">顺延到 ${ymd(r.carriedTo)}</span>` : '') + extra;
       html += `<tr class="${newday?'newday ':''}${!r.done&&!r.pulled&&!r.wait?'miss':''}">
         <td class="dday">${newday?`<b>${ymd(r.date)}</b> 周${wdOf(r.date)}`:''}</td>
@@ -4163,7 +4171,9 @@ async function moveItem(k, id, to, btn){
       const sItems = (s.data()||{}).items || [], tItems = (t.data()||{}).items || [];
       const found = sItems.find(i=>i.id===id);
       if(!found) return;
-      const { carried, origin, ...cur } = found;   // 手动改日期就是「挪来」，不再算自动顺延
+      // 手动改日期就是「挪来」，不再算自动顺延；但已经顺延过的往后挪，还是「延后 N 天」（从最早派的那天算）
+      const { carried, origin, ...rest } = found;
+      const cur = carried && to > from ? found : rest;
       const now = firebase.firestore.FieldValue.serverTimestamp();
       if(!keep) tx.set(src, { items: sItems.filter(i=>i.id!==id), updatedAt: now }, { merge:true });
       // 新日期上以前撤回过这份的话，挪过去就不算撤回了（和派发一样）
