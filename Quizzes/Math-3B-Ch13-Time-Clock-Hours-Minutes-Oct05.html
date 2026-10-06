@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3B Chapter 13 &mdash; Telling the Time</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #f3effa 55%, #e6def5 100%);
+    min-height: 100vh; color: #1f1a2e; padding: 22px 14px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header { background: #5b3f99; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f7f3ff; box-shadow: 0 8px 0 #3d2a6b; margin-bottom: 14px; position: relative; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+  .sound { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.35);
+    color: #fff; border-radius: 99px; width: 40px; height: 40px; font-size: 18px; cursor: pointer; }
+
+  .nav { position: sticky; top: 0; z-index: 30; background: rgba(255,253,247,.95); backdrop-filter: blur(4px); border-radius: 12px; padding: 8px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(61,42,107,.12); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav a { text-decoration: none; font-size: 13.5px; font-weight: bold; color: #3d2a6b; background: #ece6f7; border-radius: 99px; padding: 6px 13px; }
+
+  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 6px 0 #d9d0ec; margin-bottom: 16px; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16.5px; line-height: 1.6; }
+  .intro p + p { margin-top: 8px; }
+  .hidden { display: none !important; }
+
+  .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .badge { background: #f3f1f6; border: 3px dashed #cfc6e0; border-radius: 14px; padding: 8px 12px; text-align: center;
+    font-size: 13px; font-weight: bold; color: #a39bb5; min-width: 98px; transition: .25s; }
+  .badge .bi { display: block; font-size: 24px; filter: grayscale(1); opacity: .45; }
+  .badge.on { background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; transform: scale(1.04); }
+  .badge.on .bi { filter: none; opacity: 1; }
+
+  h2.sect { font-size: 20px; color: #3d2a6b; margin: 30px 0 12px; text-align: center; scroll-margin-top: 70px; }
+  h2.sect span { background: #ece6f7; border-radius: 99px; padding: 5px 16px; display: inline-block; }
+  p.body { font-size: 16.5px; line-height: 1.6; color: #3a3350; }
+  p.body + p.body { margin-top: 8px; }
+
+  .btn { background: #5b3f99; color: #fff; border: none; border-radius: 12px; padding: 11px 20px; font-size: 15.5px; font-family: inherit; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #3d2a6b; margin: 4px; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #3d2a6b; }
+  .btn.amber { background: #c9761d; box-shadow: 0 5px 0 #8f5211; }
+  .btn.green { background: #3a7d44; box-shadow: 0 5px 0 #23572c; }
+  .btn.ghost { background: #fff; color: #5d5670; box-shadow: 0 4px 0 #e2dcef; border: 2px solid #e2dcef; }
+  .btn.sm { padding: 8px 14px; font-size: 14px; }
+  .center { text-align: center; }
+
+  .fb { text-align: center; font-size: 16px; font-weight: bold; min-height: 26px; margin-top: 10px; line-height: 1.55; color: #5d5670; }
+  .fb.ok { color: #3a7d44; }
+  .fb.no { color: #c0392b; }
+  .won { display: none; background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; border-radius: 12px; padding: 13px 15px; margin-top: 12px; font-size: 16px; line-height: 1.6; }
+  .won.show { display: block; }
+  .won .lbl, .trap .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; margin-bottom: 4px; }
+  .trap { background: #fbeaea; border: 3px solid #e2a49c; border-radius: 12px; padding: 12px 14px; font-size: 15.5px; line-height: 1.6; margin-top: 10px; color: #7d2b21; }
+  .trap .lbl { color: #a5352a; }
+
+  .gbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .gbar .round { font-size: 13px; font-weight: bold; color: #5d5670; font-family: 'Courier New', monospace; letter-spacing: .5px; }
+  .gbar .stars { font-size: 18px; letter-spacing: 2px; }
+  .target { background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 11px 14px; text-align: center; font-size: 17px; line-height: 1.5; }
+  .peek { background: #fff; color: #5d5670; border: 2px solid #e2dcef; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-family: inherit; font-weight: bold; cursor: pointer; margin-top: 10px; }
+  .how { background: #f6f3fc; border-left: 5px solid #8f78c9; border-radius: 8px; padding: 10px 13px; margin-top: 8px; font-size: 15.5px; line-height: 1.7; }
+
+  /* ---------- pictures ---------- */
+  .pic { display: flex; flex-direction: column; align-items: center; margin: 12px 0 4px; width: 100%; }
+  .lbar { display: flex; width: 100%; max-width: 560px; height: 40px; gap: 2px; }
+  .lbar .seg { border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 13px; overflow: hidden; white-space: nowrap; min-width: 8px; }
+  .lbar .big { background: #5b3f99; }
+  .lbar .small { background: #e67e22; }
+  .lcap { font-size: 14.5px; font-weight: bold; color: #3d2a6b; margin-top: 6px; text-align: center; line-height: 1.5; }
+  .lcap .b { color: #5b3f99; } .lcap .s { color: #c9761d; }
+  .clk { width: 190px; height: 190px; max-width: 62vw; }
+  .clkrow { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 100%; }
+  .hands { font-size: 13px; font-weight: bold; margin-top: 4px; text-align: center; }
+  .hands .hr { color: #c0392b; } .hands .mn { color: #2c6fbb; }
+  .lbar + .lcap + .lbar { margin-top: 10px; }
+  .pt { display: inline-flex; gap: 4px; vertical-align: middle; margin: 0 3px; }
+  .pt button { font-family: inherit; font-size: 17px; font-weight: bold; border: 3px solid #cbbfe6; background: #fbfaff; color: #3d2a6b; border-radius: 10px; padding: 5px 11px; cursor: pointer; min-width: 58px; }
+  .pt button.sel { background: #5b3f99; border-color: #5b3f99; color: #fff; }
+  .pt.good button.sel { background: #3a7d44; border-color: #3a7d44; }
+  .pt.bad button.sel { background: #c0392b; border-color: #c0392b; }
+  .pt.bad { border-radius: 12px; box-shadow: 0 0 0 3px #f3c4bd; }
+  .pt button:disabled { cursor: default; }
+  .colon { font-weight: bold; font-size: 24px; margin: 0 -1px; }
+  /* ---------- fill-in boxes ---------- */
+  .prompt { background: #f6f3fc; border-radius: 12px; padding: 14px; margin-top: 14px; text-align: center; font-size: 18px; line-height: 2.1; }
+  .prompt input, .ansrow input, input.bx { width: 72px; height: 42px; font-size: 22px; font-family: 'Courier New', monospace; font-weight: bold; text-align: center; border: 3px solid #cbbfe6; border-radius: 10px; margin: 0 3px; background: #fbfaff; color: #1f1a2e; outline: none; }
+  input.bx:focus, .prompt input:focus { border-color: #5b3f99; box-shadow: 0 0 0 3px #e3dbf6; }
+  input.bx.good { border-color: #3a7d44; background: #e8f5e6; }
+  input.bx.bad { border-color: #c0392b; background: #fbeaea; }
+  .fact { font-family: 'Courier New', monospace; font-weight: bold; }
+
+  /* ---------- spot the mistake ---------- */
+  .notebook { background: #fffdf2; border: 2px solid #eadfb8; border-radius: 12px; padding: 10px 14px; text-align: center; margin-top: 10px; }
+  .notebook .who { font-size: 16px; line-height: 1.5; }
+  .notebook .work { font-family: 'Courier New', monospace; font-weight: bold; font-size: 19px; color: #7d2b21; margin-top: 6px; line-height: 1.5; }
+  .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .choice { background: #f6f3fc; border: 3px solid #e2dcef; border-radius: 12px; padding: 11px 14px; font-size: 16px; font-family: inherit; text-align: left; cursor: pointer; color: #1f1a2e; }
+  .choice:hover { border-color: #8f78c9; }
+  .choice.good { background: #e8f5e6; border-color: #3a7d44; }
+  .choice.bad { background: #fbeaea; border-color: #c0392b; }
+  .choice.sel { border-color: #5b3f99; background: #e3dbf6; }
+  .places { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px; }
+  .places .choice { text-align: center; padding: 9px 14px; font-weight: bold; }
+  .yn { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+
+  /* ---------- test ---------- */
+  .qbar { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: bold; font-size: 15px; color: #3d2a6b; }
+  .qbar .time { font-family: 'Courier New', monospace; font-size: 18px; }
+  .qbar .time.low { color: #c0392b; }
+  .progress { height: 10px; background: #ece6f7; border-radius: 99px; margin: 10px 0 16px; overflow: hidden; }
+  .progress i { display: block; height: 100%; background: #8f78c9; width: 0; transition: width .3s; }
+  .qtext { font-size: 17px; line-height: 1.5; text-align: center; font-weight: bold; }
+  .qtag { display: inline-block; background: #5b3f99; color: #fff; font-size: 12px; font-weight: bold; border-radius: 99px; padding: 3px 12px; margin-bottom: 8px; }
+  .qline { font-size: 20px; line-height: 2.2; text-align: center; margin-top: 10px; }
+  .explain { margin-top: 12px; }
+  .res-top { text-align: center; }
+  .res-top .stars { font-size: 34px; letter-spacing: 4px; }
+  .res-top .pct { font-size: 48px; font-weight: bold; color: #3d2a6b; }
+  .res-top .sub { color: #5d5670; font-size: 15px; margin-top: 4px; }
+  .res-top .verdict { font-size: 22px; font-weight: bold; margin-top: 8px; }
+  .verdict.pass { color: #3a7d44; } .verdict.fail { color: #c0392b; }
+  .miss { border: 3px solid #f0d2cc; border-radius: 12px; padding: 12px 14px; margin-top: 12px; background: #fffafa; }
+  .miss .mh { font-weight: bold; font-size: 16px; line-height: 1.6; }
+  .miss .you { color: #c0392b; } .miss .right { color: #3a7d44; }
+  h3.rv { color: #3d2a6b; margin-top: 22px; text-align: center; font-size: 18px; }
+
+  .confetti { position: fixed; top: -12px; width: 9px; height: 14px; z-index: 99; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(105vh) rotate(720deg); } }
+  .pop { animation: popin .3s ease-out; }
+  @keyframes popin { 0% { transform: scale(.7) } 60% { transform: scale(1.12) } 100% { transform: scale(1) } }
+
+  .foot { text-align: center; margin-top: 26px; font-size: 13px; color: #8a829c; }
+  .foot a { color: #5b3f99; }
+  @media (max-width: 480px) {
+    .card { padding: 16px 12px; }
+    .prompt { padding: 12px 6px; font-size: 17px; }
+    .qline { font-size: 18px; }
+    .prompt input, .ansrow input, input.bx { width: 62px; font-size: 20px; margin: 0 2px; }
+    .lbar .seg { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <button class="sound" id="soundBtn" onclick="toggleSound()" aria-label="Sound on or off">🔊</button>
+  <div class="ic">🕒</div>
+  <h1 id="hTitle"></h1>
+  <p id="hSub"></p>
+</header>
+
+<nav class="nav">
+  <a href="#watch">👀 Watch it</a><a href="#try">✏️ Your turn</a><a href="#spot">🔍 Spot the mistake</a><a href="#test">🏆 Test</a>
+</nav>
+
+<div class="card intro">
+  <p><b id="iRule"></b></p>
+  <p id="iPlan"></p>
+  <div class="badges">
+    <div class="badge" id="b1"><span class="bi">👀</span>Watch it</div>
+    <div class="badge" id="b2"><span class="bi">✏️</span>Your turn</div>
+    <div class="badge" id="b3"><span class="bi">🔍</span>Mistake finder</div>
+    <div class="badge" id="b4"><span class="bi">🏆</span>Test passed</div>
+  </div>
+</div>
+
+<!-- ===================== 1 · WATCH IT ===================== -->
+<h2 class="sect" id="watch"><span id="wHead"></span></h2>
+<div class="card">
+  <p class="body" id="wStory"></p>
+  <div class="pic" id="wPic"></div>
+  <div class="prompt" id="wPrompt"></div>
+  <div class="fb" id="wFb"></div>
+  <div class="won" id="wWon"><span class="lbl">✅ You did it</span><span id="wWonText"></span></div>
+</div>
+
+<!-- ===================== 2 · YOUR TURN ===================== -->
+<h2 class="sect" id="try"><span id="tHead"></span></h2>
+<div class="card">
+  <div class="gbar"><span class="round" id="tRound"></span><span class="stars" id="tStars"></span></div>
+  <div class="target" id="tAsk"></div>
+  <div id="tHost"></div>
+  <div class="fb" id="tFb"></div>
+  <div class="center" id="tNext"></div>
+  <div class="won" id="tWon"><span class="lbl">✅ All done</span><span id="tWonText"></span></div>
+</div>
+
+<!-- ===================== 3 · SPOT THE MISTAKE ===================== -->
+<h2 class="sect" id="spot"><span>🔍 3 · Spot the mistake</span></h2>
+<div class="card">
+  <div class="gbar"><span class="round" id="sRound"></span><span class="stars" id="sStars"></span></div>
+  <div id="sBody"></div>
+  <div class="fb" id="sFb"></div>
+  <div class="center" id="sNext"></div>
+  <div class="won" id="sWon"><span class="lbl">✅ Mistake finder</span><span id="sWonText"></span></div>
+</div>
+
+<!-- ===================== 4 · TEST ===================== -->
+<h2 class="sect" id="test"><span id="qHead"></span></h2>
+<div class="card center" id="gate">
+  <p class="body" id="gate1"></p>
+  <p class="body">Type the numbers (and tap <b>past</b> or <b>to</b> when you see them), then press <b>Check</b>. If a question has more than one box, every box must be right. You get one try per question — if it's wrong, you'll see why straight away.</p>
+  <p class="body" id="gate3"></p>
+  <p style="margin-top:12px"><button class="btn amber" onclick="startQuiz()">▶ Start the test</button></p>
+</div>
+<div class="card hidden" id="quiz">
+  <div class="qbar"><span id="qNum"></span><span id="qScore"></span><span class="time" id="qTime"></span></div>
+  <div class="progress"><i id="qProg"></i></div>
+  <div id="qBody"></div>
+</div>
+<div class="card hidden" id="result"></div>
+
+<div class="foot"><span id="footText"></span> ·
+  <a href="../homework.html">← My homework</a></div>
+</div>
+
+<script>
+/* ================= Chapter 13 Time · Lesson 1 Tell the Time + Lesson 2 Hours and Minutes =================
+   Pupil's Book 3B p88–94 · Workbook 3B Practice 1 (p97–98) and Practice 2 (p99–100).
+   Every clock on this page is drawn here in SVG from the book's times (no scans). */
+
+/* ================= shared helpers (keep in this first script) ================= */
+function $(id) { return document.getElementById(id); }
+function pad2(n) { return ('0' + n).slice(-2); }
+function nextH(h) { return h % 12 + 1; }
+function hm(h, m) { return h + ':' + pad2(m); }                 // 7:05
+var HM = { U: 'h', u: 'min', F: 60 };
+function mix(B, s) { return B + ' h ' + s + ' min'; }
+/* the two ways to say a clock time: [minutes, 0 = past / 1 = to, hour] */
+function sayPast(h, m) { return [m, 0, h]; }
+function sayTo(h, m) { return [60 - m, 1, nextH(h)]; }
+function sayBest(h, m) { return m <= 30 ? sayPast(h, m) : sayTo(h, m); }
+function sayOther(h, m) { return m <= 30 ? sayTo(h, m) : sayPast(h, m); }
+function words(a) { return a[0] + ' minutes ' + (a[1] ? 'to ' : 'past ') + a[2]; }
+
+/* ---- picture: a clock face. shade = 'past' (12 → long hand, blue) or 'to' (long hand → 12, orange) ---- */
+function clockPic(h, m, shade) {
+  var cx = 110, cy = 110;
+  function pt(deg, r) { var a = deg * Math.PI / 180; return [(cx + r * Math.sin(a)).toFixed(1), (cy - r * Math.cos(a)).toFixed(1)]; }
+  var s = '<svg class="clk" viewBox="0 0 220 220" role="img" aria-label="A clock face">' +
+    '<circle cx="110" cy="110" r="104" fill="#fff" stroke="#3d2a6b" stroke-width="5"/>';
+  if (shade && m > 0) {
+    var a0 = shade === 'past' ? 0 : m * 6, a1 = shade === 'past' ? m * 6 : 360;
+    var p0 = pt(a0, 100), p1 = pt(a1 - 0.01, 100);
+    s += '<path d="M110 110 L' + p0[0] + ' ' + p0[1] + ' A100 100 0 ' + (a1 - a0 > 180 ? 1 : 0) + ' 1 ' + p1[0] + ' ' + p1[1] + ' Z" fill="' + (shade === 'past' ? '#cfe3fb' : '#fde3c8') + '"/>';
+  }
+  for (var i = 0; i < 60; i++) {
+    var big = i % 5 === 0, q0 = pt(i * 6, big ? 87 : 93), q1 = pt(i * 6, 101);
+    s += '<line x1="' + q0[0] + '" y1="' + q0[1] + '" x2="' + q1[0] + '" y2="' + q1[1] + '" stroke="#3d2a6b" stroke-width="' + (big ? 2.6 : 1.1) + '"/>';
+  }
+  for (var n = 1; n <= 12; n++) {
+    var c = pt(n * 30, 73);
+    s += '<text x="' + c[0] + '" y="' + (+c[1] + 6.5) + '" text-anchor="middle" font-size="19" font-weight="bold" fill="#1f1a2e" font-family="Trebuchet MS, sans-serif">' + n + '</text>';
+  }
+  var hh = pt((h % 12) * 30 + m / 2, 50), mm = pt(m * 6, 86);
+  s += '<line x1="110" y1="110" x2="' + hh[0] + '" y2="' + hh[1] + '" stroke="#c0392b" stroke-width="8" stroke-linecap="round"/>' +
+    '<line x1="110" y1="110" x2="' + mm[0] + '" y2="' + mm[1] + '" stroke="#2c6fbb" stroke-width="5" stroke-linecap="round"/>' +
+    '<circle cx="110" cy="110" r="6.5" fill="#1f1a2e"/></svg>';
+  return s;
+}
+function clockBox(h, m, shade) {
+  return clockPic(h, m, shade) + '<div class="hands"><span class="hr">short hand = hour</span> · <span class="mn">long hand = minutes</span></div>';
+}
+
+/* ---- picture: a time bar. Purple blocks = 1 hour (60 min) each, orange = the minutes left over ---- */
+function lenBar(B, s) {
+  var h = '<div class="lbar">';
+  for (var i = 0; i < B; i++) h += '<span class="seg big" style="flex:60">1 h</span>';
+  if (s) h += '<span class="seg small" style="flex:' + Math.max(s, 6) + '">' + (s >= 12 ? s + ' min' : '') + '</span>';
+  h += '</div><div class="lcap"><span class="b">' + (B === 1 ? '1 h = 60 min' : B + ' × 60 min = ' + B * 60 + ' min') + '</span>' +
+    (s ? ' &nbsp;+&nbsp; <span class="s">' + s + ' min</span>' : '') + '</div>';
+  return h;
+}
+function sixties(B) { var a = []; for (var i = 0; i < B; i++) a.push('60'); return a.join(' + '); }
+
+/* ---- why is it wrong?  B h s min → total min ---- */
+function whyHourPart(B, v, soft) {
+  if (v === B * 60) return null;
+  if (v === B * 100) return '1 hour is 60 minutes, not 100. So ' + B + ' h = ' + (B > 1 ? sixties(B) + ' = ' : '') + B * 60 + ' min.';
+  if (v === B) return 'Change ' + B + ' h into minutes: ' + (B > 1 ? sixties(B) + ' = ' : '1 h = ') + B * 60 + ' min.';
+  return soft ? null : '1 h = 60 min, so ' + B + ' h = ' + B * 60 + ' min.';
+}
+function whyTotal(B, s, v, soft) {
+  var t = B * 60 + s;
+  if (v === t) return null;
+  if (!s) return v === B * 100 ? '1 hour is 60 minutes, not 100. ' + B + ' h = ' + sixties(B) + ' = ' + t + ' min.' : (soft ? null : 'Count 60 for each hour: ' + sixties(B) + ' = ' + t + '.');
+  if (v === B * 100 + s) return 'That is what you get with 1 hour = 100 minutes, or by writing ' + B + ' and ' + s + ' side by side. But 1 h = 60 min, so ' + B + ' h = ' + B * 60 + ' min, and ' + B * 60 + ' + ' + s + ' = ' + t + '.';
+  if (v === B + s) return 'You added ' + B + ' and ' + s + ', but hours and minutes are different units. First change ' + B + ' h into ' + B * 60 + ' min. Then ' + B * 60 + ' + ' + s + ' = ' + t + '.';
+  if (v === B * 60) return 'Don\'t forget the ' + s + ' minutes! ' + B * 60 + ' + ' + s + ' = ' + t + '.';
+  return soft ? null : 'Add the two parts: ' + B * 60 + ' + ' + s + ' = ' + t + ' min.';
+}
+/* ---- why is it wrong?  n min → B h s min ---- */
+function whyHM(n, vB, vS) {
+  var B = Math.floor(n / 60), s = n % 60;
+  if (vB === B && vS === s) return null;
+  if (n >= 100 && vB === Math.floor(n / 100) && vS === n % 100) return 'You split ' + n + ' at 100, like metres and cm. But 1 hour is 60 minutes! ' + n + ' = ' + B * 60 + ' + ' + s + ', so ' + mix(B, s) + '.';
+  if (vB === B - 1 && vS === s + 60) return vS + ' minutes is more than 1 hour — take out another 60. ' + n + ' = ' + B * 60 + ' + ' + s + ', so ' + mix(B, s) + '.';
+  if (vB === B && vS !== s) return 'The hours are right. What is left? ' + n + ' − ' + B * 60 + ' = ' + s + ' min.';
+  if (vS === s) return 'The minutes are right. How many whole hours (60 each) are in ' + n + '? ' + B * 60 + ' min = ' + B + ' h.';
+  return 'How many whole 60s are in ' + n + '? ' + n + ' = ' + B * 60 + ' + ' + s + '. ' + B * 60 + ' min = ' + B + ' h.';
+}
+function explainSmall(B, s) {
+  return '1 h = 60 min, so ' + B + ' h = ' + (B > 1 ? sixties(B) + ' = ' : '') + '<b>' + B * 60 + ' min</b>.' +
+    (s ? '<br>Add the ' + s + ' min: ' + B * 60 + ' + ' + s + ' = <b>' + (B * 60 + s) + ' min</b>.' : '');
+}
+function explainBig(n) {
+  var B = Math.floor(n / 60), s = n % 60;
+  return 'Take out the whole hours. Each hour is 60 min: ' + n + ' = ' + B * 60 + ' + ' + s + '.<br>' +
+    B * 60 + ' min = <b>' + B + ' h</b>. ' + s + ' min is left.<br>So ' + n + ' min = <b>' + mix(B, s) + '</b>.';
+}
+
+/* ---- why is it wrong?  reading a clock in words: vals = [minutes, past(0)/to(1), hour] ---- */
+function whyWords(h, m, v) {
+  var vm = v[0], vt = v[1], vh = v[2], H = nextH(h);
+  if (vt === 1 && vm === 60 - m && vh === h) return 'The minutes are right! But "to" needs the hour that is <b>coming next</b>: ' + (60 - m) + ' minutes to ' + H + ', not to ' + h + '.';
+  if (vt === 0 && vm === m && vh === H) return 'The minutes are right! But "past" needs the hour that has <b>gone by</b>. The short hand has passed ' + h + ', not ' + H + '.';
+  if (vt === 1 && vm === m) return 'For "to", count the minutes <b>left</b> until the long hand gets to 12: 60 − ' + m + ' = ' + (60 - m) + '.';
+  if (vt === 0 && vm === 60 - m && m !== 30) return 'For "past", count from 12 round to the long hand. That is ' + m + ' minutes, not ' + vm + '.';
+  if (vm === Math.round(m / 5) && m >= 10) return 'The long hand is near the ' + Math.round(m / 5) + ', but each number means 5 minutes. Count by 5s, then the small marks: it shows ' + m + ' minutes.';
+  if (vm === sayBest(h, m)[0] || vm === sayOther(h, m)[0]) return 'Look at the short hand: it is between ' + h + ' and ' + H + '. Past → ' + h + ', to → ' + H + '.';
+  return 'Read the long hand first: it shows ' + m + ' minutes. Then the short hand: it has passed ' + h + '.';
+}
+function explainWords(h, m) {
+  var b = sayBest(h, m), o = sayOther(h, m);
+  var first = 'The long hand shows <b>' + m + ' minutes</b>' + (m % 5 ? ' (' + Math.floor(m / 5) * 5 + ' at the ' + (Math.floor(m / 5) || 12) + ', then ' + m % 5 + ' small marks)' : ' (count by 5s)') + '. The short hand has passed <b>' + h + '</b>.<br>';
+  if (m <= 30) return first + m + ' is 30 or less, so say "past": <b>' + words(b) + '</b>.';
+  return first + m + ' is more than 30, so count on to 12: 60 − ' + m + ' = ' + (60 - m) + '. The next hour is ' + nextH(h) + '.<br>So it is <b>' + words(b) + '</b>' +
+    (o ? ' (you could also say ' + words(o) + ')' : '') + '.';
+}
+/* ---- clock → h:mm ---- */
+function whyDigital(h, m, v) {
+  var vh = v[0], vm = v[1];
+  if (vh === h && vm === m) return null;
+  if (vh === nextH(h) && vm === m) return 'The short hand is close to ' + nextH(h) + ' but has <b>not reached it yet</b>. The hour is ' + h + '.';
+  if (vh === h && vm === 60 - m) return 'Here we write the minutes <b>past</b> the hour: count from 12 round to the long hand. That is ' + m + '.';
+  if (vh === h && vm === Math.round(m / 5)) return 'Each number means 5 minutes. The long hand is near the ' + vm + ': that shows ' + m + ' minutes.';
+  if (vh === h) return 'The hour is right. Now the long hand: it shows ' + m + ' minutes.';
+  if (vm === m) return 'The minutes are right. The short hand has passed ' + h + ', so the hour is ' + h + '.';
+  return 'Short hand first: it has passed ' + h + '. Long hand: ' + m + ' minutes. So ' + hm(h, m) + '.';
+}
+
+/* ---- sound (WebAudio, no files) ---- */
+var soundOn = true, AC = null;
+try { soundOn = localStorage.getItem('kidsSound') !== 'off'; } catch (e) {}
+function paintSound() { $('soundBtn').textContent = soundOn ? '🔊' : '🔇'; }
+function toggleSound() { soundOn = !soundOn; try { localStorage.setItem('kidsSound', soundOn ? 'on' : 'off'); } catch (e) {} paintSound(); }
+function tone(f, t0, dur, type, vol) {
+  if (!soundOn) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    var o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + t0;
+    o.type = type || 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(vol || .16, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+function sfxOk() { tone(660, 0, .12); tone(880, .1, .18); }
+function sfxNo() { tone(220, 0, .22, 'square', .07); }
+function sfxWin() { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * .11, .25); }); }
+
+function confetti(n) {
+  var colors = ['#5b3f99', '#e8508a', '#e67e22', '#2a9d8f', '#f1c40f', '#3a7d44'];
+  for (var i = 0; i < (n || 70); i++) {
+    var s = document.createElement('span');
+    s.className = 'confetti';
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.background = colors[i % colors.length];
+    s.style.animationDuration = (1.6 + Math.random() * 1.6) + 's';
+    s.style.animationDelay = (Math.random() * .4) + 's';
+    document.body.appendChild(s);
+    setTimeout(function (el) { el.remove(); }.bind(null, s), 3800);
+  }
+}
+function badge(id) { var b = $(id); if (b && !b.classList.contains('on')) { b.classList.add('on', 'pop'); } }
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+/* ---- slots: {} = number box, {mm} = minutes box (shown as 2 digits), {pt} = tap "past" or "to" ----
+   The past/to buttons come in a random order each time. */
+function slotHTML(tpl) {
+  var k = 0;
+  return tpl.replace(/\{pt\}|\{mm\}|\{\}/g, function (tok) {
+    var i = k++;
+    if (tok === '{pt}') {
+      var o = shuffle([0, 1]);
+      return '<span class="pt" data-i="' + i + '" data-v="">' + o.map(function (v) { return '<button type="button" data-v="' + v + '">' + (v ? 'to' : 'past') + '</button>'; }).join('') + '</span>';
+    }
+    return (tok === '{mm}' ? '<span class="colon">:</span>' : '') + '<input class="bx" data-i="' + i + '" inputmode="numeric" autocomplete="off" maxlength="3" aria-label="box ' + (i + 1) + '">';
+  });
+}
+function slotEls(host) { return Array.prototype.slice.call(host.querySelectorAll('input.bx, .pt')); }
+function slotVal(el) { return el.tagName === 'INPUT' ? el.value.trim() : el.dataset.v; }
+function slotMark(el, cls) { el.classList.remove('good', 'bad'); if (cls) el.classList.add(cls); }
+function slotLock(el) { if (el.tagName === 'INPUT') el.disabled = true; else el.querySelectorAll('button').forEach(function (b) { b.disabled = true; }); }
+function slotWire(host, onEnter) {
+  var els = slotEls(host);
+  els.forEach(function (el, i) {
+    if (el.tagName === 'INPUT') {
+      el.addEventListener('input', function () { el.value = el.value.replace(/\D/g, ''); slotMark(el); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var nx = els[i + 1];
+        if (el.value !== '' && nx && nx.tagName === 'INPUT' && nx.value === '') nx.focus(); else onEnter();
+      });
+    } else {
+      el.querySelectorAll('button').forEach(function (b) {
+        b.addEventListener('click', function () {
+          if (b.disabled) return;
+          el.dataset.v = b.dataset.v; slotMark(el);
+          el.querySelectorAll('button').forEach(function (x) { x.classList.toggle('sel', x === b); });
+        });
+      });
+    }
+  });
+  return els;
+}
+function tplTokens(tpl) { return tpl.match(/\{pt\}|\{mm\}|\{\}/g) || []; }
+function fillTpl(tpl, vals, cls) {
+  var k = 0;
+  return tpl.replace(/\{pt\}|\{mm\}|\{\}/g, function (tok) {
+    var v = vals ? vals[k] : undefined; k++;
+    var c = typeof cls === 'function' ? cls(k - 1) : cls;
+    if (v === undefined || v === null || v === '') return (tok === '{mm}' ? ':' : '') + '___';
+    var shown = tok === '{pt}' ? (+v ? 'to' : 'past') : tok === '{mm}' ? pad2(v) : v;
+    return (tok === '{mm}' ? ':' : '') + '<b class="' + (c || '') + '">' + shown + '</b>';
+  });
+}
+function sameVals(a, b) { return a.length === b.length && a.every(function (v, i) { return +v === b[i]; }); }
+
+/* ---- FillBoxes: the one checking engine for every fill-in widget ----
+   cfg = { pic, lines: ['… {} …'], cells: [{ans, m1, m2, why: fn(v)→msg|null}], how, okMsg, alts: [[…], …], altMsg }
+   alts = other full answers that are also right (e.g. 31 minutes past 3 = 29 minutes to 4).
+   Checks slots in order, marks only the first wrong one: 1st try = direction (m1), 2nd try = the sum (m2). */
+function FillBoxes(host, cfg, onDone) {
+  var self = this, tries = {}, failed = false;
+  host.innerHTML = (cfg.pic ? '<div class="pic">' + cfg.pic + '</div>' : '') +
+    '<div class="prompt">' + cfg.lines.map(slotHTML).join('<br>') + '</div>' +
+    '<div class="center"><button class="btn green sm" data-go>Check</button> <button class="peek" data-how>👀 Show me how</button></div>' +
+    '<div class="how hidden" data-howbox>' + cfg.how + '</div>';
+  var els = slotWire(host, function () { self.check(); });
+  host.querySelector('[data-go]').onclick = function () { self.check(); };
+  host.querySelector('[data-how]').onclick = function () { host.querySelector('[data-howbox]').classList.toggle('hidden'); };
+  this.fb = null; this.done = false;
+  function say(msg, ok) { if (self.fb) { self.fb.innerHTML = msg; self.fb.className = 'fb ' + (ok ? 'ok' : 'no'); } }
+  function finish(note) {
+    self.done = true; sfxOk();
+    els.forEach(function (el) { slotMark(el, 'good'); slotLock(el); });
+    say('✓ ' + (cfg.okMsg || 'All correct') + (failed ? '' : ' — first try! ⭐') + (note ? '<br><span style="font-weight:normal">' + note + '</span>' : ''), true);
+    host.querySelector('[data-go]').classList.add('hidden');
+    if (onDone) onDone(!failed);
+  }
+  this.check = function () {
+    if (self.done) return;
+    var vals = els.map(slotVal);
+    els.forEach(function (el) { el.classList.remove('bad'); });
+    for (var e = 0; e < els.length; e++) if (vals[e] === '') {
+      slotMark(els[e], 'bad'); if (els[e].tagName === 'INPUT') els[e].focus();
+      say(els[e].tagName === 'INPUT' ? 'Fill in box ' + (e + 1) + '.' : 'Tap past or to.', false); return;
+    }
+    if (cfg.alts) for (var a = 0; a < cfg.alts.length; a++) if (sameVals(vals, cfg.alts[a])) { finish(cfg.altMsg); return; }
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i], c = cfg.cells[i], v = vals[i];
+      if (+v !== c.ans) {
+        failed = true; tries[i] = (tries[i] || 0) + 1;
+        slotMark(el, 'bad'); sfxNo();
+        if (el.tagName === 'INPUT') { el.focus(); el.select && el.select(); }
+        var special = c.why ? c.why(+v) : null;
+        say(tries[i] === 1 ? (special || c.m1) : c.m2, false);
+        return;
+      }
+      slotMark(el, 'good');
+    }
+    finish();
+  };
+  // Focus only after the kid has clicked something (Next), never on page load — that would pop the iPad keyboard.
+  var ae = document.activeElement, first = host.querySelector('input.bx');
+  if (first && ae && ae !== document.body) setTimeout(function () { try { first.focus({ preventScroll: true }); } catch (e) {} }, 50);
+}
+
+/* ---- fill-in builders (Your turn + Practise the ones I missed) ---- */
+// B h s min = {} min + {} min = {} min      (split = false: just  B h s min = {} min)
+function SmallFB(host, B, s, done, split, label) {
+  var t = B * 60 + s, cells = [], lines, L = label || (s ? mix(B, s) : B + ' h');
+  if (split) {
+    lines = [L + ' = {} min + {} min', '= {} min'];
+    cells.push({ ans: B * 60, m1: 'Change ' + B + ' h into minutes. 1 h = 60 min.', m2: (B > 1 ? sixties(B) : '1 h') + ' = ' + B * 60 + '.', why: function (v) { return whyHourPart(B, v, true); } });
+    cells.push({ ans: s, m1: 'The minutes part stays the same: ' + s + '.', m2: 'Type ' + s + '.' });
+  } else lines = [L + ' = {} min'];
+  cells.push({ ans: t, m1: s ? 'Change ' + B + ' h into minutes, then add ' + s + '.' : 'Each hour is 60 minutes.', m2: s ? B * 60 + ' + ' + s + ' = ' + t + '.' : sixties(B) + ' = ' + t + '.', why: function (v) { return whyTotal(B, s, v, true); } });
+  return new FillBoxes(host, { pic: lenBar(B, s), lines: lines, cells: cells, how: explainSmall(B, s), okMsg: L + ' = ' + t + ' min' }, done);
+}
+// n min = {} min + {} min = {} h {} min     (split = false: just  n min = {} h {} min)
+function BigFB(host, n, done, split) {
+  var B = Math.floor(n / 60), s = n % 60, cells = [], lines;
+  if (split) {
+    lines = [n + ' min = {} min + {} min', '= {} h {} min'];
+    cells.push({ ans: B * 60, m1: 'First take out the whole hours: 60, 120, 180 … Which is the biggest that fits in ' + n + '?', m2: n + ' = ' + B * 60 + ' + ' + s + '. Type ' + B * 60 + '.', why: function (v) { return v === 100 ? '1 h is 60 min, not 100. Take out ' + B * 60 + '.' : null; } });
+    cells.push({ ans: s, m1: 'What is left? ' + n + ' − ' + B * 60 + '.', m2: n + ' − ' + B * 60 + ' = ' + s + '.' });
+  } else lines = [n + ' min = {} h {} min'];
+  cells.push({ ans: B, m1: 'Every 60 min makes 1 h. How many whole 60s are in ' + n + '?', m2: B * 60 + ' min = ' + B + ' h. Type ' + B + '.', why: function (v) { return v === Math.floor(n / 100) && n >= 100 && B !== v ? 'Don\'t split at 100 — 1 h is 60 min. ' + n + ' has ' + B + ' whole 60s.' : null; } });
+  cells.push({ ans: s, m1: 'What is left after ' + B * 60 + '?', m2: n + ' − ' + B * 60 + ' = ' + s + '.' });
+  return new FillBoxes(host, { pic: lenBar(B, s), lines: lines, cells: cells, how: explainBig(n), okMsg: n + ' min = ' + mix(B, s) }, done);
+}
+// clock → "{} minutes {pt} {}", with a first step: how many minutes does the long hand show?
+function WordsFB(host, h, m, done, shade) {
+  var b = sayBest(h, m), o = sayOther(h, m), H = nextH(h);
+  var cells = [
+    { ans: m, m1: 'Count by 5s to the last number the long hand has passed, then add the small marks.', m2: 'The long hand shows ' + m + ' minutes.', why: function (v) { return v === Math.round(m / 5) && m >= 10 ? 'Each number means 5 minutes — count by 5s.' : null; } },
+    { ans: b[0], m1: m <= 30 ? 'It is ' + m + ' minutes after the hour.' : 'After 30, count the minutes LEFT to 12: 60 − ' + m + '.', m2: 'Type ' + b[0] + '.', why: function (v) { return m > 30 && v === m ? 'For "to", count the minutes left: 60 − ' + m + ' = ' + (60 - m) + '.' : null; } },
+    { ans: b[1], m1: m <= 30 ? 'The long hand has gone less than half way round — say "past".' : 'The long hand is on the way back up to 12 — say "to".', m2: 'Tap "' + (b[1] ? 'to' : 'past') + '".' },
+    { ans: b[2], m1: b[1] ? '"To" needs the next hour.' : '"Past" needs the hour that has gone by.', m2: b[1] ? 'After ' + h + ' comes ' + H + '.' : 'The short hand has passed ' + h + '.' }
+  ];
+  return new FillBoxes(host, { pic: clockBox(h, m, shade), lines: ['The long hand shows {} minutes.', 'It is {} minutes {pt} {}.'], cells: cells,
+    alts: [[m].concat(o)], altMsg: 'That is right too. We usually say ' + words(b) + '.',
+    how: explainWords(h, m), okMsg: hm(h, m) + ' is ' + words(b) }, done);
+}
+// clock → h:mm, step by step
+function DigitalFB(host, h, m, done) {
+  var cells = [
+    { ans: h, m1: 'The short hand is the hour hand. Which number has it passed?', m2: 'It has passed ' + h + '.', why: function (v) { return v === nextH(h) ? 'It is close to ' + v + ' but has not reached it yet.' : null; } },
+    { ans: m, m1: 'Count by 5s, then the small marks.', m2: 'The long hand shows ' + m + ' minutes.' },
+    { ans: h, m1: 'The hour comes first.', m2: 'Type ' + h + '.' },
+    { ans: m, m1: 'Then the minutes.', m2: 'Type ' + m + '.' }
+  ];
+  return new FillBoxes(host, { pic: clockBox(h, m), lines: ['The short hand has passed {}.', 'The long hand shows {} minutes.', 'The time is {}{mm}.'], cells: cells,
+    how: 'Short hand: it has passed <b>' + h + '</b>. Long hand: <b>' + m + ' minutes</b>.<br>So the time is <b>' + hm(h, m) + '</b>.', okMsg: 'It is ' + hm(h, m) }, done);
+}
+</script>
+
+<script>
+/* ================= page text ================= */
+var PAGE = {
+  title: 'Telling the Time', sub: 'My Pals Are Here! Maths 3B · Chapter 13 · Lessons 1 and 2',
+  rule: 'The long hand shows the minutes, the short hand shows the hour. Up to 30 minutes, say "past" the hour. After 30, say "to" the next hour. 1 hour = 60 minutes.',
+  plan: 'Watch 4 steps, try 8 yourself, check 5 answers — then take the 28-question test (1 minute each · pass = 80%).',
+  wHead: '👀 1 · Watch it — book pages 88–93', tHead: '✏️ 2 · Your turn — book pages 91–94',
+  wWon: 'Long hand = minutes (each number is 5 minutes, each small mark is 1). Short hand = hour.<br>Up to 30: <b>8 minutes past 10</b>. After 30: count on to 12 — 3:46 is <b>14 minutes to 4</b>.<br>1 h = 60 min, so 1 h 10 min = <b>70 min</b> and 135 min = 120 + 15 = <b>2 h 15 min</b>.',
+  tWon: '"Past" = minutes after the hour that has gone by. "To" = minutes left before the <b>next</b> hour.<br>Hours → minutes: <b>60 for each hour</b>, then add the minutes. Minutes → hours: take out the whole 60s.',
+  sWon: 'Mistakes to watch for: "to" needs the <b>next</b> hour · each number on the clock is <b>5 minutes</b> · for "to", count the minutes <b>left</b> to 12 · <b>1 hour = 60 minutes</b>, not 100.',
+  qHead: '🏆 4 · The test — Workbook pages 97–100',
+  gate1: '<b>28 questions</b> — all of Workbook Practice 1 and 2, pages 97–100 · <b>1 minute each</b> (28 minutes in all) · pass mark <b>80%</b> (23 right).',
+  gate3: 'Write times with two boxes, like <b>7</b> : <b>18</b>. (Your book writes 7.18 — it is the same time.) If you say a time the other way and it is still right — like 31 minutes past 3 = 29 minutes to 4 — that counts too.',
+  foot: 'My Pals Are Here! Maths 3B · Pupil\'s Book p88–94 · Workbook p97–100'
+};
+$('hTitle').textContent = PAGE.title; $('hSub').textContent = PAGE.sub;
+$('iRule').textContent = PAGE.rule; $('iPlan').textContent = PAGE.plan;
+$('wHead').textContent = PAGE.wHead; $('tHead').textContent = PAGE.tHead; $('qHead').textContent = PAGE.qHead;
+$('wWonText').innerHTML = PAGE.wWon; $('tWonText').innerHTML = PAGE.tWon; $('sWonText').innerHTML = PAGE.sWon;
+$('gate1').innerHTML = PAGE.gate1; $('gate3').innerHTML = PAGE.gate3; $('footText').textContent = PAGE.foot;
+
+/* ================= 1 · WATCH IT (book Learn only) ================= */
+var W = { step: 0, tries: 0 };
+var W_STEPS = [
+  { story: 'Each small mark on the clock is <b>1 minute</b>. There are 60 small marks, so 1 hour = 60 minutes. From one number to the next is 5 marks — <b>5 minutes</b>.<br>Jane starts eating at this time in the morning:',
+    pic: function () { return clockBox(10, 8, 'past'); },
+    ask: 'Long hand: 5 minutes at the 1, then 3 small marks more.<br>5 + 3 = {i} minutes<br>It is {i} minutes past {i}.', ans: [8, 8, 10],
+    wrong: function (v) {
+      if (v[0] === 4 || v[0] === 6) return 'Count the small marks after the 1 again: 3 more. 5 + 3 = ?';
+      if (v[0] === 1) return 'The long hand is just past the 1, but the 1 means 5 minutes. Then 3 small marks more.';
+      if (v[0] !== 8) return '5 + 3 = ?';
+      if (v[2] === 11) return 'The short hand is close to 11 but has not reached it. It has passed 10.';
+      if (v[2] !== 10) return 'Look at the short (red) hand. Which number has it just passed?';
+      return 'The minutes past the hour are the same 8.';
+    },
+    hints: ['5 + 3 = 8 minutes. The short hand has passed 10.', 'Type 8, 8 and 10.'],
+    ok: 'The time is 10:08 — 8 minutes past 10.' },
+  { story: 'After the half hour, we count the minutes <b>left</b> until the long hand gets back to 12, and say "to" the <b>next</b> hour.<br>Jane has a tea break at <b>3:46</b> in the afternoon:',
+    pic: function () { return clockBox(3, 46, 'to'); },
+    ask: 'Minutes left to 12: 60 − 46 = {i}<br>The next hour is {i}.<br>So 3:46 is {i} minutes to {i}.', ans: [14, 4, 14, 4],
+    wrong: function (v) {
+      if (v[0] === 46) return 'Count the minutes LEFT to 12: 60 − 46.';
+      if (v[0] !== 14) return '60 − 46 = ? (46 + 4 = 50, 50 + 10 = 60.)';
+      if (v[1] === 3) return '"To" means before the next hour. After 3 comes 4.';
+      if (v[3] === 3) return 'It is 14 minutes before 4 o\'clock — so "to 4".';
+      return 'Use the same numbers: 14 minutes to 4.';
+    },
+    hints: ['60 − 46 = 14. The next hour is 4.', 'Type 14, 4, 14 and 4.'],
+    ok: '3:46 is 14 minutes to 4.' },
+  { story: '1 hour = 60 minutes. Daniel travels for <b>2 hours</b>. Muthu does his homework for <b>1 h 10 min</b>. How many minutes is each?',
+    pic: function () { return lenBar(2, 0) + lenBar(1, 10); },
+    ask: '2 h = 60 min + 60 min = {i} min<br>1 h 10 min = 60 min + 10 min = {i} min', ans: [120, 70],
+    wrong: function (v) {
+      if (v[0] === 200) return '1 h is 60 min, not 100. 60 + 60 = ?';
+      if (v[0] !== 120) return '60 + 60 = ?';
+      if (v[1] === 110) return '1 h = 60 min, not 100. 60 + 10 = ?';
+      if (v[1] === 11) return 'Hours and minutes are different units. Change 1 h into 60 min, then 60 + 10.';
+      return '60 + 10 = ?';
+    },
+    hints: ['60 + 60 = 120. 60 + 10 = 70.', 'Type 120 and 70.'],
+    ok: '2 h = 120 min and 1 h 10 min = 70 min.' },
+  { story: 'Mr Tan takes <b>135 minutes</b> to fix his car. How many hours and minutes is that?',
+    pic: function () { return lenBar(2, 15); },
+    ask: '135 min = 120 min + {i} min<br>= {i} h {i} min', ans: [15, 2, 15],
+    wrong: function (v) {
+      if (v[0] !== 15) return 'What is left after 120? 135 − 120.';
+      if (v[1] === 1 && v[2] === 35) return 'That splits at 100. But 1 h = 60 min, so 120 min = 2 h.';
+      if (v[1] !== 2) return '120 min = 60 + 60 = 2 h.';
+      return 'The minutes part is what is left: 15.';
+    },
+    hints: ['135 = 120 + 15. 120 min = 2 h.', 'Type 15, 2 and 15.'],
+    ok: 'It takes him 2 h 15 min.' }
+];
+function drawWatch() {
+  if (W.step >= W_STEPS.length) {
+    $('wPrompt').classList.add('hidden'); $('wWon').classList.add('show'); badge('b1'); sfxWin(); return;
+  }
+  var st = W_STEPS[W.step];
+  $('wStory').innerHTML = st.story;
+  $('wPic').innerHTML = st.pic();
+  var k = 0;
+  $('wPrompt').innerHTML = st.ask.replace(/\{i\}/g, function () {
+    return '<input data-k="' + (k++) + '" inputmode="numeric" autocomplete="off" maxlength="3" aria-label="answer box">';
+  }) + '<div style="margin-top:8px"><button class="btn green sm" onclick="checkWatch()">Check</button></div>';
+  $('wPrompt').querySelectorAll('input').forEach(function (el) {
+    el.addEventListener('input', function () { el.value = el.value.replace(/\D/g, ''); });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter') checkWatch(); });
+  });
+  W.tries = 0;
+}
+function checkWatch() {
+  var st = W_STEPS[W.step], ins = $('wPrompt').querySelectorAll('input'), ok = true, vals = [];
+  ins.forEach(function (el, i) { vals.push(el.value.trim()); if (+el.value !== st.ans[i] || el.value.trim() === '') ok = false; });
+  var fb = $('wFb');
+  if (vals.some(function (v) { return v === ''; })) { fb.className = 'fb no'; fb.textContent = 'Type a number in each box.'; return; }
+  if (!ok) {
+    sfxNo(); W.tries++;
+    fb.className = 'fb no';
+    var special = st.wrong ? st.wrong(vals.map(Number)) : null;
+    fb.innerHTML = (W.tries === 1 && special) || st.hints[Math.min(W.tries, st.hints.length) - 1];
+    return;
+  }
+  sfxOk(); fb.className = 'fb ok'; fb.innerHTML = '✓ ' + st.ok;
+  W.step++; drawWatch();
+  var first = $('wPrompt').querySelector('input');
+  if (first) setTimeout(function () { try { first.focus({ preventScroll: true }); } catch (e) {} }, 50);
+}
+drawWatch();
+
+/* ================= 2 · YOUR TURN (book Guided Practice: L1 GP 1(a), 2(a), 2(b), 3(b) · L2 GP 1, 2, 4, 5(d)) ================= */
+function ptOnly(host, h, m, line, done) {   // "… 7 minutes {pt} 8 …": only past/to to choose
+  var b = sayBest(h, m);
+  return new FillBoxes(host, { pic: clockBox(h, m), lines: [line], cells: [{ ans: b[1],
+      m1: b[1] ? 'Is the long hand on the way back up to 12? Then it is "to" the next hour.' : 'Has the long hand only just left the 12? Then it is "past" the hour.',
+      m2: b[1] ? 'It is 20 minutes before 3 o\'clock — "to".' : 'It is 7 minutes after 8 o\'clock — "past".' }],
+    how: explainWords(h, m), okMsg: hm(h, m) + ' is ' + words(b) }, done);
+}
+var T_ITEMS = [
+  { ask: '1(a) · Find the missing numbers.', make: function (host, done) {
+      return new FillBoxes(host, { pic: clockBox(5, 45, 'to'), lines: ['It is {} minutes before 6 o\'clock.', '5:45 is {} minutes to 6.'],
+        cells: [{ ans: 15, m1: 'Count the orange part: from the long hand on to 12.', m2: '60 − 45 = 15.', why: function (v) { return v === 45 ? 'That is the minutes past 5. How many minutes are LEFT until 6 o\'clock? 60 − 45.' : null; } },
+                { ans: 15, m1: '"Minutes before 6" and "minutes to 6" are the same thing.', m2: 'Type 15.' }],
+        how: explainWords(5, 45), okMsg: '5:45 is 15 minutes to 6' }, done); } },
+  { ask: '2(a) · Use <b>past</b> or <b>to</b>.', make: function (host, done) { return ptOnly(host, 8, 7, '8:07 a.m. is 7 minutes {pt} 8 in the morning.', done); } },
+  { ask: '2(b) · Use <b>past</b> or <b>to</b>.', make: function (host, done) { return ptOnly(host, 2, 40, '2:40 p.m. is 20 minutes {pt} 3 in the afternoon.', done); } },
+  { ask: '3(b) · Tell the time: <b>15 minutes to 8</b> in the evening.', make: function (host, done) {
+      return new FillBoxes(host, { pic: clockBox(7, 45, 'to'), lines: ['15 minutes to 8 is {}{mm} p.m.'],
+        cells: [{ ans: 7, m1: 'It is not 8 o\'clock yet!', m2: 'Before 8 comes 7. Type 7.' },
+                { ans: 45, m1: 'Minutes past 7: 60 − 15.', m2: '60 − 15 = 45.', why: function (v) { return v === 15 ? '15 is the minutes LEFT to 8. Minutes past 7: 60 − 15 = ?' : null; } }],
+        how: '15 minutes to 8 is 15 minutes <b>before</b> 8 o\'clock. The hour is still 7.<br>60 − 15 = 45, so it is <b>7:45 p.m.</b>', okMsg: '15 minutes to 8 is 7:45 p.m.' }, done); } },
+  { ask: 'L2 · 1 · Jerry takes <b>3 hours</b> to read his book. How many minutes is that?', make: function (host, done) { return SmallFB(host, 3, 0, done, false, '3 h'); } },
+  { ask: 'L2 · 2 · Jessica watches TV for <b>2 h 30 min</b>. How many minutes is that?', make: function (host, done) { return SmallFB(host, 2, 30, done, true); } },
+  { ask: 'L2 · 4 · Suriati plays the piano for <b>82 minutes</b>. How many hours and minutes is that?', make: function (host, done) { return BigFB(host, 82, done, true); } },
+  { ask: 'L2 · 5(d) · Write <b>192 min</b> in hours and minutes.', make: function (host, done) { return BigFB(host, 192, done, false); } }
+];
+var T = { i: 0, stars: [] };
+function drawTry() {
+  var it = T_ITEMS[T.i];
+  $('tRound').textContent = 'QUESTION ' + (T.i + 1) + ' OF ' + T_ITEMS.length;
+  $('tStars').textContent = T.stars.join('');
+  $('tAsk').innerHTML = it.ask;
+  $('tFb').textContent = ''; $('tFb').className = 'fb'; $('tNext').innerHTML = '';
+  var w = it.make($('tHost'), function (first) {
+    T.stars.push(first ? '⭐' : '✔️'); $('tStars').textContent = T.stars.join('');
+    if (T.i < T_ITEMS.length - 1) $('tNext').innerHTML = '<button class="btn" onclick="T.i++;drawTry()">Next →</button>';
+    else { $('tWon').classList.add('show'); badge('b2'); sfxWin(); confetti(40); }
+  });
+  w.fb = $('tFb');
+}
+drawTry();
+
+/* ================= 3 · SPOT THE MISTAKE (times and numbers from the book's Learn pages) =================
+   Each round: is it right? → what went wrong? → fix it (boxes lock once fixed). Round 3 is correct. */
+var REASONS = {
+  hourTo: 'Used the hour that has gone by — "to" needs the NEXT hour',
+  minNum: 'Read the number the long hand points at as the minutes (each number is 5 minutes)',
+  countTo: 'Counted from 12 — for "to", count the minutes LEFT to 12',
+  hundred: 'Used 1 hour = 100 minutes (it is 60 minutes)'
+};
+var S_ITEMS = [
+  { who: 'Mia', q: 'What time is it?', got: '14 minutes to 3', src: 'book page 89', pic: function () { return clockPic(3, 46); },
+    work: 'Long hand: 14 minutes before 12. Short hand: 3. → 14 minutes to 3', reason: 'hourTo',
+    fix: { tpl: '{} minutes to {}', ans: [14, 4] },
+    why: { hourTo: 'Yes! The short hand has passed 3 and is going to 4. 14 minutes before 4 o\'clock is 14 minutes to 4.',
+           minNum: 'The long hand is between the 9 and the 10. Her 14 minutes is right! Look at the hour she used.',
+           countTo: 'She did count the minutes left to 12: 60 − 46 = 14. That part is right. Look at the hour.',
+           hundred: 'There are no hours to change here. Look at the hour she used with "to".' } },
+  { who: 'Ravi', q: 'What time is it?', got: '3 minutes past 7', src: 'book page 88', pic: function () { return clockPic(7, 15); },
+    work: 'Long hand at the 3 → 3 minutes. Short hand: just past 7. → 3 minutes past 7', reason: 'minNum',
+    fix: { tpl: '{} minutes past {}', ans: [15, 7] },
+    why: { minNum: 'Yes! The 3 means 3 × 5 = 15 minutes. It is 15 minutes past 7.',
+           hourTo: 'He used "past", and 7 is the right hour for "past". Look at his minutes.',
+           countTo: 'He used "past", so counting from 12 is right. But how many minutes is the long hand at the 3?',
+           hundred: 'There are no hours to change here. How many minutes is the long hand at the 3?' } },
+  { who: 'Siti', q: 'Write 135 min in hours and minutes.', got: '2 h 15 min', src: 'book page 93',
+    work: '135 min = 120 min + 15 min = 2 h 15 min', ok: true,
+    check: { tpl: '120 min + 15 min = {} min', ans: [135], hint: 'Add them: 120 + 15.' } },
+  { who: 'Jun', q: 'What time is it?', got: '51 minutes to 8', src: 'book page 90', pic: function () { return clockPic(7, 51); },
+    work: 'Long hand shows 51 minutes. Short hand: nearly 8. → 51 minutes to 8', reason: 'countTo',
+    fix: { tpl: '{} minutes to {}', ans: [9, 8] },
+    why: { countTo: 'Yes! 51 is the minutes past 7. For "to", count what is left: 60 − 51 = 9. It is 9 minutes to 8.',
+           hourTo: '8 is the right hour for "to". Look at his minutes: 51 minutes is not how many are LEFT.',
+           minNum: 'He read 51 minutes correctly — that is the time 7:51. But is 51 the minutes LEFT to 12?',
+           hundred: 'There are no hours to change here. Look at the 51 minutes with "to".' } },
+  { who: 'Ken', q: 'Write 2 h 30 min in minutes.', got: '230 min', src: 'book page 93',
+    work: '2 h 30 min = 200 min + 30 min = 230 min', reason: 'hundred',
+    fix: { tpl: '2 h 30 min = {} min', ans: [150] },
+    why: { hundred: 'Yes! 1 h = 60 min, so 2 h = 120 min. 120 + 30 = 150 min.',
+           hourTo: 'This is not a clock — no "to" here. Look at what he wrote for 2 h.',
+           minNum: 'This is not a clock. Look at what he wrote for 2 h: 200 min?',
+           countTo: 'This is not a clock. Look at what he wrote for 2 h: 200 min?' } }
+];
+var SP = { i: 0, stage: 0, first: true, stars: [] };
+function spotTpl(tpl) { var k = 0; return tpl.replace(/\{\}/g, function () { return '<input id="sIn' + (k++) + '" class="bx" inputmode="numeric" autocomplete="off" maxlength="3">'; }); }
+function drawSpot() {
+  var it = S_ITEMS[SP.i];
+  $('sRound').textContent = 'MISTAKE HUNT ' + (SP.i + 1) + ' OF ' + S_ITEMS.length;
+  $('sStars').textContent = SP.stars.join('');
+  $('sFb').textContent = ''; $('sFb').className = 'fb'; $('sNext').innerHTML = '';
+  var head = '<div class="notebook"><div class="who">📝 <b>' + it.who + '</b>: ' + it.q + ' Answer: <b>' + it.got + '</b> <span style="color:#8a829c;font-size:13px">(' + it.src + ')</span></div>' +
+    (it.pic ? '<div class="pic">' + it.pic() + '</div>' : '') + '<div class="work">' + it.work + '</div></div>';
+  var body = '';
+  if (SP.stage === 0) {
+    body = '<p class="body center" style="margin-top:12px"><b>Is ' + it.who + ' correct?</b></p>' +
+      '<div class="yn"><button class="btn green" onclick="spotYN(true)">✓ Yes</button><button class="btn amber" onclick="spotYN(false)">✗ No</button></div>';
+  } else if (SP.stage === 1) {
+    var keys = shuffle(Object.keys(REASONS));
+    body = '<p class="body center" style="margin-top:12px"><b>What went wrong?</b></p><div class="choices">' +
+      keys.map(function (k) { return '<button class="choice" data-k="' + k + '" onclick="spotWhy(this)">' + REASONS[k] + '</button>'; }).join('') + '</div>';
+  } else if (SP.stage === 2) {
+    body = '<div class="prompt">' + (it.ok ? 'Check it: ' + spotTpl(it.check.tpl) : 'Now fix it:<br>' + spotTpl(it.fix.tpl)) +
+      '<div style="margin-top:8px"><button class="btn green sm" onclick="spotFix()">Check</button></div></div>';
+  }
+  $('sBody').innerHTML = head + body;
+  var ins = $('sBody').querySelectorAll('input.bx');
+  ins.forEach(function (inp) {
+    inp.addEventListener('input', function () { inp.value = inp.value.replace(/\D/g, ''); });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') spotFix(); });
+  });
+  if (ins[0]) setTimeout(function () { try { ins[0].focus({ preventScroll: true }); } catch (e) {} }, 50);
+}
+function spotSay(msg, ok) { $('sFb').innerHTML = msg; $('sFb').className = 'fb ' + (ok ? 'ok' : 'no'); ok ? sfxOk() : sfxNo(); }
+function spotYN(yes) {
+  var it = S_ITEMS[SP.i];
+  if (yes === !!it.ok) {
+    spotSay(it.ok ? '✓ Right — ' + it.who + ' is correct. Let\'s prove it.' : '✓ Right — something\'s wrong. Let\'s find it.', true);
+    SP.stage = it.ok ? 2 : 1; setTimeout(drawSpot, 700);
+  } else {
+    SP.first = false;
+    spotSay('Check again. Long hand = minutes (each number is 5). Short hand = hour. "To" uses the next hour. 1 h = 60 min.', false);
+  }
+}
+function spotWhy(btn) {
+  var it = S_ITEMS[SP.i], k = btn.dataset.k;
+  if (btn.disabled) return;
+  if (k === it.reason) {
+    btn.classList.add('good'); spotSay('✓ ' + it.why[k], true);
+    $('sNext').innerHTML = '<button class="btn" onclick="SP.stage=2;drawSpot()">Fix it →</button>';
+    document.querySelectorAll('.choice').forEach(function (b) { b.disabled = true; });
+  } else { SP.first = false; btn.classList.add('bad'); spotSay(it.why[k], false); }
+}
+function spotFix() {
+  var it = S_ITEMS[SP.i], ins = Array.prototype.slice.call($('sBody').querySelectorAll('input.bx'));
+  if (!ins.length || ins[0].disabled) return;
+  var vals = ins.map(function (el) { return el.value.trim(); });
+  if (vals.some(function (v) { return v === ''; })) return;
+  var want = it.ok ? it.check.ans : it.fix.ans;
+  var good = vals.every(function (v, i) { return +v === want[i]; });
+  if (good) {
+    ins.forEach(function (el) { el.disabled = true; el.classList.remove('bad'); el.classList.add('good'); });
+    var k = 0;
+    spotSay(it.ok ? '✓ Yes — ' + it.who + '\'s answer ' + it.got + ' is right!' : '✓ Fixed! ' + it.fix.tpl.replace(/\{\}/g, function () { return want[k++]; }), true);
+    SP.stars.push(SP.first ? '⭐' : '✔️'); $('sStars').textContent = SP.stars.join('');
+    if (SP.i < S_ITEMS.length - 1) $('sNext').innerHTML = '<button class="btn" onclick="SP.i++;SP.stage=0;SP.first=true;drawSpot()">Next →</button>';
+    else { $('sNext').innerHTML = ''; $('sWon').classList.add('show'); badge('b3'); sfxWin(); confetti(40); }
+  } else {
+    SP.first = false; ins.forEach(function (el, i) { el.classList.toggle('bad', +vals[i] !== want[i]); });
+    spotSay(it.ok ? it.check.hint : it.why[it.reason].replace(/^Yes! /, ''), false);
+  }
+}
+drawSpot();
+</script>
+
+<script>
+/* ================= 4 · THE TEST (all of Workbook Practice 1 and Practice 2; nothing needs drawing) =================
+   Every question = one score; all of its boxes must be right. alts = other answers that are also right. */
+var SK = 'm3b.13.time';
+// clock → "__ minutes past/to __" (both ways of saying it count)
+function qClockWords(id, pg, h, m, head) {
+  var b = sayBest(h, m), o = sayOther(h, m);
+  return { id: id, pg: pg, head: head || 'What time is it? Use past or to.', pic: function () { return clockPic(h, m); },
+    tpl: '{} minutes {pt} {}', ans: b, alts: [o], altNote: 'We usually say ' + words(b) + ' — both are right.',
+    diag: function (v) { return whyWords(h, m, v); }, how: explainWords(h, m),
+    redo: function (host, done) { return WordsFB(host, h, m, done, b[1] ? 'to' : 'past'); }, sk: SK };
+}
+// clock → h:mm
+function qClockDigital(id, pg, h, m) {
+  return { id: id, pg: pg, head: 'What time is it? Write it with numbers.', pic: function () { return clockPic(h, m); },
+    tpl: '{}{mm}', ans: [h, m],
+    diag: function (v) { return whyDigital(h, m, v) || 'Check each box again.'; },
+    how: 'Short hand: it has passed <b>' + h + '</b>. Long hand: <b>' + m + ' minutes</b>. So the time is <b>' + hm(h, m) + '</b>.',
+    redo: function (host, done) { return DigitalFB(host, h, m, done); }, sk: SK };
+}
+// "__ minutes past/to __" in words → h:mm
+function qToDigital(id, pg, mins, isTo, hr) {
+  var h = isTo ? (hr === 1 ? 12 : hr - 1) : hr, m = isTo ? 60 - mins : mins;
+  var phrase = mins + ' minutes ' + (isTo ? 'to ' : 'past ') + hr;
+  return { id: id, pg: pg, head: 'Fill in the blank with the correct time.', tpl: phrase + ' is {}{mm}', ans: [h, m],
+    diag: function (v) {
+      var msg = [];
+      if (v[0] === mins && v[1] === hr) return 'Hour first, then minutes: ' + hm(h, m) + '.';
+      if (isTo && v[0] === hr) msg.push('"' + phrase + '" is <b>before</b> ' + hr + ' o\'clock, so the hour is still ' + h + '.');
+      if (isTo && v[1] === mins) msg.push(mins + ' is the minutes LEFT to ' + hr + '. Minutes past ' + h + ': 60 − ' + mins + ' = ' + m + '.');
+      if (msg.length) return msg.join(' ');
+      return isTo ? 'It is ' + mins + ' minutes before ' + hr + ' o\'clock: the hour is ' + h + ' and the minutes are 60 − ' + mins + ' = ' + m + '.' : 'Past ' + hr + ' → the hour is ' + hr + ', and the minutes are ' + mins + '.';
+    },
+    how: (isTo ? phrase + ' is ' + mins + ' minutes <b>before</b> ' + hr + ' o\'clock. The hour is still <b>' + h + '</b>.<br>60 − ' + mins + ' = ' + m + ', so the time is <b>' + hm(h, m) + '</b>.'
+               : phrase + ': the hour is <b>' + hr + '</b> and ' + mins + ' minutes have gone by. So the time is <b>' + hm(h, m) + '</b>.') +
+      '<div class="pic">' + clockPic(h, m, isTo ? 'to' : 'past') + '</div>',
+    redo: function (host, done) {
+      return new FillBoxes(host, { pic: clockBox(h, m, isTo ? 'to' : 'past'), lines: [phrase + ' is {}{mm}'],
+        cells: [{ ans: h, m1: isTo ? 'It is not ' + hr + ' o\'clock yet — which hour comes just before?' : 'Past ' + hr + ' → the hour is ' + hr + '.', m2: 'Type ' + h + '.' },
+                { ans: m, m1: isTo ? 'Minutes past ' + h + ': 60 − ' + mins + '.' : 'The minutes are ' + mins + '.', m2: 'Type ' + m + '.' }],
+        how: isTo ? '60 − ' + mins + ' = ' + m + '. The hour is ' + h + '. So ' + hm(h, m) + '.' : 'Hour ' + hr + ', ' + mins + ' minutes: ' + hm(h, m) + '.', okMsg: phrase + ' is ' + hm(h, m) }, done);
+    }, sk: SK };
+}
+// "h:mm is __ minutes past/to __ in the …" (the book gives past or to)
+function qFromDigital(id, pg, h, m, ampm, part) {
+  var b = sayBest(h, m), isTo = b[1] === 1;
+  var tpl = hm(h, m) + ' ' + ampm + ' is {} minutes ' + (isTo ? 'to' : 'past') + ' {} in the ' + part + '.';
+  return { id: id, pg: pg, head: 'Find the missing numbers.', tpl: tpl, ans: [b[0], b[2]],
+    diag: function (v) {
+      if (isTo && v[0] === m) return 'For "to", count the minutes LEFT to the next hour: 60 − ' + m + ' = ' + b[0] + '.';
+      if (isTo && v[1] === h) return '"To" needs the next hour: after ' + h + ' comes ' + b[2] + '.';
+      if (!isTo && v[1] === nextH(h)) return '"Past" needs the hour that has gone by: ' + h + '.';
+      if (v[0] === b[0]) return 'The minutes are right. The hour is ' + b[2] + '.';
+      return 'Check each box again: ' + hm(h, m) + ' is ' + words(b) + '.';
+    },
+    how: explainWords(h, m) + '<div class="pic">' + clockPic(h, m, isTo ? 'to' : 'past') + '</div>',
+    redo: function (host, done) {
+      var lines = isTo ? ['Minutes left to ' + b[2] + ': 60 − ' + m + ' = {}', tpl] : [tpl];
+      var cells = (isTo ? [{ ans: b[0], m1: '60 − ' + m + ' = ?', m2: 'Type ' + b[0] + '.' }] : []).concat([
+        { ans: b[0], m1: isTo ? 'Use the minutes left.' : 'How many minutes after ' + h + ' o\'clock?', m2: 'Type ' + b[0] + '.' },
+        { ans: b[2], m1: isTo ? '"To" needs the next hour.' : '"Past" needs the hour that has gone by.', m2: 'Type ' + b[2] + '.' }]);
+      return new FillBoxes(host, { pic: clockBox(h, m, isTo ? 'to' : 'past'), lines: lines, cells: cells, how: explainWords(h, m), okMsg: hm(h, m) + ' is ' + words(b) }, done);
+    }, sk: SK };
+}
+// B h s min → min   (tpl given in the book's words; split = "= 60 min + 20 min" line)
+function qSmall(id, pg, head, B, s, tpl, cellsAns, diag) {
+  return { id: id, pg: pg, head: head, tpl: tpl, ans: cellsAns,
+    diag: diag || function (v) { return whyTotal(B, s, v[v.length - 1]) || 'Check each box again.'; },
+    how: explainSmall(B, s), redo: function (host, done) { return SmallFB(host, B, s, done, !!s); }, sk: SK };
+}
+// n min → B h s min
+function qBig(id, pg, head, n, tpl) {
+  var B = Math.floor(n / 60), s = n % 60;
+  return { id: id, pg: pg, head: head, tpl: tpl, ans: [B, s],
+    diag: function (v) { return whyHM(n, v[0], v[1]) || 'Check each box again.'; },
+    how: explainBig(n), redo: function (host, done) { return BigFB(host, n, done, true); }, sk: SK };
+}
+var questions = [
+  // Practice 1 · Tell the Time (p97–98)
+  qClockWords('1(a)', 97, 12, 7),
+  qClockWords('1(b)', 97, 1, 55),
+  qClockWords('1(c)', 97, 3, 31),
+  qClockWords('1(d)', 97, 3, 23),
+  qClockWords('1(e)', 97, 5, 42),
+  qClockDigital('2(a) time', 98, 7, 18),
+  qClockWords('2(a) words', 98, 7, 18, 'Now write the same time in words. Use past or to.'),
+  qClockDigital('2(b) time', 98, 6, 47),
+  qClockWords('2(b) words', 98, 6, 47, 'Now write the same time in words. Use past or to.'),
+  qToDigital('3(a)', 98, 18, false, 2),
+  qToDigital('3(b)', 98, 13, true, 1),
+  qFromDigital('4(a)', 98, 8, 28, 'a.m.', 'morning'),
+  qFromDigital('4(b)', 98, 6, 53, 'p.m.', 'evening'),
+  // Practice 2 · Hours and Minutes (p99–100)
+  qSmall('1', 99, 'Wei Xiang takes a nap for 2 hours. How many minutes are there in 2 hours?', 2, 0, '2 hours = {} minutes', [120]),
+  qSmall('2', 99, 'Dominic watches a movie for 2 hours 15 minutes. How many minutes is that?', 2, 15, '2 hours 15 minutes = {} minutes', [135]),
+  qBig('3', 99, 'A runner takes 67 minutes to run 10 km. How many hours and minutes is that?', 67, '67 minutes = {} hour {} minutes'),
+  qBig('4', 99, 'Bala takes 103 minutes to do his homework. How many hours and minutes is that?', 103, '103 minutes = {} hour {} minutes'),
+  qSmall('5(a)', 100, 'Write in minutes.', 1, 20, '1 h 20 min = {} min + 20 min<br>= {} min', [60, 80],
+    function (v) { return whyHourPart(1, v[0], true) || whyTotal(1, 20, v[1]) || 'Check each box again.'; }),
+  qSmall('5(b)', 100, 'Write in minutes.', 2, 48, '2 h 48 min = 120 min + {} min<br>= {} min', [48, 168],
+    function (v) { return v[0] !== 48 ? 'The minutes part stays the same: 48.' : (whyTotal(2, 48, v[1]) || 'Check each box again.'); }),
+  qSmall('5(c)', 100, 'Write in minutes.', 1, 40, '1 h 40 min = {} min', [100]),
+  qSmall('5(d)', 100, 'Write in minutes.', 1, 16, '1 h 16 min = {} min', [76]),
+  qSmall('5(e)', 100, 'Write in minutes.', 2, 25, '2 h 25 min = {} min', [145]),
+  qSmall('5(f)', 100, 'Write in minutes.', 2, 53, '2 h 53 min = {} min', [173]),
+  qSmall('5(g)', 100, 'Write in minutes.', 3, 59, '3 h 59 min = {} min', [239]),
+  qSmall('5(h)', 100, 'Write in minutes.', 3, 37, '3 h 37 min = {} min', [217]),
+  qBig('6(a)', 100, 'Write in hours and minutes.', 80, '80 min = {} h {} min'),
+  qBig('6(b)', 100, 'Write in hours and minutes.', 135, '135 min = {} h {} min'),
+  qBig('6(c)', 100, 'Write in hours and minutes.', 187, '187 min = {} h {} min')
+];
+// Answers (worked by hand from the book pictures, then re-checked by a script that measures the hand angles; the 3B Workbook has no answer key):
+// P1: 1 12:07 = 7 past 12 · 1:55 = 5 to 2 · 3:31 = 29 to 4 (or 31 past 3) · 3:23 = 23 past 3 · 5:42 = 18 to 6
+//     2 7:18 = 18 past 7 · 6:47 = 13 to 7 · 3 2:18, 12:47 · 4 28 past 8, 7 to 7
+// P2: 1 120 · 2 135 · 3 1 h 7 min · 4 1 h 43 min · 5 60/80, 48/168, 100, 76, 145, 173, 239, 217 · 6 1 h 20, 2 h 15, 3 h 7
+var SECS_PER_Q = 60;
+var QUIZ_SECS = questions.length * SECS_PER_Q;
+var PASS_PCT = 80, PASS_N = Math.ceil(questions.length * PASS_PCT / 100);
+var current = 0, score = 0, answered = false;
+var given = [], right = [], quizOn = false, timerId = null, secsLeft = 0;
+
+function fmtTime(s) { s = Math.max(0, s); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+function tick() {
+  secsLeft--;
+  $('qTime').textContent = '⏱ ' + fmtTime(secsLeft);
+  $('qTime').classList.toggle('low', secsLeft <= 60);
+  if (secsLeft <= 0) { clearInterval(timerId); timerId = null; if (quizOn) showResult(); }
+}
+function startQuiz() {
+  $('gate').classList.add('hidden'); $('result').classList.add('hidden'); $('quiz').classList.remove('hidden');
+  current = 0; score = 0; answered = false; given = []; right = []; quizOn = true;
+  secsLeft = QUIZ_SECS; $('qTime').textContent = '⏱ ' + fmtTime(secsLeft); $('qTime').classList.remove('low');
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(tick, 1000);
+  try { var s = window.QuizReport && QuizReport.session(); if (s) s.lastMark = Date.now(); } catch (e) {}
+  render();
+  $('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function render() {
+  var q = questions[current];
+  answered = false;
+  $('qNum').textContent = 'Question ' + (current + 1) + ' of ' + questions.length;
+  $('qScore').textContent = '✓ ' + score;
+  $('qProg').style.width = (100 * current / questions.length) + '%';
+  $('qBody').innerHTML = '<div class="center"><span class="qtag">Workbook p' + q.pg + ' · Practice ' + (current < 13 ? 1 : 2) + ' · Question ' + q.id + '</span></div>' +
+    '<div class="qtext">' + q.head + '</div>' + (q.pic ? '<div class="pic">' + q.pic() + '</div>' : '') +
+    '<div class="qline">' + slotHTML(q.tpl) + '</div>' +
+    '<div class="center"><button class="btn green" id="qGo" onclick="check()">Check</button></div>' +
+    '<div class="fb" id="qFb"></div><div class="explain" id="qExp"></div><div class="center" id="qNext"></div>';
+  var els = slotWire($('qBody'), function () { if (answered) nextQ(); else check(); });
+  var first = $('qBody').querySelector('input.bx');
+  if (first) setTimeout(function () { try { first.focus({ preventScroll: true }); } catch (e) {} }, 60);
+}
+function explainQ(q) { return q.how; }
+function diagnoseQ(q, vals) { return q.diag(vals) || 'Check each box again.'; }
+function check() {
+  if (answered || !quizOn) return;
+  var q = questions[current], want = q.ans, els = slotEls($('qBody'));
+  var raw = els.map(slotVal);
+  if (raw.some(function (v) { return v === ''; })) {
+    var pt = els.some(function (el, i) { return raw[i] === '' && el.tagName !== 'INPUT'; });
+    $('qFb').className = 'fb no';
+    $('qFb').textContent = pt ? 'Tap past or to, and fill in every box first.' : els.length > 1 ? 'Fill in every box first.' : 'Type your answer first.';
+    return;
+  }
+  var vals = raw.map(Number), match = want, note = '';
+  var ok = sameVals(vals, want);
+  if (!ok && q.alts) q.alts.forEach(function (a) { if (!ok && sameVals(vals, a)) { ok = true; match = a; note = q.altNote; } });
+  given[current] = vals; right[current] = ok; answered = true;
+  els.forEach(function (el, i) { slotMark(el, vals[i] === match[i] ? 'good' : 'bad'); slotLock(el); });
+  $('qGo').classList.add('hidden');
+  if (ok) {
+    score++; sfxOk();
+    $('qFb').className = 'fb ok'; $('qFb').innerHTML = '✓ Correct!' + (note ? '<br><span style="font-weight:normal">' + note + '</span>' : '');
+  } else {
+    sfxNo();
+    $('qFb').className = 'fb no'; $('qFb').innerHTML = '✗ Not quite — the answer is: ' + fillTpl(q.tpl, want);
+    $('qExp').innerHTML = '<div class="trap"><span class="lbl">What happened</span>' + diagnoseQ(q, vals) + '</div><div class="how">' + explainQ(q) + '</div>';
+  }
+  $('qScore').textContent = '✓ ' + score;
+  var last = current === questions.length - 1;
+  $('qNext').innerHTML = '<button class="btn" id="qNextBtn" style="margin-top:12px" onclick="nextQ()">' + (last ? 'See my score →' : 'Next →') + '</button>';
+  try { $('qNextBtn').focus({ preventScroll: true }); } catch (e) {}
+}
+function nextQ() {
+  if (!quizOn) return;
+  if (current < questions.length - 1) { current++; render(); } else showResult();
+}
+function showResult() {
+  if (!quizOn) return;
+  quizOn = false;
+  if (timerId) { clearInterval(timerId); timerId = null; }
+  var used = QUIZ_SECS - Math.max(0, secsLeft), pct = Math.round(100 * score / questions.length), pass = pct >= PASS_PCT;
+  var stars = pct === 100 ? '⭐⭐⭐' : pct >= PASS_PCT ? '⭐⭐' : pct >= 50 ? '⭐' : '';
+  var missed = [];
+  questions.forEach(function (q, i) { if (!right[i]) missed.push(i); });
+  var html = '<div class="res-top"><div class="stars">' + (stars || '💪') + '</div><div class="pct">' + pct + '%</div>' +
+    '<div class="sub">' + score + ' right out of ' + questions.length + ' · the pass mark is ' + PASS_PCT + '% (' + PASS_N + ' correct)</div>' +
+    '<div class="sub">Time: ' + Math.floor(used / 60) + ' min ' + (used % 60) + ' s' + (secsLeft <= 0 ? ' — time ran out' : '') + '</div>' +
+    '<div class="verdict ' + (pass ? 'pass' : 'fail') + '">' + (pass ? '🎉 You passed!' : 'Not passed yet — ' + (PASS_N - score) + ' more needed') + '</div></div>';
+  if (missed.length) {
+    html += '<h3 class="rv">Let\'s look at the ' + (missed.length === 1 ? 'one' : missed.length) + ' you missed</h3>';
+    missed.forEach(function (i) {
+      var q = questions[i], g = given[i];
+      html += '<div class="miss"><div class="mh">Question ' + q.id + ': ' + q.head + '</div>' + (q.pic ? '<div class="pic">' + q.pic() + '</div>' : '') + '<div class="mh">' +
+        (g === undefined ? '<span class="you">Not answered</span>' : 'You wrote: ' + fillTpl(q.tpl, g, function (j) { return g[j] === q.ans[j] ? 'right' : 'you'; })) +
+        '<br>Answer: ' + fillTpl(q.tpl, q.ans, 'right') + '</div>' +
+        (g === undefined ? '' : '<div class="trap"><span class="lbl">What happened</span>' + diagnoseQ(q, g) + '</div>') +
+        '<div class="how">' + explainQ(q) + '</div></div>';
+    });
+    html += '<div class="center" style="margin-top:16px"><button class="btn amber" onclick="startRedo()">🔁 Practise the ones I missed</button>' +
+      '<button class="btn ghost" onclick="restart()">Take the whole test again</button></div><div id="redo"></div>';
+  } else {
+    html += '<p class="body center" style="margin-top:14px">Every single one right. Amazing! 🌟</p>' +
+      '<div class="center"><button class="btn ghost" onclick="restart()">Take the test again</button></div>';
+  }
+  $('quiz').classList.add('hidden');
+  var r = $('result'); r.innerHTML = html; r.classList.remove('hidden');
+  r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (pass) { badge('b4'); sfxWin(); confetti(); }
+}
+function restart() { startQuiz(); }
+
+/* ---- practise the missed ones (not scored, hints allowed; uses the Your-turn widgets) ---- */
+var RD = { list: [], i: 0 };
+function startRedo() {
+  RD.list = questions.map(function (q, i) { return i; }).filter(function (i) { return !right[i]; });
+  RD.i = 0; drawRedo();
+  $('redo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function drawRedo() {
+  var box = $('redo');
+  if (RD.i >= RD.list.length) {
+    box.innerHTML = '<div class="won show"><span class="lbl">✅ All fixed</span>You worked through every one you missed. Try the whole test again when you\'re ready!</div>';
+    sfxWin(); confetti(40); return;
+  }
+  var q = questions[RD.list[RD.i]];
+  box.innerHTML = '<div class="card" style="margin-top:14px;border:3px solid #e8c489;padding:14px 10px"><div class="gbar"><span class="round">PRACTICE ' + (RD.i + 1) + ' OF ' + RD.list.length +
+    ' · QUESTION ' + q.id + ' · not scored</span></div><div class="target">' + q.head + '</div><div id="rHost"></div><div class="fb" id="rFb"></div><div class="center" id="rNext"></div></div>';
+  var done = function () {
+    $('rNext').innerHTML = '<div class="how" style="text-align:left">Back to the question: ' + fillTpl(q.tpl, q.ans, 'right') + '</div>' +
+      '<button class="btn" onclick="RD.i++;drawRedo()">Next →</button>';
+  };
+  var w = q.redo($('rHost'), done);
+  w.fb = $('rFb');
+}
+paintSound();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

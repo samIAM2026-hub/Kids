@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3B Ch 9 Money (b) — Subtracting Money</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #f3effa 55%, #e6def5 100%);
+    min-height: 100vh; color: #1f1a2e; padding: 22px 14px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header { background: #5b3f99; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f7f3ff; box-shadow: 0 8px 0 #3d2a6b; margin-bottom: 14px; position: relative; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+  .sound { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.35);
+    color: #fff; border-radius: 99px; width: 40px; height: 40px; font-size: 18px; cursor: pointer; }
+
+  .nav { position: sticky; top: 0; z-index: 30; background: rgba(255,253,247,.95); backdrop-filter: blur(4px); border-radius: 12px; padding: 8px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(61,42,107,.12); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav a { text-decoration: none; font-size: 13.5px; font-weight: bold; color: #3d2a6b; background: #ece6f7; border-radius: 99px; padding: 6px 13px; }
+
+  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 6px 0 #d9d0ec; margin-bottom: 16px; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16.5px; line-height: 1.6; }
+  .intro p + p { margin-top: 8px; }
+  .hidden { display: none !important; }
+
+  .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .badge { background: #f3f1f6; border: 3px dashed #cfc6e0; border-radius: 14px; padding: 8px 12px; text-align: center;
+    font-size: 13px; font-weight: bold; color: #a39bb5; min-width: 98px; transition: .25s; }
+  .badge .bi { display: block; font-size: 24px; filter: grayscale(1); opacity: .45; }
+  .badge.on { background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; transform: scale(1.04); }
+  .badge.on .bi { filter: none; opacity: 1; }
+
+  h2.sect { font-size: 20px; color: #3d2a6b; margin: 30px 0 12px; text-align: center; scroll-margin-top: 70px; }
+  h2.sect span { background: #ece6f7; border-radius: 99px; padding: 5px 16px; display: inline-block; }
+  p.body { font-size: 16.5px; line-height: 1.6; color: #3a3350; }
+  p.body + p.body { margin-top: 8px; }
+
+  .btn { background: #5b3f99; color: #fff; border: none; border-radius: 12px; padding: 11px 20px; font-size: 15.5px; font-family: inherit; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #3d2a6b; margin: 4px; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #3d2a6b; }
+  .btn.amber { background: #c9761d; box-shadow: 0 5px 0 #8f5211; }
+  .btn.green { background: #3a7d44; box-shadow: 0 5px 0 #23572c; }
+  .btn.ghost { background: #fff; color: #5d5670; box-shadow: 0 4px 0 #e2dcef; border: 2px solid #e2dcef; }
+  .btn.sm { padding: 8px 14px; font-size: 14px; }
+  .center { text-align: center; }
+
+  .fb { text-align: center; font-size: 16px; font-weight: bold; min-height: 26px; margin-top: 10px; line-height: 1.55; color: #5d5670; }
+  .fb.ok { color: #3a7d44; }
+  .fb.no { color: #c0392b; }
+  .won { display: none; background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; border-radius: 12px; padding: 13px 15px; margin-top: 12px; font-size: 16px; line-height: 1.6; }
+  .won.show { display: block; }
+  .won .lbl, .trap .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; margin-bottom: 4px; }
+  .trap { background: #fbeaea; border: 3px solid #e2a49c; border-radius: 12px; padding: 12px 14px; font-size: 15.5px; line-height: 1.6; margin-top: 10px; color: #7d2b21; }
+  .trap .lbl { color: #a5352a; }
+
+  .gbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .gbar .round { font-size: 13px; font-weight: bold; color: #5d5670; font-family: 'Courier New', monospace; letter-spacing: .5px; }
+  .gbar .stars { font-size: 18px; letter-spacing: 2px; }
+  .target { background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 11px 14px; text-align: center; font-size: 17px; line-height: 1.5; }
+
+  /* ---------- money columns (with the dot) ---------- */
+  .colbox { display: flex; justify-content: center; margin: 14px 0 6px; }
+  .colw { display: inline-grid; gap: 4px 4px; font-family: 'Courier New', monospace; font-weight: bold; font-size: 27px; color: #1f1a2e; align-items: center; justify-items: center; }
+  .colw .c { width: 42px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+  .colw .cs { height: 32px; }
+  .colw .d { width: 12px; }
+  .colw .dl { width: 18px; font-size: 22px; color: #5d5670; }
+  .colw .op { width: 24px; color: #5b3f99; }
+  .colw .line { grid-column: 1 / -1; width: 100%; border-top: 3px solid #1f1a2e; height: 0; }
+  .colw .claim { color: #7d2b21; }
+  .colw .cc { font-size: 17px; color: #c9761d; }
+  .colw input { font-family: inherit; font-weight: bold; text-align: center; border-radius: 8px; outline: none; color: #1f1a2e; background: #fbfaff; }
+  .colw input.dg { width: 42px; height: 48px; font-size: 26px; border: 3px solid #cbbfe6; }
+  .colw input.cy { width: 34px; height: 30px; font-size: 16px; border: 2px dashed #e0b064; color: #c9761d; background: #fffaf0; padding: 0; }
+  .colw input:focus { border-color: #5b3f99; box-shadow: 0 0 0 3px #e3dbf6; }
+  .colw input.good { border-color: #3a7d44; background: #e8f5e6; border-style: solid; }
+  .colw input.bad { border-color: #c0392b; background: #fbeaea; border-style: solid; }
+  .colw .strike { text-decoration: line-through; text-decoration-color: #c0392b; text-decoration-thickness: 3px; color: #a39bb5; }
+  .colhint { text-align: center; font-size: 13px; color: #8a829c; margin-top: 2px; }
+  .peek { background: #fff; color: #5d5670; border: 2px solid #e2dcef; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-family: inherit; font-weight: bold; cursor: pointer; margin-top: 10px; }
+  .how { background: #f6f3fc; border-left: 5px solid #8f78c9; border-radius: 8px; padding: 10px 13px; margin-top: 8px; font-size: 15.5px; line-height: 1.7; }
+  .prompt { background: #f6f3fc; border-radius: 12px; padding: 14px; margin-top: 14px; text-align: center; font-size: 17px; line-height: 1.9; }
+
+  /* ---------- number bond + working lines ---------- */
+  .mrow { display: flex; gap: 16px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .bond { position: relative; width: 196px; height: 150px; flex: none; }
+  .bond svg { position: absolute; left: 0; top: 0; }
+  .bc { position: absolute; width: 74px; height: 64px; border-radius: 50%; border: 3px solid #8f78c9; background: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: 'Courier New', monospace; font-size: 16px; color: #1f1a2e; }
+  .bc.w { left: 0; top: 43px; border-color: #5b3f99; background: #f6f3fc; }
+  .bc.t { left: 122px; top: 0; border-color: #e8508a; }
+  .bc.b { left: 122px; top: 86px; border-color: #2a9d8f; }
+  .bc.q { color: #a39bb5; }
+  .mlines { font-family: 'Courier New', monospace; font-weight: bold; font-size: 19px; line-height: 2.3; color: #1f1a2e; }
+  .mlines .done { color: #3a7d44; }
+  input.mi { width: 92px; height: 42px; font-size: 20px; font-family: 'Courier New', monospace; font-weight: bold; text-align: center;
+    border: 3px solid #cbbfe6; border-radius: 10px; background: #fbfaff; color: #1f1a2e; outline: none; vertical-align: middle; }
+  input.mi.mc { width: 70px; }
+  input.mi:focus { border-color: #5b3f99; box-shadow: 0 0 0 3px #e3dbf6; }
+  input.mi.good { border-color: #3a7d44; background: #e8f5e6; }
+  input.mi.bad { border-color: #c0392b; background: #fbeaea; }
+  .echo { display: inline-block; min-width: 48px; border-bottom: 2px solid #cbbfe6; text-align: center; color: #5b3f99; line-height: 1.4; }
+  .sub-h { font-size: 16px; font-weight: bold; color: #3d2a6b; margin-bottom: 6px; }
+  .exname { text-align: center; font-size: 17px; font-weight: bold; color: #3d2a6b; margin-top: 4px; line-height: 1.5; }
+  .claim { color: #7d2b21; }
+
+  /* ---------- price board ---------- */
+  .pboard { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 4px 0 10px; }
+  .ptag { background: #fff8ec; border: 2px solid #e8c489; border-radius: 8px; padding: 3px 9px; font-size: 14px; }
+  .ptag b { font-family: 'Courier New', monospace; }
+
+  /* ---------- spot the mistake ---------- */
+  .notebook { background: #fffdf2; border: 2px solid #eadfb8; border-radius: 12px; padding: 10px 14px; text-align: center; margin-top: 10px; }
+  .notebook .who { font-size: 16px; line-height: 1.5; }
+  .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .choice { background: #f6f3fc; border: 3px solid #e2dcef; border-radius: 12px; padding: 11px 14px; font-size: 16px; font-family: inherit; text-align: left; cursor: pointer; color: #1f1a2e; }
+  .choice:hover { border-color: #8f78c9; }
+  .choice.good { background: #e8f5e6; border-color: #3a7d44; }
+  .choice.bad { background: #fbeaea; border-color: #c0392b; }
+  .yn { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+
+  /* ---------- test ---------- */
+  .qbar { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: bold; font-size: 15px; color: #3d2a6b; }
+  .qbar .time { font-family: 'Courier New', monospace; font-size: 18px; }
+  .qbar .time.low { color: #c0392b; }
+  .progress { height: 10px; background: #ece6f7; border-radius: 99px; margin: 10px 0 16px; overflow: hidden; }
+  .progress i { display: block; height: 100%; background: #8f78c9; width: 0; transition: width .3s; }
+  .qtext { font-size: 21px; line-height: 2; text-align: center; font-weight: bold; font-family: 'Courier New', monospace; }
+  .qword { font-size: 17px; line-height: 1.5; text-align: center; font-weight: bold; margin-bottom: 4px; }
+  .qtag { display: inline-block; background: #5b3f99; color: #fff; font-size: 12px; font-weight: bold; border-radius: 99px; padding: 3px 12px; margin-bottom: 8px; }
+  .qtext input.mi { width: 120px; height: 48px; font-size: 24px; }
+  .qtext input.mi.mc { width: 92px; }
+  .tip { text-align: center; font-size: 13px; color: #8a829c; margin-top: 2px; }
+  .explain { margin-top: 12px; }
+  .res-top { text-align: center; }
+  .res-top .stars { font-size: 34px; letter-spacing: 4px; }
+  .res-top .pct { font-size: 48px; font-weight: bold; color: #3d2a6b; }
+  .res-top .sub { color: #5d5670; font-size: 15px; margin-top: 4px; }
+  .res-top .verdict { font-size: 22px; font-weight: bold; margin-top: 8px; }
+  .verdict.pass { color: #3a7d44; } .verdict.fail { color: #c0392b; }
+  .riddle { background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 10px 14px; margin-top: 14px; text-align: center; font-size: 15.5px; line-height: 1.6; }
+  .miss { border: 3px solid #f0d2cc; border-radius: 12px; padding: 12px 14px; margin-top: 12px; background: #fffafa; }
+  .miss .mh { font-weight: bold; font-size: 16px; line-height: 1.5; }
+  .miss .mh .you { color: #c0392b; } .miss .mh .right { color: #3a7d44; }
+  h3.rv { color: #3d2a6b; margin-top: 22px; text-align: center; font-size: 18px; }
+
+  .confetti { position: fixed; top: -12px; width: 9px; height: 14px; z-index: 99; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(105vh) rotate(720deg); } }
+  .pop { animation: popin .3s ease-out; }
+  @keyframes popin { 0% { transform: scale(.7) } 60% { transform: scale(1.12) } 100% { transform: scale(1) } }
+
+  .foot { text-align: center; margin-top: 26px; font-size: 13px; color: #8a829c; }
+  .foot a { color: #5b3f99; }
+  @media (max-width: 480px) {
+    body { padding: 16px 10px 50px; }
+    .card { padding: 16px 12px; }
+    .colw { font-size: 22px; gap: 4px 3px; }
+    .colw .c, .colw input.dg { width: 34px; }
+    .colw .d { width: 10px; } .colw .dl { width: 14px; } .colw .op { width: 18px; }
+    .colw input.cy { width: 30px; }
+    .mlines { font-size: 17px; }
+    input.mi { width: 80px; } input.mi.mc { width: 62px; }
+    .qtext { font-size: 19px; }
+    .bond { transform: scale(.9); transform-origin: center; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <button class="sound" id="soundBtn" onclick="toggleSound()" aria-label="Sound on or off">🔊</button>
+  <div class="ic">🪙</div>
+  <h1>Subtracting Money</h1>
+  <p>My Pals Are Here! Maths 3B · Chapter 9 · Lesson 2 (part b of 2)</p>
+</header>
+
+<nav class="nav">
+  <a href="#watch">👀 Watch it</a><a href="#try">✏️ Your turn</a><a href="#spot">🔍 Spot the mistake</a><a href="#test">🏆 Test</a>
+</nav>
+
+<div class="card intro">
+  <p><b>Take away the dollars, then the cents. Not enough cents? Change $1 into 100¢ first.</b></p>
+  <p>Watch 4 examples, try 8 from the book, check 4 answers — then a 28-question test (1 minute each · pass = 80%).</p>
+  <div class="badges">
+    <div class="badge" id="b1"><span class="bi">👀</span>Watch it</div>
+    <div class="badge" id="b2"><span class="bi">✏️</span>Your turn</div>
+    <div class="badge" id="b3"><span class="bi">🔍</span>Mistake finder</div>
+    <div class="badge" id="b4"><span class="bi">🏆</span>Test passed</div>
+  </div>
+</div>
+
+<!-- ===================== 1 · WATCH IT ===================== -->
+<h2 class="sect" id="watch"><span>👀 1 · Watch it — Textbook pages 12–14</span></h2>
+<div class="card" id="wCard">
+  <div id="wName" class="exname"></div>
+  <div id="wShow"></div>
+  <div class="prompt" id="wPrompt"></div>
+  <div class="fb" id="wFb"></div>
+  <div class="won" id="wWon"><span class="lbl">✅ You did it</span>Ways to take away money:<br><b>① Dollars, then cents:</b> $42.75 − $20.30 → $22 and 45¢ → <b>$22.45</b>.<br><b>② Use a $1:</b> $4.70 − 80¢ → $3.70 + (100¢ − 80¢) → <b>$3.90</b>.<br><b>③ Take away a round amount, then add back:</b> $9.70 − $5 = $4.70, + 10¢ → <b>$4.80</b>.<br>In columns: line up the dots and regroup like whole numbers.</div>
+</div>
+
+<!-- ===================== 2 · YOUR TURN ===================== -->
+<h2 class="sect" id="try"><span>✏️ 2 · Your turn — Textbook page 15</span></h2>
+<div class="card">
+  <p class="body">Guided Practice 1–4. Fill in the boxes line by line, or in columns.</p>
+  <div class="gbar"><span class="round" id="tRound"></span><span class="stars" id="tStars"></span></div>
+  <div class="target" id="tAsk"></div>
+  <div id="tHost"></div>
+  <div class="fb" id="tFb"></div>
+  <div class="center" id="tNext"></div>
+  <div class="won" id="tWon"><span class="lbl">✅ All done</span>Not enough cents on top? Change <b>$1 into 100¢</b> (or regroup in columns). Took away too much? <b>Add the extra back</b>.</div>
+</div>
+
+<!-- ===================== 3 · SPOT THE MISTAKE ===================== -->
+<h2 class="sect" id="spot"><span>🔍 3 · Spot the mistake</span></h2>
+<div class="card">
+  <div class="gbar"><span class="round" id="sRound"></span><span class="stars" id="sStars"></span></div>
+  <div id="sBody"></div>
+  <div class="fb" id="sFb"></div>
+  <div class="center" id="sNext"></div>
+  <div class="won" id="sWon"><span class="lbl">✅ Mistake finder</span>The traps: <b>flipping a column</b>, <b>taking the extra away</b> instead of adding it back, and <b>forgetting to take 1</b> from the column you regrouped from.</div>
+</div>
+
+<!-- ===================== 4 · TEST ===================== -->
+<h2 class="sect" id="test"><span>🏆 4 · The test — Workbook pages 13–18</span></h2>
+<div class="card center" id="gate">
+  <p class="body"><b>28 questions</b> — all of Workbook Practice 3 and 4 · <b>1 minute each</b> (28 minutes in all) · pass mark <b>80%</b> (23 right).</p>
+  <p class="body">Type money with a dot, like <b>6.15</b> — the <b>$</b> is already there. Cents boxes take whole numbers only.
+    One try per question — if it's wrong, you'll see why straight away.</p>
+  <p style="margin-top:12px"><button class="btn amber" onclick="startQuiz()">▶ Start the test</button></p>
+</div>
+<div class="card hidden" id="quiz">
+  <div class="qbar"><span id="qNum"></span><span id="qScore"></span><span class="time" id="qTime"></span></div>
+  <div class="progress"><i id="qProg"></i></div>
+  <div id="qBody"></div>
+</div>
+<div class="card hidden" id="result"></div>
+
+<div class="foot">My Pals Are Here! Maths 3B · Textbook p12–15 · Workbook p13–18 ·
+  <a href="../homework.html">← My homework</a></div>
+</div>
+
+<script>
+/* ================= shared helpers: money is kept in CENTS (whole numbers) everywhere ================= */
+var MPL = ['1¢', '10¢', '$1', '$10', '$100'];         // column names, right to left
+function $(id) { return document.getElementById(id); }
+function fmt$(c) { return '$' + Math.floor(c / 100) + '.' + ('0' + (c % 100)).slice(-2); }
+function fmtU(c, u) { return u === 'c' ? c + '¢' : fmt$(c); }
+function dollarsOf(c) { return Math.floor(c / 100); }
+function centsOf(c) { return c % 100; }
+/* what she typed → { v } (cents for a $ box, a whole number for a ¢ box) or { err } */
+function parseMoney(s, u) {
+  s = String(s).trim();
+  if (s === '') return { err: 'empty' };
+  if (u === 'c') return /^\d+$/.test(s) ? { v: +s } : { err: 'bad' };
+  if (!/^\d*\.?\d*$/.test(s) || !/\d/.test(s)) return { err: 'bad' };
+  var p = s.split('.'), d = p[0] === '' ? 0 : +p[0], f = p[1] || '';
+  if (f.length > 2) return { err: 'dec' };
+  return { v: d * 100 + (f === '' ? 0 : +(f + '0').slice(0, 2)) };
+}
+function filterBox(el) {
+  if (el.dataset.u === 'c') { el.value = el.value.replace(/\D/g, '').slice(0, 5); return; }
+  var v = el.value.replace(/[^\d.]/g, ''), i = v.indexOf('.');
+  if (i >= 0) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, '');
+  el.value = v.slice(0, 8);
+}
+function boxHTML(k, u, extra) {
+  return '<input class="mi' + (u === 'c' ? ' mc' : '') + '" data-k="' + k + '" data-u="' + u + '" inputmode="' + (u === 'c' ? 'numeric' : 'decimal') +
+    '" autocomplete="off" aria-label="' + (u === 'c' ? 'cents' : 'dollars') + ' answer box"' + (extra || '') + '>';
+}
+/* {$:k} = a dollars box, {c:k} = a cents / whole-number box, {e:k} = shows what was typed in box k */
+function expand(tpl) {
+  return tpl.replace(/\{(\$|c|e):(\w+)\}/g, function (m, t, k) {
+    if (t === 'e') return '<span class="echo" data-e="' + k + '"></span>';
+    return boxHTML(k, t === '$' ? 'd' : 'c');
+  });
+}
+function wireBoxes(host, onEnter) {
+  host.querySelectorAll('input.mi').forEach(function (el) {
+    el.addEventListener('input', function () {
+      filterBox(el); el.classList.remove('bad', 'good');
+      host.querySelectorAll('[data-e="' + el.dataset.k + '"]').forEach(function (s) { s.textContent = el.value; });
+    });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter') onEnter(); });
+  });
+}
+
+/* ---- digits, right to left, always at least 3 places (so $0.75 is 0 . 7 5) ---- */
+function len3(x) { return Math.max(3, String(x).length); }
+function digM(x, n) {
+  var s = String(x); while (s.length < 3) s = '0' + s;
+  var o = []; for (var i = 0; i < n; i++) o.push(i < s.length ? +s[s.length - 1 - i] : null);
+  return o;
+}
+function numOf(d) { var v = 0; for (var i = 0; i < d.length; i++) v += (d[i] || 0) * Math.pow(10, i); return v; }
+
+/* ---- column addition plan ---- */
+function addPlan(a, b) {
+  var n = len3(a + b), da = digM(a, n), db = digM(b, n), cin = 0, cols = [];
+  for (var i = 0; i < n; i++) {
+    var s = (da[i] || 0) + (db[i] || 0) + cin;
+    cols.push({ a: da[i], b: db[i], cin: cin, sum: s, digit: s % 10, cout: s >= 10 ? 1 : 0 });
+    cin = s >= 10 ? 1 : 0;
+  }
+  return { n: n, da: da, db: db, cols: cols };
+}
+function explainColAdd(a, b) {
+  var P = addPlan(a, b), L = ['Line up the dots, then add like whole numbers. Start on the right.'];
+  P.cols.forEach(function (c, i) {
+    var t = [];
+    if (c.a !== null) t.push(c.a);
+    if (c.b !== null) t.push(c.b);
+    if (c.cin) t.push('<span style="color:#c9761d">1 (carried)</span>');
+    L.push('<b>' + MPL[i] + ' column:</b> ' + t.join(' + ') + (t.length > 1 ? ' = ' + c.sum : '') +
+      (c.cout ? ' → write <b>' + c.digit + '</b>, carry 1 to the ' + MPL[i + 1] + ' column.' : ' → write <b>' + c.digit + '</b>.'));
+  });
+  L.push('So <b>' + fmt$(a) + ' + ' + fmt$(b) + ' = ' + fmt$(a + b) + '</b>.');
+  return L.join('<br>');
+}
+/* ---- column subtraction plan (regrouping). zeroAsTen / noLend give the two classic wrong answers ---- */
+function subPlan(a, b, zeroAsTen, noLend) {
+  var n = len3(a), da = digM(a, n), db = digM(b, n), top = da.slice(), ev = [], res = [], lines = [], i, k;
+  for (i = 0; i < n; i++) ev.push([]);
+  for (i = 0; i < n; i++) {
+    var bi = db[i] || 0, before = top[i], P = '<b>' + MPL[i] + ' column:</b> ', s;
+    if (top[i] < bi) {
+      var j = i + 1;
+      while (j < n - 1 && top[j] === 0) j++;
+      if (!noLend) top[j]--;
+      ev[j].push('L');
+      for (k = j - 1; k > i; k--) { top[k] += zeroAsTen ? 10 : 9; ev[k].push('R', 'L'); }
+      top[i] += 10; ev[i].push('R');
+      s = P + before + ' − ' + bi + '? ' + before + ' is smaller than ' + bi + ', so regroup. ';
+      if (j === i + 1) s += 'Take 1 from the ' + MPL[j] + ' column (' + (top[j] + 1) + ' → ' + top[j] + '). That 1 is worth 10 here: ' + before + ' + 10 = ' + top[i] + '. ';
+      else s += 'The ' + MPL[i + 1] + ' column has 0, so go further left: take 1 from the ' + MPL[j] + ' column (' + (top[j] + 1) + ' → ' + top[j] + '). ' +
+        'The 0 becomes 10, then gives 1 away → <b>9</b>. Here: ' + before + ' + 10 = ' + top[i] + '. ';
+      s += top[i] + ' − ' + bi + ' = <b>' + (top[i] - bi) + '</b>.';
+    } else if (ev[i].length && ev[i][0] === 'R') {
+      s = P + 'the 0 became 10, then gave 1 away → ' + top[i] + '. ' + top[i] + ' − ' + bi + ' = <b>' + (top[i] - bi) + '</b>.';
+    } else if (before !== da[i]) {
+      s = P + 'it gave 1 away, so ' + da[i] + ' − 1 = ' + before + '. ' + (db[i] === null ? 'Nothing to take away → <b>' + before + '</b> comes down.' : before + ' − ' + bi + ' = <b>' + (before - bi) + '</b>.');
+    } else if (db[i] === null) {
+      s = P + 'nothing to take away → <b>' + before + '</b> comes down.';
+    } else {
+      s = P + before + ' − ' + bi + ' = <b>' + (before - bi) + '</b>.';
+    }
+    res.push(top[i] - bi);
+    lines.push(s);
+  }
+  var nt = top.map(function (t, i) { return t !== da[i] ? t : null; });
+  return { n: n, da: da, db: db, top: top, nt: nt, ev: ev, res: res, lines: lines, num: numOf(res) };
+}
+function explainColSub(a, b) {
+  var P = subPlan(a, b);
+  return ['Line up the dots, then take away like whole numbers. Start on the right.'].concat(P.lines)
+    .concat(['So <b>' + fmt$(a) + ' − ' + fmt$(b) + ' = ' + fmt$(a - b) + '</b>. Check: ' + fmt$(a - b) + ' + ' + fmt$(b) + ' = ' + fmt$(a) + ' ✓']).join('<br>');
+}
+function noCarryM(a, b) {
+  var n = Math.max(len3(a), len3(b)), da = digM(a, n), db = digM(b, n), o = [];
+  for (var i = 0; i < n; i++) o.push(((da[i] || 0) + (db[i] || 0)) % 10);
+  return numOf(o);
+}
+function flipM(a, b) {
+  var n = len3(a), da = digM(a, n), db = digM(b, n), o = [];
+  for (var i = 0; i < n; i++) o.push(Math.abs((da[i] || 0) - (db[i] || 0)));
+  return numOf(o);
+}
+
+/* ---- the book's way, in words: dollars, then cents ---- */
+function explainAddDC(a, b) {
+  var da = dollarsOf(a), db = dollarsOf(b), ca = centsOf(a), cb = centsOf(b), cs = ca + cb, L = [];
+  L.push('Add the dollars: $' + da + ' + $' + db + ' = <b>$' + (da + db) + '</b>.');
+  if (cs >= 100) {
+    L.push('Add the cents: ' + ca + '¢ + ' + cb + '¢ = ' + cs + '¢. That is <b>$1 and ' + (cs - 100) + '¢</b> (100¢ = $1).');
+    L.push('Put it together: $' + (da + db) + ' + $1 + ' + (cs - 100) + '¢ = <b>' + fmt$(a + b) + '</b>.');
+  } else {
+    L.push('Add the cents: ' + ca + '¢ + ' + cb + '¢ = <b>' + cs + '¢</b>.');
+    L.push('Put it together: $' + (da + db) + ' + ' + cs + '¢ = <b>' + fmt$(a + b) + '</b>.');
+  }
+  return L.join('<br>');
+}
+function explainSubDC(a, b) {
+  var da = dollarsOf(a), db = dollarsOf(b), ca = centsOf(a), cb = centsOf(b), L = [];
+  if (ca < cb) {
+    L.push(ca + '¢ is less than ' + cb + '¢, so change $1 into 100¢: ' + fmt$(a) + ' = $' + (da - 1) + ' + ' + (ca + 100) + '¢.');
+    da -= 1; ca += 100;
+  }
+  L.push('Take away the dollars: $' + da + ' − $' + db + ' = <b>$' + (da - db) + '</b>.');
+  L.push('Take away the cents: ' + ca + '¢ − ' + cb + '¢ = <b>' + (ca - cb) + '¢</b>.');
+  L.push('Put it together: $' + (da - db) + ' + ' + (ca - cb) + '¢ = <b>' + fmt$(a - b) + '</b>.');
+  return L.join('<br>');
+}
+
+/* ---- why is her answer wrong? (all in cents) ---- */
+function diagnoseM(q, raw, strict) {   // strict: return '' instead of a general tip
+  var r = parseMoney(raw, q.u), a = q.a, b = q.b, ans = q.ans;
+  if (r.err === 'dec') {
+    if (q.kind === 'add' && centsOf(a) + centsOf(b) >= 100) { var cs = centsOf(a) + centsOf(b);
+      return 'The cents make ' + cs + '¢. That is <b>$1 and ' + (cs - 100) + '¢</b> — the $1 goes to the dollars. Only 2 digits go after the dot.'; }
+    return 'After the dot there are only <b>2 digits</b> — the cents.';
+  }
+  if (r.err) return '';
+  var v = r.v, k, m;
+  if (q.kind === 'toC') {
+    if (v === centsOf(a)) return 'That is only the cents part. Don\'t forget the dollars: $' + dollarsOf(a) + ' = ' + dollarsOf(a) * 100 + '¢.';
+    if (v === dollarsOf(a)) return 'That is only the dollars. $1 = 100¢, so $' + dollarsOf(a) + ' = ' + dollarsOf(a) * 100 + '¢.';
+    if (v === +(String(dollarsOf(a)) + String(centsOf(a)))) return 'Keep the 0! $' + dollarsOf(a) + ' = ' + dollarsOf(a) * 100 + '¢, and ' + dollarsOf(a) * 100 + '¢ + ' + centsOf(a) + '¢ = ' + a + '¢.';
+    return '$1 = 100¢. Change the dollars to cents, then add the cents.';
+  }
+  if (q.kind === 'toD') {
+    if (v === a * 100) return 'That would be ' + a * 100 + '¢! Every 100¢ is $1, so ' + a + '¢ = $' + dollarsOf(a) + ' and ' + centsOf(a) + '¢.';
+    if (v === a * 10) return 'Too big. Every <b>100¢</b> is $1 — so ' + a + '¢ is $' + dollarsOf(a) + ' and ' + centsOf(a) + '¢.';
+    if (centsOf(a) % 10 === 0 && v === dollarsOf(a) * 100 + centsOf(a) / 10) return centsOf(a) + '¢ is written <b>.' + centsOf(a) + '</b> after the dot, not .0' + centsOf(a) / 10 + '.';
+    return 'Every 100¢ is $1. Split ' + a + '¢ into ' + dollarsOf(a) * 100 + '¢ and ' + centsOf(a) + '¢.';
+  }
+  if (q.kind === 'mk1c' || q.kind === 'mk1d') {
+    if (q.u === 'd' && v === ans * 100) return 'That would be $' + ans + '! You need ' + ans + '¢, which is written <b>$0.' + ('0' + ans).slice(-2) + '</b>.';
+    if (v === 100 + a) return 'You added. Find what is <b>missing</b> to make 100¢.';
+    return '$1 = 100¢. Count on from ' + a + '¢ to 100¢.';
+  }
+  if (q.kind === 'add') {
+    var csum = centsOf(a) + centsOf(b);
+    if (csum >= 100 && v === ans - 100) return 'The cents made ' + csum + '¢ = $1 and ' + (csum - 100) + '¢. You forgot to add that <b>$1</b> to the dollars.';
+    if (v === noCarryM(a, b) && v !== ans) return 'You forgot to carry. When a column makes 10 or more, carry 1 to the next column on the left.';
+    if (v === Math.abs(a - b)) return 'You took away. "Altogether" and "add" mean put them together.';
+    var mis = [];
+    if (centsOf(b) === 0) mis.push(a + dollarsOf(b));
+    if (centsOf(a) === 0) mis.push(b + dollarsOf(a));
+    mis.push(a + centsOf(b) * 100, b + centsOf(a) * 100, a + b * 10, a * 10 + b);
+    if (mis.indexOf(v) >= 0 && v !== ans) return 'The dots were not lined up. Dollars go under dollars and cents under cents — put the dot under the dot.';
+    for (k = 0; k <= 3; k++) {
+      m = Math.pow(10, k);
+      if (v === ans - m) return 'Your ' + MPL[k] + ' column is 1 too small — a carried 1 was left out.';
+      if (v === ans + m) return 'Your ' + MPL[k] + ' column is 1 too big — a 1 was carried when nothing needed carrying.';
+    }
+    return strict ? '' : 'Add the dollars, then the cents. If the cents make 100¢ or more, change 100¢ into $1.';
+  }
+  if (q.kind === 'sub') {
+    if (v === a + b) return 'You added. "Change", "left" and "difference" mean take away.';
+    if (v === flipM(a, b) && v !== ans) return 'In a column where the top digit was smaller, you took the top from the bottom. Never flip! Regroup: take 1 from the column on the left.';
+    var z = subPlan(a, b, true).num, nl = subPlan(a, b, false, true).num;
+    if (z !== ans && v === z) return 'A 0 turned into 10 — but then it gave 1 away, so it should be <b>9</b>.';
+    if (nl !== ans && v === nl) return 'You regrouped, but forgot that the column you took from now has <b>1 less</b>.';
+    if (b < 100 && centsOf(a) < b && v === a - 100 - (100 - b)) return 'You took away $1 — that is ' + (100 - b) + '¢ too much. So <b>add</b> the ' + (100 - b) + '¢ back, don\'t take it away.';
+    if (v === ans + 100 && centsOf(a) < centsOf(b)) return 'You changed $1 into 100¢, but didn\'t take that $1 away from the dollars.';
+    if (v === ans - 100) return 'Your dollars are 1 too small — you took away one dollar too many.';
+    var n = len3(a), dr = digM(ans, n), dv = digM(v, Math.max(n, len3(v))), bad = [];
+    if (len3(v) <= n) {
+      for (k = 0; k < n; k++) if ((dv[k] || 0) !== (dr[k] || 0)) bad.push(k);
+      if (bad.length === 1) return 'Check the ' + MPL[bad[0]] + ' column. ' + subPlan(a, b).lines[bad[0]];
+    }
+    return strict ? '' : 'Take away the dollars, then the cents. Not enough cents? Change $1 into 100¢ first.';
+  }
+  return '';
+}
+
+/* ---- number bond: whole on the left, two parts on the right ---- */
+function bondHTML(cells) {
+  function c(k) { var v = cells[k]; return '<div class="bc ' + k + (v === '?' ? ' q' : '') + '">' + (v === undefined ? '' : v) + '</div>'; }
+  return '<div class="bond"><svg width="196" height="150" aria-hidden="true">' +
+    '<line x1="70" y1="75" x2="128" y2="32" stroke="#8a829c" stroke-width="4"/>' +
+    '<line x1="70" y1="75" x2="128" y2="118" stroke="#8a829c" stroke-width="4"/></svg>' + c('w') + c('t') + c('b') + '</div>';
+}
+
+/* ---- static money columns: rows = [{op, dollar, cells:[left→right], small, nodot, cls:[…]}] or 'line' ---- */
+function mgrid(n, rows) {
+  var html = '<div class="colw" style="grid-template-columns:auto auto repeat(' + (n - 2) + ',auto) auto auto auto">';
+  rows.forEach(function (r) {
+    if (r === 'line') { html += '<div class="line"></div>'; return; }
+    var cs = r.small ? ' cs' : '';
+    html += '<div class="c op' + cs + '">' + (r.op || '') + '</div><div class="c dl' + cs + '">' + (r.dollar ? '$' : '') + '</div>';
+    for (var p = 0; p < n; p++) {
+      if (p === n - 2) html += '<div class="c d' + cs + '">' + (r.small || r.nodot ? '' : '.') + '</div>';
+      var x = r.cells[p], extra = (r.cls && r.cls[p]) || '';
+      html += '<div class="c' + cs + (r.small ? ' cc' : '') + (extra ? ' ' + extra : '') + '">' + (x === null || x === undefined ? '' : x) + '</div>';
+    }
+  });
+  return html + '</div>';
+}
+function cellsOf(x, n) { var d = digM(x, n), o = []; for (var p = n - 1; p >= 0; p--) o.push(d[p] === null ? '' : d[p]); return o; }
+/* Watch it column: WC = { a, b, op, n, carry:{i:1}, tops:{i:new top}, res:{i:digit} } filled in step by step */
+var WC = {};
+function wcolGrid() {
+  var n = WC.n, small = [], resC = [], cls = [];
+  for (var p = 0; p < n; p++) {
+    var i = n - 1 - p;
+    small.push(WC.op === '+' ? (WC.carry[i] || '') : (WC.tops[i] !== undefined ? WC.tops[i] : ''));
+    resC.push(WC.res[i] !== undefined ? WC.res[i] : '');
+    cls.push(WC.tops[i] !== undefined ? 'strike' : '');
+  }
+  return mgrid(n, [{ small: true, cells: small }, { dollar: true, cells: cellsOf(WC.a, n), cls: cls },
+    { op: WC.op, dollar: true, cells: cellsOf(WC.b, n) }, 'line', { dollar: true, cells: resC }]);
+}
+
+/* ---- sound (WebAudio, no files) ---- */
+var soundOn = true, AC = null;
+try { soundOn = localStorage.getItem('kidsSound') !== 'off'; } catch (e) {}
+function paintSound() { $('soundBtn').textContent = soundOn ? '🔊' : '🔇'; }
+function toggleSound() { soundOn = !soundOn; try { localStorage.setItem('kidsSound', soundOn ? 'on' : 'off'); } catch (e) {} paintSound(); }
+function tone(f, t0, dur, type, vol) {
+  if (!soundOn) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    var o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + t0;
+    o.type = type || 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(vol || .16, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+function sfxOk() { tone(660, 0, .12); tone(880, .1, .18); }
+function sfxNo() { tone(220, 0, .22, 'square', .07); }
+function sfxWin() { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * .11, .25); }); }
+function confetti(n) {
+  var colors = ['#5b3f99', '#e8508a', '#e67e22', '#2a9d8f', '#f1c40f', '#3a7d44'];
+  for (var i = 0; i < (n || 70); i++) {
+    var s = document.createElement('span');
+    s.className = 'confetti';
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.background = colors[i % colors.length];
+    s.style.animationDuration = (1.6 + Math.random() * 1.6) + 's';
+    s.style.animationDelay = (Math.random() * .4) + 's';
+    document.body.appendChild(s);
+    setTimeout(function (el) { el.remove(); }.bind(null, s), 3800);
+  }
+}
+function badge(id) { var b = $(id); if (b && !b.classList.contains('on')) { b.classList.add('on', 'pop'); } }
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function focusLater(el) {   // only after the kid has clicked something — never on page load (iPad keyboard)
+  var ae = document.activeElement;
+  if (el && ae && ae !== document.body) setTimeout(function () { try { el.focus({ preventScroll: true }); } catch (e) {} }, 50);
+}
+
+/* ---- Watch it: one prompt at a time. {$} = dollars box, {c} = cents / number box. ans in cents for {$} ---- */
+function Steps(promptId, fbId, steps, redraw, onDone) {
+  var self = this; this.i = 0; this.tries = 0;
+  this.draw = function () {
+    if (self.i >= steps.length) { $(promptId).classList.add('hidden'); onDone(); return; }
+    var st = steps[self.i], k = 0;
+    if (st.pre) st.pre();
+    redraw();
+    $(promptId).innerHTML = st.ask.replace(/\{(\$|c)\}/g, function (m, t) { return boxHTML(String(k++), t === '$' ? 'd' : 'c'); }) +
+      '<div style="margin-top:8px"><button class="btn green sm">Check</button></div>';
+    $(promptId).querySelector('button').onclick = self.check;
+    wireBoxes($(promptId), self.check);
+    self.tries = 0;
+    focusLater($(promptId).querySelector('input'));
+  };
+  this.check = function () {
+    var st = steps[self.i], ins = $(promptId).querySelectorAll('input'), ok = true, vals = [], empty = false, fb = $(fbId);
+    ins.forEach(function (el, i) {
+      var r = parseMoney(el.value, el.dataset.u); vals.push(el.value.trim());
+      if (r.err === 'empty') empty = true;
+      if (r.v !== st.ans[i]) ok = false;
+    });
+    if (empty) { fb.className = 'fb no'; fb.textContent = 'Type a number in each box.'; return; }
+    if (!ok) {
+      sfxNo(); self.tries++; fb.className = 'fb no';
+      fb.innerHTML = (st.wrong && st.wrong[vals.join(',')]) || st.hints[Math.min(self.tries, st.hints.length) - 1];
+      return;
+    }
+    sfxOk(); fb.className = 'fb ok'; fb.innerHTML = '✓ ' + st.ok;
+    if (st.apply) st.apply();
+    self.i++; self.draw();
+  };
+}
+
+/* ---- Your turn / practice: working lines with boxes, checked in order; only the first wrong box is marked ----
+   spec = { rows:[…tokens…], checks:[{k, want, m1, m2, diag?}], how, label, bond? } */
+function Lines(host, spec, onDone) {
+  var self = this, tries = {}, failed = false;
+  host.innerHTML = '<div class="mrow">' + (spec.bond ? bondHTML(spec.bond) : '') + '<div class="mlines">' +
+    spec.rows.map(function (r) { return '<div>' + expand(r) + '</div>'; }).join('') + '</div></div>' +
+    '<div class="center"><button class="btn green sm" data-go>Check</button> <button class="peek" data-how>👀 Show me how</button></div>' +
+    '<div class="how hidden" data-howbox>' + spec.how + '</div>';
+  var box = {};
+  host.querySelectorAll('input.mi').forEach(function (el) { box[el.dataset.k] = el; });
+  wireBoxes(host, function () { self.check(); });
+  host.querySelector('[data-go]').onclick = function () { self.check(); };
+  host.querySelector('[data-how]').onclick = function () { host.querySelector('[data-howbox]').classList.toggle('hidden'); };
+  this.fb = null; this.done = false;
+  function say(msg, ok) { if (self.fb) { self.fb.innerHTML = msg; self.fb.className = 'fb ' + (ok ? 'ok' : 'no'); } }
+  function fail(k, m1, m2) {
+    failed = true; tries[k] = (tries[k] || 0) + 1;
+    box[k].classList.add('bad'); box[k].focus(); box[k].select();
+    say(tries[k] === 1 ? m1 : m2, false); sfxNo();
+  }
+  this.check = function () {
+    if (self.done) return;
+    for (var i = 0; i < spec.checks.length; i++) {
+      var c = spec.checks[i], el = box[c.k], r = parseMoney(el.value, el.dataset.u);
+      if (r.err === 'empty') { failed = true; el.classList.add('bad'); el.focus(); say('Fill in every box.', false); sfxNo(); return; }
+      if (r.v !== c.want) {
+        var m1 = c.m1;
+        if (c.diag) { var d = c.diag(el.value); if (d) m1 = d; }
+        fail(c.k, m1, c.m2); return;
+      }
+      el.classList.add('good');
+    }
+    self.done = true; sfxOk();
+    say('✓ ' + spec.label + (failed ? '' : ' — first try! ⭐'), true);
+    host.querySelectorAll('input').forEach(function (x) { x.disabled = true; });
+    host.querySelector('[data-go]').classList.add('hidden');
+    if (onDone) onDone(!failed);
+  };
+  focusLater(host.querySelector('input.mi'));
+}
+
+/* ---- Column money adder / subtractor with the dot (Your turn + practise-missed) ---- */
+function ColMoney(host, a, b, op, onDone) {
+  var self = this, tries = {}, failed = false, p, i, add = op === '+';
+  var ansN = add ? a + b : a - b, P = add ? addPlan(a, b) : subPlan(a, b), n = P.n, L = len3(ansN);
+  var gt = 'grid-template-columns:auto auto repeat(' + (n - 2) + ',auto) auto auto auto';
+  function cell(cls, inner) { return '<div class="c' + (cls ? ' ' + cls : '') + '">' + (inner === null || inner === undefined ? '' : inner) + '</div>'; }
+  function row(op_, dollar, small, fn, dot) {
+    var h = cell('op' + (small ? ' cs' : ''), op_) + cell('dl' + (small ? ' cs' : ''), dollar ? '$' : '');
+    for (p = n - 1; p >= 0; p--) { if (p === 1) h += cell('d' + (small ? ' cs' : ''), dot ? '.' : ''); h += fn(p); }
+    return h;
+  }
+  var html = '<div class="colbox"><div class="colw" style="' + gt + '">';
+  if (add) html += row('', false, true, function (q) { return cell('cs', q > 0 && q < n ? '<input class="cy" data-c="' + q + '" inputmode="numeric" maxlength="1" aria-label="carry into the ' + MPL[q] + ' column">' : ''); }, false);
+  else html += row('', false, true, function (q) { return cell('cs', '<input class="cy" data-r="' + q + '" inputmode="numeric" maxlength="2" aria-label="new number in the ' + MPL[q] + ' column">'); }, false);
+  html += row('', true, false, function (q) { return '<div class="c" data-t="' + q + '">' + (P.da[q] === null ? '' : P.da[q]) + '</div>'; }, true);
+  html += row(add ? '+' : '−', true, false, function (q) { return cell('', P.db[q]); }, true);
+  html += '<div class="line"></div>';
+  html += row('', true, false, function (q) { return cell('', '<input class="dg" data-a="' + q + '" inputmode="numeric" maxlength="1" aria-label="' + MPL[q] + ' digit of the answer">'); }, true);
+  html += '</div></div><div class="colhint">' + (add ? 'Start on the right. Small boxes on top are for carried 1s.' : 'Start on the right. Top too small? Regroup — write the new numbers in the small boxes.') + '</div>' +
+    '<div class="center"><button class="btn green sm" data-go>Check</button> <button class="peek" data-how>👀 Show me how</button></div>' +
+    '<div class="how hidden" data-howbox>' + (add ? explainColAdd(a, b) : explainColSub(a, b)) + '</div>';
+  host.innerHTML = html;
+  var ans = [], cy = [], rg = [], tops = [];
+  host.querySelectorAll('input.dg').forEach(function (el) { ans[+el.dataset.a] = el; });
+  host.querySelectorAll('input.cy').forEach(function (el) { if (el.dataset.c) cy[+el.dataset.c] = el; else rg[+el.dataset.r] = el; });
+  host.querySelectorAll('[data-t]').forEach(function (el) { tops[+el.dataset.t] = el; });
+  host.querySelectorAll('input').forEach(function (el) {
+    el.addEventListener('input', function () {
+      var small = el.classList.contains('cy');
+      el.value = el.value.replace(/\D/g, '').slice(0, small && !add ? 2 : 1);
+      el.classList.remove('bad', 'good');
+      if (small && !add) tops[+el.dataset.r].classList.toggle('strike', el.value !== '');
+    });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter') self.check(); });
+  });
+  host.querySelector('[data-go]').onclick = function () { self.check(); };
+  host.querySelector('[data-how]').onclick = function () { host.querySelector('[data-howbox]').classList.toggle('hidden'); };
+  this.fb = null; this.done = false;
+  function say(msg, ok) { if (self.fb) { self.fb.innerHTML = msg; self.fb.className = 'fb ' + (ok ? 'ok' : 'no'); } }
+  function fail(el, key, m1, m2) {
+    failed = true; tries[key] = (tries[key] || 0) + 1;
+    el.classList.add('bad'); el.focus(); el.select && el.select();
+    say(tries[key] === 1 ? m1 : m2, false); sfxNo();
+  }
+  function finish() {
+    self.done = true; sfxOk();
+    say('✓ ' + fmt$(a) + ' ' + (add ? '+' : '−') + ' ' + fmt$(b) + ' = ' + fmt$(ansN) + (failed ? '' : ' — first try! ⭐'), true);
+    host.querySelectorAll('input').forEach(function (x) { x.disabled = true; });
+    host.querySelector('[data-go]').classList.add('hidden');
+    if (onDone) onDone(!failed);
+  }
+  function checkAdd() {
+    for (i = 0; i < n; i++) {
+      var c = P.cols[i], el = ans[i], v = el.value;
+      var terms = [c.a, c.b].filter(function (x) { return x !== null; }).join(' + ') + (c.cin ? ' + 1 (carried)' : '');
+      if (v === '' || +v !== c.digit) {
+        var first = v === '' ? 'Fill in the ' + MPL[i] + ' box.'
+          : (c.cin && +v === ((c.a || 0) + (c.b || 0)) % 10) ? 'Did you forget the small 1 you carried into the ' + MPL[i] + ' column?'
+          : 'Look at the ' + MPL[i] + ' column. Add ' + terms + '.';
+        var second = terms + ' = ' + c.sum + '. ' + (c.cout ? 'That\'s 10 or more — write <b>' + c.digit + '</b> here and carry 1 to the ' + MPL[i + 1] + ' column.' : 'Write <b>' + c.digit + '</b> here.');
+        fail(el, 'a' + i, first, second); return;
+      }
+      el.classList.add('good');
+      if (i + 1 < n) {
+        var box = cy[i + 1], got = box.value === '' ? 0 : +box.value;
+        if (got !== c.cout) {
+          var m = c.cout ? 'The ' + MPL[i] + ' column made ' + c.sum + ' — that\'s 10 or more! Put a small <b>1</b> on top of the ' + MPL[i + 1] + ' column.'
+            : got > 1 ? 'You can only ever carry 1.'
+            : 'The ' + MPL[i] + ' column only made ' + c.sum + ' — nothing to carry. Clear the small box on top of the ' + MPL[i + 1] + ' column.';
+          fail(box, 'c' + i, m, m); return;
+        }
+        if (c.cout) box.classList.add('good');
+      }
+    }
+    finish();
+  }
+  function boxWhy(i) {
+    var d = P.da[i], e = P.ev[i].join('');
+    if (e === 'R') return 'Regroup: 1 from the ' + MPL[i + 1] + ' column is 10 here. ' + d + ' + 10 = <b>' + P.top[i] + '</b>.';
+    if (e === 'L') return 'The ' + MPL[i] + ' column gave 1 away: ' + d + ' − 1 = <b>' + P.top[i] + '</b>.';
+    if (e === 'LR') return 'It gave 1 away (' + d + ' − 1 = ' + (d - 1) + '), then it was still too small, so it regrouped: ' + (d - 1) + ' + 10 = <b>' + P.top[i] + '</b>.';
+    return 'The 0 became 10, then gave 1 to the ' + MPL[i - 1] + ' column: 10 − 1 = <b>' + P.top[i] + '</b>.';
+  }
+  function boxFirst(i, v) {
+    var d = P.da[i], bi = P.db[i] || 0, e = P.ev[i].join('');
+    if (v === '') {
+      if (e === 'R') return 'Top ' + d + ' is smaller than ' + bi + ' — you can\'t take it away. Regroup, and write the new top number in the small box.';
+      if (e === 'L') return 'The ' + MPL[i] + ' column gave 1 to its right. How many are left? Write it in the small box above.';
+      if (e === 'LR') return 'The ' + MPL[i] + ' column gave 1 away — is it big enough now to take ' + bi + '? Write its new number in the small box.';
+      return 'This 0 had to help. Write its new number in the small box.';
+    }
+    v = +v;
+    if (e === 'R') return v === 10 ? 'The 10 came from the left — add the ' + d + ' already here.' : 'Regrouping adds 10 to this column: ' + d + ' + 10 = ?';
+    if (e === 'L') return 'It gave away just 1: ' + d + ' − 1 = ?';
+    if (e === 'LR') return v === d - 1 ? 'Yes, it gave 1 away → ' + (d - 1) + '. But ' + (d - 1) + ' is still smaller than ' + bi + '. Regroup again: + 10.' : 'It gave 1 away first, then got 10. ' + d + ' − 1 + 10 = ?';
+    return v === 10 ? 'It became 10 — but then it gave 1 to its right. 10 − 1 = ?' : '0 → 10 → gave 1 away → ?';
+  }
+  function checkSub() {
+    for (i = 0; i < n; i++) {
+      var box = rg[i], v = box.value, want = P.nt[i];
+      if (want === null) {
+        if (v !== '' && +v !== P.da[i]) { fail(box, 'r' + i, 'The ' + MPL[i] + ' column didn\'t regroup or give anything away — leave its small box empty.', 'Clear the small box above the ' + MPL[i] + ' column.'); return; }
+      } else if (v === '' || +v !== want) { fail(box, 'r' + i, boxFirst(i, v), boxWhy(i)); return; }
+      else box.classList.add('good');
+      var el = ans[i], av = el.value, aw = i >= L ? null : P.res[i], bi = P.db[i] || 0, t = P.top[i];
+      if (aw === null) {
+        if (av !== '' && av !== '0') { fail(el, 'a' + i, 'The answer has nothing in the ' + MPL[i] + ' column — leave it empty.', 'Leave the ' + MPL[i] + ' box empty.'); return; }
+        continue;
+      }
+      if (av === '' || +av !== aw) {
+        var first = av === '' ? 'Fill in the ' + MPL[i] + ' box.'
+          : P.db[i] === null ? 'Nothing to take away — what comes down? (Did this column give 1 away?)'
+          : (P.da[i] < bi && +av === bi - P.da[i]) ? 'That\'s ' + bi + ' − ' + P.da[i] + ' — you flipped it! Use the regrouped number: ' + t + ' − ' + bi + '.'
+          : 'Use the top number' + (P.nt[i] !== null ? ' in the small box' : '') + ': ' + t + ' − ' + bi + '.';
+        fail(el, 'a' + i, first, t + ' − ' + bi + ' = <b>' + aw + '</b>.'); return;
+      }
+      el.classList.add('good');
+    }
+    finish();
+  }
+  this.check = function () { if (!self.done) (add ? checkAdd : checkSub)(); };
+  focusLater(ans[0]);
+}
+</script>
+
+<script>
+/* ================= this page's book content ================= */
+var SK = 'm3b.09.money';
+var RIDDLE = '🔤 <b>The book\'s puzzle</b> (Workbook p17): $4.25 = c · $44.85 = l · $28.70 = e · $14.35 = a · $24.15 = n · $45.85 = g · $2.85 = r<br>' +
+  'Let\'s keep Singapore <b>CLEAN</b> and <b>GREEN</b>!';
+
+/* ---------- 1 · Watch it: Textbook p12 (Troy), p13 (apple, Rubik's cube), p14 (dress) ---------- */
+var W_EX = [
+  { pg: 12, name: 'Troy had <b>$42.75</b>. He bought shoes for <b>$20.30</b>.<br>How much money did he have left?', steps: [
+    { ask: 'Step 1 · Take away the dollars:<br>$42 − $20 = ${$}', ans: [2200],
+      hints: ['Just the dollars: 42 − 20.', '$42 − $20 = $22.'],
+      ok: '$22.', apply: function () { W.lines.push('$42 − $20 = $22'); } },
+    { ask: 'Step 2 · Take away the cents:<br>75¢ − 30¢ = {c}¢', ans: [45],
+      hints: ['Just the cents: 75 − 30.', '75 − 30 = 45.'],
+      ok: '45¢.', apply: function () { W.lines.push('75¢ − 30¢ = 45¢'); } },
+    { ask: 'Step 3 · Put them together:<br>$22 + 45¢ = ${$}', ans: [2245],
+      wrong: { '67': 'Don\'t add 22 and 45! Write the dollars, a dot, then the cents.' },
+      hints: ['Write the dollars, a dot, then the cents.', '$22 + 45¢ = $22.45.'],
+      ok: 'Troy had $22.45 left. On to example 2 →', apply: function () { W.lines.push('$22 + 45¢ = <span class="done">$22.45</span>'); } }
+  ] },
+  { pg: 13, name: 'A watermelon costs <b>$4.70</b>. An apple costs <b>$0.80</b>.<br>How much cheaper is the apple?', bond: { w: '$4.70', t: '?', b: '$1' }, steps: [
+    { ask: '80¢ is more than 70¢, so split off $1:<br>$4.70 = ${$} + $1', ans: [370],
+      hints: ['$4.70 take away $1 = ?', '$4.70 = $3.70 + $1.'],
+      ok: '$3.70 and $1.', apply: function () { W.bond = { w: '$4.70', t: '$3.70', b: '$1' }; } },
+    { ask: 'Step 1 · Take 80¢ from the $1:<br>$1 − 80¢ = {c}¢', ans: [20],
+      hints: ['$1 = 100¢. 100 − 80 = ?', '100¢ − 80¢ = 20¢.'],
+      ok: '20¢.', apply: function () { W.lines.push('$1 − 80¢ = 20¢'); } },
+    { ask: 'Step 2 · Put back together:<br>$3.70 + 20¢ = ${$}', ans: [390],
+      wrong: { '3.5': 'Add the 20¢, don\'t take it away.', '3.50': 'Add the 20¢, don\'t take it away.' },
+      hints: ['70¢ + 20¢ = 90¢.', '$3.70 + 20¢ = $3.90.'],
+      ok: 'The apple is $3.90 cheaper. On to example 3 →', apply: function () { W.lines.push('$3.70 + 20¢ = <span class="done">$3.90</span>'); } }
+  ] },
+  { pg: 13, name: 'A Rubik\'s cube costs <b>$9.70</b>. A ball costs <b>$4.90</b>.<br>How much more is the cube? <span style="font-size:14px;font-weight:normal">(the book\'s "another way")</span>', steps: [
+    { ask: '$4.90 is close to $5:<br>$4.90 + {c}¢ = $5', ans: [10],
+      hints: ['90¢ and how many more make 100¢?', '$4.90 + 10¢ = $5.'],
+      ok: '$4.90 is 10¢ less than $5.', apply: function () { W.lines.push('$4.90 + 10¢ = $5'); } },
+    { ask: 'Take away $5 — it\'s easy:<br>$9.70 − $5 = ${$}', ans: [470],
+      hints: ['Only the dollars change: 9 − 5.', '$9.70 − $5 = $4.70.'],
+      ok: '$4.70.', apply: function () { W.lines.push('$9.70 − $5 = $4.70'); } },
+    { ask: 'We took away 10¢ too many. Add it back:<br>$4.70 + 10¢ = ${$}', ans: [480],
+      wrong: { '4.6': 'We took away too much, so <b>add</b> the 10¢ back.', '4.60': 'We took away too much, so <b>add</b> the 10¢ back.' },
+      hints: ['70¢ + 10¢ = 80¢.', '$4.70 + 10¢ = $4.80.'],
+      ok: 'The cube is $4.80 more. On to example 4 →', apply: function () { W.lines.push('$4.70 + 10¢ = <span class="done">$4.80</span>'); } }
+  ] },
+  { pg: 14, name: 'A dress costs <b>$27.30</b>. A T-shirt costs <b>$14.40</b>. How much more is the dress?<br><span style="font-size:14px;font-weight:normal">Line up the dots, then take away like whole numbers.</span>',
+    col: wcolGrid, steps: [
+    { pre: function () { WC = { a: 2730, b: 1440, op: '−', n: 4, carry: {}, tops: {}, res: {} }; },
+      ask: 'Start on the right (the 1¢ column):<br>0 − 0 = {c}', ans: [0],
+      hints: ['Nothing take away nothing.', '0 − 0 = 0.'],
+      ok: '0.', apply: function () { WC.res[0] = 0; } },
+    { ask: '10¢ column: 3 − 4? 3 is too small, so regroup.<br>Take 1 from the $1 column: 7 becomes {c}', ans: [6],
+      hints: ['7 gives 1 away: 7 − 1.', '7 − 1 = 6.'],
+      ok: '7 → 6.', apply: function () { WC.tops[2] = 6; } },
+    { ask: 'That 1 is worth 10 in the 10¢ column.<br>3 becomes {c}', ans: [13],
+      wrong: { '4': 'It gets <b>10</b> more, not 1 more: 3 + 10.' },
+      hints: ['3 + 10 = ?', '3 + 10 = 13.'],
+      ok: '3 → 13.', apply: function () { WC.tops[1] = 13; } },
+    { ask: '10¢ column: 13 − 4 = {c}', ans: [9],
+      hints: ['Count back 4 from 13.', '13 − 4 = 9.'],
+      ok: '9.', apply: function () { WC.res[1] = 9; } },
+    { ask: '$1 column: 6 − 4 = {c}', ans: [2],
+      wrong: { '3': 'The 7 gave 1 away — it is 6 now.' },
+      hints: ['Use the new top number, 6.', '6 − 4 = 2.'],
+      ok: '2.', apply: function () { WC.res[2] = 2; } },
+    { ask: '$10 column: 2 − 1 = {c}', ans: [1],
+      hints: ['2 − 1 = ?', '2 − 1 = 1.'],
+      ok: '1.', apply: function () { WC.res[3] = 1; } },
+    { ask: 'The dot comes straight down.<br>$27.30 − $14.40 = ${$}', ans: [1290],
+      hints: ['Read the answer row: 1 2 . 9 0', '$12.90'],
+      ok: 'The dress costs $12.90 more. (The book also writes it as $27.30 = $26 + 130¢.)' }
+  ] }
+];
+
+/* ---------- 2 · Your turn: Textbook p15 Guided Practice 1(a)(c), 2(a)(b)(c), 3(a)(b), 4 ---------- */
+function subDC(a, b) {            // cents on top are enough: dollars, then cents
+  var da = dollarsOf(a), db = dollarsOf(b), ca = centsOf(a), cb = centsOf(b);
+  return { label: fmt$(a) + ' − ' + fmt$(b) + ' = ' + fmt$(a - b), how: explainSubDC(a, b),
+    rows: ['$' + da + ' − $' + db + ' = ${$:d}', ca + '¢ − ' + cb + '¢ = {c:c}¢', '${e:d} + {e:c}¢ = ${$:s}'],
+    checks: [
+      { k: 'd', want: (da - db) * 100, m1: 'Take away just the dollars: ' + da + ' − ' + db + '.', m2: '$' + da + ' − $' + db + ' = $' + (da - db) + '.' },
+      { k: 'c', want: ca - cb, m1: 'Take away just the cents: ' + ca + ' − ' + cb + '.', m2: ca + ' − ' + cb + ' = ' + (ca - cb) + '.' },
+      { k: 's', want: a - b, m1: 'Write the dollars, a dot, then the cents.', m2: '$' + (da - db) + ' + ' + (ca - cb) + '¢ = ' + fmt$(a - b) + '.',
+        diag: function (v) { return diagnoseM({ kind: 'sub', a: a, b: b, ans: a - b, u: 'd' }, v, true); } }
+    ] };
+}
+function sub1(a, b) {             // take away cents only (b < $1): take $1, then add back what is left of it
+  var x = a - 100, y = 100 - b;
+  return { label: fmt$(a) + ' − ' + fmt$(b) + ' = ' + fmt$(a - b),
+    how: 'Not enough cents, so take away $1 instead: ' + fmt$(a) + ' − $1 = ' + fmt$(x) + '.<br>$1 − ' + b + '¢ = ' + y + '¢ — that bit of the $1 was not needed, so add it back.<br>' + fmt$(x) + ' + ' + y + '¢ = <b>' + fmt$(a - b) + '</b>.',
+    rows: [fmt$(a) + ' − $1 = ${$:x}', '$1 − ' + b + '¢ = {c:y}¢', '${e:x} + {e:y}¢ = ${$:s}'],
+    checks: [
+      { k: 'x', want: x, m1: 'Taking away $1 changes only the dollars.', m2: fmt$(a) + ' − $1 = ' + fmt$(x) + '.' },
+      { k: 'y', want: y, m1: '$1 = 100¢. 100 − ' + b + ' = ?', m2: '100¢ − ' + b + '¢ = ' + y + '¢.' },
+      { k: 's', want: a - b, m1: 'Add the ' + y + '¢ to ' + fmt$(x) + '.', m2: fmt$(x) + ' + ' + y + '¢ = ' + fmt$(a - b) + '.',
+        diag: function (v) { return diagnoseM({ kind: 'sub', a: a, b: b, ans: a - b, u: 'd' }, v, true); } }
+    ] };
+}
+var T_ITEMS = [
+  { ask: '1(a) · Subtract.<br><b>$3.75 − $0.50</b>', lines: subDC(375, 50) },
+  { ask: '1(c) · Subtract.<br><b>$78.65 − $23.05</b>', lines: subDC(7865, 2305) },
+  { ask: '2(a) · Subtract.<br><b>$5.60 − $0.90</b>', lines: sub1(560, 90) },
+  { ask: '2(b) · Subtract.<br><b>$12.55 − $0.85</b>', lines: sub1(1255, 85) },
+  { ask: '2(c) · Subtract.<br><b>$15.45 − $8.95</b>', lines: {
+    label: '$15.45 − $8.95 = $6.50', how: '$8.95 is 5¢ less than $9. Take away $9: $15.45 − $9 = $6.45.<br>We took away 5¢ too many, so add it back: $6.45 + 5¢ = <b>$6.50</b>.',
+    rows: ['$8.95 + {c:x}¢ = $9', '$15.45 − $9 = ${$:y}', '${e:y} + {e:x}¢ = ${$:s}'],
+    checks: [{ k: 'x', want: 5, m1: '95¢ and how many more make 100¢?', m2: '95 + 5 = 100.' },
+             { k: 'y', want: 645, m1: 'Only the dollars change: 15 − 9.', m2: '$15.45 − $9 = $6.45.' },
+             { k: 's', want: 650, m1: 'We took away 5¢ too many — add it back.', m2: '$6.45 + 5¢ = $6.50.',
+               diag: function (v) { var r = parseMoney(v, 'd'); return r.v === 640 ? 'We took away too much, so <b>add</b> the 5¢ back.' : ''; } }] } },
+  { ask: '3(a) · Find the difference. Line up the dots.<br><b>$11.85 − $4.55</b>', col: [1185, 455, '−'] },
+  { ask: '3(b) · Find the difference. Line up the dots.<br><b>$25.00 − $16.25</b>', col: [2500, 1625, '−'] },
+  { ask: '4 · Subtract $15.45 from $100.<br><b>$100.00 − $15.45</b>', col: [10000, 1545, '−'] }
+];
+
+/* ---------- 3 · Spot the mistake: numbers from the Textbook p15 Hands-on ---------- */
+var REASONS = {
+  flip: 'Flipped a column (took the top from the bottom)',
+  back: 'Took the extra away instead of adding it back',
+  nolend: 'Regrouped but didn\'t take 1 from the column on the left',
+  add: 'Added instead of taking away'
+};
+var S_ITEMS = [
+  { who: 'Ben', q: '$7.30 − $5.50', a: 730, b: 550, op: '−', ans: 180, reason: 'flip',
+    grid: function () {
+      return mgrid(3, [{ dollar: true, cells: ['7', '3', '0'] }, { op: '−', dollar: true, cells: ['5', '5', '0'] }, 'line',
+        { dollar: true, cells: ['2', '2', '0'], cls: ['claim', 'claim', 'claim'] }]);
+    },
+    yeshint: 'Check each column, starting on the right. In the 10¢ column, can you take 5 from 3?',
+    why: { flip: 'Yes! 3 − 5 can\'t be done, so Ben did 5 − 3. Regroup instead: 13 − 5 = 8, and the 7 becomes 6: 6 − 5 = 1. So $1.80.',
+           back: 'Nothing was added back here. Look at the 10¢ column: 3 − 5?',
+           nolend: 'Ben didn\'t regroup at all. Look at the 10¢ column: 3 − 5?',
+           add: '7 − 5 = 2 is taking away. Look at the 10¢ column.' } },
+  { who: 'Amy', q: '$8.95 − $6.25', a: 895, b: 625, op: '−', ans: 270, ok: true,
+    work: ['$8 − $6 = $2', '95¢ − 25¢ = 70¢', 'So $8.95 − $6.25 = <span class="claim">$2.70</span>'],
+    proof: 'Check by adding back:<br>$2.70 + $6.25 = ${$:sIn}',
+    proofQ: { kind: 'add', a: 270, b: 625, ans: 895, u: 'd' }, proofOk: '$8.95 — just what Amy started with. She was right!',
+    nohint: 'Check each line: $8 − $6, then 95¢ − 25¢.' },
+  { who: 'Cara', q: '$2.50 − 90¢', a: 250, b: 90, op: '−', ans: 160, reason: 'back',
+    work: ['$2.50 − $1 = $1.50', '$1 is 10¢ more than 90¢', '$1.50 − 10¢ = <span class="claim">$1.40</span>'],
+    yeshint: 'Cara took away $1, not 90¢. Did she take away too much or too little?',
+    why: { back: 'Yes! Taking away $1 took away 10¢ too many. So the 10¢ must be <b>added back</b>: $1.50 + 10¢ = $1.60.',
+           flip: 'Cara worked in her head — no columns. Look at the last line: + or −?',
+           nolend: 'Cara didn\'t use columns. Look at the last line: + or −?',
+           add: 'Taking away is right for this question. Look at the last line.' } },
+  { who: 'Dan', q: '$42.10 − $35.55', a: 4210, b: 3555, op: '−', ans: 655, reason: 'nolend',
+    grid: function () {
+      return mgrid(4, [{ small: true, cells: ['', '12', '11', '10'] }, { dollar: true, cells: ['4', '2', '1', '0'] }, { op: '−', dollar: true, cells: ['3', '5', '5', '5'] }, 'line',
+        { dollar: true, cells: ['1', '7', '6', '5'], cls: ['claim', 'claim', 'claim', 'claim'] }]);
+    },
+    yeshint: 'Dan regrouped three times. Did the columns he took from get smaller?',
+    why: { nolend: 'Yes! Dan wrote 10, 11 and 12 — good — but the columns that gave 1 away should go down by 1 first: 1 → 0 → 10, 2 → 1 → 11, 4 → 3. The answer is $6.55.',
+           flip: 'Dan didn\'t flip — he did regroup. Look at the columns that gave 1 away.',
+           back: 'Nothing was added back here. Look at the columns that gave 1 away.',
+           add: 'Dan took away in every column. Look at the columns that gave 1 away.' } }
+];
+
+/* ---------- 4 · Test: ALL of Workbook Practice 3 (p13–16) and Practice 4 (p17–18) = 28 answers ---------- */
+var P3 = 'Practice 3', P4 = 'Practice 4';
+function SQ(id, src, a, b, extra) { var q = { id: id, src: src, prac: src <= 16 ? P3 : P4, kind: 'sub', a: a, b: b }; for (var k in extra || {}) q[k] = extra[k]; return q; }
+function CHG(id, have, haveTxt, book, price) {
+  return SQ(id, 18, have, price, { text: 'You have <b>' + haveTxt + '</b>. <i>' + book + '</i> costs <b>' + fmt$(price) + '</b>.<br>How much change will you get?',
+    ask: 'Change = ${B}', why: haveTxt.charAt(0).toUpperCase() + haveTxt.slice(1) + ' = ' + fmt$(have) + '. Change = ' + fmt$(have) + ' − ' + fmt$(price) + '.' });
+}
+var questions = [
+  SQ('1(a)', 13, 835, 500), SQ('1(b)', 13, 2640, 900), SQ('1(c)', 13, 2310, 5), SQ('1(d)', 13, 3075, 35),
+  SQ('1(e)', 14, 2670, 45), SQ('1(f)', 14, 320, 115), SQ('1(g)', 14, 840, 625), SQ('1(h)', 14, 6565, 305), SQ('1(i)', 14, 5955, 1835),
+  SQ('2(a)', 15, 315, 60), SQ('2(b)', 15, 455, 65), SQ('2(c)', 15, 645, 75), SQ('2(d)', 15, 825, 95),
+  SQ('3(a)', 16, 725, 450), SQ('3(b)', 16, 980, 195), SQ('3(c)', 16, 1640, 275), SQ('3(d)', 16, 7830, 2785),
+  SQ('1 · s', 17, 425, 365, { text: 'Subtract. (Puzzle box s)' }), SQ('1 · c', 17, 500, 75, { text: 'Subtract. (Puzzle box c)' }),
+  SQ('1 · r', 17, 1015, 730, { text: 'Subtract. (Puzzle box r)' }), SQ('1 · e', 17, 7655, 4785, { text: 'Subtract. (Puzzle box e)' }),
+  SQ('1 · l', 17, 5580, 1095, { text: 'Subtract. (Puzzle box l)' }), SQ('1 · g', 17, 7940, 3355, { text: 'Subtract. (Puzzle box g)' }),
+  SQ('1 · n', 17, 4000, 1585, { text: 'Subtract. (Puzzle box n)' }),
+  CHG('2(b)', 10000, 'two $50 notes', 'Encyclopaedia', 8595),
+  CHG('2(c)', 1000, 'two $5 notes', 'Hansel and Gretel', 865),
+  CHG('2(d)', 600, 'three $2 notes', 'Jack and the Beanstalk', 470),
+  CHG('2(e)', 1500, 'one $10 note and one $5 note', 'The Animal Book', 1230)
+];
+
+</script>
+
+<script>
+/* ================= 1 · WATCH IT ================= */
+var W = { name: '', bond: null, lines: [], col: null, done: false };
+function drawW() {
+  $('wName').innerHTML = W.name;
+  var h = '';
+  if (W.col) h = '<div class="colbox">' + W.col() + '</div>';
+  else h = '<div class="mrow">' + (W.bond ? bondHTML(W.bond) : '') + '<div class="mlines">' + (W.lines.length ? W.lines.join('<br>') : '&nbsp;') + '</div></div>';
+  $('wShow').innerHTML = h;
+}
+var W_STEPS = [];
+W_EX.forEach(function (ex, n) {
+  ex.steps.forEach(function (st, j) {
+    if (j === 0) {
+      var own = st.pre;
+      st.pre = function () { W.name = '<span style="color:#8a829c;font-size:13px">Example ' + (n + 1) + ' of ' + W_EX.length + ' · Textbook p' + ex.pg + '</span><br>' + ex.name;
+        W.bond = ex.bond || null; W.lines = []; W.col = ex.col || null; if (own) own(); };
+    }
+    W_STEPS.push(st);
+  });
+});
+var wSteps = new Steps('wPrompt', 'wFb', W_STEPS, drawW, function () {
+  $('wWon').classList.add('show'); W.done = true; badge('b1'); sfxWin();
+});
+wSteps.draw();
+
+/* ================= 2 · YOUR TURN (Guided Practice) ================= */
+var T = { i: 0, stars: [] };
+function drawTry() {
+  var it = T_ITEMS[T.i];
+  $('tRound').textContent = 'QUESTION ' + (T.i + 1) + ' OF ' + T_ITEMS.length;
+  $('tStars').textContent = T.stars.join('');
+  $('tAsk').innerHTML = it.ask;
+  $('tFb').textContent = ''; $('tFb').className = 'fb'; $('tNext').innerHTML = '';
+  var done = function (first) {
+    T.stars.push(first ? '⭐' : '✔️'); $('tStars').textContent = T.stars.join('');
+    if (T.i < T_ITEMS.length - 1) $('tNext').innerHTML = '<button class="btn" onclick="T.i++;drawTry()">Next →</button>';
+    else { $('tWon').classList.add('show'); badge('b2'); sfxWin(); confetti(40); }
+  };
+  var w = it.col ? new ColMoney($('tHost'), it.col[0], it.col[1], it.col[2], done) : new Lines($('tHost'), it.lines, done);
+  w.fb = $('tFb');
+}
+drawTry();
+
+/* ================= 3 · SPOT THE MISTAKE ================= */
+var SP = { i: 0, stage: 0, first: true, stars: [] };
+function drawSpot() {
+  var it = S_ITEMS[SP.i];
+  $('sRound').textContent = 'MISTAKE HUNT ' + (SP.i + 1) + ' OF ' + S_ITEMS.length;
+  $('sStars').textContent = SP.stars.join('');
+  $('sFb').textContent = ''; $('sFb').className = 'fb'; $('sNext').innerHTML = '';
+  var head = '<div class="notebook"><div class="who">📝 <b>' + it.who + '</b> worked out <b>' + it.q + '</b></div>' +
+    (it.grid ? '<div class="colbox">' + it.grid() + '</div>' : '<div class="mlines">' + it.work.join('<br>') + '</div>') + '</div>';
+  var body = '';
+  if (SP.stage === 0) {
+    body = '<p class="body center" style="margin-top:12px"><b>Is ' + it.who + ' correct?</b></p>' +
+      '<div class="yn"><button class="btn green" onclick="spotYN(true)">✓ Yes</button><button class="btn amber" onclick="spotYN(false)">✗ No</button></div>';
+  } else if (SP.stage === 1) {
+    var keys = shuffle(Object.keys(REASONS));
+    body = '<p class="body center" style="margin-top:12px"><b>What went wrong?</b></p><div class="choices">' +
+      keys.map(function (k) { return '<button class="choice" data-k="' + k + '" onclick="spotWhy(this)">' + REASONS[k] + '</button>'; }).join('') + '</div>';
+  } else {
+    body = '<div class="prompt">' + (it.ok ? it.proof : 'Now fix it:<br>' + it.q + ' = $' + '{$:sIn}') .replace('{$:sIn}', boxHTML('s', 'd', ' id="sIn"')) +
+      '<div style="margin-top:8px"><button class="btn green sm" id="sGo" onclick="spotFix()">Check</button></div></div>';
+  }
+  $('sBody').innerHTML = head + body;
+  var inp = $('sIn');
+  if (inp) { wireBoxes($('sBody'), spotFix); focusLater(inp); }
+}
+function spotSay(msg, ok) { $('sFb').innerHTML = msg; $('sFb').className = 'fb ' + (ok ? 'ok' : 'no'); ok ? sfxOk() : sfxNo(); }
+function spotYN(yes) {
+  var it = S_ITEMS[SP.i];
+  if (SP.stage !== 0) return;
+  if (yes === !!it.ok) {
+    spotSay(it.ok ? '✓ Right — ' + it.who + ' is correct. Let\'s check it.' : '✓ Right — something\'s wrong. Let\'s find it.', true);
+    SP.stage = it.ok ? 2 : 1; setTimeout(drawSpot, 700);
+  } else {
+    SP.first = false;
+    spotSay(it.ok ? it.nohint : it.yeshint, false);
+  }
+}
+function spotWhy(btn) {
+  var it = S_ITEMS[SP.i], k = btn.dataset.k;
+  if (btn.disabled) return;
+  if (k === it.reason) {
+    btn.classList.add('good'); spotSay('✓ ' + it.why[k], true);
+    document.querySelectorAll('.choice').forEach(function (b) { b.disabled = true; });
+    $('sNext').innerHTML = '<button class="btn" onclick="SP.stage=2;drawSpot()">Fix it →</button>';
+  } else { SP.first = false; btn.classList.add('bad'); spotSay(it.why[k], false); }
+}
+function spotFix() {
+  var it = S_ITEMS[SP.i], el = $('sIn');
+  if (!el || el.disabled) return;
+  var r = parseMoney(el.value, 'd');
+  if (r.err === 'empty') return;
+  var want = it.ok && it.proofQ ? it.proofQ.ans : it.ans;
+  if (r.v === want) {
+    el.classList.add('good'); el.disabled = true; $('sGo').classList.add('hidden');
+    spotSay(it.ok ? '✓ ' + (it.proofOk || fmt$(want) + ' — ' + it.who + ' was right!') : '✓ ' + it.q + ' = ' + fmt$(it.ans) + '.', true);
+    SP.stars.push(SP.first ? '⭐' : '✔️'); $('sStars').textContent = SP.stars.join('');
+    if (SP.i < S_ITEMS.length - 1) $('sNext').innerHTML = '<button class="btn" onclick="SP.i++;SP.stage=0;SP.first=true;drawSpot()">Next →</button>';
+    else { $('sNext').innerHTML = ''; $('sWon').classList.add('show'); badge('b3'); sfxWin(); confetti(40); }
+  } else {
+    SP.first = false; el.classList.add('bad');
+    var dq = it.ok && it.proofQ ? it.proofQ : { kind: it.op === '+' ? 'add' : 'sub', a: it.a, b: it.b, ans: it.ans, u: 'd' };
+    spotSay(diagnoseM(dq, el.value) || 'Not quite — try again.', false);
+  }
+}
+drawSpot();
+</script>
+
+<script>
+/* ================= 4 · THE TEST ================= */
+questions.forEach(function (q) {
+  q.sk = SK;
+  if (q.kind === 'add') q.ans = q.a + q.b;
+  if (q.kind === 'sub') q.ans = q.a - q.b;
+  if (q.kind === 'mk1c' || q.kind === 'mk1d') q.ans = 100 - q.a;
+  if (q.kind === 'toC' || q.kind === 'toD') q.ans = q.a;
+  q.u = (q.kind === 'toC' || q.kind === 'mk1c') ? 'c' : 'd';
+});
+var SECS_PER_Q = 60;
+var QUIZ_SECS = questions.length * SECS_PER_Q;
+var PASS_PCT = 80, PASS_N = Math.ceil(questions.length * PASS_PCT / 100);
+var current = 0, score = 0, answered = false;
+var got = [], quizOn = false, timerId = null, secsLeft = 0;
+
+function term(c, u) { return u === 'c' ? c + '¢' : fmt$(c); }
+function sumText(q) {           // the sum written out, e.g. "$16.40 + 80¢"
+  if (q.kind === 'add' || q.kind === 'sub') return term(q.a, q.ua) + ' ' + (q.kind === 'add' ? '+' : '−') + ' ' + term(q.b, q.ub);
+  if (q.kind === 'toC') return fmt$(q.a) + ' = ?¢';
+  if (q.kind === 'toD') return q.a + '¢ = $?';
+  if (q.kind === 'mk1c') return q.a + '¢ + ?¢ = $1';
+  return fmt$(q.a) + ' + $? = $1';
+}
+function qLine(q) {             // the line with the answer box in it
+  var B = boxHTML('ans', q.u, ' id="qIn"');
+  if (q.ask) return q.ask.replace('{B}', B);
+  if (q.kind === 'add' || q.kind === 'sub') return sumText(q) + ' = $' + B;
+  if (q.kind === 'toC') return fmt$(q.a) + ' = ' + B + '¢';
+  if (q.kind === 'toD') return q.a + '¢ = $' + B;
+  if (q.kind === 'mk1c') return q.a + '¢ + ' + B + '¢ = $1';
+  return fmt$(q.a) + ' + $' + B + ' = $1';
+}
+function explainQ(q) {
+  var pre = q.why ? q.why + '<br>' : '';
+  if (q.kind === 'add') return pre + explainAddDC(q.a, q.b);
+  if (q.kind === 'sub') return pre + explainSubDC(q.a, q.b);
+  if (q.kind === 'toC') return fmt$(q.a) + ' = $' + dollarsOf(q.a) + ' and ' + centsOf(q.a) + '¢. $1 = 100¢, so $' + dollarsOf(q.a) + ' = ' + dollarsOf(q.a) * 100 + '¢.<br>' +
+    dollarsOf(q.a) * 100 + '¢ + ' + centsOf(q.a) + '¢ = <b>' + q.a + '¢</b>.';
+  if (q.kind === 'toD') return q.a + '¢ = ' + dollarsOf(q.a) * 100 + '¢ + ' + centsOf(q.a) + '¢. 100¢ = $1, so ' + dollarsOf(q.a) * 100 + '¢ = $' + dollarsOf(q.a) + '.<br>' +
+    'So ' + q.a + '¢ = $' + dollarsOf(q.a) + ' and ' + centsOf(q.a) + '¢ = <b>' + fmt$(q.a) + '</b>.';
+  if (q.kind === 'mk1c') return '$1 = 100¢. ' + q.a + '¢ + <b>' + q.ans + '¢</b> = 100¢.';
+  return '$1 = 100¢ and ' + fmt$(q.a) + ' = ' + q.a + '¢. ' + q.a + '¢ + ' + q.ans + '¢ = 100¢.<br>' + q.ans + '¢ is written <b>' + fmt$(q.ans) + '</b>.';
+}
+function fmtTime(s) { s = Math.max(0, s); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+function tick() {
+  secsLeft--;
+  $('qTime').textContent = '⏱ ' + fmtTime(secsLeft);
+  $('qTime').classList.toggle('low', secsLeft <= 60);
+  if (secsLeft <= 0) { clearInterval(timerId); timerId = null; if (quizOn) showResult(); }
+}
+function startQuiz() {
+  $('gate').classList.add('hidden'); $('result').classList.add('hidden'); $('quiz').classList.remove('hidden');
+  current = 0; score = 0; answered = false; got = []; quizOn = true;
+  secsLeft = QUIZ_SECS; $('qTime').textContent = '⏱ ' + fmtTime(secsLeft); $('qTime').classList.remove('low');
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(tick, 1000);
+  try { var s = window.QuizReport && QuizReport.session(); if (s) s.lastMark = Date.now(); } catch (e) {}
+  render();
+  $('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function render() {
+  var q = questions[current];
+  answered = false;
+  $('qNum').textContent = 'Question ' + (current + 1) + ' of ' + questions.length;
+  $('qScore').textContent = '✓ ' + score;
+  $('qProg').style.width = (100 * current / questions.length) + '%';
+  $('qBody').innerHTML = '<div class="center"><span class="qtag">Workbook p' + q.src + ' · ' + q.prac + ' · Question ' + q.id + '</span></div>' +
+    (q.board ? q.board : '') + (q.text ? '<div class="qword">' + q.text + '</div>' : '') +
+    '<div class="qtext">' + qLine(q) + '</div>' +
+    '<div class="center"><button class="btn green" id="qGo" onclick="check()">Check</button></div>' +
+    '<div class="fb" id="qFb"></div><div class="explain" id="qExp"></div><div class="center" id="qNext"></div>';
+  var host = $('qBody');
+  wireBoxes(host, function () { if (!answered) check(); else nextQ(); });
+  var first = $('qIn');
+  setTimeout(function () { try { first.focus({ preventScroll: true }); } catch (e) {} }, 60);   // only after Start / Next was clicked
+}
+function check() {
+  if (answered || !quizOn) return;
+  var q = questions[current], el = $('qIn'), raw = el.value.trim(), r = parseMoney(raw, q.u);
+  if (r.err === 'empty' || r.err === 'bad') { $('qFb').className = 'fb no'; $('qFb').textContent = 'Type your answer first.'; return; }
+  var ok = r.v === q.ans;
+  got[current] = { ok: ok, raw: raw };
+  answered = true;
+  el.disabled = true; el.classList.add(ok ? 'good' : 'bad');
+  $('qGo').classList.add('hidden');
+  if (ok) {
+    score++; sfxOk();
+    $('qFb').className = 'fb ok'; $('qFb').textContent = '✓ Correct!';
+  } else {
+    sfxNo();
+    $('qFb').className = 'fb no';
+    $('qFb').innerHTML = '✗ Not quite — the answer is <b>' + fmtU(q.ans, q.u) + '</b>.';
+    $('qExp').innerHTML = '<div class="trap"><span class="lbl">What happened</span>' + (diagnoseM(q, raw) || 'Check each step below.') + '</div><div class="how">' + explainQ(q) + '</div>';
+  }
+  $('qScore').textContent = '✓ ' + score;
+  var last = current === questions.length - 1;
+  $('qNext').innerHTML = '<button class="btn" style="margin-top:12px" onclick="nextQ()">' + (last ? 'See my score →' : 'Next →') + '</button>';
+}
+function nextQ() {
+  if (!quizOn) return;
+  if (current < questions.length - 1) { current++; render(); } else showResult();
+}
+function showResult() {
+  if (!quizOn) return;
+  quizOn = false;
+  if (timerId) { clearInterval(timerId); timerId = null; }
+  var used = QUIZ_SECS - Math.max(0, secsLeft), pct = Math.round(100 * score / questions.length), pass = pct >= PASS_PCT;
+  var stars = pct === 100 ? '⭐⭐⭐' : pct >= PASS_PCT ? '⭐⭐' : pct >= 50 ? '⭐' : '';
+  var missed = [];
+  questions.forEach(function (q, i) { if (!got[i] || !got[i].ok) missed.push(i); });
+  var html = '<div class="res-top"><div class="stars">' + (stars || '💪') + '</div><div class="pct">' + pct + '%</div>' +
+    '<div class="sub">' + score + ' right out of ' + questions.length + ' · the pass mark is ' + PASS_PCT + '% (' + PASS_N + ' correct)</div>' +
+    '<div class="sub">Time: ' + Math.floor(used / 60) + ' min ' + (used % 60) + ' s' + (secsLeft <= 0 ? ' — time ran out' : '') + '</div>' +
+    '<div class="verdict ' + (pass ? 'pass' : 'fail') + '">' + (pass ? '🎉 You passed!' : 'Not passed yet — ' + (PASS_N - score) + ' more needed') + '</div></div>' +
+    '<div class="riddle">' + RIDDLE + '</div>';
+  if (missed.length) {
+    html += '<h3 class="rv">Let\'s look at the ' + (missed.length === 1 ? 'one' : missed.length) + ' you missed</h3>';
+    missed.forEach(function (i) {
+      var q = questions[i], r = got[i];
+      html += '<div class="miss"><div class="mh">Question ' + q.id + ' (' + q.prac + '): ' + (q.text ? q.text + '<br>' : '') + sumText(q) + '<br>' +
+        (!r ? '<span class="you">Not answered</span>' : 'You wrote <span class="you">' + (q.u === 'c' ? r.raw + '¢' : '$' + r.raw) + '</span>') +
+        ' · Answer: <span class="right">' + fmtU(q.ans, q.u) + '</span></div>' +
+        (!r ? '' : '<div class="trap"><span class="lbl">What happened</span>' + (diagnoseM(q, r.raw) || 'Check each step below.') + '</div>') +
+        '<div class="how">' + explainQ(q) + '</div></div>';
+    });
+    html += '<div class="center" style="margin-top:16px"><button class="btn amber" onclick="startRedo()">🔁 Practise the ones I missed</button>' +
+      '<button class="btn ghost" onclick="restart()">Take the whole test again</button></div><div id="redo"></div>';
+  } else {
+    html += '<p class="body center" style="margin-top:14px">Every single one right. Amazing! 🌟</p>' +
+      '<div class="center"><button class="btn ghost" onclick="restart()">Take the test again</button></div>';
+  }
+  $('quiz').classList.add('hidden');
+  var res = $('result'); res.innerHTML = html; res.classList.remove('hidden');
+  res.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (pass) { badge('b4'); sfxWin(); confetti(); }
+}
+function restart() { startQuiz(); }
+
+/* ---- practise the missed ones (not scored, hints allowed). Own names: never calls check()/showResult() ---- */
+function redoLines(q) {       // step-by-step lines for the cents / dollars questions
+  var d = dollarsOf(q.a), c = centsOf(q.a);
+  if (q.kind === 'toC') return { label: fmt$(q.a) + ' = ' + q.a + '¢', how: explainQ(q),
+    rows: ['$' + d + ' = {c:x}¢', '{e:x}¢ + ' + c + '¢ = {c:s}¢'],
+    checks: [{ k: 'x', want: d * 100, m1: '$1 = 100¢. How many cents is $' + d + '?', m2: '$' + d + ' = ' + d * 100 + '¢.' },
+             { k: 's', want: q.a, m1: 'Add the ' + c + '¢ on.', m2: d * 100 + ' + ' + c + ' = ' + q.a + '.' }] };
+  if (q.kind === 'toD') return { label: q.a + '¢ = ' + fmt$(q.a), how: explainQ(q),
+    rows: [q.a + '¢ = {c:x}¢ + ' + c + '¢', '{e:x}¢ = ${$:y}', 'So ' + q.a + '¢ = ${$:s}'],
+    checks: [{ k: 'x', want: d * 100, m1: 'Split off the hundreds: ' + q.a + ' = ? + ' + c + '.', m2: q.a + ' = ' + d * 100 + ' + ' + c + '.' },
+             { k: 'y', want: d * 100, m1: '100¢ = $1. How many dollars?', m2: d * 100 + '¢ = $' + d + '.' },
+             { k: 's', want: q.a, m1: '$' + d + ' and ' + c + '¢ — write the dollars, a dot, then the cents.', m2: 'Type ' + d + '.' + ('0' + c).slice(-2) + '.' }] };
+  if (q.kind === 'mk1c') return { label: q.a + '¢ + ' + q.ans + '¢ = $1', how: explainQ(q),
+    rows: [q.a + '¢ + {c:s}¢ = 100¢'],
+    checks: [{ k: 's', want: q.ans, m1: 'Count on from ' + q.a + ' to 100.', m2: '100 − ' + q.a + ' = ' + q.ans + '.' }] };
+  return { label: fmt$(q.a) + ' + ' + fmt$(q.ans) + ' = $1', how: explainQ(q),
+    rows: [fmt$(q.a) + ' = {c:x}¢', '{e:x}¢ + {c:y}¢ = 100¢', 'So ' + fmt$(q.a) + ' + ${$:s} = $1'],
+    checks: [{ k: 'x', want: q.a, m1: 'How many cents is ' + fmt$(q.a) + '?', m2: fmt$(q.a) + ' = ' + q.a + '¢.' },
+             { k: 'y', want: q.ans, m1: 'Count on to 100.', m2: '100 − ' + q.a + ' = ' + q.ans + '.' },
+             { k: 's', want: q.ans, m1: q.ans + '¢ in dollars: start with 0, then the dot.', m2: 'Type 0.' + ('0' + q.ans).slice(-2) + '.' }] };
+}
+var RD = { list: [], i: 0 };
+function startRedo() {
+  RD.list = questions.map(function (q, i) { return i; }).filter(function (i) { return !got[i] || !got[i].ok; });
+  RD.i = 0; drawRedo();
+  $('redo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function drawRedo() {
+  var box = $('redo');
+  if (RD.i >= RD.list.length) {
+    box.innerHTML = '<div class="won show"><span class="lbl">✅ All fixed</span>You worked through every one you missed. Try the whole test again when you\'re ready!</div>';
+    sfxWin(); confetti(40); return;
+  }
+  var q = questions[RD.list[RD.i]];
+  box.innerHTML = '<div class="card" style="margin-top:14px;border:3px solid #e8c489"><div class="gbar"><span class="round">PRACTICE ' + (RD.i + 1) + ' OF ' + RD.list.length +
+    ' · QUESTION ' + q.id + ' · not scored</span></div><div class="target">' + (q.text ? q.text + '<br>' : '') + (q.why ? '<span style="font-size:14px">' + q.why + '</span><br>' : '') + sumText(q) + '</div>' +
+    '<div id="rHost"></div><div class="fb" id="rFb"></div><div class="center" id="rNext"></div></div>';
+  var next = function () { $('rNext').innerHTML = '<button class="btn" onclick="RD.i++;drawRedo()">Next →</button>'; };
+  var w = (q.kind === 'add' || q.kind === 'sub') ? new ColMoney($('rHost'), q.a, q.b, q.kind === 'add' ? '+' : '−', next) : new Lines($('rHost'), redoLines(q), next);
+  w.fb = $('rFb');
+}
+paintSound();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
