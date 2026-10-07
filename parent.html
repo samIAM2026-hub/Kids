@@ -1185,12 +1185,14 @@ function planDays({ T, planToday, days, budget, gap, mins, doneAhead, keepToday,
   pool.sort((a,b)=>a.q.localeCompare(b.q));
   let d = start;
   for(let guard = 0; pool.length && guard < 366; d = shiftDay(d, 1), guard++){
+    // 同一科目严格按顺序（数学课有先后，L7 不能跳到 L1 前面）：一份放不下，同科后面的今天也不放，只拿别的科来填
     let placed = 0;
+    const blocked = new Set();
     for(let i = 0; i < pool.length; ){
-      const m = mm(pool[i]) + gap, have = used[d] || 0;
-      if(wd[d] && wd[d].has(pool[i].id)){ i++; continue; }
+      const it = pool[i], m = mm(it) + gap, have = used[d] || 0, sj = it.subj || '';
+      if(blocked.has(sj) || (wd[d] && wd[d].has(it.id))){ blocked.add(sj); i++; continue; }
       if(m <= budget - have || (i === 0 && placed === 0 && m > budget / 2 && have < budget / 2)){ add(d, pool.splice(i, 1)[0]); placed++; }
-      else i++;
+      else { blocked.add(sj); i++; }
     }
   }
   // 兜底：一年都排不进去的（不该有），放在最后一天，绝不能从库里丢掉
@@ -1535,7 +1537,7 @@ function viewToday(){
         return `<button class="fchip${on?' on':''}" data-carry="${k}" data-on="${on?0:1}">${KID[k].av} ${KID[k].n} · ${on?'开':'关'}</button>`; }).join('')}
     </div>
     <div class="carryrow">每天按时间自动排${qm(`开着的话：不再按日期排，派到哪天只决定先后顺序。每天按设定的分钟数（默认 ${PLAN_MINS}）从队里按顺序取：
-      Class Vocab 钉在原来那天、先占时间；放不下的大份留到第二天，先拿后面小的填满。今天的单子一天只排一次（孩子做到一半不会变），明天往后每次打开都重排。
+      Class Vocab 钉在原来那天、先占时间；同一科严格按顺序，放不下的留到第二天，空出来的时间拿别的科填。今天的单子一天只排一次（孩子做到一半不会变），明天往后每次打开都重排。
       孩子做完今天的，孩子页有「Want more?」可以提前做下一份，做了的记在当天、标「提前做的」。没做完的照样顺延、标「延后 N 天」。点分钟数可以改。`)}
       ${['grace','warren'].map(k=>{ const p = PLAN[k] || {}, on = !!p.on;
         const left = on ? planLeft(k) : null;
