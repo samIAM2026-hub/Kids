@@ -205,6 +205,13 @@
   .late{display:inline-block;margin-left:6px;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;
     color:var(--red);border:1px solid var(--red);vertical-align:1px}
   .late.ahead{color:var(--green);border-color:var(--green)}
+  .late.pin{color:var(--mute);border-color:var(--line)}
+  .qhead{font-size:13px;color:var(--mute);margin:-4px 0 10px}
+  .qtab td{vertical-align:top}
+  .qtab .qn{width:28px;color:var(--mute);font-variant-numeric:tabular-nums}
+  .qtab .qsub{font-size:11.5px;color:var(--mute);margin-top:3px}
+  .qtab .qacts{white-space:nowrap;text-align:right}
+  .qtab .qacts .mini{margin-left:4px}
   .planone{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-right:10px}
   .planlow{color:var(--red);font-weight:600}
   .carryrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12.5px;color:var(--mute);margin:8px 0 12px}
@@ -787,6 +794,7 @@
     <!-- 2026-09-27 Sam: the four he uses up front, the other three behind 「更多」 (click counts decide
          later whether they stay — see USE below). An extra that is the current view stays visible. -->
     <nav class="subtabs" id="subtabs" hidden>
+      <button class="stab" data-v="queue">作业队列</button>
       <button class="stab" data-v="hist">完成记录</button>
       <button class="stab" data-v="essay">写作 <span class="pill hot" id="essayn" hidden></span></button>
       <button class="stab" data-v="audio">朗读录音</button>
@@ -812,8 +820,10 @@
   <span class="n">已选 <b id="seln">0</b> 份<span class="mins" id="selmin"></span><span class="selwarn" id="selwarn" hidden></span></span>
   <label for="asskid">派给</label>
   <select id="asskid"><option value="grace">👧 Grace</option><option value="warren">👦 Warren</option><option value="both">👧👦 两个人</option></select>
-  <label for="assdate">日期</label>
+  <label for="assdate" id="assdatel">日期</label>
   <input type="date" id="assdate">
+  <!-- 开了「每天按时间自动排」的孩子：不选日期，选排在队里哪儿（syncAssignBar 切换） -->
+  <select id="assmode" hidden title="派到队里哪个位置"><option value="tail">排到队尾</option><option value="front">插到最前</option><option value="today">今天就做</option></select>
   <button class="btn solid" id="assgo">派发</button>
   <button class="btn ghost" id="archgo" data-to="1">归档</button>
   <button class="btn ghost" id="assclear">取消</button>
@@ -827,6 +837,7 @@
 <script src="JS/ai-key.js"></script>
 <script src="JS/writing-review.js"></script>
 <script src="JS/writing-kinds.js"></script>
+<script src="JS/plan-core.js"></script>
 <script>
 /* =====================================================================
    家长控制台
@@ -1158,50 +1169,7 @@ async function carryNow(){
    没顺延过的条目重排时去掉 movedFrom（不再写「挪来」）；顺延过的保留，照样标「延后 N 天」。 */
 const PLAN_MINS = 90;
 let PLAN = { grace:null, warren:null };
-const planPinned = it => !it.carried && /Class-Vocab/i.test(decodeURIComponent(it.id||''));
-// 纯函数，方便单独测：days = [{date, items}]（今天和以后的），返回 { date: items }，覆盖今天（或明天）往后所有要写的天。
-function planDays({ T, planToday, days, budget, gap, mins, doneAhead, keepToday, pinned }){
-  const start = planToday ? T : shiftDay(T, 1);
-  const out = {}, used = {}, seen = new Set();
-  // 估不出数（NaN、0）就按 20 分钟算，免得这份永远排不进去
-  const mm = it => { const v = +mins(it); return Number.isFinite(v) && v > 0 ? v : 20; };
-  const add = (d, it) => { (out[d] = out[d] || []).push(it); seen.add(it.id); used[d] = (used[d] || 0) + mm(it) + gap; };
-  // 哪天撤回过这份，就不再把它排回那天
-  const wd = {}; days.forEach(d => { wd[d.date] = new Set((d.withdrawn || []).map(x => x.id)); });
-  const pool = [];
-  days.slice().sort((a,b)=>a.date.localeCompare(b.date)).forEach(d=>{
-    if(d.date === T && !planToday){ d.items.forEach(it => { out[T] = out[T] || []; out[T].push(it); seen.add(it.id); }); return; }
-    d.items.forEach((it, i)=>{
-      const x = it.q ? { ...it } : { ...it, q: (it.carried ? (it.origin || d.date) : d.date) + '|' + String(i).padStart(3, '0') };
-      if(seen.has(x.id) || pool.some(y => y.id === x.id)) return;   // 同一份派了两天：只留最早那份
-      if(d.date === T){ if(keepToday(x) || pinned(x)) return add(T, x); }
-      else {
-        if(doneAhead(x)) return add(T, { ...x, ahead: true });
-        if(pinned(x)) return add(d.date, x);
-      }
-      pool.push(x);
-    });
-  });
-  pool.sort((a,b)=>a.q.localeCompare(b.q));
-  let d = start;
-  for(let guard = 0; pool.length && guard < 366; d = shiftDay(d, 1), guard++){
-    // 同一科目严格按顺序（数学课有先后，L7 不能跳到 L1 前面）：一份放不下，同科后面的今天也不放，只拿别的科来填
-    let placed = 0;
-    const blocked = new Set();
-    for(let i = 0; i < pool.length; ){
-      const it = pool[i], m = mm(it) + gap, have = used[d] || 0, sj = it.subj || '';
-      if(blocked.has(sj) || (wd[d] && wd[d].has(it.id))){ blocked.add(sj); i++; continue; }
-      if(m <= budget - have || (i === 0 && placed === 0 && m > budget / 2 && have < budget / 2)){ add(d, pool.splice(i, 1)[0]); placed++; }
-      else { blocked.add(sj); i++; }
-    }
-  }
-  // 兜底：一年都排不进去的（不该有），放在最后一天，绝不能从库里丢掉
-  pool.forEach(it => add(d, it));
-  // 重排过的不再写「从 X 挪来」；顺延过的留着 movedFrom，好算延后几天
-  Object.values(out).forEach(list => list.forEach(it => { if(!it.carried) delete it.movedFrom; }));
-  days.forEach(d => { if(d.date >= start && !out[d.date]) out[d.date] = []; });
-  return out;
-}
+const planPinned = PlanCore.planPinned, planDays = PlanCore.planDays;   // 排法本身在 JS/plan-core.js（和 plan-day.mjs 共用）
 // 真排：每个孩子一个 transaction。返回有没有改动。
 async function runPlan(){
   const T = iso(today);
@@ -1268,6 +1236,108 @@ function planLeft(k){
   const days = DAYS[k].filter(d => d.date > T && d.items.length);
   const items = days.flatMap(d => d.items);
   return { n: items.length, mins: items.reduce((s, it) => s + estOf(it, k).mins + EST_GAP, 0), last: days.length ? days[0].date : null, days: days.length };
+}
+
+const planOn = k => !!(PLAN[k] && PLAN[k].on);
+// 排到队尾的那天：今天往后最晚一天有作业的；队里空了就明天
+function tailDay(k){
+  const T = iso(today), d = DAYS[k].find(x => x.date > T && x.items.length);   // DAYS 新的在前
+  return d ? d.date : shiftDay(T, 1);
+}
+
+/* 调队列（HOMEWORK-SYSTEM.md 2026-10-06 之二，Sam：「1 到 4 都做」）：
+   ↑ / ↓ = 和队里前后那份换位置（按排出来的先后，整条队重新编号 q），今天就做 = 挪进今天，
+   明天再做 = 今天还没做的挪到明天最前面。一个 transaction 改完，再跑一遍 runPlan 重排。 */
+async function queueOp(k, id, op, btn){
+  const T = iso(today), T1 = shiftDay(T, 1);
+  if(btn) btn.disabled = true;
+  try {
+    const known = [...new Set([T, T1, ...DAYS[k].filter(d => d.date >= T).map(d => d.date)])];
+    let msg = '';
+    await db.runTransaction(async tx=>{
+      msg = '';
+      const snaps = await Promise.all(known.map(d => tx.get(dayRef(k, d))));
+      const days = known.map((d, i) => ({ date: d, items: [...((snaps[i].data() || {}).items || [])] }))
+        .sort((a,b)=>a.date.localeCompare(b.date));
+      const dirty = new Set();
+      const td = days.find(d => d.date === T), t1 = days.find(d => d.date === T1);
+      const where = days.find(d => d.items.some(it => it.id === id));
+      if(!where) throw new Error('队里找不到这份了，点「刷新」再看');
+      const it = where.items.find(x => x.id === id);
+      if(op === 'up' || op === 'down'){
+        const fut = days.filter(d => d.date > T);
+        const list = fut.flatMap(d => d.items.filter(x => !planPinned(x)));
+        const i = list.findIndex(x => x.id === id), j = op === 'up' ? i - 1 : i + 1;
+        if(i < 0 || j < 0 || j >= list.length) return;
+        [list[i], list[j]] = [list[j], list[i]];
+        list.forEach((x, n) => { x.q = PlanCore.qSeq(T, n); });
+        fut.forEach(d => dirty.add(d.date));
+        msg = `「${it.t}」${op === 'up' ? '往前' : '往后'}挪了一位`;
+      } else if(op === 'today'){
+        if(where.date === T) return;
+        where.items = where.items.filter(x => x.id !== id);
+        td.items.push(it);
+        dirty.add(where.date); dirty.add(T);
+        msg = `「${it.t}」挪到今天了`;
+      } else if(op === 'tomorrow'){
+        if(where.date !== T) return;
+        td.items = td.items.filter(x => x.id !== id);
+        t1.items = [{ ...it, q: PlanCore.qFront(0) }, ...t1.items.filter(x => x.id !== id)];
+        dirty.add(T); dirty.add(T1);
+        msg = `「${it.t}」挪到明天，排在最前面`;
+      }
+      const now = firebase.firestore.FieldValue.serverTimestamp();
+      dirty.forEach(d => tx.set(dayRef(k, d), { items: days.find(x => x.date === d).items, updatedAt: now }, { merge: true }));
+    });
+    await loadDays();
+    await runPlan();
+    await Promise.all([loadDay(TD), TD === T ? null : loadDay(T), loadDays()]);
+    render();
+    if(msg) toast(msg);
+  } catch(e){
+    console.error(e); if(btn) btn.disabled = false;
+    toast('没改成：' + (e.code||e.message), true);
+  }
+}
+
+/* ===================== 作业队列（每个孩子一张，按排出来的先后） ===================== */
+function viewQueue(){
+  const T = iso(today);
+  let html = '';
+  kidsShown().forEach(k=>{
+    html += `<h2 class="sec">${KID[k].av} ${KID[k].n} · 作业队列${qm(`开了「每天按时间自动排」以后，派出去的作业排成一条队，每天按设定的分钟数从前往后取。
+      这里按排出来的先后列出今天和以后的每一份：↑ ↓ 调先后，「今天就做」挪进今天，「撤回」拿掉。今天的单子一天只排一次，今天的没做完明天自动排在最前面。
+      Class Vocab 钉在原来那天，不跟着挪。调完马上重排。`)}</h2>`;
+    if(!planOn(k)){ html += `<p class="empty">${KID[k].n} 还没开「每天按时间自动排」。到「今天」页日期下面那行打开。</p>`; return; }
+    const pl = PLAN[k], left = planLeft(k);
+    html += `<p class="qhead">每天 <b>${+pl.mins || PLAN_MINS}</b> 分钟 · ${left.n ? `后面还有 <b>${left.n}</b> 份 · 约 ${dur(left.mins*60)} · 排到 ${ymd(left.last)}` : '后面没有了'}${left.days < 3 ? ` · <span class="planlow">快排空了，记得加作业</span>` : ''}</p>`;
+    const days = DAYS[k].filter(d => d.date >= T && d.items.length).slice().reverse();   // 旧的在前
+    const fut = days.filter(d => d.date > T).flatMap(d => d.items.filter(x => !planPinned(x)));
+    let n = 0;
+    html += `<table class="dp qtab"><tbody>`;
+    days.forEach(d=>{
+      const mins = d.items.reduce((s, it) => s + estOf(it, k).mins + EST_GAP, 0);
+      html += `<tr class="newday"><td colspan="3"><b>${d.date === T ? '今天' : ymd(d.date)}</b> 周${wdOf(d.date)} · 约 ${dur(mins*60)}${d.date === T ? ' · 今天的一天只排一次' : ''}</td></tr>`;
+      d.items.forEach(it=>{
+        const done = ATT.some(a => a.kid===k && a.id===it.id && a.date===T && (!BANK_BY_ID[it.id] || countsAsDone(a, BANK_BY_ID[it.id])));
+        const pin = planPinned(it), fi = fut.findIndex(x => x.id === it.id);
+        const tags = (it.carried && it.movedFrom ? `<span class="late">${moveTxt(it, d.date)}</span>` : '')
+          + (it.ahead ? `<span class="late ahead">提前做的</span>` : '') + (pin ? `<span class="late pin">钉在这天</span>` : '');
+        const key = esc(k+'|'+it.id);
+        const acts = d.date === T
+          ? (done ? `<span class="chipst st-done">✓ 做了</span>` : `<button class="mini" data-qop="${key}|tomorrow">明天再做</button>`)
+          : (pin ? '' : `<button class="mini" data-qop="${key}|up"${fi <= 0 ? ' disabled' : ''} title="往前挪一位">↑</button>`
+              + `<button class="mini" data-qop="${key}|down"${fi < 0 || fi >= fut.length-1 ? ' disabled' : ''} title="往后挪一位">↓</button>`)
+            + `<button class="mini" data-qop="${key}|today">今天就做</button>`;
+        html += `<tr><td class="qn">${d.date === T ? '' : ++n}</td>
+          <td class="dt"><b>${openLink(it.href, esc(it.t))}</b>${tags}<div class="qsub">${esc(it.subj||'')}${it.book ? ' · '+esc(it.book) : ''} · ${estChip(it, k)}</div></td>
+          <td class="qacts">${acts}<button class="mini bad" data-qpull="${key}|${d.date}">撤回</button></td></tr>`;
+      });
+    });
+    html += `</tbody></table>`;
+    if(!days.length) html += `<p class="empty">队里空了。到「题库」勾几份，派的时候选「排到队尾」。</p>`;
+  });
+  return html;
 }
 
 // 题库的排法：科目 → 书 → 标题。loadAll 之后排一次，加 / 改自定义链接之后再排一次。
@@ -1630,7 +1700,10 @@ function viewToday(){
           <b>${openLink(it.href, esc(it.t))}${it.carried && it.movedFrom ? `<span class="late">${moveTxt(it, TD)}</span>` : ''}${it.ahead ? `<span class="late ahead">提前做的</span>` : ''}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
           <span class="tm">${tmEst}${tm?' · '+tm:''}</span>
           </span><span class="acts">${st}${arch}
-            <button class="mini" data-move="${esc(key)}">改日期</button>
+            ${!planOn(k) || day < iso(today) ? `<button class="mini" data-move="${esc(key)}">改日期</button>`
+              : day === iso(today) ? (r ? '' : `<button class="mini" data-qop="${esc(key)}|tomorrow" title="今天不做了，排到明天最前面">明天再做</button>`)
+              : planPinned(it) ? `<button class="mini" data-qop="${esc(key)}|today">今天就做</button>`
+              : `<button class="mini" data-qop="${esc(key)}|up" title="在队里往前挪一位">↑</button><button class="mini" data-qop="${esc(key)}|down" title="在队里往后挪一位">↓</button><button class="mini" data-qop="${esc(key)}|today">今天就做</button>`}
             <button class="mini bad" data-pull="${esc(key)}">撤回</button></span></div>`;
 
         if(MOVING===key){
@@ -3870,9 +3943,14 @@ function wireEssay(){
 
 function render(){
   viewEl.innerHTML = V==='today'?viewToday() : V==='bank'?viewBank() : V==='hist'?viewHist() : V==='usage'?viewUsage()
-                   : V==='dispatch'?viewDispatch()
+                   : V==='dispatch'?viewDispatch() : V==='queue'?viewQueue()
                    : V==='skills'?viewSkills() : V==='reading'?viewReading() : V==='essay'?viewEssay()
                    : V==='audio'?viewAudio() : viewFocus();
+  viewEl.querySelectorAll('[data-qop]').forEach(b=>b.addEventListener('click',()=>{
+    const [k, id, op] = b.dataset.qop.split('|'); queueOp(k, id, op, b); }));
+  viewEl.querySelectorAll('[data-qpull]').forEach(b=>b.addEventListener('click',()=>{
+    const [k, id, d] = b.dataset.qpull.split('|'); pullItem(k, id, b, d); }));
+  syncAssignBar();
   if(V==='today'){
     const goDay = async d=>{
       if(!d || d===TD) return;
@@ -4204,10 +4282,24 @@ function toast(msg, bad){
 document.getElementById('assdate').value = iso(today);
 document.getElementById('asskid').value = F.kid;   // 题库默认开 Warren 那一页，派给也跟着是 Warren
 
+// 派给的孩子都开了自动排 → 日期框换成「排到队尾 / 插到最前 / 今天就做」
+function syncAssignBar(){
+  const k = document.getElementById('asskid').value, kids = k==='both' ? ['grace','warren'] : [k];
+  const q = kids.every(planOn);
+  document.getElementById('assdate').hidden = q;
+  document.getElementById('assdatel').textContent = q ? '排在' : '日期';
+  document.getElementById('assmode').hidden = !q;
+}
+document.getElementById('asskid').addEventListener('change', syncAssignBar);
 document.getElementById('assgo').addEventListener('click', async ()=>{
   const k = document.getElementById('asskid').value;
   const kids = k==='both' ? ['grace','warren'] : [k];   // 两个人: e.g. Chinese homework both of them do
-  const d = document.getElementById('assdate').value || iso(today);
+  const usePlan = kids.every(planOn), mode = usePlan ? document.getElementById('assmode').value : '';
+  const T = iso(today);
+  const dayFor = kk => !usePlan ? (document.getElementById('assdate').value || T)
+    : mode==='today' ? T : mode==='front' ? shiftDay(T, 1) : tailDay(kk);
+  const qOf = i => mode==='tail' ? { q: PlanCore.qTail(i) } : mode==='front' ? { q: PlanCore.qFront(i) } : {};
+  const d = dayFor(kids[0]);
   const ids = [...SEL], go = document.getElementById('assgo');
   // 题库「全部」里勾了 Grace 的、「派给」却停在 Warren（或选了「两个人」）：先问一句，别悄悄派错人。
   const odd = kids.flatMap(kk => ids.map(id => BANK_BY_ID[id])
@@ -4215,20 +4307,20 @@ document.getElementById('assgo').addEventListener('click', async ()=>{
   if(odd.length && !confirm(`下面这几份不是派给的那个孩子的：\n${odd.join('\n')}\n\n确定还是这样派？`)) return;
   go.disabled = true;
   try {
-    const refs = kids.map(kk=>dayRef(kk, d));
+    const refs = kids.map(kk=>dayRef(kk, dayFor(kk)));
     // One transaction for both kids: either both days get the items or neither does.
     await db.runTransaction(async tx=>{
       const snaps = await Promise.all(refs.map(r=>tx.get(r)));   // every read before any write
       snaps.forEach((snap, i)=>{
         const items = (snap.data()||{}).items || [];
         const have = new Set(items.map(it=>it.id));
-        ids.forEach(id=>{
+        ids.forEach((id, n)=>{
           const b = BANK_BY_ID[id];
           if(!b || have.has(id)) return;
           // Kids can't read `bank`, so the title and link travel with the assignment.
           // `at`: client time, because serverTimestamp() isn't allowed inside an array.
           items.push({ id, t:b.t, href:b.href, type:b.type, n:b.n||0, ic:b.ic||'', subj:b.subj||'', book:b.book||'',
-                       at: firebase.firestore.Timestamp.now() });
+                       at: firebase.firestore.Timestamp.now(), ...qOf(n) });
         });
         // Assigned again after a withdrawal: it's back on the day, so it no longer counts as withdrawn.
         const withdrawn = ((snap.data()||{}).withdrawn || []).filter(p=>!have.has(p.id) && !ids.includes(p.id));
@@ -4236,8 +4328,9 @@ document.getElementById('assgo').addEventListener('click', async ()=>{
       });
     });
     await Promise.all([d===TD || d===iso(today) ? loadDay(d) : null, loadDays()]);   // loadDays：派过没有那一格要马上跟上
+    if(usePlan && mode!=='today'){ await runPlan(); await Promise.all([loadDay(TD), loadDays()]); }
     SEL.clear(); render();
-    toast(`已派给 ${kids.map(kk=>KID[kk].n).join(' 和 ')} · ${d} · ${ids.length} 份`);
+    toast(`已派给 ${kids.map(kk=>KID[kk].n).join(' 和 ')} · ${usePlan ? {tail:'排到队尾', front:'插到最前', today:'今天就做'}[mode] : d} · ${ids.length} 份`);
   } catch(e){
     console.error(e);
     toast('派发失败：' + (e.code||e.message) + '，没有写进去，稍后再试', true);
@@ -4288,8 +4381,8 @@ document.getElementById('assclear').addEventListener('click',()=>{ SEL.clear(); 
 
 // 撤回: the item leaves the kid's day. A copy goes to `withdrawn`, so the parent sees what was taken
 // back and the kids page still knows the subject of any score on it. Attempts are never touched.
-async function pullItem(k, id, btn){
-  const d = TD, it = ASSIGN[k].find(x=>x.id===id);
+async function pullItem(k, id, btn, day){
+  const d = day || TD, it = (day ? ((DAYS[k].find(x=>x.date===d)||{}).items||[]) : ASSIGN[k]).find(x=>x.id===id);
   if(!it) return;
   const did = ATT.some(a=>a.kid===k && a.id===id && a.date===d);
   if(!confirm(`从 ${KID[k].n} ${d} 的作业里撤回「${it.t}」？${did?`\n\n${KID[k].n} 这天已经做过这份，成绩记录会保留。`:''}`)) return;
@@ -4304,7 +4397,9 @@ async function pullItem(k, id, btn){
         withdrawn: [...(x.withdrawn||[]).filter(p=>p.id!==id), { ...gone, withdrawnAt: firebase.firestore.Timestamp.now() }],
         updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
     });
-    MOVING = ''; await Promise.all([loadDay(d), loadDays()]); render();
+    MOVING = ''; await Promise.all([loadDay(d), loadDays()]);
+    if(planOn(k) && d >= iso(today)){ await runPlan(); await Promise.all([loadDay(TD), loadDays()]); }
+    render();
     toast(`已撤回 · ${KID[k].n} · ${d} · ${it.t}`);
   } catch(e){
     console.error(e); btn.disabled = false;
