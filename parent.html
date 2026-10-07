@@ -204,6 +204,9 @@
   .moverow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:0 0 10px 27px;font-size:12px;color:var(--mute)}
   .late{display:inline-block;margin-left:6px;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;
     color:var(--red);border:1px solid var(--red);vertical-align:1px}
+  .late.ahead{color:var(--green);border-color:var(--green)}
+  .planone{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-right:10px}
+  .planlow{color:var(--red);font-weight:600}
   .carryrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12.5px;color:var(--mute);margin:8px 0 12px}
   .pulled{font-size:11.5px;color:var(--mute);margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)}
   .recent{color:var(--gold)}
@@ -1139,6 +1142,130 @@ async function carryNow(){
     const n = await runCarry();
     if(n){ render(); toast(`昨天没做完的 ${n} 份已自动顺延到今天`); }
   } catch(e){ console.error(e); toast('自动顺延没成功：' + (e.code||e.message) + '，下次打开再试', true); }
+  try { if(await runPlan()) render(); }
+  catch(e){ console.error(e); toast('自动排作业没成功：' + (e.code||e.message) + '，点「刷新」再试', true); }
+}
+
+/* ===================== 每天按时间自动排（HOMEWORK-SYSTEM.md 2026-10-06） =====================
+   Sam：「以后不按日期排，按照作业量和顺序每天排」，每个孩子每天 90 分钟。开关在 kids/{uid}.plan = { on, mins, day }。
+   派到哪天只决定排队的先后（每份第一次被排时记下 q = 那天 + 当天的第几份，以后一直按 q 排）。
+   每次打开家长台（顺延之后）从今天往后重新排一遍：
+   · 今天一天只排一次（plan.day 记着），之后只动明天往后 —— 孩子做到一半，今天的单子不会变；
+   · Class Vocab 钉在原来那天、先占时间（顺延过来的不算钉住，跟着队排）；做过 / 今天开过的留在今天；
+   · 其余按 q 往里填，每份用 estOf 的预计 + EST_GAP 转场，放不下就看后面小的能不能填，大的留到第二天；
+     一份比半天还大的，当天还没过半就让它单独放进去，不然它永远排不上；
+   · 孩子提前做了后面的（孩子页「Want more?」），挪到今天、标 ahead —— 记录在今天，以后不再排。
+   没顺延过的条目重排时去掉 movedFrom（不再写「挪来」）；顺延过的保留，照样标「延后 N 天」。 */
+const PLAN_MINS = 90;
+let PLAN = { grace:null, warren:null };
+const planPinned = it => !it.carried && /Class-Vocab/i.test(decodeURIComponent(it.id||''));
+// 纯函数，方便单独测：days = [{date, items}]（今天和以后的），返回 { date: items }，覆盖今天（或明天）往后所有要写的天。
+function planDays({ T, planToday, days, budget, gap, mins, doneAhead, keepToday, pinned }){
+  const start = planToday ? T : shiftDay(T, 1);
+  const out = {}, used = {}, seen = new Set();
+  // 估不出数（NaN、0）就按 20 分钟算，免得这份永远排不进去
+  const mm = it => { const v = +mins(it); return Number.isFinite(v) && v > 0 ? v : 20; };
+  const add = (d, it) => { (out[d] = out[d] || []).push(it); seen.add(it.id); used[d] = (used[d] || 0) + mm(it) + gap; };
+  // 哪天撤回过这份，就不再把它排回那天
+  const wd = {}; days.forEach(d => { wd[d.date] = new Set((d.withdrawn || []).map(x => x.id)); });
+  const pool = [];
+  days.slice().sort((a,b)=>a.date.localeCompare(b.date)).forEach(d=>{
+    if(d.date === T && !planToday){ d.items.forEach(it => { out[T] = out[T] || []; out[T].push(it); seen.add(it.id); }); return; }
+    d.items.forEach((it, i)=>{
+      const x = it.q ? { ...it } : { ...it, q: (it.carried ? (it.origin || d.date) : d.date) + '|' + String(i).padStart(3, '0') };
+      if(seen.has(x.id) || pool.some(y => y.id === x.id)) return;   // 同一份派了两天：只留最早那份
+      if(d.date === T){ if(keepToday(x) || pinned(x)) return add(T, x); }
+      else {
+        if(doneAhead(x)) return add(T, { ...x, ahead: true });
+        if(pinned(x)) return add(d.date, x);
+      }
+      pool.push(x);
+    });
+  });
+  pool.sort((a,b)=>a.q.localeCompare(b.q));
+  let d = start;
+  for(let guard = 0; pool.length && guard < 366; d = shiftDay(d, 1), guard++){
+    let placed = 0;
+    for(let i = 0; i < pool.length; ){
+      const m = mm(pool[i]) + gap, have = used[d] || 0;
+      if(wd[d] && wd[d].has(pool[i].id)){ i++; continue; }
+      if(m <= budget - have || (i === 0 && placed === 0 && m > budget / 2 && have < budget / 2)){ add(d, pool.splice(i, 1)[0]); placed++; }
+      else i++;
+    }
+  }
+  // 兜底：一年都排不进去的（不该有），放在最后一天，绝不能从库里丢掉
+  pool.forEach(it => add(d, it));
+  // 重排过的不再写「从 X 挪来」；顺延过的留着 movedFrom，好算延后几天
+  Object.values(out).forEach(list => list.forEach(it => { if(!it.carried) delete it.movedFrom; }));
+  days.forEach(d => { if(d.date >= start && !out[d.date]) out[d.date] = []; });
+  return out;
+}
+// 真排：每个孩子一个 transaction。返回有没有改动。
+async function runPlan(){
+  const T = iso(today);
+  let changed = false;
+  for(const k of ['grace','warren']){
+    const pl = PLAN[k];
+    if(!pl || !pl.on) continue;
+    const planToday = pl.day !== T;
+    const known = DAYS[k].filter(d => d.date >= T).map(d => d.date);
+    if(!known.includes(T)) known.push(T);
+    const done = (x, from) => ATT.some(a => a.kid===k && a.id===x.id && a.date>=from && a.date<=T
+      && (!BANK_BY_ID[x.id] || countsAsDone(a, BANK_BY_ID[x.id])));
+    const atDay = x => { const w = tsDate(x.at); return w ? iso(w) : T; };
+    let wrote = false;
+    await db.runTransaction(async tx=>{
+      wrote = false;
+      const snaps = await Promise.all(known.map(d => tx.get(dayRef(k, d))));
+      const days = known.map((d, i) => ({ date: d, items: (snaps[i].data() || {}).items || [], withdrawn: (snaps[i].data() || {}).withdrawn || [] }));
+      const out = planDays({ T, planToday, days, budget: +pl.mins || PLAN_MINS, gap: EST_GAP,
+        mins: x => estOf(x, k).mins,
+        doneAhead: x => done(x, [atDay(x), T].sort()[0]),
+        keepToday: x => ATT.some(a => a.kid===k && a.id===x.id && a.date===T),
+        pinned: planPinned });
+      // 新排出来的日子（原来没有文档的）也得先读，transaction 要求读在写前面；那天要是别处刚派了东西，就重来
+      const extra = Object.keys(out).filter(d => !known.includes(d));
+      const xs = await Promise.all(extra.map(d => tx.get(dayRef(k, d))));
+      if(xs.some(x => ((x.data() || {}).items || []).length)) throw new Error('有新派的作业，再点一次「刷新」');
+      const now = firebase.firestore.FieldValue.serverTimestamp();
+      Object.entries(out).forEach(([d, items])=>{
+        const old = (days.find(x => x.date === d) || { items: [] }).items;
+        if(JSON.stringify(old) === JSON.stringify(items)) return;
+        tx.set(dayRef(k, d), { items, updatedAt: now }, { merge: true });
+        wrote = true;
+      });
+      if(planToday) tx.set(db.doc(`kids/${KID[k].uid}`), { plan: { ...pl, day: T } }, { merge: true });
+    });
+    if(planToday) PLAN[k] = { ...pl, day: T };
+    changed = changed || wrote;
+  }
+  if(changed) await Promise.all([loadDay(TD), TD === T ? null : loadDay(T), loadDays()]);
+  return changed;
+}
+async function setPlan(k, patch, btn){
+  btn.disabled = true;
+  const plan = { mins: PLAN_MINS, ...(PLAN[k] || {}), ...patch };
+  if(patch.on) delete plan.day;   // 刚打开：今天也重排一次
+  try {
+    const ref = db.doc(`kids/${KID[k].uid}`);
+    // 自动排靠顺延把昨天没做的拿过来，所以一起打开
+    const carry = plan.on && !(CARRY[k] && CARRY[k].on) ? { on: true, since: shiftDay(iso(today), -1) } : null;
+    await ref.set(carry ? { plan, carry } : { plan }, { merge: true });
+    PLAN[k] = plan; if(carry) CARRY[k] = carry;
+    if(plan.on){ await runCarry(); await runPlan(); }
+    render();
+    toast(plan.on ? `${KID[k].n}：每天按 ${plan.mins} 分钟自动排，已经排好了` : `${KID[k].n}：关掉了自动排，已经排好的日子不动`);
+  } catch(e){
+    console.error(e); btn.disabled = false;
+    toast('没存上：' + (e.code||e.message), true);
+  }
+}
+// 队里还有多少：今天往后没做的份数、预计分钟、排到哪天
+function planLeft(k){
+  const T = iso(today);
+  const days = DAYS[k].filter(d => d.date > T && d.items.length);
+  const items = days.flatMap(d => d.items);
+  return { n: items.length, mins: items.reduce((s, it) => s + estOf(it, k).mins + EST_GAP, 0), last: days.length ? days[0].date : null, days: days.length };
 }
 
 // 题库的排法：科目 → 书 → 标题。loadAll 之后排一次，加 / 改自定义链接之后再排一次。
@@ -1161,7 +1288,7 @@ async function loadAll(){
     // 没做完自动顺延的开关在 kids/{uid}.carry（孩子页也读这个）
     Promise.all(['grace','warren'].map(k => db.doc(`kids/${KID[k].uid}`).get()))
   ]);
-  ['grace','warren'].forEach((k, i)=>{ CARRY[k] = (profs[i].data()||{}).carry || null; });
+  ['grace','warren'].forEach((k, i)=>{ CARRY[k] = (profs[i].data()||{}).carry || null; PLAN[k] = (profs[i].data()||{}).plan || null; });
   BANK = bankSnap.docs.map(d => Object.assign({ docId:d.id }, d.data()));
   sortBank();
   ATT = attSnap.docs.map(toAtt).filter(Boolean);
@@ -1407,6 +1534,15 @@ function viewToday(){
       ${['grace','warren'].map(k=>{ const on = !!(CARRY[k] && CARRY[k].on);
         return `<button class="fchip${on?' on':''}" data-carry="${k}" data-on="${on?0:1}">${KID[k].av} ${KID[k].n} · ${on?'开':'关'}</button>`; }).join('')}
     </div>
+    <div class="carryrow">每天按时间自动排${qm(`开着的话：不再按日期排，派到哪天只决定先后顺序。每天按设定的分钟数（默认 ${PLAN_MINS}）从队里按顺序取：
+      Class Vocab 钉在原来那天、先占时间；放不下的大份留到第二天，先拿后面小的填满。今天的单子一天只排一次（孩子做到一半不会变），明天往后每次打开都重排。
+      孩子做完今天的，孩子页有「Want more?」可以提前做下一份，做了的记在当天、标「提前做的」。没做完的照样顺延、标「延后 N 天」。点分钟数可以改。`)}
+      ${['grace','warren'].map(k=>{ const p = PLAN[k] || {}, on = !!p.on;
+        const left = on ? planLeft(k) : null;
+        return `<span class="planone"><button class="fchip${on?' on':''}" data-plan="${k}" data-on="${on?0:1}">${KID[k].av} ${KID[k].n} · ${on?'开':'关'}</button>${on?`
+          <button class="fchip" data-planmins="${k}" title="点一下改每天多少分钟">${+p.mins||PLAN_MINS} 分钟/天</button>
+          <span class="${left.days<3?'planlow':''}">${left.n ? `队里还有 ${left.n} 份 · 约 ${dur(left.mins*60)} · 排到 ${ymd(left.last)}${left.days<3?' · 快排空了，记得加作业':''}` : '队里空了，记得加作业'}</span>`:''}</span>`; }).join('')}
+    </div>
     <details class="hguide" data-guide="today"${guideOpen('today')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li>卡片右上角 <b>已派 N 份</b> = 这天派给孩子、没有撤回的份数。</li>
       <li>每份后面的状态：<span class="chipst st-open">未开始</span> = 这天还没交卷；
@@ -1489,7 +1625,7 @@ function viewToday(){
 
           : `<button class="mini" data-arch="${esc(it.id)}" data-to="1" title="从题库的在用列表收起来，不删文件、不动成绩，也不从孩子的作业里拿掉">归档</button>`;
         html += `<div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
-          <b>${openLink(it.href, esc(it.t))}${it.carried && it.movedFrom ? `<span class="late">${moveTxt(it, TD)}</span>` : ''}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
+          <b>${openLink(it.href, esc(it.t))}${it.carried && it.movedFrom ? `<span class="late">${moveTxt(it, TD)}</span>` : ''}${it.ahead ? `<span class="late ahead">提前做的</span>` : ''}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
           <span class="tm">${tmEst}${tm?' · '+tm:''}</span>
           </span><span class="acts">${st}${arch}
             <button class="mini" data-move="${esc(key)}">改日期</button>
@@ -3746,6 +3882,14 @@ function render(){
     viewEl.querySelectorAll('.fchip[data-day]').forEach(b=>b.addEventListener('click',()=>goDay(b.dataset.day)));
     document.getElementById('tdpick').addEventListener('change', e=>goDay(e.target.value));
     viewEl.querySelectorAll('[data-carry]').forEach(b=>b.addEventListener('click',()=>setCarry(b.dataset.carry, b.dataset.on==='1', b)));
+    viewEl.querySelectorAll('[data-plan]').forEach(b=>b.addEventListener('click',()=>setPlan(b.dataset.plan, { on: b.dataset.on==='1' }, b)));
+    viewEl.querySelectorAll('[data-planmins]').forEach(b=>b.addEventListener('click',()=>{
+      const k = b.dataset.planmins, cur = +(PLAN[k]||{}).mins || PLAN_MINS;
+      const v = prompt(`${KID[k].n} 每天做多少分钟作业？`, String(cur));
+      const m = Math.round(+v);
+      if(v == null || !(m >= 10 && m <= 300)) return v == null ? null : toast('填 10 到 300 之间的分钟数', true);
+      if(m !== cur) setPlan(k, { mins: m, on: true }, b);
+    }));
     viewEl.querySelectorAll('[data-pull]').forEach(b=>b.addEventListener('click',()=>{
       const [k, id] = b.dataset.pull.split('|'); pullItem(k, id, b); }));
     viewEl.querySelectorAll('[data-move]').forEach(b=>b.addEventListener('click',()=>{

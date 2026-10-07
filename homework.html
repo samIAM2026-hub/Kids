@@ -453,6 +453,9 @@ const pageUrl = href => isUrl(href) ? href : encodeURI('Quizzes/' + href);
 const extAttr = href => isUrl(href) ? ' target="_blank" rel="noopener"' : '';
 
 let ME = null, ITEMS = [], ATT = [], DAYS = [], V = 'today';
+// Dad's 「每天按时间自动排」 (HOMEWORK-SYSTEM.md 2026-10-06): the queue is the days after today, in order.
+// Done with today → "Want more?" offers the next one; Dad's page later files it under today as done ahead.
+let NEXT = [];
 // Writing Lab pieces Dad or Mom marked that this kid hasn't opened yet (Writing-Lab.html stamps seenAt).
 let MARKED = [];
 // PET / SIB: my pet doc and the other kid's — null = not picked yet, undefined = couldn't read it.
@@ -493,6 +496,10 @@ async function load(){
   days.docs.forEach(d=>{ const x = d.data()||{};
     [...(x.withdrawn||[]), ...(x.items||[])].forEach(it=>{ if(it.subj) label.set(it.id, it.subj); }); });
   const day = days.docs.find(d=>d.id===iso(today));
+  // Same pinning as parent.html's planPinned: a class-vocab day belongs to its own day, so it's never offered early.
+  NEXT = !(prof.plan && prof.plan.on) ? [] : days.docs.filter(d=>d.id>iso(today)).sort((a,b)=>a.id.localeCompare(b.id))
+    .flatMap(d=>((d.data()||{}).items||[]).filter(it=>!/Class-Vocab/i.test(decodeURIComponent(it.id||''))))
+    .map(it=>({ ...it, subj: subjOf(it.subj) }));
   ITEMS = ((day && day.data()) || {}).items || [];
   ITEMS = ITEMS.map(it=>({ ...it, subj: subjOf(it.subj) }));
   const todayDoc = (day && day.data()) || {};
@@ -571,10 +578,18 @@ function markedCards(){
 
 function viewToday(){
   const day = iso(today);
-  if(!ITEMS.length){
-    return reportCard() + markedCards() + `<div class="empty"><span class="e">🎉</span>No homework today!<br>Enjoy your free time.</div>` + petsRow();
-  }
   const doneToday = it => ATT.find(a=>a.id===it.id && a.date===day);
+  // Want more? — what was done early today, then the next one in line. Only once today's list is all done.
+  const ids = new Set(ITEMS.map(it=>it.id));
+  // Done early on an earlier day (Dad's page hasn't filed it yet): not offered again.
+  const atDay = it => it.at && it.at.toDate ? iso(it.at.toDate()) : day;
+  const doneBefore = it => ATT.some(a=>a.id===it.id && a.real && a.date<day && a.date>=atDay(it));
+  const extra = NEXT.filter(it=>!ids.has(it.id) && !doneBefore(it)), early = extra.filter(doneToday), next = extra.find(it=>!doneToday(it));
+  const more = () => !early.length && !next ? '' : `<h3 class="group">Want more? <span class="gn">${early.length ? early.length+' extra done' : 'optional'}</span></h3>`
+    + early.map(it=>card(it, doneToday(it))).join('') + (next ? card(next, null) : '');
+  if(!ITEMS.length){
+    return reportCard() + markedCards() + `<div class="empty"><span class="e">🎉</span>No homework today!<br>Enjoy your free time.</div>` + more() + petsRow();
+  }
   const nDone = ITEMS.filter(doneToday).length;
   let html = reportCard() + markedCards() + `<div class="progress"><div class="big">${nDone} of ${ITEMS.length} done</div>
     <div class="meter"><i style="width:${Math.round(100*nDone/ITEMS.length)}%"></i></div></div>`;
@@ -585,7 +600,7 @@ function viewToday(){
     html += `<h3 class="group">${esc(subj)} <span class="gn">${items.filter(doneToday).length} of ${items.length} done</span></h3>`;
     items.forEach(it=>{ html += card(it, doneToday(it)); });
   });
-  return html + petsRow();
+  return html + (nDone===ITEMS.length ? more() : '') + petsRow();
 }
 
 // "Fri" for a day this week, "Sep 28" further back.
