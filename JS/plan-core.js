@@ -39,7 +39,8 @@
         pool.push(x);
       });
     });
-    pool.sort((a,b)=>a.q.localeCompare(b.q));
+    // 按字符编码比，不能用 localeCompare：它把 '~'（队尾）、'!'（最前）当标点，排到数字前面去（2026-10-07 真出过：10.4c 排到了 10.4b 前面）
+  pool.sort((a,b)=>a.q < b.q ? -1 : a.q > b.q ? 1 : 0);
     let d = start;
     for(let guard = 0; pool.length && guard < 366; d = shiftDay(d, 1), guard++){
       // 同一科目严格按顺序（数学课有先后，L7 不能跳到 L1 前面）：一份放不下，同科后面的今天也不放，只拿别的科来填
