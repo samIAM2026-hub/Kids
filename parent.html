@@ -107,7 +107,7 @@
   .kidhead{display:flex;align-items:center;gap:10px;margin-bottom:3px}
   .kidhead .av{font-size:24px}
   .kidhead h3{font-size:19px}
-  .kidhead .when{margin-left:auto;font-size:11px;color:var(--mute)}
+  .kidhead .when{margin-left:auto;font-size:11px;color:var(--mute);text-align:right}
   /* Kid cards fold, and start folded (kidCard / kidOpen). Folded, the summary still carries that
      kid's numbers — folding may hide the detail, never what the tab is for. */
   details.kc>summary{cursor:pointer;list-style:none;display:block}
@@ -214,6 +214,11 @@
   .qtab .qacts .mini{margin-left:4px}
   .planone{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-right:10px}
   .planlow{color:var(--red);font-weight:600}
+  .daynav .settog{margin-left:auto}
+  .setbox{border:1px solid var(--line);border-radius:10px;padding:2px 12px;margin-top:10px}
+  .setbox[hidden],.moreb[hidden]{display:none}
+  .moreb{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:flex-end}
+  .mini.moretog.on{color:var(--cream);border-color:var(--gold2)}
   .carryrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12.5px;color:var(--mute);margin:8px 0 12px}
   .pulled{font-size:11.5px;color:var(--mute);margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)}
   .recent{color:var(--gold)}
@@ -1308,7 +1313,7 @@ function viewQueue(){
     html += `<h2 class="sec">${KID[k].av} ${KID[k].n} · 作业队列${qm(`开了「每天按时间自动排」以后，派出去的作业排成一条队，每天按设定的分钟数从前往后取。
       这里按排出来的先后列出今天和以后的每一份：↑ ↓ 调先后，「今天就做」挪进今天，「撤回」拿掉。今天的单子一天只排一次，今天的没做完明天自动排在最前面。
       Class Vocab 钉在原来那天，不跟着挪。调完马上重排。`)}</h2>`;
-    if(!planOn(k)){ html += `<p class="empty">${KID[k].n} 还没开「每天按时间自动排」。到「今天」页日期下面那行打开。</p>`; return; }
+    if(!planOn(k)){ html += `<p class="empty">${KID[k].n} 还没开「每天按时间自动排」。到「今天」页点「⚙ 排作业设置」打开。</p>`; return; }
     const pl = PLAN[k], left = planLeft(k);
     html += `<p class="qhead">每天 <b>${+pl.mins || PLAN_MINS}</b> 分钟 · ${left.n ? `后面还有 <b>${left.n}</b> 份 · 约 ${dur(left.mins*60)} · 排到 ${ymd(left.last)}` : '后面没有了'}${left.days < 3 ? ` · <span class="planlow">快排空了，记得加作业</span>` : ''}</p>`;
     const days = DAYS[k].filter(d => d.date >= T && d.items.length).slice().reverse();   // 旧的在前
@@ -1590,6 +1595,7 @@ function todoStrip(){
   return items.length ? `<div class="todo"><span class="lbl">待你处理</span>${items.join('')}</div>` : '';
 }
 
+let SETOPEN = false;   // 「⚙ 排作业设置」这次打开页面期间点开过没有（改开关会重画，得记着）
 function viewToday(){
   const day = TD, isToday = day===iso(today);
   let html = todoStrip() + `<h2 class="sec">${isToday?'今天':'作业'} · ${day} 周${wdOf(day)}${qm(`孩子登录后只看得到这里派的内容，看不到题库本身。
@@ -1599,7 +1605,9 @@ function viewToday(){
       <input type="date" id="tdpick" value="${day}">
       <button class="fchip" data-day="${shiftDay(day,1)}">${dayName(shiftDay(day,1), '后一天')} ›</button>
       ${isToday?'':`<button class="fchip" data-day="${iso(today)}">回到今天</button>`}
+      <button class="fchip settog${SETOPEN?' on':''}" data-settog="1" title="顺延、每天按时间自动排的开关和每天多少分钟">⚙ 排作业设置</button>
     </div>
+    <div class="setbox"${SETOPEN?'':' hidden'}>
     <div class="carryrow">没做完自动顺延到第二天${qm(`开着的话：前一天（最远倒推 ${CARRY_DAYS} 天）派的、到昨天都没交的，第二天自动挪到「今天」，标「延后一天」「延后两天」…（从最早派的那天算）。
       原来那天会写一行「没做完，顺延到 …」，派发记录里那天照样算没做。打分的卷子要交了卷才算做完，参考 / 链接打开过就算。
       Class Vocab 不顺延（跟着上课那一周走，没做完留在原来那天）。今天撤回的那份不会再挪回来；不想让它再往后挪，就撤回。每晚 22:00 Mac 上自动挪到明天；这一页每天第一次打开时也挪；孩子先登录也看得到（他那边标 From Fri）。`)}
@@ -1610,12 +1618,10 @@ function viewToday(){
       Class Vocab 钉在原来那天、先占时间；同一科严格按顺序，放不下的留到第二天，空出来的时间拿别的科填。今天的单子一天只排一次（孩子做到一半不会变），明天往后每次打开都重排。
       孩子做完今天的，孩子页有「Want more?」可以提前做下一份，做了的记在当天、标「提前做的」。没做完的全部顺延到第二天、标「延后 N 天」，不占第二天的分钟数 —— 第二天原定的量照排，所以那天会比设定的多；再没做完就全部加到第三天。点分钟数可以改。`)}
       ${['grace','warren'].map(k=>{ const p = PLAN[k] || {}, on = !!p.on;
-        const left = on ? planLeft(k) : null;
         return `<span class="planone"><button class="fchip${on?' on':''}" data-plan="${k}" data-on="${on?0:1}">${KID[k].av} ${KID[k].n} · ${on?'开':'关'}</button>${on?`
-          <button class="fchip" data-planmins="${k}" title="点一下改每天多少分钟">${+p.mins||PLAN_MINS} 分钟/天</button>
-          <span class="${left.days<3?'planlow':''}">${left.n ? `队里还有 ${left.n} 份 · 约 ${dur(left.mins*60)} · 排到 ${ymd(left.last)}${left.days<3?' · 快排空了，记得加作业':''}` : '队里空了，记得加作业'}</span>`:''}</span>`; }).join('')}
-    </div>
-    <details class="hguide" data-guide="today"${guideOpen('today')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
+          <button class="fchip" data-planmins="${k}" title="点一下改每天多少分钟">${+p.mins||PLAN_MINS} 分钟/天</button>`:''}</span>`; }).join('')}
+    </div></div><div class="grid2">`;
+  const guide = `<details class="hguide" data-guide="today"${guideOpen('today')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li>卡片右上角 <b>已派 N 份</b> = 这天派给孩子、没有撤回的份数。</li>
       <li>每份后面的状态：<span class="chipst st-open">未开始</span> = 这天还没交卷；
         <span class="chipst st-done">✓ 完成</span> = 不打分的页面做过、看过；绿色分数 = 答对 80% 及以上（闯关练习按「一次就对」算）；
@@ -1640,15 +1646,13 @@ function viewToday(){
       <li>只算<b>这一天</b>交的卷：以前做过、这天没做，这里照样显示「未开始」。</li>
       <li><b>📝 看批改</b>：孩子打开你批好的作文、看批注的时间。不用派，他自己打开的也记；孩子那边不显示计时。
         页面开在最前面满 15 秒才记，算进上面的「实际已用」。</li>
-    </ul></details><div class="grid2">`;
+    </ul></details>`;
   ['grace','warren'].forEach(k=>{
     const list = ASSIGN[k];
     const doneOf = it => dayResult(k, it.id, day);
     const done = list.map(doneOf).filter(Boolean);
-    const quizzes = list.filter(it=>it.type==='quiz');
     const scored = done.filter(r=>r.scored);
     const avg = scored.length ? Math.round(scored.reduce((s,r)=>s+r.last.pct,0)/scored.length) : null;
-    const nq = quizzes.reduce((s,it)=>s+(it.n||0),0);
     // 这天已经真坐了多久（估时由 estSumTxt 现算）：交了卷的 + 派的这几份里没交卷的那段。
     const unf = unfOn(k, day, day).filter(u=>list.some(it=>it.id===u.id)), unfS = unfSum(unf);
     // 看批改不用派，孩子自己打开的，也算进这天的实际用时（Sam 2026-09-26）
@@ -1657,15 +1661,17 @@ function viewToday(){
     const spent = unfS + readS + list.reduce((s,it)=>s + ATT.filter(a=>a.kid===k && a.id===it.id && a.date===day).reduce((x,a)=>x+estSecs(a),0), 0);
     const inc = [unfS?`没交卷 ${dur(unfS)}`:'', readS?`看批改 ${dur(readS)}`:''].filter(Boolean);
     const spentTxt = dur(spent) + (inc.length ? `（含${inc.join('、')}）` : '');
-    html += kidCard('today', k, list.length?'已派 '+list.length+' 份':isToday?'今天还没派':'这天没派',
+    // 队里还剩多少挂在名字右边：平时灰字，不到 3 天的量才变红（Sam 2026-10-11：开关收进「排作业设置」）
+    const left = planOn(k) ? planLeft(k) : null;
+    const leftTxt = !left ? '' : ` · <span class="${left.days<3?'planlow':''}" title="${left.n ? `今天往后没做的 ${left.n} 份，约 ${dur(left.mins*60)}` : '队里没有作业了'}">${
+      left.n ? `队里 ${left.n} 份 · 排到 ${ymd(left.last)}${left.days<3?' · 快排空了':''}` : '队里空了，记得加作业'}</span>`;
+    html += kidCard('today', k, (list.length?'已派 '+list.length+' 份':isToday?'今天还没派':'这天没派') + leftTxt,
       list.length ? `完成 <b>${done.length}/${list.length}</b> · 预计 <b>${estSumTxt(list, k)}</b>${
-          spent?` · 实际已用 <b>${spentTxt}</b>`:''} · 题目 ${nq} 道 · 平均 <b style="color:${
+          spent?` · 实际已用 <b>${spentTxt}</b>`:''} · 平均 <b style="color:${
           avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</b>`
         : readS ? `没派东西 · 看批改 实际用时 <b>${dur(readS)}</b>` : `到「题库」勾选几份，再派给 ${KID[k].n}`) + `
       <div class="hmet">
         <div><div class="v">${done.length}/${list.length}</div><div class="k">完成${qm(`派的 ${list.length} 份里，这天交过卷的份数`)}</div></div>
-        <div><div class="v">${nq}</div><div class="k">题目数${qm(`${quizzes.length} 份打分卷子加起来一共几道题`)}</div></div>
-        <div><div class="v">${list.length-quizzes.length}</div><div class="k">练习/参考${qm(`不是选择题卷子的份数：闯关练习按「一次就对」算分，参考打开看过就算完成`)}</div></div>
         <div><div class="v" style="color:${avg==null?'var(--mute)':pctColor(avg)}">${avg==null?'—':avg+'%'}</div><div class="k">平均分${qm(scored.length?`做完的 ${scored.length} 份有分数的（含闯关练习），每份取这天最后一遍的分数再平均`:'这天还没有打分的成绩')}</div></div>
         <div><div class="v">${list.length?tileUnit(estSumTxt(list, k)):'—'}</div><div class="k">预计用时${qm(
             list.length ? estSumTip(list, k) + '。派之前想知道够不够孩子当下的空档，看这个数'
@@ -1696,14 +1702,15 @@ function viewToday(){
         const arch = !r || !bk ? '' : bk.archived ? `<span class="archdone" title="已归档 ${ymd(bk.archivedOn||'')}">已归档</span>`
 
           : `<button class="mini" data-arch="${esc(it.id)}" data-to="1" title="从题库的在用列表收起来，不删文件、不动成绩，也不从孩子的作业里拿掉">归档</button>`;
+        // 只露状态和撤回，其余的收在「⋯」后面（Sam 2026-10-11）
+        const more = arch + (!planOn(k) || day < iso(today) ? `<button class="mini" data-move="${esc(key)}">改日期</button>`
+          : day === iso(today) ? (r ? '' : `<button class="mini" data-qop="${esc(key)}|tomorrow" title="今天不做了，排到明天最前面">明天再做</button>`)
+          : planPinned(it) ? `<button class="mini" data-qop="${esc(key)}|today">今天就做</button>`
+          : `<button class="mini" data-qop="${esc(key)}|up" title="在队里往前挪一位">↑</button><button class="mini" data-qop="${esc(key)}|down" title="在队里往后挪一位">↓</button><button class="mini" data-qop="${esc(key)}|today">今天就做</button>`);
         html += `<div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
           <b>${openLink(it.href, esc(it.t))}${it.carried && it.movedFrom ? `<span class="late">${moveTxt(it, TD)}</span>` : ''}${it.ahead ? `<span class="late ahead">提前做的</span>` : ''}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
           <span class="tm">${tmEst}${tm?' · '+tm:''}</span>
-          </span><span class="acts">${st}${arch}
-            ${!planOn(k) || day < iso(today) ? `<button class="mini" data-move="${esc(key)}">改日期</button>`
-              : day === iso(today) ? (r ? '' : `<button class="mini" data-qop="${esc(key)}|tomorrow" title="今天不做了，排到明天最前面">明天再做</button>`)
-              : planPinned(it) ? `<button class="mini" data-qop="${esc(key)}|today">今天就做</button>`
-              : `<button class="mini" data-qop="${esc(key)}|up" title="在队里往前挪一位">↑</button><button class="mini" data-qop="${esc(key)}|down" title="在队里往后挪一位">↓</button><button class="mini" data-qop="${esc(key)}|today">今天就做</button>`}
+          </span><span class="acts">${st}${more ? `<span class="moreb" hidden>${more}</span><button class="mini moretog" data-more="1" title="归档、挪日子、调顺序">⋯</button>` : ''}
             <button class="mini bad" data-pull="${esc(key)}">撤回</button></span></div>`;
 
         if(MOVING===key){
@@ -1727,7 +1734,7 @@ function viewToday(){
       const w = tsDate(p.withdrawnAt); return esc(p.t) + (w ? `（${stamp(w)}）` : ''); }).join('、')}</div>`;
     html += `</details>`;
   });
-  return html + `</div>`;
+  return html + `</div>` + guide;
 }
 
 // 「从 10-03 挪来」（手动改日期）/「延后两天 · 10-03 派的」（自动顺延；day = 它现在排在哪天，
@@ -3961,6 +3968,11 @@ function render(){
     viewEl.querySelectorAll('[data-gokid]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.gov, b.dataset.gokid)));
     viewEl.querySelectorAll('.fchip[data-day]').forEach(b=>b.addEventListener('click',()=>goDay(b.dataset.day)));
     document.getElementById('tdpick').addEventListener('change', e=>goDay(e.target.value));
+    // 「⚙ 排作业设置」「⋯」都是原地开合，不重画
+    viewEl.querySelectorAll('[data-settog]').forEach(b=>b.addEventListener('click',()=>{
+      SETOPEN = !SETOPEN; b.classList.toggle('on', SETOPEN); viewEl.querySelector('.setbox').hidden = !SETOPEN; }));
+    viewEl.querySelectorAll('[data-more]').forEach(b=>b.addEventListener('click',()=>{
+      const m = b.previousElementSibling; m.hidden = !m.hidden; b.classList.toggle('on', !m.hidden); }));
     viewEl.querySelectorAll('[data-carry]').forEach(b=>b.addEventListener('click',()=>setCarry(b.dataset.carry, b.dataset.on==='1', b)));
     viewEl.querySelectorAll('[data-plan]').forEach(b=>b.addEventListener('click',()=>setPlan(b.dataset.plan, { on: b.dataset.on==='1' }, b)));
     viewEl.querySelectorAll('[data-planmins]').forEach(b=>b.addEventListener('click',()=>{
@@ -4221,6 +4233,8 @@ function useKey(el){
   if(d.rd) return 'reading:range';
   if(d.dp) return 'dispatch:range';
   if(d.dpmiss) return 'dispatch:missonly';
+  if(d.settog) return 'today:settings';
+  if(d.more) return 'today:more';
   if(d.move) return 'today:move';
   if(d.pull) return 'today:pull';
   if(d.day) return 'today:day';
@@ -4258,6 +4272,7 @@ const USE_WATCH = [
 
   ['assign:go','派发（按钮）'], ['key:enter','派发（Enter 键）'], ['assign:arch','底部条 · 归档'], ['key:a','底部条 · 归档（A 键）'],
   ['arch:row','单行 · 归档/放回'], ['arch:group','书架 · 整组归档'], ['arch:today','今天页 · 归档'],
+  ['today:settings','今天 · ⚙ 排作业设置'], ['today:more','今天 · ⋯'],
   ['today:move','今天 · 改日期'], ['today:pull','今天 · 撤回'], ['today:day','今天 · 翻前一天/后一天'],
   ['dispatch:range','派发记录 · 换时间段'], ['dispatch:missonly','派发记录 · 只看没做的'],
   ['focus:range','专注情况 · 换时间段'], ['reading:range','阅读写作 · 换时间段'],
