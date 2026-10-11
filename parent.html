@@ -837,7 +837,7 @@
 <script src="JS/ai-key.js"></script>
 <script src="JS/writing-review.js"></script>
 <script src="JS/writing-kinds.js"></script>
-<script src="JS/plan-core.js"></script>
+<script src="JS/plan-core.js?v=1011"></script>
 <script>
 /* =====================================================================
    家长控制台
@@ -1090,7 +1090,7 @@ function carryList(k){
   const out = [];
   DAYS[k].filter(d => d.date >= first && d.date < T).sort((a,b)=>a.date.localeCompare(b.date)).forEach(d=>{
     d.items.forEach(it=>{
-      if(have.has(it.id)) return;
+      if(have.has(it.id) || PlanCore.noCarry(it)) return;
       const b = BANK_BY_ID[it.id];
       // 从那天到昨天交过就不挪（今天才做的照挪：挪过来正好算今天的）
       if(ATT.some(a => a.kid===k && a.id===it.id && a.date>=d.date && a.date<T && (!b || countsAsDone(a, b)))) return;
@@ -1602,7 +1602,7 @@ function viewToday(){
     </div>
     <div class="carryrow">没做完自动顺延到第二天${qm(`开着的话：前一天（最远倒推 ${CARRY_DAYS} 天）派的、到昨天都没交的，第二天自动挪到「今天」，标「延后一天」「延后两天」…（从最早派的那天算）。
       原来那天会写一行「没做完，顺延到 …」，派发记录里那天照样算没做。打分的卷子要交了卷才算做完，参考 / 链接打开过就算。
-      今天撤回的那份不会再挪回来；不想让它再往后挪，就撤回。这一页每天第一次打开时挪；孩子先登录也看得到（他那边标 From Fri）。`)}
+      Class Vocab 不顺延（跟着上课那一周走，没做完留在原来那天）。今天撤回的那份不会再挪回来；不想让它再往后挪，就撤回。每晚 22:00 Mac 上自动挪到明天；这一页每天第一次打开时也挪；孩子先登录也看得到（他那边标 From Fri）。`)}
       ${['grace','warren'].map(k=>{ const on = !!(CARRY[k] && CARRY[k].on);
         return `<button class="fchip${on?' on':''}" data-carry="${k}" data-on="${on?0:1}">${KID[k].av} ${KID[k].n} · ${on?'开':'关'}</button>`; }).join('')}
     </div>

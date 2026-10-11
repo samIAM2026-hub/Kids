@@ -12,6 +12,8 @@
   const shiftDay = (d, n) => { const x = new Date(d+'T12:00:00'); x.setDate(x.getDate()+n); return iso(x); };
   // Class Vocab 跟着上课走，钉在派的那天；顺延过来的就不算钉住了，跟着队排
   const planPinned = it => !it.carried && /Class-Vocab/i.test(decodeURIComponent(it.id||''));
+  // Class Vocab 不顺延（Sam 2026-10-11：「Grace 的 vocabulary 除外」）：跟着上课那一周走，没做完就留在原来那天。homework.html 的 carriedIn 里照抄了一份
+  const noCarry = it => /Class-Vocab/i.test(decodeURIComponent(it.id||''));
   const pad = (n, w) => String(n).padStart(w, '0');
   const qTail  = i => '~' + Date.now() + '|' + pad(i, 3);
   const qFront = i => '!' + pad(9e12 - Date.now(), 13) + '|' + pad(i, 3);
@@ -67,6 +69,6 @@
     return out;
   }
 
-  const api = { iso, shiftDay, planPinned, planDays, qTail, qFront, qSeq };
+  const api = { iso, shiftDay, planPinned, noCarry, planDays, qTail, qFront, qSeq };
   if(typeof module !== 'undefined' && module.exports) module.exports = api; else root.PlanCore = api;
 })(this);
