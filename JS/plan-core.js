@@ -5,7 +5,8 @@
    队列的先后看每份作业身上的 q（字符串，按字典序排）：
      · 第一次被排时记下「那天|第几份」，顺延过来的用最早派的那天 —— 所以延后的总在前面；
      · 家长「往前 / 往后」之后整条队重新编号：qSeq(今天, 第几个)；
-     · 派发「排到队尾」qTail，「插到最前」qFront（'!' 比数字小，'~' 比数字大）。 */
+     · 派发「排到队尾」qTail，「插到最前」qFront（'!' 比数字小，'~' 比数字大）。
+   2026-10-10 起：顺延到今天的（carried）整份留在今天、不算进当天的分钟数，当天照样再排满原定的量。 */
 (function(root){
   const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   const shiftDay = (d, n) => { const x = new Date(d+'T12:00:00'); x.setDate(x.getDate()+n); return iso(x); };
@@ -23,6 +24,8 @@
     // 估不出数（NaN、0）就按 20 分钟算，免得这份永远排不进去
     const mm = it => { const v = +mins(it); return Number.isFinite(v) && v > 0 ? v : 20; };
     const add = (d, it) => { (out[d] = out[d] || []).push(it); seen.add(it.id); used[d] = (used[d] || 0) + mm(it) + gap; };
+    // 顺延过来的不占当天的分钟数（Sam 2026-10-10：「不要减少每一天的量」）：没做完的全部加在第二天原定的量上面，再没做完就全部加到第三天
+    const addFree = (d, it) => { (out[d] = out[d] || []).push(it); seen.add(it.id); };
     // 哪天撤回过这份，就不再把它排回那天
     const wd = {}; days.forEach(d => { wd[d.date] = new Set((d.withdrawn || []).map(x => x.id)); });
     const pool = [];
@@ -31,7 +34,10 @@
       d.items.forEach((it, i)=>{
         const x = it.q ? { ...it } : { ...it, q: (it.carried ? (it.origin || d.date) : d.date) + '|' + String(i).padStart(3, '0') };
         if(seen.has(x.id) || pool.some(y => y.id === x.id)) return;   // 同一份派了两天：只留最早那份
-        if(d.date === T){ if(keepToday(x) || pinned(x)) return add(T, x); }
+        if(d.date === T){
+          if(x.carried) return addFree(T, x);
+          if(keepToday(x) || pinned(x)) return add(T, x);
+        }
         else {
           if(doneAhead(x)) return add(T, { ...x, ahead: true });
           if(pinned(x)) return add(d.date, x);
