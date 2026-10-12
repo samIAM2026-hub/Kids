@@ -6,7 +6,8 @@
      · 第一次被排时记下「那天|第几份」，顺延过来的用最早派的那天 —— 所以延后的总在前面；
      · 家长「往前 / 往后」之后整条队重新编号：qSeq(今天, 第几个)；
      · 派发「排到队尾」qTail，「插到最前」qFront（'!' 比数字小，'~' 比数字大）。
-   2026-10-10 起：顺延到今天的（carried）整份留在今天、不算进当天的分钟数，当天照样再排满原定的量。 */
+   2026-10-10 起：顺延到今天的（carried）整份留在今天、不算进当天的分钟数，当天照样再排满原定的量。
+   2026-10-12 起：数学一天最多排 3 份（Sam：「数学每天就派 3 个就可以了，不要派得太多」），多的往后排；顺延来的不算在这 3 份里。 */
 (function(root){
   const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   const shiftDay = (d, n) => { const x = new Date(d+'T12:00:00'); x.setDate(x.getDate()+n); return iso(x); };
@@ -18,14 +19,18 @@
   const qTail  = i => '~' + Date.now() + '|' + pad(i, 3);
   const qFront = i => '!' + pad(9e12 - Date.now(), 13) + '|' + pad(i, 3);
   const qSeq   = (T, i) => T + '|r' + pad(i, 4);
+  // 一天里同一科最多排几份：现在只限数学 3 份，别的科不限
+  const MATH_PER_DAY = 3;
+  const subjCap = sj => /Math/i.test(sj || '') ? MATH_PER_DAY : Infinity;
 
   // 纯函数，方便单独测：days = [{date, items}]（今天和以后的），返回 { date: items }，覆盖今天（或明天）往后所有要写的天。
   function planDays({ T, planToday, days, budget, gap, mins, doneAhead, keepToday, pinned }){
     const start = planToday ? T : shiftDay(T, 1);
-    const out = {}, used = {}, seen = new Set();
+    const out = {}, used = {}, seen = new Set(), cnt = {};
     // 估不出数（NaN、0）就按 20 分钟算，免得这份永远排不进去
     const mm = it => { const v = +mins(it); return Number.isFinite(v) && v > 0 ? v : 20; };
-    const add = (d, it) => { (out[d] = out[d] || []).push(it); seen.add(it.id); used[d] = (used[d] || 0) + mm(it) + gap; };
+    const add = (d, it) => { (out[d] = out[d] || []).push(it); seen.add(it.id); used[d] = (used[d] || 0) + mm(it) + gap;
+      const k = d + '|' + (it.subj || ''); cnt[k] = (cnt[k] || 0) + 1; };
     // 顺延过来的不占当天的分钟数（Sam 2026-10-10：「不要减少每一天的量」）：没做完的全部加在第二天原定的量上面，再没做完就全部加到第三天
     const addFree = (d, it) => { (out[d] = out[d] || []).push(it); seen.add(it.id); };
     // 哪天撤回过这份，就不再把它排回那天
@@ -56,7 +61,7 @@
       const blocked = new Set();
       for(let i = 0; i < pool.length; ){
         const it = pool[i], m = mm(it) + gap, have = used[d] || 0, sj = it.subj || '';
-        if(blocked.has(sj) || (wd[d] && wd[d].has(it.id))){ blocked.add(sj); i++; continue; }
+        if(blocked.has(sj) || (wd[d] && wd[d].has(it.id)) || (cnt[d + '|' + sj] || 0) >= subjCap(sj)){ blocked.add(sj); i++; continue; }
         if(m <= budget - have || (i === 0 && placed === 0 && m > budget / 2 && have < budget / 2)){ add(d, pool.splice(i, 1)[0]); placed++; }
         else { blocked.add(sj); i++; }
       }
