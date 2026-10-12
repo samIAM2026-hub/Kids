@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 10.5 · Reading B</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 10.5 &middot; Section 2, part 2</div>
+    <h1>Reading Comprehension &mdash; Part B (Questions 21&ndash;40)</h1>
+    <div class="meta">20 questions &middot; 20 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">20:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 10.5 &middot; <a href="SSAT-MockTest-1005-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading B",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 5 &middot; Questions 21&ndash;25",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Passing through the woods in summer, we often find beautiful bits<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>of a low form of plant growth called fungi, branching from the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>trees, covering old stumps, or poking their dainty heads up through<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the ground at our feet. How strikingly different are fungi from<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>other plants! They have no leaves and none of that wonderful green<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>coloring-matter, chlorophyll, which takes carbon from the air and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>hydrogen and oxygen from water and forms them into food for the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>plant, so making it an independent being. As the fungi lack this,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>they must get the food already made by some other plant or animal.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>That is the reason we find them attached to trees, logs, anything<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>that will furnish them with the desired food.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 21,
+   "stem": "As it is used in line 1, the word &ldquo;Passing&rdquo; most nearly means",
+   "opts": [
+    "transferring",
+    "extending",
+    "elapsing",
+    "undergoing",
+    "traveling"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;Passing through the woods in summer, we often find&hellip;&rdquo; &mdash; we are walking through the woods, <b>traveling<\/b> through them. (C) elapsing is the trap: time &ldquo;passes&rdquo; (elapses), but here people are moving. Rule: ask <i>who<\/i> is passing &mdash; people travel, time elapses."
+  },
+  {
+   "n": 22,
+   "stem": "To describe how fungi appear &ldquo;at our feet&rdquo; (end of first sentence), the author makes use of which literary device?",
+   "opts": [
+    "Onomatopoeia",
+    "Simile",
+    "Hyperbole",
+    "Personification",
+    "Alliteration"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.tone",
+   "why": "Fungi are described as &ldquo;poking their dainty heads up through the ground&rdquo; (line 3). Giving a plant heads and a human action like poking is <b>personification<\/b>. (B) simile is the trap, but there is no &ldquo;like&rdquo; or &ldquo;as.&rdquo; Rule: a non-human thing doing a human action = personification."
+  },
+  {
+   "n": 23,
+   "stem": "According to the passage, the lack of chlorophyll explains why fungi",
+   "opts": [
+    "have no leaves",
+    "grow where they do",
+    "are the color they are",
+    "are not classified as plants",
+    "are not eaten by forest animals"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "Without chlorophyll they can&rsquo;t make food, so they take it from other living things: &ldquo;That is the reason we find them attached to trees, logs&hellip;&rdquo; (lines 10&ndash;11). It explains why they <b>grow where they do<\/b>. (A) is the trap: &ldquo;no leaves&rdquo; is listed next to the chlorophyll fact but is not caused by it. (D) is wrong &mdash; the passage calls fungi plants. Rule: follow the &ldquo;that is the reason&rdquo; signal."
+  },
+  {
+   "n": 24,
+   "stem": "The author uses the word &ldquo;independent&rdquo; (end of third sentence) to indicate that certain plants",
+   "opts": [
+    "are nutritionally self-sufficient",
+    "are unrelated to other types of plants",
+    "are not considered part of the forest",
+    "grow freely without cultivation",
+    "thrive in isolation from other plants"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.vocab",
+   "why": "Chlorophyll &ldquo;forms them into food for the plant, so making it an independent being&rdquo; (lines 7&ndash;8). Green plants make their own food &mdash; they are <b>nutritionally self-sufficient<\/b>. (E) is the trap: &ldquo;independent&rdquo; can mean alone, but here it is about food. Rule: let the sentence&rsquo;s topic (food) decide the meaning."
+  },
+  {
+   "n": 25,
+   "stem": "The main purpose of the passage is to",
+   "opts": [
+    "illustrate the balance of nature",
+    "explain how plants synthesize food",
+    "distinguish fungi from other plants",
+    "identify which forest plants are edible",
+    "debunk a popular myth about fungus"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.main",
+   "why": "The key sentence is &ldquo;How strikingly different are fungi from other plants!&rdquo; (lines 4&ndash;5); the rest explains that difference. The purpose is to <b>distinguish fungi from other plants<\/b>. (B) is the trap: food-making is explained only to show what fungi lack. Rule: the main purpose covers the whole passage, not one supporting detail."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 6 &middot; Questions 26&ndash;30",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The plan which I adopted, and the one by which I was most<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>successful, was that of making friends of all the little white boys<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>whom I met in the street. As many of these as I could, I converted<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>into teachers. With their kindly aid, obtained at different times<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>and in different places, I finally succeeded in learning to read.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>When I was sent on errands, I always took my book with me, and by<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>going one part of my errand quickly, I found time to get a lesson<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>before my return. I used also to carry bread with me, enough of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>which was always in the house, and to which I was always welcome;<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>for I was much better off in this regard than many of the poor white<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>children in our neighborhood. This bread I used to bestow upon the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>hungry little urchins, who, in return, would give me that more<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>valuable bread of knowledge. I am strongly tempted to give the names<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>of two or three of those little boys, as a testimonial of the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>gratitude and affection I bear them; but prudence forbids;--not that<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>it would injure me, but it might embarrass them; for it is almost an<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>unpardonable offence to teach slaves to read in this Christian<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>country.<\/span><\/div><\/div>",
+   "src": "Excerpt from <i>Narrative of the Life of Frederick Douglass<\/i> by Frederick Douglass, 1845"
+  },
+  {
+   "n": 26,
+   "stem": "As revealed in the passage, the goal of the narrator&rsquo;s &ldquo;plan&rdquo; (line 1) was to",
+   "opts": [
+    "exact revenge",
+    "earn money",
+    "attain freedom",
+    "escape punishment",
+    "acquire a skill"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.detail",
+   "why": "Line 5 states the result of the plan: &ldquo;I finally succeeded in learning to read.&rdquo; Reading is a skill, so the goal was to <b>acquire a skill<\/b>. (C) attain freedom is the trap: Douglass did later escape slavery, but this passage is only about learning to read. Rule: stay inside the passage, not what you know from history."
+  },
+  {
+   "n": 27,
+   "stem": "According to the passage, &ldquo;the hungry little urchins&rdquo; (second to last sentence) were given bread in exchange for",
+   "opts": [
+    "protection",
+    "friendship",
+    "instruction",
+    "keeping quiet",
+    "running errands"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.detail",
+   "why": "In return for bread, the boys &ldquo;would give me that more valuable bread of knowledge&rdquo; (lines 12&ndash;13) &mdash; reading lessons, which is <b>instruction<\/b>. (B) friendship is the trap: he did make friends with them, but the bread bought lessons. Rule: &ldquo;in return&rdquo; tells you exactly what the exchange was."
+  },
+  {
+   "n": 28,
+   "stem": "The narrator indicates that in regard to the &ldquo;little boys&rdquo; (last sentence) he felt",
+   "opts": [
+    "envious",
+    "superior",
+    "guilty",
+    "thankful",
+    "ambivalent"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.tone",
+   "why": "He wants to name them &ldquo;as a testimonial of the gratitude and affection I bear them&rdquo; (lines 14&ndash;15). Gratitude = feeling <b>thankful<\/b>. (B) superior is the trap: he says he had more bread than they did, but he doesn&rsquo;t look down on them. Rule: when the narrator names a feeling, use it."
+  },
+  {
+   "n": 29,
+   "stem": "In the last sentence, the narrator uses the word &ldquo;not&rdquo; in order to",
+   "opts": [
+    "disprove a false allegation",
+    "clarify a potentially misleading statement",
+    "challenge a widely accepted assumption",
+    "suggest an alternative hypothesis",
+    "distinguish between two options"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.tone",
+   "why": "&ldquo;Prudence forbids&rdquo; could make readers think he is protecting himself, so he adds &ldquo;not that it would injure me, but it might embarrass them&rdquo; (lines 15&ndash;16). He is clearing up something that could be misunderstood &mdash; he <b>clarifies a potentially misleading statement<\/b>. (A) is the trap: nobody had accused him of anything. Rule: &ldquo;not that&hellip; but&hellip;&rdquo; corrects a wrong impression."
+  },
+  {
+   "n": 30,
+   "stem": "It can be inferred that at the time of the events described in the passage, the narrator was a",
+   "opts": [
+    "slave",
+    "fugitive",
+    "schoolboy",
+    "street urchin",
+    "bread peddler"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "He keeps the boys&rsquo; names secret because &ldquo;it is almost an unpardonable offence to teach slaves to read&rdquo; (lines 16&ndash;17) &mdash; so the person they taught was a <b>slave<\/b>. (B) fugitive is the trap: he is sent on errands from a house, so he has not run away. Rule: the last sentence often holds the key fact."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 7 &middot; Questions 31&ndash;35",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Never did a couple set forward on the flowery path of early and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>well-suited marriage with a fairer prospect of felicity. It was the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>misfortune of my friend, however, to have embarked his property in<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>large speculations; and he had not been married many months, when,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>by a succession of sudden disasters, it was swept from him, and he<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>found himself reduced almost to penury. For a time he kept his<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>situation to himself, and went about with a haggard countenance, and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>a breaking heart. His life was but a protracted agony; and what<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>rendered it more insupportable was the necessity of keeping up a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>smile in the presence of his wife; for he could not bring himself to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>overwhelm her with the news. She saw, however, with the quick eyes<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>of affection, that all was not well with him. She marked his altered<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>looks and stifled sighs, and was not to be deceived by his sickly<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and vapid attempts at cheerfulness. She tasked all her sprightly<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>powers and tender blandishments to win him back to happiness; but<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>she only drove the arrow deeper into his soul.<\/span><\/div><\/div>",
+   "src": "Excerpt from <i>The Sketch Book of Geoffrey Crayon<\/i> by Washington Irving, 1819"
+  },
+  {
+   "n": 31,
+   "stem": "At the end of the first sentence, &ldquo;felicity&rdquo; most likely refers to",
+   "opts": [
+    "worldly success",
+    "marital bliss",
+    "graceful speech",
+    "natural aptitude",
+    "good health"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.vocab",
+   "why": "Felicity means great happiness, and the sentence is about a &ldquo;well-suited marriage&rdquo; (lines 1&ndash;2). Happiness in a marriage is <b>marital bliss<\/b>. (A) worldly success is the trap, because money comes up in the next sentence &mdash; but felicity is about happiness, not wealth. Rule: use both the word&rsquo;s meaning and its own sentence."
+  },
+  {
+   "n": 32,
+   "stem": "The author uses the word &ldquo;speculations&rdquo; (second sentence) to describe",
+   "opts": [
+    "scientific theories",
+    "risky business ventures",
+    "jealous suspicions",
+    "unconfirmed rumors",
+    "philosophical reflections"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.vocab",
+   "why": "He &ldquo;embarked his property in large speculations&rdquo; and then lost it all &ldquo;by a succession of sudden disasters&rdquo; (lines 3&ndash;6). Putting money into something that can collapse = <b>risky business ventures<\/b>. (D) and (E) use the other meaning of speculation (guessing or thinking), which doesn&rsquo;t fit &ldquo;property.&rdquo; Rule: money words nearby point to the money meaning."
+  },
+  {
+   "n": 33,
+   "stem": "Which of the following best describes the husband&rsquo;s &ldquo;situation&rdquo; (third sentence)?",
+   "opts": [
+    "He is being blackmailed.",
+    "His marriage is in jeopardy.",
+    "He is in trouble with the law.",
+    "He has a serious medical condition.",
+    "He is on the brink of financial ruin."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.detail",
+   "why": "The sentence just before says he &ldquo;found himself reduced almost to penury&rdquo; (line 6) &mdash; penury means being very poor. He is <b>on the brink of financial ruin<\/b>. (D) is the trap: his &ldquo;haggard countenance&rdquo; and &ldquo;sickly&rdquo; smiles come from worry, not illness. Rule: &ldquo;his situation&rdquo; points back to what was just described."
+  },
+  {
+   "n": 34,
+   "stem": "According to the passage, what made the husband&rsquo;s life &ldquo;insupportable&rdquo; (fourth sentence) was the need to",
+   "opts": [
+    "curtail his lavish lifestyle",
+    "acknowledge his mistakes",
+    "maintain a false appearance",
+    "accept his wife&rsquo;s pity",
+    "ask friends for help"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.detail",
+   "why": "Lines 8&ndash;10: what made it worse &ldquo;was the necessity of keeping up a smile in the presence of his wife.&rdquo; Smiling while miserable is keeping up a show &mdash; he must <b>maintain a false appearance<\/b>. (A) is the trap: losing money might mean spending less, but the passage never says so. Rule: the answer is usually a paraphrase of the exact phrase after &ldquo;was.&rdquo;"
+  },
+  {
+   "n": 35,
+   "stem": "As it is used in the second to last sentence, the word &ldquo;marked&rdquo; most nearly means",
+   "opts": [
+    "noticed",
+    "graded",
+    "labeled",
+    "defaced",
+    "accentuated"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.vocab",
+   "why": "She saw &ldquo;with the quick eyes of affection&rdquo; that something was wrong; &ldquo;She marked his altered looks and stifled sighs&rdquo; (lines 12&ndash;13) &mdash; she <b>noticed<\/b> them. (B) graded and (C) labeled are the school meanings of &ldquo;mark,&rdquo; which don&rsquo;t fit looks and sighs. Rule: in older writing, &ldquo;mark&rdquo; often means &ldquo;notice.&rdquo;"
+  },
+  {
+   "type": "passage",
+   "label": "Passage 8 &middot; Questions 36&ndash;40",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">But if you would see the purest, the sincerest, the most<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>affecting piety of a parent&rsquo;s love, startle a young family of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>quails, and watch the conduct of the mother. She will not leave you.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>No, not she. But she will fall at your feet, uttering a noise which<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>none but a distressed mother can make, and she will run, and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>flutter, and seem to try to be caught, and cheat your outstretched<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>hand, and affect to be wing-broken and wounded, and yet have just<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>strength to tumble along, until she has drawn you, fatigued, a safe<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>distance from her threatened children and the young hopes of her<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>heart ; and then will she mount, whirring with glad strength, and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>away through the maze of trees you have not seen before, like a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>close-shot bullet, fly to her skulking infants.<\/span><\/div><\/div>",
+   "src": "Excerpt from <i>McGuffey&rsquo;s Eclectic Reader<\/i> by W.H. McGuffey, 1840"
+  },
+  {
+   "n": 36,
+   "stem": "The author uses the phrase &ldquo;No, not she&rdquo; (third sentence) to indicate that the mother quail",
+   "opts": [
+    "is too proud to move aside",
+    "shows no sign of distress",
+    "does not behave as expected",
+    "is unaware of any danger",
+    "neglects her maternal duties"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.infer",
+   "why": "You would expect a startled bird to fly off and save itself. The author stresses &ldquo;She will not leave you. No, not she&rdquo; (lines 3&ndash;4) &mdash; she <b>does not behave as expected<\/b>; she stays and acts out a show. (B) is the trap: the very next line says she makes the noise of &ldquo;a distressed mother.&rdquo; Rule: a repeated &ldquo;No, not&hellip;&rdquo; signals a surprise."
+  },
+  {
+   "n": 37,
+   "stem": "As it is used more than mid-way through the passage, the word &ldquo;drawn&rdquo; most nearly means",
+   "opts": [
+    "led",
+    "pulled",
+    "selected",
+    "stretched",
+    "portrayed"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;Until she has drawn you, fatigued, a safe distance from her threatened children&rdquo; (lines 8&ndash;9): she gets you to follow her away &mdash; she has <b>led<\/b> you. (B) pulled is the trap: she never touches you; you follow on your own. Rule: test each choice in the sentence &mdash; &ldquo;led you a safe distance&rdquo; fits."
+  },
+  {
+   "n": 38,
+   "stem": "The author uses the word &ldquo;cheat&rdquo; (mid-way through the passage) to describe how the mother quail",
+   "opts": [
+    "feigns injury",
+    "eludes capture",
+    "flies through a maze",
+    "wearies her pursuer",
+    "disguises her voice"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.vocab",
+   "why": "She seems to try to be caught &ldquo;and cheat your outstretched hand&rdquo; (lines 6&ndash;7) &mdash; just as your hand reaches her, she slips away. She <b>eludes capture<\/b>. (A) feigns injury is the trap: that is the <i>next<\/i> clause (&ldquo;affect to be wing-broken&rdquo;), a different trick. Rule: tie the word to what it acts on &mdash; here, &ldquo;your outstretched hand.&rdquo;"
+  },
+  {
+   "n": 39,
+   "stem": "The simile (toward end of the last sentence) serves primarily to emphasize the mother quail&rsquo;s",
+   "opts": [
+    "ingenuity",
+    "speed",
+    "anguish",
+    "fear",
+    "elegance"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.tone",
+   "why": "She flies &ldquo;like a close-shot bullet&rdquo; (lines 11&ndash;12). A bullet is the picture of something very fast, so the simile stresses her <b>speed<\/b>. (A) ingenuity is the trap: her trick is clever, but the bullet comparison is about how fast she flies. Rule: ask what the two things in a simile share."
+  },
+  {
+   "n": 40,
+   "stem": "The author describes the mother quail in a tone of",
+   "opts": [
+    "frustration",
+    "resentment",
+    "disbelief",
+    "admiration",
+    "triumph"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.tone",
+   "why": "The author calls her behavior &ldquo;the purest, the sincerest, the most affecting piety of a parent&rsquo;s love&rdquo; (lines 1&ndash;2) &mdash; high praise, a tone of <b>admiration<\/b>. (E) triumph is the trap: the <i>quail<\/i> flies off &ldquo;with glad strength,&rdquo; but that is her feeling, not the author&rsquo;s tone. Rule: tone = the author&rsquo;s attitude, found in his word choices."
+  }
+ ],
+ "count": 20
+};
+const MINUTES = 20;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

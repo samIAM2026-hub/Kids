@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 10.5b · Reading A</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 10.5b &middot; Section 2, part 1</div>
+    <h1>Reading Comprehension &mdash; Part A (Questions 1&ndash;20)</h1>
+    <div class="meta">20 questions &middot; 20 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">20:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 10.5b &middot; <a href="SSAT-MockTest-1005b-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading A",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 1 &middot; Questions 1&ndash;5",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">In colonial New York and Boston, as well as in the smaller towns,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>women artisans and merchants made or sold everything from dry goods<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>to china, furniture, and hardware. This was especially true after<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>1760, with the extension of the market for many items manufactured<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>in the home. Women usually ran taverns and coffeehouses. Others were<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>carpenters, cabinetmakers, braziers, soapmakers, cutlers,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>ropemakers, and even blacksmiths. The hardier of these occupations<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>had generally been inherited from deceased husbands.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Women were also more active on the professional level, and for the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>same reasons: a short-handed country would not disdain womenpower,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and in the Colonial era these occupations required little formal<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>education. Women frequently taught in the common schools. Nurses and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>midwives had more patients than they could handle, and they and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>other women did a flourishing business by offering their services as<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>doctors.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 1,
+   "stem": "What is the primary reason the author gives for the involvement of women in the colonial economy?",
+   "opts": [
+    "A desire for financial independence",
+    "Advances in technology",
+    "A labor shortage",
+    "The growth of the population",
+    "Men going off to war"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.detail",
+   "why": "Line 10 gives the reason: &ldquo;a short-handed country would not disdain womenpower.&rdquo; Short-handed means not enough workers &mdash; <b>a labor shortage<\/b>. (A) and (E) sound reasonable from history class, but the passage never mentions them. Rule: answer from the lines, not from what you already know."
+  },
+  {
+   "n": 2,
+   "stem": "As it is used in the third sentence, the word \"ran\" most nearly means",
+   "opts": [
+    "sprinted",
+    "extended",
+    "campaigned",
+    "managed",
+    "fled"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;Women usually ran taverns and coffeehouses&rdquo; (line 5) means they were in charge of these businesses &mdash; they <b>managed<\/b> them. (A) sprinted is the everyday meaning of &ldquo;ran,&rdquo; the classic trap. Rule: plug each choice into the sentence and see which one makes sense."
+  },
+  {
+   "n": 3,
+   "stem": "In the last sentence of the first paragraph, the word \"hardier\" probably means",
+   "opts": [
+    "weightier",
+    "more strenuous",
+    "more complex",
+    "more time-consuming",
+    "requiring more education"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.vocab",
+   "why": "The &ldquo;hardier&rdquo; jobs (line 7) come right after the list ending &ldquo;and even blacksmiths&rdquo; &mdash; jobs that take a lot of physical strength, so <b>more strenuous<\/b>. (E) is the trap: the next paragraph says these jobs needed &ldquo;little formal education.&rdquo; (A) weightier is tempting because blacksmiths lift heavy things, but the word describes the work, not its weight."
+  },
+  {
+   "n": 4,
+   "stem": "The author mentions all of the following occupations for women EXCEPT",
+   "opts": [
+    "blacksmith",
+    "doctor",
+    "carpenter",
+    "glassblower",
+    "soapmaker"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.detail",
+   "why": "For an EXCEPT question, find each choice in the text and cross it off. Blacksmiths, carpenters and soapmakers are in lines 6&ndash;7, and doctors are in line 15. <b>Glassblower<\/b> never appears. Rule: with EXCEPT, the answer is the one you can&rsquo;t find."
+  },
+  {
+   "n": 5,
+   "stem": "The author would most likely agree with which of the following statements about Colonial times?",
+   "opts": [
+    "Some occupations, such as medicine and teaching, required extensive education.",
+    "There were fewer women in the marketplace after 1760.",
+    "It was essential that women made what they sold.",
+    "The women of New York and Boston had better jobs than those of smaller towns.",
+    "There was an increase in the number of professional women."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "Line 9 says &ldquo;Women were <i>also more active<\/i> on the professional level,&rdquo; and then lists teachers, nurses, midwives and doctors &mdash; so <b>there was an increase in the number of professional women<\/b>. (A) is the trap: lines 11&ndash;12 say these jobs needed &ldquo;little formal education.&rdquo; (B) reverses lines 3&ndash;4 (&ldquo;especially true after 1760&rdquo;)."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 2 &middot; Questions 6&ndash;10",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">In the late 1970s, the Food and Drug Administration (FDA) approved<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the first vaccine that successfully prevented pneumococcal<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>pneumonia. Researchers found that the rate that pneumonia occurs<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>increases as we get older. In 2012, the FDA approved a new vaccine<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>for adults 50 and older. This vaccine protects against thirteen<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>strains of pneumococcal bacteria, which cause meningitis, pneumonia,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and ear infections. The FDA said that 300,000 adults 50 years and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>older are hospitalized every year for pneumococcal pneumonia.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Initial distribution was being aimed at persons over 65.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span style=\"text-indent:26px;display:inline-block\">\"Despite the wide use of antibiotics, pneumonia today is the sixth<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>leading cause of death in the United States,\" an FDA representative<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>said. \"The type of pneumonia against which the vaccine protects<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>accounts for a major portion of these deaths. The vaccine is<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>effective in at least 80 percent of the people who receive it.\"<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>Still, all these years later, the vaccine is a safe and effective<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>way to prevent pneumonia.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 6,
+   "stem": "This passage is primarily about",
+   "opts": [
+    "medical researchers",
+    "pneumococcal bacteria",
+    "a vaccine for pneumonia",
+    "illness in the United States",
+    "the Food and Drug Administration"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.main",
+   "why": "Almost every sentence is about the vaccine: when it was approved (lines 1&ndash;5), what it protects against (lines 5&ndash;7), how effective it is (line 14), and that it is &ldquo;safe and effective&rdquo; (line 15). So the topic is <b>a vaccine for pneumonia<\/b>. (B) and (E) are traps: the bacteria and the FDA are mentioned, but only as details about the vaccine."
+  },
+  {
+   "n": 7,
+   "stem": "The passage suggests that the vaccine approved in the late 1970s probably",
+   "opts": [
+    "reduced the number of deaths from pneumonia",
+    "made the use of antibiotics obsolete",
+    "increased the authority of the FDA",
+    "provided protection against illnesses other than pneumonia",
+    "increased health expenses for people in the United States"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "Line 2 says the first vaccine &ldquo;successfully prevented pneumococcal pneumonia,&rdquo; and lines 12&ndash;13 say this type of pneumonia causes &ldquo;a major portion&rdquo; of pneumonia deaths. Preventing it would most likely have <b>reduced the number of deaths from pneumonia<\/b>. (D) is the trap: the protection against meningitis and ear infections belongs to the <i>2012<\/i> vaccine (lines 4&ndash;7)."
+  },
+  {
+   "n": 8,
+   "stem": "As it is used in the fourth sentence, the word \"strains\" most nearly means",
+   "opts": [
+    "pressures",
+    "exertions",
+    "melodies",
+    "injuries",
+    "types"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;Thirteen strains of pneumococcal bacteria&rdquo; (lines 5&ndash;6) means thirteen kinds of the bacteria &mdash; <b>types<\/b>. (A), (B) and (D) are other meanings of &ldquo;strain&rdquo; (stress, effort, a pulled muscle), and (C) is the poetic &ldquo;strains of music.&rdquo; Rule: a word with many meanings needs the one that fits this sentence."
+  },
+  {
+   "n": 9,
+   "stem": "The attitude of the \"FDA representative\" (first sentence of second paragraph) toward use of the pneumococcal pneumonia vaccine is best described as",
+   "opts": [
+    "cautious",
+    "critical",
+    "fanatical",
+    "supportive",
+    "ambivalent"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.tone",
+   "why": "The representative explains how deadly pneumonia is and says &ldquo;The vaccine is effective in at least 80 percent of the people who receive it&rdquo; (lines 13&ndash;14). That is clearly in favor &mdash; <b>supportive<\/b>. (C) fanatical is too extreme: the speaker gives calm facts, not wild enthusiasm. Rule: in tone questions, avoid choices that are stronger than the text."
+  },
+  {
+   "n": 10,
+   "stem": "The style of the passage is most like that found in",
+   "opts": [
+    "a textbook",
+    "an almanac",
+    "a news article",
+    "an encyclopedia",
+    "an advertisement"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.tone",
+   "why": "The passage reports a recent event (&ldquo;the FDA approved a new vaccine&rdquo;), gives numbers from an official, and quotes &ldquo;an FDA representative said&rdquo; (lines 10&ndash;11). Quoting a spokesperson is the mark of <b>a news article<\/b>. (A) and (D) are traps: textbooks and encyclopedias give facts but rarely quote a spokesperson about a fresh announcement."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 3 &middot; Questions 11&ndash;15",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">With the invention of new diving equipment, scientists have been<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>able to study animals such as the octopus in their ocean habitats.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Investigators have given tests to octopuses and found that their<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>intelligence is high compared to that of other mollusks.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span style=\"text-indent:26px;display:inline-block\">In one interesting test, a live lobster was placed in a glass jar.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>In the mouth of the jar there was a cork stopper in which a small<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>hole had been drilled. The jar was taken to sea and put in front of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the entrance to the dwelling of an octopus. Octopuses like to eat<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>lobsters, so in spite of the fact that it was surrounded by cameras,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>lights, and interested divers, the octopus came out and threw itself<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>upon the lobster. When it discovered that it could not reach its<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>prey, it turned red with anger and surprise, for the octopus shows<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>its emotions by changing color.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Normally, the octopus would have been able to paralyze its victim<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>with the poison from its salivary glands. But it could see the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>lobster was still moving around inside the jar. It became very<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>impatient and began to explore the jar. The octopus then found the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>hole in the cork stopper and squeezed its arm inside. When the tip<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>of the arm touched the lobster and the lobster moved, the octopus<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>looked electrified. It seemed to realize that the stopper could be<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>moved and in a few minutes it had pulled the stopper out of the jar<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>with one arm and collected the lobster with two others.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 11,
+   "stem": "The major purpose of the experiment described in the passage was to",
+   "opts": [
+    "test how the octopus solves problems",
+    "discover how the octopus poisons its victims",
+    "study the emotions displayed by an octopus",
+    "discover whether the octopus attacks lobsters",
+    "observe how the octopus behaves when surrounded by divers"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "The test is introduced right after scientists found octopus &ldquo;intelligence is high&rdquo; (line 4), and the lobster is locked in a jar with a stopper &mdash; a puzzle to solve. So the experiment was set up to <b>test how the octopus solves problems<\/b>. (C) is the trap: the color change is mentioned (lines 12&ndash;13), but it was a side detail, not why the jar was built."
+  },
+  {
+   "n": 12,
+   "stem": "According to the passage, what was the octopus' first reaction to the lobster in the jar?",
+   "opts": [
+    "exploring the jar",
+    "pulling out the cork",
+    "eating the lobster",
+    "throwing itself on the jar",
+    "pushing its arm through the hole"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.detail",
+   "why": "Put the events in order. First the octopus &ldquo;came out and threw itself upon the lobster&rdquo; (lines 10&ndash;11) &mdash; that is, <b>throwing itself on the jar<\/b>. Exploring the jar (A), pushing its arm through (E) and pulling out the cork (B) all come later in the third paragraph. Rule: for &ldquo;first&rdquo; questions, trace the sequence."
+  },
+  {
+   "n": 13,
+   "stem": "According to the passage, the octopus shows its emotions by",
+   "opts": [
+    "changing color",
+    "waving its arms",
+    "hiding in caves",
+    "secreting poison",
+    "attacking its enemies"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.detail",
+   "why": "Lines 12&ndash;13 say it directly: &ldquo;the octopus shows its emotions by <b>changing color<\/b>.&rdquo; (D) is the trap: poison is mentioned in line 15, but it is used to paralyze prey, not to show feelings."
+  },
+  {
+   "n": 14,
+   "stem": "The passage implies that the octopus came out of its home because it",
+   "opts": [
+    "was attracted by the lights",
+    "wanted to eat the lobster",
+    "was frightened by the cameras",
+    "was interested in the scientists",
+    "had been coaxed by the divers"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.infer",
+   "why": "Lines 8&ndash;10: &ldquo;Octopuses like to eat lobsters, so in spite of&rdquo; the cameras, lights and divers, it came out. The word &ldquo;so&rdquo; links the cause: it <b>wanted to eat the lobster<\/b>. (A) and (D) are traps: the lights and divers were things it came out <i>in spite of<\/i>, not because of."
+  },
+  {
+   "n": 15,
+   "stem": "The main purpose of the passage is to",
+   "opts": [
+    "explain how scientists observe animals in inaccessible locations",
+    "demonstrate the workings of nature's food chain",
+    "compare the predatory habits of two different sea creatures",
+    "debunk a popular myth about the octopus",
+    "give an illustration of the octopus' superior intelligence"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.main",
+   "why": "Line 4 states the point &mdash; octopus &ldquo;intelligence is high&rdquo; &mdash; and the rest of the passage is one example that shows it: the octopus figures out the stopper and gets the lobster. So the purpose is to <b>give an illustration of the octopus&rsquo; superior intelligence<\/b>. (A) is the trap: diving equipment appears only in the first sentence."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 4 &middot; Questions 16&ndash;20",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"text-align:center;font-weight:bold;margin-bottom:6px\">\"I Wandered Lonely as a Cloud\" by William Wordsworth, 1804<\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">I wandered lonely as a cloud<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>That floats on high o'er vales and hills,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>When all at once I saw a crowd,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>A host, of golden daffodils,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>Beside the lake, beneath the trees,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Fluttering and dancing in the breeze.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Continuous as the stars that shine<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>And twinkle on the Milky Way,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>They stretched in never-ending line<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>Along the margin of a bay.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Ten thousand saw I at a glance,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Tossing their heads in sprightly dance.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The waves beside them danced, but they<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Outdid the sparkling waves in glee.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>A poet could not but be gay,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>In such a jocund company.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>I gazed--and gazed--but little thought<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>What wealth the show to me had brought.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">For oft, when on my couch I lie<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>In vacant or in pensive mood,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>They flash upon that inward eye<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Which is the bliss of solitude,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>And then my heart with pleasure fills,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>And dances with the daffodils.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 16,
+   "stem": "The figure of speech represented in line 12 (last line of second stanza) is",
+   "opts": [
+    "simile",
+    "irony",
+    "hyperbole",
+    "alliteration",
+    "personification"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.tone",
+   "why": "Line 12 says the daffodils are &ldquo;Tossing their heads in sprightly dance.&rdquo; Flowers don&rsquo;t really have heads or dance &mdash; giving them human actions is <b>personification<\/b>. (A) simile is the trap because the poem has similes elsewhere (&ldquo;lonely as a cloud,&rdquo; line 1), but line 12 has no &ldquo;like&rdquo; or &ldquo;as.&rdquo;"
+  },
+  {
+   "n": 17,
+   "stem": "The tone of the poem is best described as",
+   "opts": [
+    "humorous",
+    "mournful",
+    "chatty",
+    "joyful",
+    "detached"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.tone",
+   "why": "Look at the feeling words: &ldquo;glee&rdquo; (line 14), &ldquo;gay&rdquo; (line 15), &ldquo;jocund&rdquo; (line 16), &ldquo;bliss&rdquo; and &ldquo;pleasure&rdquo; (lines 22&ndash;23). The tone is <b>joyful<\/b>. (B) mournful is the trap from the first word, &ldquo;lonely,&rdquo; but the loneliness disappears as soon as he sees the flowers."
+  },
+  {
+   "n": 18,
+   "stem": "In line 16 (middle of third stanza), \"jocund\" most nearly means",
+   "opts": [
+    "fancy",
+    "cheerful",
+    "sincere",
+    "imaginary",
+    "noisy"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.vocab",
+   "why": "The stanza is about the flowers&rsquo; &ldquo;glee&rdquo; and the poet feeling &ldquo;gay&rdquo; (happy) &ldquo;In such a jocund company.&rdquo; Happy company is <b>cheerful<\/b> company. (E) noisy is the trap: the waves and flowers are lively, but nothing in the poem is about sound."
+  },
+  {
+   "n": 19,
+   "stem": "The poet uses the word \"vacant\" (line 20) to describe",
+   "opts": [
+    "a daydream",
+    "an illness",
+    "loneliness",
+    "his heart",
+    "his home"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;When on my couch I lie / In vacant or in pensive mood&rdquo; (lines 19&ndash;20) describes a relaxed, empty-minded state where pictures &ldquo;flash upon that inward eye&rdquo; &mdash; <b>a daydream<\/b>. (C) loneliness is the trap: the next line praises &ldquo;the bliss of solitude,&rdquo; so being alone here is a pleasure, not a sadness."
+  },
+  {
+   "n": 20,
+   "stem": "Which of the following best describes the main idea of the poem?",
+   "opts": [
+    "You should always be envious of the beauty of nature.",
+    "Flowers can often remind you of unpleasant past events.",
+    "Ocean waves can remind you of flowers moving with a breeze.",
+    "Gazing at the Milky Way can never replace the joy that flowers can bring.",
+    "Nature provides so much joy that even the memory of it can make you happy."
+   ],
+   "ans": 4,
+   "sk": "ssat.r.main",
+   "why": "The last stanza is the key: later, lying on his couch, the daffodils &ldquo;flash upon that inward eye&rdquo; and &ldquo;my heart with pleasure fills&rdquo; (lines 21&ndash;23). So <b>even the memory of nature can make you happy<\/b>. (C) and (D) take small comparisons from the poem (waves, stars) and turn them into the main idea."
+  }
+ ],
+ "count": 20
+};
+const MINUTES = 20;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

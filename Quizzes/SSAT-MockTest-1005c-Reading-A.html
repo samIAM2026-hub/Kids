@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 10.5c · Reading A</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 10.5c &middot; Section 2, part 1</div>
+    <h1>Reading Comprehension &mdash; Part A (Questions 1&ndash;22)</h1>
+    <div class="meta">22 questions &middot; 22 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">22:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 10.5c &middot; <a href="SSAT-MockTest-1005c-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading A",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 1 &middot; Questions 1&ndash;6",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The backbone of the single-humped camel is not curved upward in<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the middle, as many people suppose. It is as straight as the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>backbone of a horse. Humps on camels are composed mostly of fat, and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>they vary in size according to the physical condition of the animal.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>When camels are worked too hard and not fed enough, their humps<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>shrivel up and become flabby. Much of their ability to travel long<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>distances over the desert without food and water is due to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>reabsorption of the extra fat carried in the humps. Thus the hump<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>serves as a sort of food supply department from which the camel<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>receives nourishment in time of famine. Similarly, in certain breeds<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>of sheep, extra fat is stored in the tail.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 1,
+   "stem": "The author&rsquo;s primary purpose in the passage is to",
+   "opts": [
+    "compare camels to horses",
+    "give information about camels&rsquo; humps",
+    "describe different kinds of camels",
+    "relate a myth about camels&rsquo; humps",
+    "explain why traveling in the desert is hazardous"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.main",
+   "why": "Almost every sentence is about the hump: what it is made of (&ldquo;mostly of fat,&rdquo; line 3), why its size changes, and how it feeds the camel. So the purpose is to <b>give information about camels&rsquo; humps<\/b>. (A) is the trap: the horse appears only once, as a quick comparison for the backbone. Rule: the main purpose has to cover the whole passage, not one sentence."
+  },
+  {
+   "n": 2,
+   "stem": "According to the author, many people suppose that",
+   "opts": [
+    "the backbones of most mammals are curved upward in the middle",
+    "a horse has a hump like that of a camel",
+    "the backbone of a single-humped camel is curved upward in the middle",
+    "a camel is a kind of horse",
+    "the backbone of a camel is surrounded by fat"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.detail",
+   "why": "Lines 1&ndash;2: the backbone &ldquo;is not curved upward in the middle, as many people suppose.&rdquo; So people wrongly believe <b>the backbone of a single-humped camel is curved upward in the middle<\/b>. (A) is the trap: it says &ldquo;most mammals,&rdquo; but the passage only talks about camels. Rule: in a detail question, match the exact subject of the sentence."
+  },
+  {
+   "n": 3,
+   "stem": "The author states that the size of a camel&rsquo;s hump depends primarily on which of the following?",
+   "opts": [
+    "Where the camel lives",
+    "The physical condition of the camel",
+    "How much water the camel drinks",
+    "The age of the camel",
+    "How far the camel travels"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "Line 4 says humps &ldquo;vary in size according to the physical condition of the animal.&rdquo; That is <b>the physical condition of the camel<\/b>, almost word for word. (E) is tempting because long trips use up the fat, but the passage names condition as the cause. Rule: when the question says &ldquo;the author states,&rdquo; find the line and match it."
+  },
+  {
+   "n": 4,
+   "stem": "The author states that the camel&rsquo;s hump serves the same function as what part of certain breeds of sheep?",
+   "opts": [
+    "The tail",
+    "The fat",
+    "The backbone",
+    "The wool",
+    "The stomach"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.detail",
+   "why": "The last sentence (lines 10&ndash;11): &ldquo;in certain breeds of sheep, extra fat is stored in the tail.&rdquo; The part of the sheep is <b>the tail<\/b>. (B) is the trap: fat is what is stored, not the body part that stores it. Rule: read the question word &ldquo;part&rdquo; carefully."
+  },
+  {
+   "n": 5,
+   "stem": "According to the passage, the hump on a camel&rsquo;s back helps the camel",
+   "opts": [
+    "travel far in the desert without food and water",
+    "carry heavier burdens than other animals",
+    "keep warm on cold nights in the desert",
+    "move faster than a horse",
+    "protect itself when it is attacked by other animals"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.detail",
+   "why": "Lines 6&ndash;8: the camel&rsquo;s ability &ldquo;to travel long distances over the desert without food and water is due to reabsorption of the extra fat carried in the humps.&rdquo; So the hump helps it <b>travel far in the desert without food and water<\/b>. The other choices sound like camel facts, but the passage never mentions them. Rule: pick the answer the text says, not one you know from elsewhere."
+  },
+  {
+   "n": 6,
+   "stem": "The author calls the camel&rsquo;s hump a &ldquo;food supply department&rdquo; (second to last sentence) in order to show that the hump",
+   "opts": [
+    "is a good place for carrying extra feedbags",
+    "is the only edible part of a camel",
+    "helps a camel locate hidden food supplies",
+    "warns a camel when famine is approaching",
+    "stores fat which can be reabsorbed by the camel as food"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "The sentence before says the camel survives by &ldquo;reabsorption of the extra fat carried in the humps&rdquo; (line 8). The hump is a store the camel draws on, so it <b>stores fat which can be reabsorbed by the camel as food<\/b>. (A) takes &ldquo;food supply&rdquo; too literally: nobody packs feedbags in it. Rule: a figure of speech is explained by the sentences around it."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 2 &middot; Questions 7&ndash;12",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"text-align:center;font-weight:bold;margin-bottom:6px\">A Letter to His Son<\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">You must study in order to be frank with the world; frankness is<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the child of honesty and courage. Say just what you mean to do on<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>every occasion and take it for granted that what you mean to do is<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>right. If a friend asks you a favor, you should grant it if it is<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>reasonable; if not, tell your friend plainly why you cannot. You<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>will wrong both your friend and yourself by equivocation of any<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>kind. Never do a wrong thing to make a friend or keep one;<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>friendship that requires you to do wrong is dearly purchased at a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>sacrifice. Deal kindly but firmly with all your classmates; you will<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>find it the policy which wears best. . . If you have any fault to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>find with anyone, tell that person, not others, of what you<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>complain; there is no more dangerous experiment than that of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>undertaking to be one thing before a person&rsquo;s face and another<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>behind his or her back. We should live, act, and say nothing to the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>injury of anyone. It is not only best as a matter of principle, but<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>it is the path of peace and honor.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 7,
+   "stem": "What is the author probably trying to do?",
+   "opts": [
+    "Threaten",
+    "Condemn",
+    "Advise",
+    "Predict",
+    "Praise"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.tone",
+   "why": "The letter is full of instructions to a son: &ldquo;Say just what you mean,&rdquo; &ldquo;Never do a wrong thing,&rdquo; &ldquo;Deal kindly but firmly.&rdquo; A parent giving guidance is trying to <b>advise<\/b>. (B) condemn is the trap: the tone is firm, but he is not blaming the son for anything. Rule: a string of &ldquo;you should&rdquo; sentences signals advice."
+  },
+  {
+   "n": 8,
+   "stem": "The main topic of the passage is how to",
+   "opts": [
+    "interact with people",
+    "study efficiently",
+    "avoid danger",
+    "refuse requests",
+    "find fault with others"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.main",
+   "why": "The letter covers friends asking favors, classmates, complaints and talking behind backs. All of these are about how to <b>interact with people<\/b>. (B) is the trap because the first word is &ldquo;study,&rdquo; but study is only mentioned once. (D) and (E) are single details. Rule: the main topic is the umbrella over every detail."
+  },
+  {
+   "n": 9,
+   "stem": "According to the passage, if a friend were to ask a favor, one should",
+   "opts": [
+    "agree to do it even if it is inconvenient",
+    "do it but ask for a favor in return",
+    "do it since a friend is asking",
+    "ask others whether one should do it",
+    "do it if what is being asked is not wrong"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.detail",
+   "why": "Lines 4&ndash;5: &ldquo;you should grant it if it is reasonable,&rdquo; and line 7 adds &ldquo;Never do a wrong thing to make a friend or keep one.&rdquo; So <b>do it if what is being asked is not wrong<\/b>. (C) is the trap: the author says friendship alone is <i>not<\/i> a good enough reason. Rule: watch for the condition (&ldquo;if&rdquo;) in the text."
+  },
+  {
+   "n": 10,
+   "stem": "The author considers which of the following to be a dangerous experiment?",
+   "opts": [
+    "Studying at the expense of friendship",
+    "Hypocrisy toward others",
+    "Excessive kindness",
+    "Asking too many favors",
+    "Being overly honest with classmates"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "Lines 12&ndash;14: &ldquo;no more dangerous experiment than that of undertaking to be one thing before a person&rsquo;s face and another behind his or her back.&rdquo; Acting one way to someone&rsquo;s face and another way behind their back is <b>hypocrisy toward others<\/b>. (E) is the reverse of the author&rsquo;s view: he praises honesty. Rule: put the quoted description into one word."
+  },
+  {
+   "n": 11,
+   "stem": "The author would most likely say that before one can be frank, it is important to",
+   "opts": [
+    "express sympathy whenever possible",
+    "discuss friends with others",
+    "overlook the faults of others",
+    "be firm in what one believes",
+    "do what friends want one to do"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.infer",
+   "why": "Frankness is &ldquo;the child of honesty and courage&rdquo; (lines 1&ndash;2), and you should &ldquo;take it for granted that what you mean to do is right&rdquo; (lines 3&ndash;4). To speak plainly you first have to <b>be firm in what one believes<\/b>. (C) is the trap: he says to tell people their faults directly, not overlook them. Rule: an inference must rest on the author&rsquo;s own words."
+  },
+  {
+   "n": 12,
+   "stem": "In line 1 the word &ldquo;frank&rdquo; most nearly means",
+   "opts": [
+    "outgoing",
+    "innocent",
+    "tactless",
+    "straightforward",
+    "abrupt"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.vocab",
+   "why": "The next sentence explains it: &ldquo;Say just what you mean&rdquo; and tell a friend &ldquo;plainly&rdquo; (line 5). Frank means open and honest, or <b>straightforward<\/b>. (C) tactless and (E) abrupt are the trap: frank people can be blunt, but the author pairs frankness with kindness (&ldquo;Deal kindly but firmly&rdquo;). Rule: test the choice back in the sentence."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 3 &middot; Questions 13&ndash;17",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Boxwood was for many years the favorite wood for making flutes,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>recorders, oboes, and clarinets; it was the hardest, finest-grained<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>wood readily available in Europe. Its disadvantage was a pronounced<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>tendency to warp, and bent boxwood instruments can be seen in any<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>large collection of old instruments. Boxwood is practically<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>unobtainable in large enough dimensions for making instruments<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>nowadays.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">If the wooden instrument business had developed in North America,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>it seems likely that the commonly used wood might have been hard<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>maple. That wood is also adversely affected by moisture and is not<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>so dense as boxwood, but it has a fine grain and machines well. The<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>suitability of maple, along with its availability in quite large<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>dimensions, makes it almost the only wood that can be used for some<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>instruments.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 13,
+   "stem": "The passage is primarily about",
+   "opts": [
+    "the many uses of boxwood and maple",
+    "two woods suitable for making instruments",
+    "necessity of making instruments from hardwoods",
+    "collecting old wooden instruments",
+    "the development of the wooden instrument industry"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.main",
+   "why": "Paragraph 1 is about boxwood for instruments; paragraph 2 is about hard maple for instruments. Together that is <b>two woods suitable for making instruments<\/b>. (A) is the trap: the passage only talks about one use, making instruments, not &ldquo;many uses.&rdquo; Rule: when a passage has two paragraphs, the main idea must cover both."
+  },
+  {
+   "n": 14,
+   "stem": "The passage implies that boxwood",
+   "opts": [
+    "is not adversely affected by moisture",
+    "does not last as well as maple",
+    "is now readily obtainable in Europe",
+    "is the only wood used for some kinds of instruments",
+    "does not commonly grow in North America"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "Line 8 imagines what would have happened &ldquo;If the wooden instrument business had developed in North America&rdquo;: the wood would probably have been maple, not boxwood. That hints that boxwood <b>does not commonly grow in North America<\/b>. (A) is the trap: maple is &ldquo;<i>also<\/i> adversely affected by moisture&rdquo; (line 10), so boxwood is affected too, which is why it warps. Rule: small words like &ldquo;also&rdquo; carry hidden information."
+  },
+  {
+   "n": 15,
+   "stem": "The passage mentions all of the following properties of boxwood EXCEPT its",
+   "opts": [
+    "color",
+    "grain",
+    "scarcity",
+    "hardness",
+    "popularity"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.detail",
+   "why": "Check each one: grain and hardness (&ldquo;hardest, finest-grained,&rdquo; line 2), scarcity (&ldquo;practically unobtainable,&rdquo; lines 5&ndash;6), popularity (&ldquo;the favorite wood,&rdquo; line 1). The passage never says what <b>color<\/b> boxwood is. Rule: for EXCEPT questions, find a line for each choice; the one with no line is the answer."
+  },
+  {
+   "n": 16,
+   "stem": "The author apparently considers the warping of boxwood instruments",
+   "opts": [
+    "a disgrace to their manufacturers",
+    "an indication of hard use",
+    "an unfortunate characteristic",
+    "a harmless phenomenon",
+    "an index of their quality"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.tone",
+   "why": "Line 3 calls it boxwood&rsquo;s &ldquo;disadvantage&rdquo;: a &ldquo;pronounced tendency to warp.&rdquo; A disadvantage that comes with the wood itself is <b>an unfortunate characteristic<\/b>. (A) is too strong: the makers are not blamed. (D) is the opposite: a disadvantage is not harmless. Rule: match the author&rsquo;s word (&ldquo;disadvantage&rdquo;) to a choice of the same strength."
+  },
+  {
+   "n": 17,
+   "stem": "The passage was probably intended as",
+   "opts": [
+    "a tribute to the woodworkers of the past",
+    "an advertisement about wooden instruments",
+    "advice for collectors of old wooden instruments",
+    "a plea for conservation of endangered kinds of trees and woods",
+    "information about the manufacture of wooden instruments"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.main",
+   "why": "The tone is calm and factual: which woods are used to make instruments, and why. That is <b>information about the manufacture of wooden instruments<\/b>. (D) is the trap: boxwood is scarce now, but the author never asks anyone to protect trees. Rule: a plea or advertisement tries to persuade; this passage only explains."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 4 &middot; Questions 18&ndash;22",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Like many human endeavors, the Pony Express was born out of long-<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>frustrated need. By 1860 almost half a million Americans lived west<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>of the Rocky Mountains. Aside from the lures of land and gold, the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>primary concern was for news from home, those settled states east of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>the Missouri River.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\"><i>Here he comes! . . . nearer and nearer . . . and man and horse<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>rush past us and are gone in a flash!<\/i><\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Thus a famous writer, from a westbound stage, beheld a Pony<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Express rider, and thus the rider galloped into history.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span style=\"text-indent:26px;display:inline-block\">In spite of the legendary full-tilt gallop, the fact is that the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>rider had to average only ten miles an hour, that in darkness or<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>going uphill he slowed for safety or to spare the horse, as that he<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>usually arrived on time.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The development of the Pony Express, like other episodes that have<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>become epic, looms taller than truth, a buckaroo stew of fact and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>legend. And even facts have a legendary flavor.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 18,
+   "stem": "According to the passage, people who were waiting for news from home lived",
+   "opts": [
+    "east of the Missouri River",
+    "in the Rocky Mountains",
+    "in the settled states",
+    "west of the Rocky Mountains",
+    "in the unsettled states of the East"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.detail",
+   "why": "Lines 2&ndash;5: half a million Americans &ldquo;lived west of the Rocky Mountains,&rdquo; and their concern was news from home, the states east of the Missouri. So the people waiting lived <b>west of the Rocky Mountains<\/b>. (A) and (C) are the trap: those describe <i>home<\/i>, where the news came from. Rule: keep track of who is where."
+  },
+  {
+   "n": 19,
+   "stem": "The passage implies that the Pony Express rider rode",
+   "opts": [
+    "with great care",
+    "with great fear",
+    "to compete with other riders",
+    "only in the dark for safety",
+    "only through towns"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "Lines 11&ndash;12: in darkness or uphill &ldquo;he slowed for safety or to spare the horse.&rdquo; Slowing down to stay safe and protect the horse means he rode <b>with great care<\/b>. (D) twists the same line: he slowed down in the dark, he did not ride <i>only<\/i> in the dark. Rule: watch for &ldquo;only&rdquo; in a choice; it is often too strong."
+  },
+  {
+   "n": 20,
+   "stem": "From the information in the passage, we can be certain that the &ldquo;famous writer&rdquo;",
+   "opts": [
+    "was once a Pony Express rider",
+    "wrote about the Pony Express rider",
+    "saw many Pony Express riders",
+    "wrote many stories about the West",
+    "thought historians misunderstood the role of the Pony Express"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.infer",
+   "why": "The italic lines 6&ndash;7 are the writer&rsquo;s own words, and line 8 says he &ldquo;beheld a Pony Express rider&rdquo; from a stage. So we know for sure he <b>wrote about the Pony Express rider<\/b>. (C) is the trap: he saw <i>a<\/i> rider, not &ldquo;many.&rdquo; (D) may be true in real life, but the passage doesn&rsquo;t say it. Rule: &ldquo;certain&rdquo; means the text must prove it."
+  },
+  {
+   "n": 21,
+   "stem": "According to the passage, the original purpose of the Pony Express was to",
+   "opts": [
+    "provide a sporting event for competition and entertainment",
+    "help new settlers find home sites in the West",
+    "enable gold prospectors to communicate with one another",
+    "help people communicate with their families and friends",
+    "convey news of employment prospects to new settlers"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.detail",
+   "why": "Lines 3&ndash;5: besides land and gold, &ldquo;the primary concern was for news from home.&rdquo; The Pony Express carried that news, so it was meant to <b>help people communicate with their families and friends<\/b>. (C) is the trap: gold is mentioned, but as a reason people went west, not as the reason for the mail. Rule: find the &ldquo;need&rdquo; the passage says the service grew out of."
+  },
+  {
+   "n": 22,
+   "stem": "In line 12, the word &ldquo;spare&rdquo; most nearly means",
+   "opts": [
+    "swap",
+    "reform",
+    "conserve",
+    "shortchange",
+    "cure"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.vocab",
+   "why": "The rider slowed down uphill &ldquo;to spare the horse&rdquo; (line 12), so the horse would not get worn out. Here spare means save its strength, or <b>conserve<\/b>. (A) swap is the trap: riders did change horses, but slowing down doesn&rsquo;t swap anything. Rule: replace the word with each choice and read the sentence again."
+  }
+ ],
+ "count": 22
+};
+const MINUTES = 22;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

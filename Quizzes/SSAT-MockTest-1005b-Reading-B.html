@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 10.5b · Reading B</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 10.5b &middot; Section 2, part 2</div>
+    <h1>Reading Comprehension &mdash; Part B (Questions 21&ndash;40)</h1>
+    <div class="meta">20 questions &middot; 20 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">20:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 10.5b &middot; <a href="SSAT-MockTest-1005b-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading B",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 5 &middot; Questions 21&ndash;25",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">As Earth whirls along its endless journey through space, it has a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>companion that is always beside it--the moon. The moon is a small<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>celestial body. It is only about one-fourth as big as Earth.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The moon is our nearest neighbor in space. The stars are billions<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>of miles away. The sun is millions of miles away. But the moon is<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>only about 239,000 miles away. That makes the moon truly a next-door<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>neighbor.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">In a way, the moon \"belongs\" to Earth. Just as Earth moves around<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the Sun, the moon moves around the Earth. It is held in place by the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>tug of Earth's stronger gravity. A celestial body that is held by<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>another this way is called a satellite. The moon is Earth's<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>satellite.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The moon is a ball of gray rock, some of which is covered with<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>dust. It has no air or water--and, of course, no plants or animals.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>Its whole surface is nothing but mountains and plains of rock. When<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>we look up at a full moon, we often see dark patches. These dark<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>patches are the lowlands. They seem to form a shadowy face, which<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>people have named \"the man in the moon.\" The brighter parts of the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>moon are the highlands.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span style=\"text-indent:26px;display:inline-block\">In ancient times, many people worshipped the moon. The Romans, who<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>thought the moon was a goddess, named it Luna. Our word <i>lunar<\/i> means<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>\"of the moon.\"<\/span><\/div><\/div>"
+  },
+  {
+   "n": 21,
+   "stem": "Why does the author think that the moon \"belongs\" (third paragraph) to the Earth?",
+   "opts": [
+    "The moon could not exist without the Earth.",
+    "One can see the man in the moon from Earth.",
+    "Ancient Romans considered it a goddess.",
+    "It is a satellite of the Earth.",
+    "It is Earth's nearest neighbor."
+   ],
+   "ans": 3,
+   "sk": "ssat.r.detail",
+   "why": "The third paragraph explains &ldquo;belongs&rdquo;: the moon moves around Earth and &ldquo;is held in place by the tug of Earth&rsquo;s stronger gravity&rdquo; &mdash; <b>it is a satellite of the Earth<\/b> (lines 9&ndash;12). (E) is the trap: being the nearest neighbor is true (line 4), but it is from a different paragraph and doesn&rsquo;t explain &ldquo;belonging.&rdquo;"
+  },
+  {
+   "n": 22,
+   "stem": "According to the passage, which of the following can be found on the moon?",
+   "opts": [
+    "air",
+    "water",
+    "plants",
+    "animals",
+    "mountains"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.detail",
+   "why": "Line 14 rules out four choices at once: &ldquo;no air or water&mdash;and, of course, no plants or animals.&rdquo; Line 15 says its surface is &ldquo;nothing but <b>mountains<\/b> and plains of rock.&rdquo; Rule: when one sentence knocks out several choices, the leftover is usually confirmed nearby."
+  },
+  {
+   "n": 23,
+   "stem": "According to the passage, the face of the \"man in the moon\" (at the end of the fourth paragraph) is formed by",
+   "opts": [
+    "mountains",
+    "lowlands",
+    "craters",
+    "forests",
+    "seas"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "Lines 16&ndash;18: the dark patches &ldquo;are the <b>lowlands<\/b>. They seem to form a shadowy face.&rdquo; (A) is the trap: the passage calls the <i>brighter<\/i> parts the highlands (lines 18&ndash;19), so the dark face is not made by high ground. (C) craters and (E) seas are real moon facts you may know, but the passage never mentions them."
+  },
+  {
+   "n": 24,
+   "stem": "The author's main purpose for writing the passage is most likely to",
+   "opts": [
+    "describe the origin of the word \"lunar\"",
+    "dispel myths about the man in the moon",
+    "inform the reader about the moon",
+    "compare the moon and the Earth",
+    "explain why the ancient Romans worshipped the moon"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.main",
+   "why": "Each paragraph gives a different fact &mdash; its size, distance, orbit, surface, and name. That adds up to a general goal: to <b>inform the reader about the moon<\/b>. (A) and (E) cover only the last paragraph, and (D) is too narrow: Earth comes up only as a reference point."
+  },
+  {
+   "n": 25,
+   "stem": "Which of the following statements is NOT asserted or implied in the passage?",
+   "opts": [
+    "The moon is Earth's satellite.",
+    "The moon is composed of the same materials as Earth.",
+    "The moon's lowlands appear dark from the Earth.",
+    "The Earth is four times larger than the moon.",
+    "The moon is closer to the Earth than anything else in space."
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "Check each choice against the text. (A) is line 11, (C) is lines 16&ndash;17, (D) comes from &ldquo;one-fourth as big&rdquo; (line 3), and (E) is &ldquo;our nearest neighbor&rdquo; (line 4). The passage never compares what the moon and Earth are made of, so <b>(B)<\/b> is NOT stated. Rule: for NOT questions, cross off every choice you can find."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 6 &middot; Questions 26&ndash;30",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"text-align:center;font-weight:bold;margin-bottom:6px\">Excerpt from <i>Chronicles of Avonlea<\/i> by L.M. Montgomery, 1912<\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">One day the minister's wife rushed in where Spencervale people had<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>feared to tread, went boldly to Old Lady Lloyd, and asked her if she<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>wouldn't come to their Sewing Circle, which met fortnightly on<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Saturday afternoons.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span style=\"text-indent:26px;display:inline-block\">\"We are filling a box to send to our Trinidad missionary,\" said<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the minister's wife, \"and we should be so pleased to have you come,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Miss Lloyd.\"<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The Old Lady was on the point of refusing rather haughtily. Not<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>that she was opposed to missions--or sewing circles either--quite<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>the contrary; but she knew that each member of the Circle was<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>expected to pay ten cents a week for the purpose of procuring sewing<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>materials; and the poor Old Lady really did not see how she could<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>afford it. But a sudden thought checked her refusal before it<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>reached her lips.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 26,
+   "stem": "The first paragraph implies that the people of Spencervale find Old Lady Lloyd to be",
+   "opts": [
+    "eccentric",
+    "intimidating",
+    "fascinating",
+    "bothersome",
+    "congenial"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.infer",
+   "why": "The minister&rsquo;s wife &ldquo;rushed in where Spencervale people had feared to tread, went boldly&rdquo; to her (lines 1&ndash;2). If people are afraid to approach someone and it takes boldness, they find her <b>intimidating<\/b>. (A) eccentric is the trap: she may be odd, but the words &ldquo;feared&rdquo; and &ldquo;boldly&rdquo; point to fear, not oddness."
+  },
+  {
+   "n": 27,
+   "stem": "The passage implies that the main purpose of the Sewing Circle's project is",
+   "opts": [
+    "charitable",
+    "educational",
+    "commercial",
+    "political",
+    "artistic"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "Line 5: &ldquo;We are filling a box to send to our Trinidad missionary.&rdquo; Making things to give away to a mission is <b>charitable<\/b>. (C) commercial is the trap because money is mentioned (ten cents a week), but that money buys materials; nothing is sold."
+  },
+  {
+   "n": 28,
+   "stem": "In the passage, Old Lady Lloyd is depicted as",
+   "opts": [
+    "shy but cordial",
+    "modest but accomplished",
+    "impoverished but proud",
+    "anxious and fretful",
+    "curious and intrusive"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.infer",
+   "why": "She is &ldquo;the poor Old Lady&rdquo; who can&rsquo;t afford ten cents a week (lines 12&ndash;13) &mdash; impoverished &mdash; yet she nearly refuses &ldquo;rather haughtily&rdquo; (line 8) &mdash; proud. So <b>impoverished but proud<\/b>. (A) is the trap: she is not shy, and &ldquo;haughtily&rdquo; is the opposite of cordial. Rule: in two-part answers, both halves must be supported."
+  },
+  {
+   "n": 29,
+   "stem": "In the third paragraph, second sentence, the narrator uses the expression \"Not that . . .\" to introduce",
+   "opts": [
+    "a needed clarification",
+    "a logical conclusion",
+    "contradictory evidence",
+    "an alternative viewpoint",
+    "a dissenting opinion"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.tone",
+   "why": "After saying she nearly refused, the narrator adds &ldquo;Not that she was opposed to missions&hellip;quite the contrary&rdquo; (lines 8&ndash;10) so we don&rsquo;t get the wrong idea about why. That is <b>a needed clarification<\/b>. (D) and (E) are traps: no other person&rsquo;s viewpoint or opinion is given &mdash; the narrator is just explaining the real reason (money)."
+  },
+  {
+   "n": 30,
+   "stem": "As it is used in the last sentence, the word \"checked\" most nearly means",
+   "opts": [
+    "inspected",
+    "marked",
+    "deposited",
+    "verified",
+    "stopped"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;A sudden thought checked her refusal before it reached her lips&rdquo; (lines 13&ndash;14) &mdash; the refusal never got said, so the thought <b>stopped<\/b> it. (A), (B) and (D) are the everyday meanings of &ldquo;check&rdquo; (look over, tick off, confirm), which don&rsquo;t fit. Plug the choice into the sentence to test it."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 7 &middot; Questions 31&ndash;35",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Until the nineteenth century very little was known about the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>ancient history of Egypt. The brief statements of Hebrew writers in<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the Old Testament and some stories preserved by the Greeks were all<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>that historians had to go on. There were also the writings that the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>ancient Egyptians themselves had carved in stone, but these were<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>mysterious hieroglyphics written in a long forgotten language that<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>no one could read.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">But about 1800 A.D. some soldiers of Napoleon in Egypt, while<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>laying foundations for a fort at the Rosetta mouth of the Nile,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>found a curious slab of black rock. This \"Rosetta Stone\" bore three<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>inscriptions: one of these was in Greek, one in the ancient<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>hieroglyphs of the pyramids, and the third in a later Egyptian<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>writing, called demotic, which had likewise been forgotten. A French<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>scholar, Champollion, shrewdly hypothesized that the three<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>inscriptions all told the same story and therefore would contain<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>words similar in meaning to the words in the other two inscriptions.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>In 1822 he proved this to be true. Then, working from the Greek, he<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>found the meanings of the hieroglyphics and so learned to read the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>long-forgotten language of Old Egypt.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 31,
+   "stem": "The passage is mainly about",
+   "opts": [
+    "how Hebrew and Greek writers viewed the Egyptians",
+    "how the Rosetta Stone was discovered",
+    "how the Egyptians lived in ancient times",
+    "how the ancient Egyptian language was deciphered",
+    "how historians reacted to the discovery of the Rosetta Stone"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.main",
+   "why": "The passage starts with a problem (hieroglyphics &ldquo;no one could read,&rdquo; lines 6&ndash;7) and ends with the solution: Champollion &ldquo;learned to read the long-forgotten language&rdquo; (lines 18&ndash;19). So it is about <b>how the ancient Egyptian language was deciphered<\/b>. (B) is the trap: the discovery takes only one sentence (lines 8&ndash;10) on the way to the main story."
+  },
+  {
+   "n": 32,
+   "stem": "In the first paragraph, end of the second sentence, the expression \"go on\" most nearly means",
+   "opts": [
+    "continue",
+    "learn from",
+    "talk at length",
+    "move forward",
+    "happen"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;The brief statements&hellip;and some stories&hellip;were all that historians had to go on&rdquo; (lines 2&ndash;4) &mdash; these were the only sources they could get information from, so &ldquo;go on&rdquo; means <b>learn from<\/b>. (A) continue and (D) move forward are the usual meanings of &ldquo;go on,&rdquo; and they are the traps here."
+  },
+  {
+   "n": 33,
+   "stem": "In the passage, Champollion is characterized as",
+   "opts": [
+    "temperamental",
+    "benevolent",
+    "ambitious",
+    "devious",
+    "clever"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "Line 14 says Champollion &ldquo;<i>shrewdly<\/i> hypothesized&rdquo; that the three inscriptions told the same story &mdash; and he was right. Shrewd means sharp-minded, so he is <b>clever<\/b>. (D) devious is the trap: shrewd can sometimes mean tricky, but nothing here suggests he deceived anyone."
+  },
+  {
+   "n": 34,
+   "stem": "It can be inferred from the passage that Champollion",
+   "opts": [
+    "was a soldier in Napoleon's army",
+    "claimed possession of the Rosetta Stone for France",
+    "had studied the hieroglyphics of the pyramids",
+    "could read the ancient Greek language",
+    "published French translations of the inscriptions"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.infer",
+   "why": "Lines 17&ndash;18: &ldquo;working from the Greek, he found the meanings of the hieroglyphics.&rdquo; To use the Greek as his key, he must have been able to read it, so he <b>could read the ancient Greek language<\/b>. (A) is the trap: the soldiers found the stone, but Champollion is called &ldquo;a French scholar,&rdquo; not a soldier."
+  },
+  {
+   "n": 35,
+   "stem": "The passage as a whole implies that Champollion's achievement resulted in",
+   "opts": [
+    "a revival of ancient Egyptian as a living language",
+    "enhanced prestige for French universities",
+    "a deeper understanding of the ancient history of Egypt",
+    "popular fascination with the culture of ancient Egypt",
+    "a new theory about the construction of the pyramids"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.infer",
+   "why": "The passage opens by saying &ldquo;very little was known about the ancient history of Egypt&rdquo; because no one could read the carved writings (lines 1&ndash;7). Once Champollion could read them, historians could learn much more: <b>a deeper understanding of the ancient history of Egypt<\/b>. (A) is the trap: reading a language again doesn&rsquo;t mean people start speaking it."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 8 &middot; Questions 36&ndash;40",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"text-align:center;font-weight:bold;margin-bottom:6px\">Excerpt from \"The Maine Woods\" by Henry David Thoreau, 1864<\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">On the 31st of August, 1846, I left Concord in Massachusetts for<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Bangor and the backwoods of Maine, by way of the railroad and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>steamboat. I was intending to accompany a relative of mine engaged<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>in the lumber-trade in Bangor, as far as a dam on the west branch of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>the Penobscot, in which property he was interested. From this place,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>which is about one hundred miles by the river above Bangor, thirty<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>miles from the Houlton military road, and five miles beyond the last<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>log-hut, I proposed to make excursions to Mount Ktaadn, the second<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>highest mountain in New England, about thirty miles distant, and to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>some of the lakes of the Penobscot, either alone or with such<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>company as I might pick up there. It is unusual to find a camp so<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>far in the woods at that season, when lumbering operations have<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>ceased. I was glad to avail myself of the circumstances of a gang of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>men being employed there at that time repairing the injuries caused<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>by the great freshet in the spring. The mountain may be approached<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>more easily and directly on horseback and on foot from the northeast<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>side, by the Aroostook road, and the Wassataquoik River, but in that<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>case you see much less of the wilderness, none of the glorious river<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>and lake scenery, and have no experience of the batteau and the boat<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>man's life. I was fortunate also in the season of the year. In the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>summer myriads of black flies, mosquitoes, and midges make traveling<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>in the woods almost impossible; but now their reign was nearly over.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 36,
+   "stem": "According to the passage, which of the following occurred in the spring?",
+   "opts": [
+    "The author met his relative.",
+    "There were damaging floods.",
+    "The author travelled by train.",
+    "Insects interfered with travel.",
+    "Lumbering operations ceased."
+   ],
+   "ans": 1,
+   "sk": "ssat.r.detail",
+   "why": "Lines 14&ndash;15: the men were &ldquo;repairing the injuries caused by the great freshet in the spring.&rdquo; A freshet is a flood from melting snow and rain, so in spring <b>there were damaging floods<\/b>. Even if you don&rsquo;t know &ldquo;freshet,&rdquo; &ldquo;injuries&rdquo; that need repairing tell you it was damaging. (D) is the trap: the insects are a <i>summer<\/i> problem (line 21)."
+  },
+  {
+   "n": 37,
+   "stem": "As it is used at the end of the third sentence, in the middle of passage, the phrase \"pick up\" most nearly means",
+   "opts": [
+    "lift",
+    "learn",
+    "detect",
+    "acquire",
+    "increase"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;Either alone or with such company as I might pick up there&rdquo; (lines 10&ndash;11) means whatever companions he might find and gain along the way &mdash; <b>acquire<\/b>. (A) lift is the literal meaning of &ldquo;pick up&rdquo; and the classic trap; (B) learn is another meaning (&ldquo;pick up a language&rdquo;) that doesn&rsquo;t fit people."
+  },
+  {
+   "n": 38,
+   "stem": "The author indicates that when he encountered a \"gang of men\" (fifth sentence) in the woods he was",
+   "opts": [
+    "justifiably annoyed",
+    "deeply puzzled",
+    "pleasantly surprised",
+    "mildly amused",
+    "somewhat fearful"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.tone",
+   "why": "Line 11 says &ldquo;It is unusual to find a camp so far in the woods at that season&rdquo; (surprise), and line 13 says &ldquo;I was glad to avail myself&rdquo; of the men being there (pleasure). Together: <b>pleasantly surprised<\/b>. (E) is the trap: &ldquo;gang&rdquo; sounds threatening today, but here it just means a work crew."
+  },
+  {
+   "n": 39,
+   "stem": "The author indicates that he preferred to approach the \"mountain\" (third sentence from the end) by boat because",
+   "opts": [
+    "he disliked riding horses",
+    "he wanted to avoid insects",
+    "doing so made for an easier journey",
+    "doing so made for a shorter journey",
+    "doing so provided a more scenic route"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.detail",
+   "why": "Lines 15&ndash;19 admit the horseback route is &ldquo;more easily and directly&rdquo; done, &ldquo;but in that case you see much less of the wilderness, none of the glorious river and lake scenery.&rdquo; So he chose the river because it <b>provided a more scenic route<\/b>. (C) and (D) are traps: the text says the <i>other<\/i> route was easier and more direct."
+  },
+  {
+   "n": 40,
+   "stem": "To describe the period of time during which \"black flies, mosquitoes, and midges\" (last sentence) dominate the woods, the author uses which of the following literary devices?",
+   "opts": [
+    "Metaphor",
+    "Onomatopoeia",
+    "Simile",
+    "Irony",
+    "Allusion"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.tone",
+   "why": "Line 22: &ldquo;now their <i>reign<\/i> was nearly over.&rdquo; Insects don&rsquo;t really reign like kings; calling their season a &ldquo;reign&rdquo; is a comparison without &ldquo;like&rdquo; or &ldquo;as&rdquo; &mdash; a <b>metaphor<\/b>. (C) simile is the trap: a simile needs &ldquo;like&rdquo; or &ldquo;as,&rdquo; which isn&rsquo;t there."
+  }
+ ],
+ "count": 20
+};
+const MINUTES = 20;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

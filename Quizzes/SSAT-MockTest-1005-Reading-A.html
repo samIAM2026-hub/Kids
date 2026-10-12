@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 10.5 · Reading A</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #8a4b2a; --accent-soft: #eddfd2;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 10.5 &middot; Section 2, part 1</div>
+    <h1>Reading Comprehension &mdash; Part A (Questions 1&ndash;20)</h1>
+    <div class="meta">20 questions &middot; 20 minutes &middot; 60 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">20:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 10.5 &middot; <a href="SSAT-MockTest-1005-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Reading A",
+ "items": [
+  {
+   "type": "passage",
+   "label": "Passage 1 &middot; Questions 1&ndash;5",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">Matthew Cuthbert ought to have been sowing his turnip seed on the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>big red brook field away over by Green Gables. Mrs. Rachel knew that<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>he ought because she had heard him tell Peter Morrison the evening<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>before in William J. Blair&rsquo;s store over at Carmody that he meant to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>sow his turnip seed the next afternoon. Peter had asked him, of<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>course, for Matthew Cuthbert had never been known to volunteer<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>information about anything in his whole life. And yet here was<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Matthew Cuthbert, at half-past three on the afternoon of a busy day,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>placidly driving over the hollow and up the hill; moreover, he wore<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>a white collar and his best suit of clothes, which was plain proof<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>that he was going out of Avonlea; and he had the buggy and the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>sorrel mare, which betokened that he was going a considerable<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>distance. Now, where was Matthew Cuthbert going and why was he going<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>there? Had it been any other man in Avonlea, Mrs. Rachel, deftly<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>putting this and that together, might have given a pretty good guess<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>as to both questions. But Matthew so rarely went from home that it<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>must be something pressing and unusual which was taking him; he was<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>the shyest man alive and hated to have to go among strangers or to<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>any place where he might have to talk. Matthew, dressed up with a<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>white collar and driving in a buggy, was something that didn&rsquo;t<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>happen often. Mrs. Rachel, ponder as she might, could make nothing<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>of it, and her afternoon&rsquo;s enjoyment was spoiled.<\/span><\/div><\/div>",
+   "src": "Excerpt from <i>Anne of Green Gables<\/i> by L.M. Montgomery, 1908"
+  },
+  {
+   "n": 1,
+   "stem": "Mrs. Rachel is portrayed in the passage as a",
+   "opts": [
+    "recluse",
+    "busybody",
+    "worrywart",
+    "matchmaker",
+    "rabble-rouser"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.infer",
+   "why": "Mrs. Rachel knows what Matthew told someone else in a store (lines 2&ndash;5), watches him drive past, and can&rsquo;t enjoy her afternoon until she figures out where he is going &mdash; she minds other people&rsquo;s business, so she is a <b>busybody<\/b>. (C) worrywart is the trap: she is curious, not afraid for him. Rule: judge a character by what she actually does."
+  },
+  {
+   "n": 2,
+   "stem": "As it is used in line 4, the word &ldquo;meant&rdquo; most nearly means",
+   "opts": [
+    "signified",
+    "destined",
+    "intended",
+    "implied",
+    "foretold"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;He meant to sow his turnip seed the next afternoon&rdquo; = he planned to, he <b>intended<\/b> to. Plug it back in: &ldquo;he intended to sow&rdquo; works. (A) signified is the trap &mdash; that is the meaning in &ldquo;a red light means stop,&rdquo; not when a person &ldquo;means to&rdquo; do something. Rule: always swap the choice into the sentence."
+  },
+  {
+   "n": 3,
+   "stem": "The author uses the expression &ldquo;putting this and that together&rdquo; to describe a process of",
+   "opts": [
+    "combining resources",
+    "fabricating an excuse",
+    "building a consensus",
+    "formulating a conjecture",
+    "gathering suggestions"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.vocab",
+   "why": "Lines 14&ndash;16: by putting clues together she &ldquo;might have given a pretty good guess.&rdquo; A guess built from clues is a <b>conjecture<\/b>, so she is <b>formulating a conjecture<\/b>. (A) combining resources sounds like &ldquo;putting together,&rdquo; but she combines clues, not supplies. Rule: read the words right after the phrase &mdash; here, &ldquo;a pretty good guess.&rdquo;"
+  },
+  {
+   "n": 4,
+   "stem": "As he is depicted in the passage, Matthew Cuthbert has a reputation for being",
+   "opts": [
+    "gullible",
+    "conceited",
+    "ill-tempered",
+    "irresponsible",
+    "uncommunicative"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "Lines 6&ndash;7: he &ldquo;had never been known to volunteer information about anything,&rdquo; and lines 18&ndash;19 call him &ldquo;the shyest man alive&rdquo; who hates to talk &mdash; he is <b>uncommunicative<\/b>. (D) irresponsible is the trap: he skips the turnip sowing, but the text says it must be for something &ldquo;pressing,&rdquo; not that he is careless. Rule: a &ldquo;reputation&rdquo; is what people always say about someone &mdash; look for words like &ldquo;never&rdquo; and &ldquo;always.&rdquo;"
+  },
+  {
+   "n": 5,
+   "stem": "The passage suggests that Mrs. Rachel&rsquo;s enjoyment of the afternoon &ldquo;was spoiled&rdquo; (last sentence) because",
+   "opts": [
+    "she was unable to satisfy her curiosity",
+    "she had no one to work in her fields",
+    "she had no means of leaving Avonlea",
+    "she feared for her neighbor&rsquo;s safety",
+    "she was overcome with jealousy"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "The same sentence gives the cause: &ldquo;ponder as she might, could make nothing of it.&rdquo; She wanted to know and couldn&rsquo;t find out &mdash; <b>she was unable to satisfy her curiosity<\/b>. (D) is the trap: nothing suggests she thinks Matthew is in danger. Rule: the reason is often in the same sentence as the result."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 2 &middot; Questions 6&ndash;10",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">In 1930 an astronomer at the Lowell Observatory made an exciting<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>discovery. Telescopic photographs revealed a sizable body, much<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>larger than any known comet or asteroid, orbiting the Sun in the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>furthest reaches of the solar system. The newly discovered object<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>was soon hailed as the ninth planet and given the name of Pluto.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">However, toward the end of the twentieth century some astronomers<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>began to raise doubts about Pluto&rsquo;s planetary status. Though<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>substantial enough to have several moons of its own, Pluto was still<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>much smaller than any other planet, and its eccentric orbit was<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>tilted at a very different angle than those of its celestial<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>siblings.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">After carefully weighing the question of Pluto&rsquo;s planethood, the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>International Astronomical Union in 2006 ruled that in order to be<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>classified as a planet, an object must meet three criteria. It must<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>orbit the Sun; it must be nearly round in shape; and it must have<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>cleared the neighborhood around its orbit. Pluto meets the first two<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>criteria but not the third. Unlike the eight true planets, Pluto<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>lacks the gravitational force to drive away the multitude of icy<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>celestial objects that share its orbital zone. For that reason, the<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>International Astronomical Union downgraded Pluto&rsquo;s status to that<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>of a &ldquo;dwarf planet.&rdquo;<\/span><\/div><\/div>"
+  },
+  {
+   "n": 6,
+   "stem": "The passage suggests that the general reaction to the discovery of Pluto was",
+   "opts": [
+    "fearful",
+    "hostile",
+    "enthusiastic",
+    "skeptical",
+    "puzzled"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.infer",
+   "why": "Line 1 calls it &ldquo;an exciting discovery,&rdquo; and line 5 says Pluto &ldquo;was soon hailed as the ninth planet&rdquo; &mdash; to be hailed is to be cheered. The reaction was <b>enthusiastic<\/b>. (D) skeptical is the trap: the doubts came much later, &ldquo;toward the end of the twentieth century&rdquo; (line 6). Rule: match the question to the right time in the passage."
+  },
+  {
+   "n": 7,
+   "stem": "In the second paragraph, the author uses the word &ldquo;Though&rdquo; to acknowledge that",
+   "opts": [
+    "Pluto had some claim to being considered a planet",
+    "there was strong popular support for Pluto&rsquo;s planetary status",
+    "the original classification of Pluto was made in haste",
+    "astronomers were bitterly divided in their opinions about Pluto",
+    "Pluto did not fit the precise scientific definition of a planet"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.detail",
+   "why": "&ldquo;Though substantial enough to have several moons of its own&rdquo; (lines 7&ndash;8) admits a point <i>in Pluto&rsquo;s favor<\/i> before the &ldquo;still much smaller&rdquo; part. So &ldquo;Though&rdquo; grants that <b>Pluto had some claim to being considered a planet<\/b>. (E) is the trap: that is what the rest of the sentence argues, not the &ldquo;Though&rdquo; part. Rule: &ldquo;though&rdquo; introduces the other side&rsquo;s point."
+  },
+  {
+   "n": 8,
+   "stem": "The author&rsquo;s use of metaphor in the last sentence of the second paragraph suggests that the solar system is like",
+   "opts": [
+    "an army",
+    "a family",
+    "a fleet",
+    "an atom",
+    "a machine"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.tone",
+   "why": "The sentence calls the other planets Pluto&rsquo;s &ldquo;celestial siblings&rdquo; (lines 10&ndash;11). Siblings are brothers and sisters, so the planets are pictured as <b>a family<\/b>. (C) a fleet is tempting because planets travel together, but no ship words appear. Rule: find the one picture-word the author uses and name where it comes from."
+  },
+  {
+   "n": 9,
+   "stem": "As it is used in the first sentence of the third paragraph, the word &ldquo;meet&rdquo; most nearly means",
+   "opts": [
+    "gather",
+    "coincide",
+    "encounter",
+    "satisfy",
+    "confront"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;An object must meet three criteria&rdquo; (line 14) means it must fulfil them &mdash; <b>satisfy<\/b> them. &ldquo;Must satisfy three criteria&rdquo; reads perfectly. (C) encounter is the trap: that is how you &ldquo;meet&rdquo; a person, not a rule. Rule: words like meet, fill and pass often mean &ldquo;satisfy&rdquo; next to requirements."
+  },
+  {
+   "n": 10,
+   "stem": "The words &ldquo;For that reason&rdquo; (last sentence) refer to the fact that Pluto",
+   "opts": [
+    "is much smaller than any of the eight planets",
+    "has an eccentric and unusually tilted orbit",
+    "is located at the very edge of the solar system",
+    "allows other objects to occupy its neighborhood",
+    "is not sufficiently round in its shape"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.detail",
+   "why": "The sentence just before says Pluto &ldquo;lacks the gravitational force to drive away the multitude of icy celestial objects that share its orbital zone&rdquo; (lines 18&ndash;19) &mdash; it <b>allows other objects to occupy its neighborhood<\/b>. (A) and (B) are true facts from paragraph 2, but they are not what &ldquo;that reason&rdquo; points back to. (E) is wrong: Pluto meets the &ldquo;nearly round&rdquo; rule. Rule: &ldquo;that&rdquo; points to the sentence right before."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 3 &middot; Questions 11&ndash;15",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">At 5 a.m. on an intensely hot summer day, President John Quincy<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Adams left the White House by stagecoach for Quincy, Massachusetts.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>It was July 9, 1826, just two days short of his fifty-ninth<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>birthday. He had been up the night before &ldquo;in anxiety and<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span>apprehension, until near midnight.&rdquo; The heat made him miserable.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Candlelight attracted insects. There were no screens. The day<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>before, he had gotten three letters from Quincy with the news that<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>his ninety-one-year-old father, the second president of the United<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>States, was on his deathbed. John Quincy had &ldquo;flattered&rdquo; himself<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>that his father &ldquo;would survive this summer, and even other years.&rdquo; A<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>rider was on his way from Baltimore to tell him he was wrong.<\/span><\/div><\/div>"
+  },
+  {
+   "n": 11,
+   "stem": "As it is used in the third sentence, the word &ldquo;up&rdquo; most nearly means",
+   "opts": [
+    "aloft",
+    "prepared",
+    "successful",
+    "cheerful",
+    "awake"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.vocab",
+   "why": "&ldquo;He had been up the night before &hellip; until near midnight&rdquo; (lines 4&ndash;5) means he stayed <b>awake<\/b> late. (A) aloft is the trap &mdash; that is &ldquo;up&rdquo; as in &ldquo;up in the air.&rdquo; Rule: small everyday words have many meanings; the time words (&ldquo;night,&rdquo; &ldquo;midnight&rdquo;) pick the right one."
+  },
+  {
+   "n": 12,
+   "stem": "The author suggests that Adams&rsquo; anxiety (third sentence) was due to concern about",
+   "opts": [
+    "growing old",
+    "matters of state",
+    "the summer heat",
+    "a long stagecoach ride",
+    "his father&rsquo;s health"
+   ],
+   "ans": 4,
+   "sk": "ssat.r.infer",
+   "why": "Lines 6&ndash;9 explain: the day before, letters said his father &ldquo;was on his deathbed.&rdquo; That is why he lay awake in anxiety &mdash; concern about <b>his father&rsquo;s health<\/b>. (C) the heat is the trap: the heat made him &ldquo;miserable,&rdquo; but misery is not the same as anxiety about news. Rule: the cause of a feeling may come a few sentences later."
+  },
+  {
+   "n": 13,
+   "stem": "The author mentions that there were &ldquo;no screens&rdquo; in order to emphasize that Adams was",
+   "opts": [
+    "living in poverty",
+    "exposed to the public",
+    "socially uninhibited",
+    "physically vulnerable",
+    "fully informed"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.infer",
+   "why": "&ldquo;Candlelight attracted insects. There were no screens&rdquo; (line 6): with no screens on the windows, the bugs could get right at him in the heat. He was <b>physically vulnerable<\/b> &mdash; nothing protected his body. (B) is the trap: these are window screens against insects, not screens hiding him from people. Rule: read a detail together with its neighbor sentences."
+  },
+  {
+   "n": 14,
+   "stem": "The use of the word &ldquo;flattered&rdquo; (second to last sentence) suggests that Adams was",
+   "opts": [
+    "exceedingly vain",
+    "engaged in wishful thinking",
+    "manipulative and insincere",
+    "generous in his praise of others",
+    "immensely popular"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.vocab",
+   "why": "To &ldquo;flatter yourself that&rdquo; something will happen means to believe it because you want it to be true. Adams hoped his 91-year-old dying father would live &ldquo;even other years&rdquo; (line 10) &mdash; <b>wishful thinking<\/b>. (A) vain is the trap: flattering <i>other people<\/i> or loving praise is a different use of the word. Rule: an idiom&rsquo;s meaning comes from the whole phrase, not the single word."
+  },
+  {
+   "n": 15,
+   "stem": "The final sentence of the passage implies that Adams would be told that",
+   "opts": [
+    "his father had passed away",
+    "it was unsafe to travel by stagecoach",
+    "the weather in Quincy was not as bad as he feared",
+    "he had misinterpreted the letters from Quincy",
+    "it was irresponsible of him to leave the White House"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.infer",
+   "why": "Adams hoped his father would survive; a rider was coming &ldquo;to tell him he was wrong&rdquo; (line 11). If the hope of survival was wrong, <b>his father had passed away<\/b>. (D) is the trap: the letters were correct &mdash; it was his hopeful guess that was wrong. Rule: find exactly what &ldquo;he was wrong&rdquo; about by looking at the sentence before."
+  },
+  {
+   "type": "passage",
+   "label": "Passage 4 &middot; Questions 16&ndash;20",
+   "html": "<div style=\"font-size:15.4px;line-height:1.62\"><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">He rose at dawn, and, flushed with hope,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Shot o&rsquo;er the seething harbour-bar,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>And reached the ship, and caught the rope,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>And whistled to the morning star.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">5<\/span><span style=\"text-indent:26px;display:inline-block\">And while on deck he whistled loud,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>He heard a fierce mermaiden cry,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>&ldquo;Boy, though thou art young and proud,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>I see the place where thou wilt lie.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">The sands and yeasty surges mix<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">10<\/span><span>In caves about the dreary bay,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>And on thy ribs the limpet sticks,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>And on thy heart the scrawl shall play!&rdquo;<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">&ldquo;Fool!&rdquo; he answered, &ldquo;death is sure<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>To those that stay and those that roam;<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">15<\/span><span>But I will never more endure<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>To sit with empty hands at home.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">My mother clings about my neck;<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>My sister clamours, &lsquo;Stay, for shame!&rsquo;<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>My father raves of death and wreck, --<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\">20<\/span><span>They are all to blame, they are all to blame.<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span style=\"text-indent:26px;display:inline-block\">God help me! save I take my part<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Of danger on the roaring sea,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>A devil rises in my heart,<\/span><\/div><div style=\"display:flex;gap:9px;align-items:baseline\"><span class=\"ln\" style=\"flex:0 0 20px;text-align:right\"><\/span><span>Far worse than any death to me!&rdquo;<\/span><\/div><\/div>",
+   "src": "&ldquo;The Sailor Boy&rdquo; by Alfred Lord Tennyson, 1861"
+  },
+  {
+   "n": 16,
+   "stem": "The first stanza (lines 1-4) depicts a boy",
+   "opts": [
+    "recklessly destroying property",
+    "reluctantly performing a chore",
+    "eagerly beginning a new adventure",
+    "merrily cavorting with his friends",
+    "sadly leaving his family"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.detail",
+   "why": "He rises at dawn &ldquo;flushed with hope,&rdquo; rushes (&ldquo;shot&rdquo;) to the ship and whistles to the morning star (lines 1&ndash;4) &mdash; he is <b>eagerly beginning a new adventure<\/b>. (E) is the trap: the family appears only later, and in stanza 1 he is happy, not sad. Rule: answer only from the lines the question names."
+  },
+  {
+   "n": 17,
+   "stem": "The third stanza (lines 9-12) presents",
+   "opts": [
+    "a grim prophecy",
+    "a bitter accusation",
+    "a heartfelt prayer",
+    "an urgent request",
+    "a stern reprimand"
+   ],
+   "ans": 0,
+   "sk": "ssat.r.main",
+   "why": "The mermaid tells the boy what <i>will<\/i> happen: limpets will stick to his ribs and the scrawl (a crab) &ldquo;shall play&rdquo; on his heart (lines 11&ndash;12) &mdash; he will drown. A dark prediction of the future is <b>a grim prophecy<\/b>. (E) a stern reprimand is the trap: she is not scolding him for something he did. Rule: &ldquo;shall&rdquo; and &ldquo;will&rdquo; about someone&rsquo;s fate signal a prophecy."
+  },
+  {
+   "n": 18,
+   "stem": "In the fourth stanza, the boy indicates that he",
+   "opts": [
+    "fears death",
+    "despises idleness",
+    "regrets his choice",
+    "desires fame and fortune",
+    "recognizes his foolishness"
+   ],
+   "ans": 1,
+   "sk": "ssat.r.infer",
+   "why": "&ldquo;I will never more endure / To sit with empty hands at home&rdquo; (lines 15&ndash;16). Sitting with empty hands is doing nothing, and he can&rsquo;t stand it &mdash; he <b>despises idleness<\/b>. (A) is the trap: he says death comes to everyone, so he is <i>not<\/i> afraid of it. Rule: &ldquo;never more endure&rdquo; = strongly dislike."
+  },
+  {
+   "n": 19,
+   "stem": "In the fifth stanza (lines 16 -20), the boy&rsquo;s family are depicted as trying to",
+   "opts": [
+    "convince him that they are innocent",
+    "understand his point of view",
+    "discourage him from carrying out his plan",
+    "make amends for their misdeeds",
+    "reward him for his courage"
+   ],
+   "ans": 2,
+   "sk": "ssat.r.detail",
+   "why": "His mother clings to his neck, his sister cries &ldquo;Stay, for shame!&rdquo; and his father warns of &ldquo;death and wreck&rdquo; (lines 17&ndash;19) &mdash; all trying to <b>discourage him from carrying out his plan<\/b>. (A) and (D) twist line 20 &ldquo;they are all to blame&rdquo;: he blames them, but they are not defending themselves. Rule: look at what each person does or says."
+  },
+  {
+   "n": 20,
+   "stem": "In the final stanza (lines 21-24), the boy expresses the belief that",
+   "opts": [
+    "good always triumphs over evil",
+    "he will die if he does not go to sea",
+    "the dangers of the sea are greatly exaggerated",
+    "life at sea is better than life without adventure",
+    "he will return safely from his journey"
+   ],
+   "ans": 3,
+   "sk": "ssat.r.infer",
+   "why": "Unless he takes his &ldquo;part / Of danger on the roaring sea,&rdquo; a devil rises in his heart &ldquo;far worse than any death&rdquo; (lines 21&ndash;24). A dangerous life at sea beats a dull life at home: <b>life at sea is better than life without adventure<\/b>. (B) is the trap: he says staying would feel worse than death, not that he would actually die. Rule: in poems, don&rsquo;t take a feeling as a literal fact."
+  }
+ ],
+ "count": 20
+};
+const MINUTES = 20;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>

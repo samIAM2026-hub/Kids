@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAT Mock Test 10.5 · Quantitative 1</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1a17; --cream: #f6f3ed; --paper: #fffdf7;
+    --accent: #2f6f5e; --accent-soft: #d5e7e0;
+    --green: #3a7d44; --green-fill: #eaf4ec;
+    --red: #c0392b; --red-fill: #fbeaea;
+    --muted: #7a6a55;
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream); color: var(--ink);
+    padding: 0 16px 90px; line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header.top {
+    background: var(--paper); border: 2px solid var(--accent-soft);
+    border-radius: 16px; padding: 20px 22px; margin: 22px 0 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06);
+  }
+  .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); font-weight: bold; }
+  h1 { font-size: 25px; margin: 6px 0 6px; line-height: 1.25; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .rules { font-size: 13.5px; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,.14); }
+  .rules b { color: var(--ink); }
+
+  .bar {
+    position: sticky; top: 0; z-index: 60; margin: 0 -16px 18px; padding: 10px 16px;
+    background: rgba(255,253,247,.95); backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--accent-soft);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clock {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 21px; font-weight: bold;
+    letter-spacing: 1px; color: var(--accent); min-width: 78px;
+  }
+  .clock.warn { color: #b4622f; }
+  .clock.danger { color: var(--red); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .progress { font-size: 13px; color: var(--muted); flex: 1; min-width: 120px; }
+  .progress .barline { display: block; height: 6px; background: rgba(0,0,0,.08);
+    border-radius: 999px; margin-top: 5px; overflow: hidden; }
+  .progress .barline i { display: block; height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width .2s; }
+  button {
+    font-family: inherit; font-size: 14.5px; font-weight: bold; cursor: pointer;
+    border-radius: 10px; padding: 9px 18px; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; transition: transform .1s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  button.ghost { background: #fff; color: var(--accent); }
+
+  .passage {
+    background: var(--paper); border: 2px solid var(--accent-soft); border-left: 8px solid var(--accent);
+    border-radius: 12px; padding: 18px 22px; margin: 26px 0 18px;
+  }
+  .passage .plabel { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+  .passage p { margin-bottom: 11px; font-size: 15.5px; }
+  .passage .src { font-size: 13.5px; color: var(--muted); font-style: italic; text-align: right; }
+  .passage .ln { color: #b3a894; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    vertical-align: 2px; margin-right: 2px; }
+
+  .q {
+    background: var(--paper); border: 2px solid rgba(0,0,0,.09); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .q .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px;
+    font-weight: bold; color: var(--accent); letter-spacing: .8px; }
+  .q .stem { font-size: 16px; margin: 5px 0 12px; }
+  .q .stem .cap { text-transform: uppercase; letter-spacing: 1.8px; font-weight: bold; font-size: 17px; }
+  .opts { display: grid; gap: 7px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%;
+    background: #fff; border: 2px solid rgba(0,0,0,.10); border-radius: 10px;
+    padding: 9px 12px; font-family: inherit; font-size: 15px; font-weight: normal;
+    color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); transform: none; }
+  .opt .lt { font-weight: bold; color: var(--muted); min-width: 22px; }
+  .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.picked .lt { color: var(--accent); }
+  .locked .opt { cursor: default; }
+  .locked .opt:hover { border-color: rgba(0,0,0,.10); }
+  .locked .opt.picked:hover { border-color: var(--accent); }
+  .opt.right { border-color: var(--green); background: var(--green-fill); }
+  .opt.right .lt { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: var(--red-fill); }
+  .opt.wrong .lt { color: var(--red); }
+  .fig { margin: 10px 0 14px; text-align: center; }
+  .fig svg { max-width: 100%; height: auto; }
+  .fig .ascii { display: inline-block; text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 16px; line-height: 1.5; background: #fff; border: 2px solid rgba(0,0,0,.10);
+    border-radius: 10px; padding: 10px 18px; white-space: pre; }
+  .fig table.dt { border-collapse: collapse; margin: 0 auto; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13.5px; background: #fff; }
+  .fig table.dt caption { font-family: Georgia, serif; font-size: 13.5px; font-weight: bold;
+    padding-bottom: 6px; color: var(--ink); }
+  .fig table.dt th, .fig table.dt td { border: 1px solid rgba(0,0,0,.28); padding: 5px 11px; text-align: center; }
+  .fig table.dt th { background: var(--accent-soft); font-weight: bold; }
+  .fig table.dt td.rh { text-align: left; font-family: Georgia, serif; }
+  .q.marked-right { border-color: var(--green); }
+  .q.marked-wrong { border-color: var(--red); }
+  .q.marked-blank { border-color: #c8a44a; }
+  .verdict { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px;
+    font-weight: bold; letter-spacing: 1px; padding: 2px 9px; border-radius: 999px; margin-left: 8px; }
+  .verdict.r { background: var(--green-fill); color: var(--green); }
+  .verdict.w { background: var(--red-fill); color: var(--red); }
+  .verdict.b { background: #fbf1d8; color: #9a7415; }
+  .why {
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #f4f1e8; border-left: 4px solid var(--accent); font-size: 14.5px;
+  }
+  .why b.hd { display: block; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .why .ansline { color: var(--green); font-weight: bold; margin-bottom: 4px; }
+  .flag { margin-top: 8px; font-size: 13px; color: #8a6a15; background: #fbf1d8;
+    border-radius: 8px; padding: 8px 11px; }
+
+  #result { display: none; }
+  #result.show { display: block; }
+  .scorecard {
+    background: var(--paper); border: 3px solid var(--accent); border-radius: 18px;
+    padding: 24px; margin: 22px 0; text-align: center;
+  }
+  .scorecard .big { font-size: 46px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .scorecard .of { font-size: 17px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px,1fr));
+    gap: 10px; margin-top: 18px; }
+  .tile { border-radius: 12px; padding: 12px 8px; border: 2px solid rgba(0,0,0,.08); background: #fff; }
+  .tile .n { font-size: 23px; font-weight: bold; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; margin-top: 3px; }
+  .tile.ok .n { color: var(--green); } .tile.ok { border-color: #bcdcc3; background: var(--green-fill); }
+  .tile.no .n { color: var(--red); }   .tile.no { border-color: #eec4be; background: var(--red-fill); }
+  .tile.bl .n { color: #9a7415; }      .tile.bl { border-color: #e6d29a; background: #fbf1d8; }
+  .tile.raw .n { color: var(--accent); }
+  .verdictline { margin-top: 16px; font-size: 16px; }
+  .raw-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .divider { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin: 30px 0 14px; border-top: 2px dashed rgba(0,0,0,.14); }
+  .divider span { background: var(--cream); padding: 0 12px; position: relative; top: -9px; }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 30px; }
+  .foot a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 90; }
+  .toast.on { opacity: .93; }
+  @media print { .bar, button, .toast { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Middle Level SSAT &middot; Mock Test 10.5 &middot; Section 1</div>
+    <h1>Quantitative Skills &mdash; Section 1 (Questions 1&ndash;25)</h1>
+    <div class="meta">25 questions &middot; 30 minutes &middot; 72 seconds each, the real SSAT pace</div>
+    <div class="rules">
+      <b>How this works.</b> Answer every question &mdash; no answers are shown while you work.
+      When the timer runs out, or when you press <b>Finish &amp; Score</b>, the test is graded
+      and a full explanation appears under every question.
+      <br><b>Guessing:</b> a wrong answer costs &minus;&frac14; point, a blank costs nothing.
+      Guess only when you can rule out at least one choice.
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="clock" id="clock">30:00</div>
+    <div class="progress"><span id="ptext">Press Start when you are ready</span>
+      <span class="barline"><i id="pbar"></i></span></div>
+    <button id="startBtn">Start</button>
+    <button id="submitBtn" class="ghost" disabled>Finish &amp; Score</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button id="submitBtn2" disabled>Finish &amp; Score</button>
+  </div>
+
+  <p class="foot">SSAT Mock Test 10.5 &middot; <a href="SSAT-MockTest-1005-Index.html">All sections</a> &middot; <a href="../homework.html">我的作业 My Homework</a></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {
+ "label": "Quantitative 1",
+ "items": [
+  {
+   "n": 1,
+   "stem": "If <i>n<\/i> + 5 = 5, what is the value of <i>n<\/i>?",
+   "opts": [
+    "0",
+    "<sup>1<\/sup>&frasl;<sub>5<\/sub>",
+    "1",
+    "5",
+    "10"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.algebra",
+   "why": "Undo the +5 by subtracting 5 from both sides: <i>n<\/i> = 5 &minus; 5 = <b>0<\/b>. Check: 0 + 5 = 5. The traps are 1 (dividing 5 by 5) and 10 (adding 5 + 5) &mdash; neither one undoes &ldquo;plus 5.&rdquo; Rule: undo an operation with its opposite, then plug back in to check."
+  },
+  {
+   "n": 2,
+   "stem": "The sequence of shapes above repeats indefinitely as shown. Which shape is the 12th shape in the sequence?",
+   "opts": [
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"A shaded circle\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" font-family=\"Georgia, serif\"><circle cx=\"20.0\" cy=\"20.0\" r=\"17.0\" fill=\"#c9c3b8\" stroke=\"#1c1a17\" stroke-width=\"2\"/><\/svg>",
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"A shaded star\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" font-family=\"Georgia, serif\"><polygon points=\"20.0,5.0 24.5,15.8 36.2,16.7 27.3,24.4 30.0,35.8 20.0,29.6 10.0,35.8 12.7,24.4 3.8,16.7 15.5,15.8\" fill=\"#c9c3b8\" stroke=\"#1c1a17\" stroke-width=\"2\"/><\/svg>",
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"A shaded triangle\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" font-family=\"Georgia, serif\"><polygon points=\"20.0,4 37,36 3,36\" fill=\"#c9c3b8\" stroke=\"#1c1a17\" stroke-width=\"2\"/><\/svg>",
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"A shaded square\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" font-family=\"Georgia, serif\"><rect x=\"4\" y=\"4\" width=\"32\" height=\"32\" fill=\"#c9c3b8\" stroke=\"#1c1a17\" stroke-width=\"2\"/><\/svg>",
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"A shaded X-shaped cross\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" font-family=\"Georgia, serif\"><polygon points=\"28.2,4.4 35.6,11.8 27.4,20.0 35.6,28.2 28.2,35.6 20.0,27.4 11.8,35.6 4.4,28.2 12.6,20.0 4.4,11.8 11.8,4.4 20.0,12.6\" fill=\"#c9c3b8\" stroke=\"#1c1a17\" stroke-width=\"2\"/><\/svg>"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.logic",
+   "why": "The pattern has 5 shapes, so shapes 5 and 10 are both the X. Then the 11th is the circle and the 12th is the <b>star<\/b>. Another way: 12 &divide; 5 = 2 remainder 2, and the remainder 2 points to the 2nd shape. The trap is stopping at 10 and choosing the X. Rule: in a repeating pattern, the remainder tells you the position.",
+   "fig": "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"A row of five shaded shapes in order: circle, star, triangle, square, X-shaped cross\" width=\"240\" height=\"40\" viewBox=\"0 0 240 40\" font-family=\"Georgia, serif\"><g transform=\"translate(0,0)\"><circle cx=\"20.0\" cy=\"20.0\" r=\"17.0\" fill=\"#c9c3b8\" stroke=\"#1c1a17\" stroke-width=\"2\"/><\/g><g transform=\"translate(50,0)\"><polygon points=\"20.0,5.0 24.5,15.8 36.2,16.7 27.3,24.4 30.0,35.8 20.0,29.6 10.0,35.8 12.7,24.4 3.8,16.7 15.5,15.8\" fill=\"#c9c3b8\" stroke=\"#1c1a17\" stroke-width=\"2\"/><\/g><g transform=\"translate(100,0)\"><polygon points=\"20.0,4 37,36 3,36\" fill=\"#c9c3b8\" stroke=\"#1c1a17\" stroke-width=\"2\"/><\/g><g transform=\"translate(150,0)\"><rect x=\"4\" y=\"4\" width=\"32\" height=\"32\" fill=\"#c9c3b8\" stroke=\"#1c1a17\" stroke-width=\"2\"/><\/g><g transform=\"translate(200,0)\"><polygon points=\"28.2,4.4 35.6,11.8 27.4,20.0 35.6,28.2 28.2,35.6 20.0,27.4 11.8,35.6 4.4,28.2 12.6,20.0 4.4,11.8 11.8,4.4 20.0,12.6\" fill=\"#c9c3b8\" stroke=\"#1c1a17\" stroke-width=\"2\"/><\/g><\/svg>"
+  },
+  {
+   "n": 3,
+   "stem": "There were 20 illustrations in Julio&#8217;s sketch pad. While at a museum, he drew <i>x<\/i> more illustrations in the sketch pad. Which expression represents the total number of illustrations in Julio&#8217;s sketch pad after his museum visit?",
+   "opts": [
+    "<sup><i>x<\/i><\/sup>&frasl;<sub>20<\/sub>",
+    "<sup>20<\/sup>&frasl;<sub><i>x<\/i><\/sub>",
+    "20<i>x<\/i>",
+    "20 &minus; <i>x<\/i>",
+    "20 + <i>x<\/i>"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.algebra",
+   "why": "He started with 20 and drew <i>x<\/i> <i>more<\/i>, so the total is <b>20 + <i>x<\/i><\/b>. Test it: if he drew 3 more, he has 23, and 20 + 3 = 23. The trap is 20<i>x<\/i>, which would mean 60 drawings for <i>x<\/i> = 3. Rule: &ldquo;more&rdquo; means add; try a small number to check your expression."
+  },
+  {
+   "n": 4,
+   "stem": "4,&#9632;86<br>The &#9632; in the number above represents a digit from 0 through 9. If the number is less than 4,486, what is the greatest possible value for &#9632;?",
+   "opts": [
+    "0",
+    "3",
+    "4",
+    "7",
+    "9"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.arith",
+   "why": "Compare place by place: the thousands digits (4) match, so the hundreds digit decides. To be <i>less than<\/i> 4,486, the hidden digit must be smaller than 4, and the greatest such digit is <b>3<\/b> (4,386). The trap is 4, which makes 4,486 &mdash; equal, not less. Rule: &ldquo;less than&rdquo; never includes the number itself."
+  },
+  {
+   "n": 5,
+   "stem": "Which of the following is the sum of <sup>3<\/sup>&frasl;<sub>8<\/sub> and <sup>4<\/sup>&frasl;<sub>7<\/sub>?",
+   "opts": [
+    "<sup>1<\/sup>&frasl;<sub>8<\/sub>",
+    "<sup>3<\/sup>&frasl;<sub>14<\/sub>",
+    "<sup>7<\/sup>&frasl;<sub>15<\/sub>",
+    "<sup>33<\/sup>&frasl;<sub>56<\/sub>",
+    "<sup>53<\/sup>&frasl;<sub>56<\/sub>"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.frac",
+   "why": "Use the common denominator 8 &times; 7 = 56: <sup>3<\/sup>&frasl;<sub>8<\/sub> = <sup>21<\/sup>&frasl;<sub>56<\/sub> and <sup>4<\/sup>&frasl;<sub>7<\/sub> = <sup>32<\/sup>&frasl;<sub>56<\/sub>, so the sum is <b><sup>53<\/sup>&frasl;<sub>56<\/sub><\/b>. Quick check: both fractions are near one half, so the answer should be a bit under 1. The trap is <sup>7<\/sup>&frasl;<sub>15<\/sub>, from adding tops and bottoms separately. Rule: only add numerators after the denominators match."
+  },
+  {
+   "n": 6,
+   "stem": "Ilona goes on a 4-hour hike from her campsite to a scenic lookout. The graph shows her altitude during the hike and the time it took her to reach each corresponding altitude. Based on the graph, the altitude of the scenic lookout is how many meters above the altitude of the campsite?",
+   "opts": [
+    "100",
+    "200",
+    "300",
+    "400",
+    "500"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.data",
+   "why": "The campsite is the start (time 0): 100 meters. The lookout is the end (4 hours): 500 meters. The lookout is 500 &minus; 100 = <b>400<\/b> meters higher. The trap is 500, which is the lookout&#8217;s altitude, not how far it is <i>above<\/i> the campsite. Rule: &ldquo;how much above&rdquo; means subtract the two readings.",
+   "fig": "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Line graph titled Ilona’s Altitude During a Hike. Time in hours from 0 to 4 across, altitude in meters from 0 to 500 up. The line starts at 100 meters at time 0, rises to 200 at half an hour, stays at 200 until 1 hour, climbs to 300 at 2 hours and 400 at 2 and a half hours, stays at 400 until 3 and a half hours, and ends at 500 at 4 hours.\" width=\"330\" height=\"255\" viewBox=\"0 0 330 255\" font-family=\"Georgia, serif\"><line x1=\"70.0\" y1=\"210\" x2=\"70.0\" y2=\"40.0\" stroke=\"#1c1a17\" stroke-width=\"1.6\" stroke-dasharray=\"\"/><line x1=\"100.0\" y1=\"210\" x2=\"100.0\" y2=\"40.0\" stroke=\"#1c1a17\" stroke-width=\"0.8\" stroke-dasharray=\"3 2\"/><line x1=\"130.0\" y1=\"210\" x2=\"130.0\" y2=\"40.0\" stroke=\"#1c1a17\" stroke-width=\"0.8\" stroke-dasharray=\"\"/><line x1=\"160.0\" y1=\"210\" x2=\"160.0\" y2=\"40.0\" stroke=\"#1c1a17\" stroke-width=\"0.8\" stroke-dasharray=\"3 2\"/><line x1=\"190.0\" y1=\"210\" x2=\"190.0\" y2=\"40.0\" stroke=\"#1c1a17\" stroke-width=\"0.8\" stroke-dasharray=\"\"/><line x1=\"220.0\" y1=\"210\" x2=\"220.0\" y2=\"40.0\" stroke=\"#1c1a17\" stroke-width=\"0.8\" stroke-dasharray=\"3 2\"/><line x1=\"250.0\" y1=\"210\" x2=\"250.0\" y2=\"40.0\" stroke=\"#1c1a17\" stroke-width=\"0.8\" stroke-dasharray=\"\"/><line x1=\"280.0\" y1=\"210\" x2=\"280.0\" y2=\"40.0\" stroke=\"#1c1a17\" stroke-width=\"0.8\" stroke-dasharray=\"3 2\"/><line x1=\"310.0\" y1=\"210\" x2=\"310.0\" y2=\"40.0\" stroke=\"#1c1a17\" stroke-width=\"0.8\" stroke-dasharray=\"\"/><line x1=\"70\" y1=\"210.0\" x2=\"310\" y2=\"210.0\" stroke=\"#1c1a17\" stroke-width=\"1.6\"/><text x=\"64.0\" y=\"214.0\" font-size=\"12\" text-anchor=\"end\" fill=\"#1c1a17\">0<\/text><line x1=\"70\" y1=\"176.0\" x2=\"310\" y2=\"176.0\" stroke=\"#1c1a17\" stroke-width=\"0.8\"/><text x=\"64.0\" y=\"180.0\" font-size=\"12\" text-anchor=\"end\" fill=\"#1c1a17\">100<\/text><line x1=\"70\" y1=\"142.0\" x2=\"310\" y2=\"142.0\" stroke=\"#1c1a17\" stroke-width=\"0.8\"/><text x=\"64.0\" y=\"146.0\" font-size=\"12\" text-anchor=\"end\" fill=\"#1c1a17\">200<\/text><line x1=\"70\" y1=\"107.99999999999999\" x2=\"310\" y2=\"107.99999999999999\" stroke=\"#1c1a17\" stroke-width=\"0.8\"/><text x=\"64.0\" y=\"112.0\" font-size=\"12\" text-anchor=\"end\" fill=\"#1c1a17\">300<\/text><line x1=\"70\" y1=\"74.0\" x2=\"310\" y2=\"74.0\" stroke=\"#1c1a17\" stroke-width=\"0.8\"/><text x=\"64.0\" y=\"78.0\" font-size=\"12\" text-anchor=\"end\" fill=\"#1c1a17\">400<\/text><line x1=\"70\" y1=\"40.0\" x2=\"310\" y2=\"40.0\" stroke=\"#1c1a17\" stroke-width=\"0.8\"/><text x=\"64.0\" y=\"44.0\" font-size=\"12\" text-anchor=\"end\" fill=\"#1c1a17\">500<\/text><text x=\"70.0\" y=\"227.0\" font-size=\"12\" text-anchor=\"middle\" fill=\"#1c1a17\">0<\/text><text x=\"130.0\" y=\"227.0\" font-size=\"12\" text-anchor=\"middle\" fill=\"#1c1a17\">1<\/text><text x=\"190.0\" y=\"227.0\" font-size=\"12\" text-anchor=\"middle\" fill=\"#1c1a17\">2<\/text><text x=\"250.0\" y=\"227.0\" font-size=\"12\" text-anchor=\"middle\" fill=\"#1c1a17\">3<\/text><text x=\"310.0\" y=\"227.0\" font-size=\"12\" text-anchor=\"middle\" fill=\"#1c1a17\">4<\/text><polyline fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2.5\" points=\"70.0,176.0 100.0,142.0 130.0,142.0 160.0,126.7 190.0,108.0 220.0,74.0 280.0,74.0 310.0,40.0\"/><text x=\"190.0\" y=\"20.0\" font-size=\"14\" text-anchor=\"middle\" fill=\"#1c1a17\" font-weight=\"bold\">Ilona&#8217;s Altitude<\/text><text x=\"190.0\" y=\"37.0\" font-size=\"14\" text-anchor=\"middle\" fill=\"#1c1a17\" font-weight=\"bold\">During a Hike<\/text><text x=\"190.0\" y=\"246.0\" font-size=\"12\" text-anchor=\"middle\" fill=\"#1c1a17\">Time (hours)<\/text><text x=\"18\" y=\"125.0\" font-size=\"12\" text-anchor=\"middle\" fill=\"#1c1a17\" transform=\"rotate(-90 18 125.0)\">Altitude (meters)<\/text><\/svg>"
+  },
+  {
+   "n": 7,
+   "stem": "What is the value of 0.5 &times; 23.5 &times; 0.2?",
+   "opts": [
+    "0.0235",
+    "0.235",
+    "2.35",
+    "23.5",
+    "235"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.arith",
+   "why": "Multiply the friendly pair first: 0.5 &times; 0.2 = 0.1. Then 23.5 &times; 0.1 = <b>2.35<\/b>. Check: half of 23.5 is 11.75, and 0.2 of that is 2.35. The trap is 0.235, which comes from moving the decimal point one place too many. Rule: look for pairs that make 1, 0.1 or 10 before you multiply."
+  },
+  {
+   "n": 8,
+   "stem": "On a table, there are ten of each of the following types of coins: 1-cent, 5-cent, 10-cent, and 25-cent coins. If Edith needs exactly 36 cents, what is the least number of coins she must take from the table?",
+   "opts": [
+    "Two",
+    "Three",
+    "Four",
+    "Five",
+    "Six"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.word",
+   "why": "Use the biggest coins first: 25 + 10 + 1 = 36, which is <b>three<\/b> coins. Two coins can make at most 25 + 25 = 50, but no pair makes exactly 36. The trap is Four (25 + 5 + 5 + 1), which works but is not the least. Rule: for &ldquo;fewest coins,&rdquo; start with the largest coin that fits."
+  },
+  {
+   "n": 9,
+   "stem": "What is the value of <sup>1<\/sup>&frasl;<sub>2<\/sub>(<sup>3<\/sup>&frasl;<sub>4<\/sub> &times; <sup>1<\/sup>&frasl;<sub>3<\/sub>)?",
+   "opts": [
+    "<sup>1<\/sup>&frasl;<sub>8<\/sub>",
+    "<sup>5<\/sup>&frasl;<sub>24<\/sub>",
+    "<sup>2<\/sup>&frasl;<sub>9<\/sub>",
+    "<sup>13<\/sup>&frasl;<sub>24<\/sub>",
+    "<sup>19<\/sup>&frasl;<sub>12<\/sub>"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.frac",
+   "why": "Do the brackets first: <sup>3<\/sup>&frasl;<sub>4<\/sub> &times; <sup>1<\/sup>&frasl;<sub>3<\/sub> = <sup>3<\/sup>&frasl;<sub>12<\/sub> = <sup>1<\/sup>&frasl;<sub>4<\/sub>. Then <sup>1<\/sup>&frasl;<sub>2<\/sub> &times; <sup>1<\/sup>&frasl;<sub>4<\/sub> = <b><sup>1<\/sup>&frasl;<sub>8<\/sub><\/b>. The trap is <sup>13<\/sup>&frasl;<sub>24<\/sub>, which you get by <i>adding<\/i> inside the brackets (<sup>3<\/sup>&frasl;<sub>4<\/sub> + <sup>1<\/sup>&frasl;<sub>3<\/sub> = <sup>13<\/sup>&frasl;<sub>12<\/sub>) and then halving. Rule: read the sign inside the brackets carefully, and simplify before multiplying."
+  },
+  {
+   "n": 10,
+   "stem": "In the figure above, segment <span style=\"text-decoration:overline\"><i>ST<\/i><\/span> has length 12, <i>T<\/i> is the midpoint of the segment <span style=\"text-decoration:overline\"><i>RV<\/i><\/span>, and <i>S<\/i> is the midpoint of segment <span style=\"text-decoration:overline\"><i>RT<\/i><\/span>. What is the length of the segment <span style=\"text-decoration:overline\"><i>SV<\/i><\/span>?",
+   "opts": [
+    "12",
+    "18",
+    "24",
+    "36",
+    "48"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.geom",
+   "why": "S is the midpoint of RT, so RS = ST = 12 and RT = 24. T is the midpoint of RV, so TV = RT = 24. Then SV = ST + TV = 12 + 24 = <b>36<\/b>. The trap is 24, which is TV alone (or RT), not the whole stretch from S to V. Rule: label every piece you know on the figure before adding.",
+   "fig": "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Points R, S, T and V lie in order on a line segment; R to S and S to T look equal, and T to V is longer\" width=\"380\" height=\"55\" viewBox=\"0 0 380 55\" font-family=\"Georgia, serif\"><line x1=\"30.0\" y1=\"40.0\" x2=\"350.0\" y2=\"40.0\" stroke=\"#1c1a17\" stroke-width=\"2\"/><circle cx=\"30.0\" cy=\"40.0\" r=\"4\" fill=\"#1c1a17\"/><text x=\"30.0\" y=\"24.0\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1c1a17\" font-style=\"italic\">R<\/text><circle cx=\"110.0\" cy=\"40.0\" r=\"4\" fill=\"#1c1a17\"/><text x=\"110.0\" y=\"24.0\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1c1a17\" font-style=\"italic\">S<\/text><circle cx=\"190.0\" cy=\"40.0\" r=\"4\" fill=\"#1c1a17\"/><text x=\"190.0\" y=\"24.0\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1c1a17\" font-style=\"italic\">T<\/text><circle cx=\"350.0\" cy=\"40.0\" r=\"4\" fill=\"#1c1a17\"/><text x=\"350.0\" y=\"24.0\" font-size=\"16\" text-anchor=\"middle\" fill=\"#1c1a17\" font-style=\"italic\">V<\/text><\/svg>"
+  },
+  {
+   "n": 11,
+   "stem": "Let <span style=\"border:1.5px solid #1c1a17;padding:0 3px\"><i>a<\/i><\/span> be defined by <span style=\"border:1.5px solid #1c1a17;padding:0 3px\"><i>a<\/i><\/span> = <i>a<\/i><sup>2<\/sup> + 1, where <i>a<\/i> is a whole number. What is the value of <span style=\"border:1.5px solid #1c1a17;padding:0 3px\">3<\/span>?",
+   "opts": [
+    "16",
+    "10",
+    "8",
+    "7",
+    "6"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.algebra",
+   "why": "Put 3 in place of <i>a<\/i>: 3<sup>2<\/sup> + 1 = 9 + 1 = <b>10<\/b>. The trap is 7, which comes from treating 3<sup>2<\/sup> as 3 &times; 2 = 6 and then adding 1. Rule: a made-up symbol is just a recipe &mdash; swap in the number and follow it exactly; an exponent means multiply the number by itself."
+  },
+  {
+   "n": 12,
+   "stem": "Each student at Central Middle School wears a uniform consisting of 1 shirt and 1 pair of pants. The table shows the colors available for each item of clothing. How many different uniforms are possible?",
+   "opts": [
+    "Three",
+    "Four",
+    "Seven",
+    "Ten",
+    "Twelve"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.logic",
+   "why": "There are 4 shirt colors and 3 pants colors. Each shirt can go with each of the 3 pants, so there are 4 &times; 3 = <b>twelve<\/b> uniforms. The trap is Seven, from adding 4 + 3 instead of multiplying. Rule: when you choose one from each group, multiply the number of choices.",
+   "fig": "<table class=\"dt\"><caption><b>Uniform Choices<\/b><\/caption><tr><th>Shirt Color<\/th><th>Pants Color<\/th><\/tr><tr><td>Tan<\/td><td>Black<\/td><\/tr><tr><td>Red<\/td><td>Khaki<\/td><\/tr><tr><td>White<\/td><td>Navy<\/td><\/tr><tr><td>Yellow<\/td><td><\/td><\/tr><\/table>"
+  },
+  {
+   "n": 13,
+   "stem": "If <i>n<\/i> is a positive odd integer, which of the following must be an even integer?",
+   "opts": [
+    "3<i>n<\/i> &minus; 1",
+    "2<i>n<\/i> + 3",
+    "2<i>n<\/i> &minus; 1",
+    "<i>n<\/i> + 2",
+    "<sup>3<i>n<\/i><\/sup>&frasl;<sub>2<\/sub>"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.logic",
+   "why": "Odd &times; odd is odd, so 3<i>n<\/i> is odd, and odd &minus; 1 is even: <b>3<i>n<\/i> &minus; 1<\/b>. Test with <i>n<\/i> = 1: 3(1) &minus; 1 = 2, even. The others give 5, 1, 3 and <sup>3<\/sup>&frasl;<sub>2<\/sub>. The trap is <sup>3<i>n<\/i><\/sup>&frasl;<sub>2<\/sub> &mdash; it isn&#8217;t even a whole number when <i>n<\/i> is odd. Rule: plug in a small odd number to test each choice quickly."
+  },
+  {
+   "n": 14,
+   "stem": "Joseph&#8217;s car began the week with a full tank of gasoline. During the week, he drove his car 232 miles and paid $32 for gasoline that week. At this rate, how many miles will he drive if he pays $40 for gasoline next week?",
+   "opts": [
+    "240",
+    "288",
+    "290",
+    "320",
+    "332"
+   ],
+   "ans": 2,
+   "sk": "ssat.q.ratio",
+   "why": "$40 is <sup>40<\/sup>&frasl;<sub>32<\/sub> = 1.25 times as much as $32, so he drives 232 &times; 1.25 = 232 + 58 = <b>290<\/b> miles. Check: 232 &divide; 32 = 7.25 miles per dollar, and 7.25 &times; 40 = 290. The trap is 240: adding the extra $8 as if it were 8 miles. Rule: in a rate problem, scale by multiplying, not by adding."
+  },
+  {
+   "n": 15,
+   "stem": "Of the following fractions, which is closest to 37%?",
+   "opts": [
+    "<sup>1<\/sup>&frasl;<sub>3<\/sub>",
+    "<sup>1<\/sup>&frasl;<sub>4<\/sub>",
+    "<sup>2<\/sup>&frasl;<sub>5<\/sub>",
+    "<sup>3<\/sup>&frasl;<sub>7<\/sub>",
+    "<sup>3<\/sup>&frasl;<sub>8<\/sub>"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.pct",
+   "why": "Change each to a percent: <sup>1<\/sup>&frasl;<sub>3<\/sub> &asymp; 33.3%, <sup>1<\/sup>&frasl;<sub>4<\/sub> = 25%, <sup>2<\/sup>&frasl;<sub>5<\/sub> = 40%, <sup>3<\/sup>&frasl;<sub>7<\/sub> &asymp; 42.9%, <sup>3<\/sup>&frasl;<sub>8<\/sub> = 37.5%. The closest is <b><sup>3<\/sup>&frasl;<sub>8<\/sub><\/b>, only 0.5% away. The trap is <sup>1<\/sup>&frasl;<sub>3<\/sub>, the &ldquo;famous&rdquo; fraction near 37%, but it is almost 4% away. Rule: learn the eighths &mdash; <sup>1<\/sup>&frasl;<sub>8<\/sub> = 12.5%, so <sup>3<\/sup>&frasl;<sub>8<\/sub> = 37.5%."
+  },
+  {
+   "n": 16,
+   "stem": "At Banham School, there are 20 students in each class, and 5 classes wish to form 3 clubs. Each of the students must belong to only one club and the membership of each club may not outnumber the membership of the other clubs by more than one student. What is the least possible number of students in one club?",
+   "opts": [
+    "15",
+    "20",
+    "21",
+    "33",
+    "34"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.word",
+   "why": "There are 20 &times; 5 = 100 students. Split as evenly as possible into 3 clubs: 100 &divide; 3 = 33 remainder 1, so the clubs have 33, 33 and 34. The smallest club has <b>33<\/b>. The trap is 34, the biggest club. Rule: &ldquo;differ by at most one&rdquo; means divide, then hand the remainder out one at a time."
+  },
+  {
+   "n": 17,
+   "stem": "The rectangle shown is divided into 6 congruent squares. What fraction of the rectangle is shaded?",
+   "opts": [
+    "<sup>3<\/sup>&frasl;<sub>8<\/sub>",
+    "<sup>5<\/sup>&frasl;<sub>8<\/sub>",
+    "<sup>5<\/sup>&frasl;<sub>9<\/sub>",
+    "<sup>7<\/sup>&frasl;<sub>12<\/sub>",
+    "<sup>2<\/sup>&frasl;<sub>3<\/sub>"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.area",
+   "why": "Count in half-squares. The rectangle has 6 squares = 12 halves. Shaded: two full squares (4 halves) plus three triangles that are each half a square (3 halves) = 7 halves. So the fraction is <b><sup>7<\/sup>&frasl;<sub>12<\/sub><\/b>. The trap is <sup>2<\/sup>&frasl;<sub>3<\/sub>: counting the half-shaded squares as if they were whole. Rule: when shapes are split diagonally, count in halves.",
+   "fig": "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"A rectangle made of 6 equal squares, 3 across and 2 down. Bottom row: the left square has its lower-right triangular half shaded, the middle and right squares are fully shaded. Top row: the left square is unshaded, the middle square has its lower-right triangular half shaded, and the right square has its lower-left triangular half shaded, so the two top triangles form a peak.\" width=\"160\" height=\"110\" viewBox=\"0 0 160 110\" font-family=\"Georgia, serif\"><polygon points=\"55,55 105,55 105,5\" fill=\"#c9c3b8\" stroke=\"none\"/><polygon points=\"105,5 105,55 155,55\" fill=\"#c9c3b8\" stroke=\"none\"/><polygon points=\"5,105 55,105 55,55\" fill=\"#c9c3b8\" stroke=\"none\"/><polygon points=\"55,55 155,55 155,105 55,105\" fill=\"#c9c3b8\" stroke=\"none\"/><rect x=\"5\" y=\"5\" width=\"150\" height=\"100\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"3\"/><line x1=\"55.0\" y1=\"5.0\" x2=\"55.0\" y2=\"105.0\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><line x1=\"105.0\" y1=\"5.0\" x2=\"105.0\" y2=\"105.0\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><line x1=\"5.0\" y1=\"55.0\" x2=\"155.0\" y2=\"55.0\" stroke=\"#1c1a17\" stroke-width=\"2.5\"/><\/svg>"
+  },
+  {
+   "n": 18,
+   "stem": "In a game, 2 gold pieces may be exchanged for 6 silver pieces, and 7 silver pieces may be exchanged for 42 copper pieces. At this rate, how many copper pieces may be exchanged for 5 gold pieces?",
+   "opts": [
+    "10",
+    "18",
+    "36",
+    "72",
+    "90"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.ratio",
+   "why": "Find the &ldquo;1 of each&rdquo; rates: 1 gold = 3 silver, and 1 silver = 6 copper, so 1 gold = 18 copper. Then 5 gold = 5 &times; 18 = <b>90<\/b> copper. The trap is 36, which is the copper for only 2 gold (6 silver &times; 6). Rule: reduce each exchange to a unit rate, then chain them."
+  },
+  {
+   "n": 19,
+   "stem": "The figure shown consists of three segments and two squares. Each square has side lengths of 2 centimeters, and <i>AB<\/i> = 6 centimeters, <i>CD<\/i> = 8 centimeters, and <i>EF<\/i> = 10 centimeters. Based on the figure, what is the length of <i>n<\/i>, in centimeters?",
+   "opts": [
+    "18",
+    "20",
+    "22",
+    "24",
+    "26"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.geom",
+   "why": "Each square makes two segments overlap side to side by 2 cm (the width of the square). So <i>n<\/i> = 6 + 8 + 10 &minus; 2 &minus; 2 = <b>20<\/b>. Check with positions: A at 0, B at 6, C at 4, D at 12, E at 10, F at 20. The trap is 24, just adding the three segments and forgetting the overlaps. Rule: when pieces overlap, subtract the shared parts.",
+   "fig": "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Three horizontal segments stepping up to the right: AB at the bottom, CD in the middle, EF at the top. A small square joins AB and CD, with C at its top-left corner and B at its bottom-right corner. Another small square joins CD and EF, with E at its top-left corner and D at its bottom-right corner. A bracket labeled n spans from A on the left to F on the right.\" width=\"340\" height=\"145\" viewBox=\"0 0 340 145\" font-family=\"Georgia, serif\"><line x1=\"25.0\" y1=\"100.0\" x2=\"109.0\" y2=\"100.0\" stroke=\"#1c1a17\" stroke-width=\"2\"/><line x1=\"81.0\" y1=\"72.0\" x2=\"193.0\" y2=\"72.0\" stroke=\"#1c1a17\" stroke-width=\"2\"/><line x1=\"165.0\" y1=\"44.0\" x2=\"305.0\" y2=\"44.0\" stroke=\"#1c1a17\" stroke-width=\"2\"/><line x1=\"81.0\" y1=\"72.0\" x2=\"81.0\" y2=\"100.0\" stroke=\"#1c1a17\" stroke-width=\"2\"/><line x1=\"109.0\" y1=\"72.0\" x2=\"109.0\" y2=\"100.0\" stroke=\"#1c1a17\" stroke-width=\"2\"/><line x1=\"165.0\" y1=\"44.0\" x2=\"165.0\" y2=\"72.0\" stroke=\"#1c1a17\" stroke-width=\"2\"/><line x1=\"193.0\" y1=\"44.0\" x2=\"193.0\" y2=\"72.0\" stroke=\"#1c1a17\" stroke-width=\"2\"/><circle cx=\"25.0\" cy=\"100.0\" r=\"3.5\" fill=\"#1c1a17\"/><text x=\"13.0\" y=\"105.0\" font-size=\"14\" text-anchor=\"middle\" fill=\"#1c1a17\" font-style=\"italic\">A<\/text><circle cx=\"109.0\" cy=\"100.0\" r=\"3.5\" fill=\"#1c1a17\"/><text x=\"119.0\" y=\"114.0\" font-size=\"14\" text-anchor=\"middle\" fill=\"#1c1a17\" font-style=\"italic\">B<\/text><circle cx=\"81.0\" cy=\"72.0\" r=\"3.5\" fill=\"#1c1a17\"/><text x=\"71.0\" y=\"66.0\" font-size=\"14\" text-anchor=\"middle\" fill=\"#1c1a17\" font-style=\"italic\">C<\/text><circle cx=\"193.0\" cy=\"72.0\" r=\"3.5\" fill=\"#1c1a17\"/><text x=\"205.0\" y=\"86.0\" font-size=\"14\" text-anchor=\"middle\" fill=\"#1c1a17\" font-style=\"italic\">D<\/text><circle cx=\"165.0\" cy=\"44.0\" r=\"3.5\" fill=\"#1c1a17\"/><text x=\"155.0\" y=\"38.0\" font-size=\"14\" text-anchor=\"middle\" fill=\"#1c1a17\" font-style=\"italic\">E<\/text><circle cx=\"305.0\" cy=\"44.0\" r=\"3.5\" fill=\"#1c1a17\"/><text x=\"318.0\" y=\"49.0\" font-size=\"14\" text-anchor=\"middle\" fill=\"#1c1a17\" font-style=\"italic\">F<\/text><line x1=\"25.0\" y1=\"130.0\" x2=\"151.0\" y2=\"130.0\" stroke=\"#1c1a17\" stroke-width=\"1.5\"/><line x1=\"179.0\" y1=\"130.0\" x2=\"305.0\" y2=\"130.0\" stroke=\"#1c1a17\" stroke-width=\"1.5\"/><line x1=\"25.0\" y1=\"124.0\" x2=\"25.0\" y2=\"136.0\" stroke=\"#1c1a17\" stroke-width=\"1.5\"/><line x1=\"305.0\" y1=\"124.0\" x2=\"305.0\" y2=\"136.0\" stroke=\"#1c1a17\" stroke-width=\"1.5\"/><text x=\"165.0\" y=\"135.0\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1c1a17\" font-style=\"italic\">n<\/text><\/svg>"
+  },
+  {
+   "n": 20,
+   "stem": "Calculate: 3 + 6 &times; 2<sup>3<\/sup> &divide; 3 + 3<sup>2<\/sup>",
+   "opts": [
+    "21",
+    "24",
+    "27",
+    "28",
+    "33"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.arith",
+   "why": "Exponents first: 2<sup>3<\/sup> = 8 and 3<sup>2<\/sup> = 9. Then multiply and divide left to right: 6 &times; 8 = 48, 48 &divide; 3 = 16. Last, add: 3 + 16 + 9 = <b>28<\/b>. The trap is 33, from working straight left to right: (3 + 6) &times; 8 &divide; 3 + 9 = 33. Rule: exponents, then &times;/&divide;, then +/&minus;."
+  },
+  {
+   "n": 21,
+   "stem": "A square card that is blank on both sides is punched with 2 small holes. The top face of the card is shown in the figure. If the card is turned face down, which of the following orientations of the card is NOT possible?",
+   "opts": [
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"A square card with two small holes in the bottom-right corner, side by side one above the other along the side edge\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\" font-family=\"Georgia, serif\"><rect x=\"1.5\" y=\"1.5\" width=\"67\" height=\"67\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><circle cx=\"60.5\" cy=\"60.5\" r=\"4.5\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.6\"/><circle cx=\"60.5\" cy=\"50.1\" r=\"4.5\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.6\"/><\/svg>",
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"A square card with two small holes in the top-right corner, side by side one above the other along the side edge\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\" font-family=\"Georgia, serif\"><rect x=\"1.5\" y=\"1.5\" width=\"67\" height=\"67\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><circle cx=\"60.5\" cy=\"9.5\" r=\"4.5\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.6\"/><circle cx=\"60.5\" cy=\"19.9\" r=\"4.5\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.6\"/><\/svg>",
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"A square card with two small holes in the top-left corner, side by side one above the other along the side edge\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\" font-family=\"Georgia, serif\"><rect x=\"1.5\" y=\"1.5\" width=\"67\" height=\"67\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><circle cx=\"9.5\" cy=\"9.5\" r=\"4.5\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.6\"/><circle cx=\"9.5\" cy=\"19.9\" r=\"4.5\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.6\"/><\/svg>",
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"A square card with two small holes in the top-right corner, side by side along the top or bottom edge\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\" font-family=\"Georgia, serif\"><rect x=\"1.5\" y=\"1.5\" width=\"67\" height=\"67\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><circle cx=\"60.5\" cy=\"9.5\" r=\"4.5\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.6\"/><circle cx=\"50.1\" cy=\"9.5\" r=\"4.5\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.6\"/><\/svg>",
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"A square card with two small holes in the bottom-left corner, side by side along the top or bottom edge\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\" font-family=\"Georgia, serif\"><rect x=\"1.5\" y=\"1.5\" width=\"67\" height=\"67\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><circle cx=\"9.5\" cy=\"60.5\" r=\"4.5\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.6\"/><circle cx=\"19.9\" cy=\"60.5\" r=\"4.5\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.6\"/><\/svg>"
+   ],
+   "ans": 1,
+   "sk": "ssat.q.geom",
+   "why": "Flip the card over left-to-right: the holes move to the top-right corner, still along the top edge (D). Turning that flipped card gives A (quarter turn), E (half turn) and C (three-quarter turn). Choice <b>B<\/b> (holes along the right edge at the top-right) is the <i>face-up<\/i> card turned a quarter turn, so it is not face down. Rule: a flip makes a mirror image; turning alone never does.",
+   "fig": "<svg xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"A square card with two small holes in the top-left corner, side by side along the top or bottom edge\" width=\"90\" height=\"90\" viewBox=\"0 0 90 90\" font-family=\"Georgia, serif\"><rect x=\"1.5\" y=\"1.5\" width=\"87\" height=\"87\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"2\"/><circle cx=\"11.0\" cy=\"11.0\" r=\"6\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.6\"/><circle cx=\"24.8\" cy=\"11.0\" r=\"6\" fill=\"none\" stroke=\"#1c1a17\" stroke-width=\"1.6\"/><\/svg>"
+  },
+  {
+   "n": 22,
+   "stem": "If a number <i>n<\/i> is even, which of the following expressions must be an integer?",
+   "opts": [
+    "<sup>3<i>n<\/i><\/sup>&frasl;<sub>2<\/sub>",
+    "<sup>3<i>n<\/i><\/sup>&frasl;<sub>4<\/sub>",
+    "<sup><i>n<\/i> + 4<\/sup>&frasl;<sub>4<\/sub>",
+    "<sup><i>n<\/i> + 2<\/sup>&frasl;<sub>3<\/sub>",
+    "<sup>3(<i>n<\/i> + 1)<\/sup>&frasl;<sub>2<\/sub>"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.logic",
+   "why": "An even number is 2 times a whole number, so <sup><i>n<\/i><\/sup>&frasl;<sub>2<\/sub> is a whole number, and <sup>3<i>n<\/i><\/sup>&frasl;<sub>2<\/sub> = 3 &times; <sup><i>n<\/i><\/sup>&frasl;<sub>2<\/sub> is too: <b><sup>3<i>n<\/i><\/sup>&frasl;<sub>2<\/sub><\/b>. Test <i>n<\/i> = 2: the choices give 3, 1.5, 1.5, <sup>4<\/sup>&frasl;<sub>3<\/sub> and 4.5 &mdash; only A is a whole number. The trap is <sup>3<i>n<\/i><\/sup>&frasl;<sub>4<\/sub>, which works for <i>n<\/i> = 4 but not for <i>n<\/i> = 2. Rule: &ldquo;must be&rdquo; means it works for every even number, so test more than one."
+  },
+  {
+   "n": 23,
+   "stem": "On Monday, Aidan reads <sup>1<\/sup>&frasl;<sub>3<\/sub> of a book, and on Tuesday, Aidan reads <sup>1<\/sup>&frasl;<sub>4<\/sub> of the remaining pages. To finish the book, he must read an additional 60 pages. How many pages are in the book?",
+   "opts": [
+    "720",
+    "360",
+    "144",
+    "120",
+    "72"
+   ],
+   "ans": 3,
+   "sk": "ssat.q.frac",
+   "why": "After Monday, <sup>2<\/sup>&frasl;<sub>3<\/sub> is left. On Tuesday he reads <sup>1<\/sup>&frasl;<sub>4<\/sub> of that, so <sup>3<\/sup>&frasl;<sub>4<\/sub> of it is still left: <sup>3<\/sup>&frasl;<sub>4<\/sub> &times; <sup>2<\/sup>&frasl;<sub>3<\/sub> = <sup>1<\/sup>&frasl;<sub>2<\/sub> of the book = 60 pages. The book has <b>120<\/b> pages. Check: 40 on Monday, 20 of the remaining 80 on Tuesday, 60 left. The trap is 144, from taking <sup>1<\/sup>&frasl;<sub>4<\/sub> of the <i>whole<\/i> book. Rule: &ldquo;of the remaining&rdquo; means a fraction of what is left."
+  },
+  {
+   "n": 24,
+   "stem": "A square piece of paper has an area of 144 square inches. What is the circumference, in inches, of the largest circle that can be cut from the paper?",
+   "opts": [
+    "12&pi;",
+    "24&pi;",
+    "36&pi;",
+    "72&pi;",
+    "144&pi;"
+   ],
+   "ans": 0,
+   "sk": "ssat.q.geom",
+   "why": "The side is &radic;144 = 12 inches, and the biggest circle just fits, so its diameter is 12. Circumference = &pi; &times; diameter = <b>12&pi;<\/b>. The trap is 24&pi;, from using 12 as the radius in 2&pi;<i>r<\/i>. Rule: the largest circle in a square has diameter = side."
+  },
+  {
+   "n": 25,
+   "stem": "The number 120 is increased by 50%, and the result is then decreased by 30% to give the number <i>x<\/i>. What is the value of <i>x<\/i>?",
+   "opts": [
+    "174",
+    "162",
+    "144",
+    "136",
+    "126"
+   ],
+   "ans": 4,
+   "sk": "ssat.q.pct",
+   "why": "Increase: 120 + 60 = 180. Decrease 30% of 180 (that is 54): 180 &minus; 54 = <b>126<\/b>. Check: 120 &times; 1.5 &times; 0.7 = 126. The trap is 144, from treating it as a single 20% increase of 120 &mdash; but the 30% is taken from the bigger number 180. Rule: each percent change uses the new amount as its base."
+  }
+ ],
+ "count": 25
+};
+const MINUTES = 30;
+const LETTERS = ["A","B","C","D","E"];
+
+const answers = {};
+let started = false, done = false, remain = MINUTES * 60, tick = null;
+
+const $ = s => document.querySelector(s);
+const quizEl = $("#quiz"), clockEl = $("#clock"), ptext = $("#ptext"), pbar = $("#pbar");
+
+function fmt(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + String(s).padStart(2,"0");
+}
+
+function render(){
+  let html = "";
+  DATA.items.forEach(it => {
+    if (it.type === "passage") {
+      html += '<div class="passage"><div class="plabel">' + it.label + '</div>' + it.html +
+              (it.src ? '<div class="src">' + it.src + '</div>' : '') + '</div>';
+      return;
+    }
+    html += '<div class="q" id="q' + it.n + '" data-n="' + it.n + '">';
+    html += '<div class="num">QUESTION ' + it.n + '<span class="vslot"></span></div>';
+    html += '<div class="stem">' + it.stem + '</div>';
+    if (it.fig) html += '<div class="fig">' + it.fig + '</div>';
+    html += '<div class="opts">';
+    it.opts.forEach((o,i) => {
+      html += '<button class="opt" data-n="' + it.n + '" data-i="' + i + '">' +
+              '<span class="lt">(' + LETTERS[i] + ')</span><span class="tx">' + o + '</span></button>';
+    });
+    html += '</div><div class="whyslot"></div></div>';
+  });
+  quizEl.innerHTML = html;
+  quizEl.querySelectorAll(".opt").forEach(b => b.addEventListener("click", onPick));
+}
+
+function onPick(e){
+  if (!started || done) { if(!started) toast("Press Start first."); return; }
+  const b = e.currentTarget, n = +b.dataset.n, i = +b.dataset.i;
+  const box = document.getElementById("q"+n);
+  if (answers[n] === i) { delete answers[n]; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); }
+  else { answers[n] = i; box.querySelectorAll(".opt").forEach(x=>x.classList.remove("picked")); b.classList.add("picked"); }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = DATA.count, n = Object.keys(answers).length;
+  ptext.textContent = n + " of " + total + " answered";
+  pbar.style.width = (100*n/total) + "%";
+}
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+function start(){
+  started = true;
+  $("#startBtn").disabled = true; $("#startBtn").textContent = "Running";
+  $("#submitBtn").disabled = false; $("#submitBtn2").disabled = false;
+  updateProgress();
+  tick = setInterval(() => {
+    remain--;
+    clockEl.textContent = fmt(Math.max(0,remain));
+    clockEl.classList.toggle("warn", remain <= 300 && remain > 60);
+    clockEl.classList.toggle("danger", remain <= 60);
+    if (remain <= 0) { clearInterval(tick); grade(true); }
+  }, 1000);
+}
+
+function grade(auto){
+  if (done) return;
+  const total = DATA.count, n = Object.keys(answers).length;
+  if (!auto && n < total) {
+    if (!confirm("You have left " + (total-n) + " question(s) blank. Finish and score now?")) return;
+  }
+  done = true; clearInterval(tick);
+  $("#startBtn").textContent = "Finished";
+  $("#submitBtn").disabled = true; $("#submitBtn2").disabled = true;
+  quizEl.classList.add("locked");
+
+  let right=0, wrong=0, blank=0;
+  DATA.items.filter(x=>x.type!=="passage").forEach(it => {
+    const box = document.getElementById("q"+it.n);
+    const picked = answers[it.n];
+    const opts = box.querySelectorAll(".opt");
+    opts.forEach((o,i) => {
+      if (i === it.ans) o.classList.add("right");
+      else if (i === picked) o.classList.add("wrong");
+    });
+    let v;
+    if (picked === undefined) { blank++; v='<span class="verdict b">BLANK</span>'; box.classList.add("marked-blank"); }
+    else if (picked === it.ans) { right++; v='<span class="verdict r">CORRECT</span>'; box.classList.add("marked-right"); }
+    else { wrong++; v='<span class="verdict w">MISSED</span>'; box.classList.add("marked-wrong"); }
+    box.querySelector(".vslot").innerHTML = v;
+    let w = '<div class="why"><b class="hd">Why</b>' +
+            '<div class="ansline">Answer: (' + LETTERS[it.ans] + ') ' + it.opts[it.ans] + '</div>' +
+            '<div>' + it.why + '</div></div>';
+    if (it.flag) w += '<div class="flag">&#9873; ' + it.flag + '</div>';
+    box.querySelector(".whyslot").innerHTML = w;
+  });
+
+  const raw = right - wrong/4;
+  const pct = Math.round(100*right/total);
+  let verdict;
+  if (pct >= 85) verdict = "Excellent — this is scoring-range work.";
+  else if (pct >= 70) verdict = "Solid. Read the explanation for every one you missed.";
+  else if (pct >= 50) verdict = "A fair start. The explanations below are the real lesson — work through each one.";
+  else verdict = "This section needs another pass. Read every explanation slowly, then retake it in a few days.";
+  const timeUsed = MINUTES*60 - Math.max(0,remain);
+
+  $("#result").innerHTML =
+    '<div class="scorecard">' +
+      '<div class="eyebrow">' + DATA.label + ' &middot; Result</div>' +
+      '<div class="big">' + right + '<span class="of"> / ' + total + '</span></div>' +
+      '<div class="of">' + pct + '% correct' + (auto ? ' &middot; time expired' : '') + '</div>' +
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="n">' + right + '</div><div class="l">Correct</div></div>' +
+        '<div class="tile no"><div class="n">' + wrong + '</div><div class="l">Wrong</div></div>' +
+        '<div class="tile bl"><div class="n">' + blank + '</div><div class="l">Blank</div></div>' +
+        '<div class="tile raw"><div class="n">' + (Math.round(raw*100)/100) + '</div><div class="l">Raw score</div></div>' +
+        '<div class="tile"><div class="n">' + fmt(timeUsed) + '</div><div class="l">Time used</div></div>' +
+      '</div>' +
+      '<div class="verdictline">' + verdict + '</div>' +
+      '<div class="raw-note">Raw score = correct &minus; (wrong &divide; 4). Blanks cost nothing. ' +
+        'On the real SSAT it is this raw score that gets converted to a scaled score.</div>' +
+      '<div style="margin-top:16px"><button class="ghost" onclick="window.print()">Print this review</button> ' +
+      '<button class="ghost" onclick="location.reload()">Retake</button></div>' +
+    '</div>' +
+    '<div class="divider"><span>Explanations below</span></div>';
+  $("#result").classList.add("show");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("#startBtn").addEventListener("click", start);
+$("#submitBtn").addEventListener("click", ()=>grade(false));
+$("#submitBtn2").addEventListener("click", ()=>grade(false));
+window.addEventListener("beforeunload", e => { if (started && !done) { e.preventDefault(); e.returnValue = ""; } });
+render();
+clockEl.textContent = fmt(remain);
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
