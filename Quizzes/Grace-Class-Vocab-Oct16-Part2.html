@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Vocab (Oct 16) · Part 2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #fffdf7 0%, #f0f2fb 55%, #e3e6f6 100%);
+    min-height: 100vh; color: #1f2233; padding: 22px 14px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  button { font-family: inherit; }
+
+  header { background: #3d4a9c; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f3f4ff; box-shadow: 0 8px 0 #28316e; margin-bottom: 14px; position: relative; }
+  header .ic { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 4px; }
+  header p { font-size: 15px; opacity: .92; }
+  .sound { position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.35);
+    color: #fff; border-radius: 99px; padding: 5px 11px; font-size: 18px; cursor: pointer; }
+  .sound:hover { background: rgba(255,255,255,.3); }
+
+  .nav { position: sticky; top: 0; z-index: 30; background: rgba(255,253,247,.95); backdrop-filter: blur(4px); border-radius: 12px; padding: 8px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(40,49,110,.12); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav a { text-decoration: none; font-size: 13.5px; font-weight: bold; color: #28316e; background: #e3e6f6; border-radius: 99px; padding: 6px 13px; }
+  .nav a:hover { background: #cfd4f0; }
+
+  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 6px 0 #d5d9ef; margin-bottom: 16px; position: relative; }
+  .intro { background: #fff8ec; border: 3px solid #e8c489; }
+  .intro p { font-size: 16px; line-height: 1.55; }
+  .intro p + p { margin-top: 10px; }
+  h2.sect { font-size: 20px; color: #28316e; margin: 30px 0 12px; text-align: center; scroll-margin-top: 70px; }
+  h2.sect span { background: #e3e6f6; border-radius: 99px; padding: 5px 16px; display: inline-block; }
+  h3.day { font-size: 16px; color: #5d6384; margin: 18px 0 8px; }
+  .note { text-align: center; font-size: 14.5px; color: #5d6384; margin-bottom: 12px; line-height: 1.5; }
+
+  .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .badge { background: #f3f4fa; border: 3px dashed #c8cde6; border-radius: 14px; padding: 8px 14px; text-align: center;
+    font-size: 13px; font-weight: bold; color: #5d6384; min-width: 92px; transition: .25s; }
+  .badge .bi { display: block; font-size: 24px; filter: grayscale(1); opacity: .45; }
+  .badge.on { background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; transform: scale(1.04); }
+  .badge.on .bi { filter: none; opacity: 1; }
+
+  /* ---------- flip cards ---------- */
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .fc { border: 3px solid #cfd4f0; border-radius: 16px; background: #fdfdff; min-height: 230px; cursor: pointer;
+    transition: transform .16s ease-in, border-color .2s; position: relative; }
+  .fc.turn { transform: scaleX(0.02); }
+  .fc.seen { border-color: #8f9ad8; }
+  .fc .face { padding: 16px; }
+  .fc .back { display: none; }
+  .fc.flipped .front { display: none; }
+  .fc.flipped .back { display: block; }
+  .fc .front { text-align: center; padding-top: 22px; }
+  .fc .em { font-size: 44px; line-height: 1; }
+  .fc .word { font-size: 30px; font-weight: bold; color: #28316e; margin: 10px 0 4px; }
+  .fc .pos { display: inline-block; background: #3d4a9c; color: #fff; font-size: 12px; font-weight: bold; border-radius: 99px; padding: 2px 10px; }
+  .fc .sayit { font-size: 15px; color: #5d6384; margin-top: 10px; }
+  .fc .sayit b { color: #c9761d; letter-spacing: .5px; }
+  .fc .hint { font-size: 12.5px; color: #9aa0bd; margin-top: 12px; }
+  .fc .bw { font-size: 21px; font-weight: bold; color: #28316e; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .fc .row { font-size: 15px; line-height: 1.5; margin-top: 8px; color: #3a3f5c; }
+  .fc .row .lbl { display: block; font-size: 11.5px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; color: #8a8fa8; margin-bottom: 1px; }
+  .fc .row.teach { background: #eef0fb; border-left: 5px solid #3d4a9c; border-radius: 8px; padding: 7px 10px; font-weight: bold; color: #28316e; }
+  .fc .row.trick { background: #fff8ec; border-left: 5px solid #e8c489; border-radius: 8px; padding: 7px 10px; }
+  .fc .row.ex em { color: #28316e; }
+  .say { background: #eef0fb; border: 2px solid #b9c0e8; color: #28316e; border-radius: 99px; padding: 5px 12px; font-size: 14.5px; font-weight: bold; cursor: pointer; }
+  .say:hover { background: #dde1f6; }
+  .say.sm { padding: 4px 9px; font-size: 13px; }
+  .say.big { font-size: 19px; padding: 10px 20px; }
+  .btnrow { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .peekw { display: inline-block; margin-top: 8px; background: none; border: none; color: #8a8fa8; font-size: 12.5px; text-decoration: underline; cursor: pointer; }
+  span.peekw { text-decoration: none; font-weight: bold; color: #c9761d; font-size: 15px; }
+
+  /* ---------- games ---------- */
+  .game { border: 4px solid #a9b2ee; }
+  .gbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .gbar .how { font-size: 15px; color: #454b6e; line-height: 1.45; flex: 1; min-width: 200px; }
+  .gbar .stars { font-size: 19px; letter-spacing: 2px; white-space: nowrap; }
+  .tiles { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; }
+  .tile { background: #fafbfe; border: 3px solid #cfd4f0; border-radius: 12px; padding: 10px 14px; font-size: 16.5px; font-weight: bold;
+    color: #28316e; cursor: pointer; transition: .12s; user-select: none; -webkit-user-select: none; }
+  .tile:hover { border-color: #6b77c7; }
+  .tile.sel { border-color: #3d4a9c; background: #e3e6f6; transform: translateY(-2px); }
+  .tile.ok { border-color: #3a7d44; background: #e8f5e6; color: #23572c; cursor: default; }
+  .tile.used { visibility: hidden; }
+  .tile.hintme { border-color: #c9761d; background: #fff1dc; animation: glow 1s ease-in-out infinite; }
+  @keyframes glow { 50% { box-shadow: 0 0 0 5px rgba(201,118,29,.25); } }
+  .shake { animation: shake .4s; }
+  @keyframes shake { 20%, 60% { transform: translateX(-7px) } 40%, 80% { transform: translateX(7px) } }
+  .fb { text-align: center; font-size: 16px; font-weight: bold; min-height: 26px; margin-top: 12px; line-height: 1.55; color: #5d6384; }
+  .fb.ok { color: #3a7d44; }
+  .fb.no { color: #c0392b; }
+  .won { display: none; background: #e8f5e6; border: 3px solid #3a7d44; color: #23572c; border-radius: 12px; padding: 13px 15px; margin-top: 12px; font-size: 16px; line-height: 1.6; }
+  .won.show { display: block; }
+  .won .lbl { display: block; font-size: 12px; font-weight: bold; letter-spacing: .6px; text-transform: uppercase; color: #3a7d44; margin-bottom: 5px; }
+  .gbtn { background: #3d4a9c; color: #fff; border: none; border-radius: 12px; padding: 10px 20px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #28316e; }
+  .gbtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #28316e; }
+  .gbtn.ghost { background: #fff; color: #5d6384; box-shadow: 0 3px 0 #e1e4f3; border: 2px solid #e1e4f3; }
+
+  .matchgrid { display: grid; grid-template-columns: 2fr 3fr; gap: 10px; }
+  .matchgrid .col { display: flex; flex-direction: column; gap: 9px; }
+  .matchgrid .tile { text-align: center; }
+  .matchgrid .col.defs .tile { font-size: 14.5px; font-weight: normal; text-align: left; line-height: 1.4; }
+
+  .memgrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; }
+  .mem { min-width: 0; overflow-wrap: anywhere; }
+  .mem { aspect-ratio: 1 / 1.05; border-radius: 12px; border: 3px solid #3d4a9c; background: repeating-linear-gradient(45deg, #5a67bd, #5a67bd 8px, #4f5cb3 8px, #4f5cb3 16px);
+    display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer; font-size: 13.5px; font-weight: bold; color: #28316e;
+    padding: 5px; line-height: 1.25; transition: transform .15s; user-select: none; -webkit-user-select: none; }
+  .mem .q { font-size: 26px; color: #dfe3ff; }
+  .mem.open { background: #fff; }
+  .mem.open.word { background: #eef0fb; font-size: 15px; }
+  .mem.ok { background: #e8f5e6; border-color: #3a7d44; color: #23572c; cursor: default; }
+  .mem .me { display: block; font-size: 22px; margin-bottom: 3px; }
+
+  .sentence { font-size: 19px; line-height: 1.55; text-align: center; background: #f6f7fd; border-radius: 12px; padding: 16px; color: #1f2233; }
+  .sentence b { color: #3d4a9c; }
+  .count { text-align: center; font-size: 13px; color: #8a8fa8; margin-bottom: 8px; }
+  .clue { display: flex; gap: 14px; align-items: center; background: #fff8ec; border: 3px solid #e8c489; border-radius: 12px; padding: 13px 15px; margin-bottom: 12px; }
+  .clue .ce { font-size: 38px; line-height: 1; }
+  .clue .ct { font-size: 17px; line-height: 1.5; }
+  .defbox { font-size: 18px; line-height: 1.5; text-align: center; background: #eef0fb; border-left: 6px solid #3d4a9c; border-radius: 10px; padding: 14px; margin-bottom: 12px; font-weight: bold; color: #28316e; }
+
+  .slots { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 12px 0 14px; align-items: center; }
+  .slot { width: 34px; height: 42px; border-bottom: 4px solid #6b77c7; font-size: 26px; font-weight: bold; color: #28316e; text-align: center; line-height: 40px; font-family: 'Courier New', monospace; }
+  .slot.fixed { border-bottom-color: transparent; color: #8a8fa8; }
+  .slot.gap { width: 16px; border-bottom-color: transparent; }
+  .slot.pre { width: auto; border-bottom-color: transparent; font-size: 20px; color: #8a8fa8; padding-right: 8px; font-family: inherit; }
+  .spelltiles .tile { min-width: 46px; text-align: center; font-size: 22px; font-family: 'Courier New', monospace; }
+  .spellhead { text-align: center; }
+  .spellhead .se { font-size: 38px; }
+  .spellhead .sm { font-size: 15.5px; color: #454b6e; margin: 4px 0 10px; }
+
+  .story { font-size: 17.5px; line-height: 2.1; background: #fdfcf7; border: 2px solid #efe6cf; border-radius: 12px; padding: 14px 16px; }
+  .story .bl { display: inline-block; min-width: 120px; border: 2px dashed #9aa3dc; border-radius: 9px; padding: 0 10px; line-height: 1.6; text-align: center;
+    color: #28316e; font-weight: bold; cursor: pointer; background: #f3f4fc; vertical-align: middle; }
+  .story .bl.act { border-color: #c9761d; border-style: solid; background: #fff1dc; }
+  .story .bl.full { border-style: solid; }
+  .story .bl.ok { border-color: #3a7d44; background: #e8f5e6; color: #23572c; cursor: default; }
+  .story .bl.no { border-color: #c0392b; background: #fbeaea; }
+  .story .bl i { font-style: normal; font-size: 12px; color: #8a8fa8; }
+
+  /* confetti */
+  .confetti { position: absolute; inset: 0; pointer-events: none; z-index: 6; overflow: hidden; border-radius: inherit; }
+  .confetti i { position: absolute; top: -14px; width: 9px; height: 15px; border-radius: 2px; animation: fall 1.5s linear forwards; }
+  @keyframes fall { to { transform: translateY(460px) rotate(560deg); opacity: 0 } }
+
+  /* ---------- the test ---------- */
+  .btn { background: #3d4a9c; color: #fff; border: none; border-radius: 12px; padding: 11px 20px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #28316e; transition: transform .1s; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #28316e; }
+  .btn.amber { background: #c9761d; box-shadow: 0 5px 0 #8f5211; }
+  .btn.ghost { background: #fff; color: #5d6384; box-shadow: 0 4px 0 #e1e4f3; border: 2px solid #e1e4f3; }
+  .btn.sm { padding: 8px 14px; font-size: 14px; }
+  .center { text-align: center; }
+  .blank { display: inline-block; min-width: 70px; border-bottom: 2px solid currentColor; }
+  .qcard { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 5px 0 #d5d9ef; margin-bottom: 14px; }
+  .qcard .n { display: inline-block; background: #3d4a9c; color: #fff; font-size: 13px; font-weight: bold; border-radius: 99px; padding: 3px 12px; margin-bottom: 8px; }
+  .opts { display: grid; grid-template-columns: repeat(2,1fr); gap: 9px; margin-top: 10px; }
+  .opt { background: #fafbfe; border: 3px solid #e1e4f3; border-radius: 11px; padding: 11px 13px; font-size: 16px; cursor: pointer; text-align: center; font-weight: bold; color: #28316e; transition: .12s; line-height: 1.4; }
+  .opt:hover { border-color: #6b77c7; }
+  .opt.pick { border-color: #3d4a9c; background: #e6e9f8; }
+  .opt.right { border-color: #3a7d44; background: #e8f5e6; color: #23572c; }
+  .opt.wrong { border-color: #c0392b; background: #fbeaea; color: #a5352a; }
+  .opt.locked { cursor: default; }
+  .why { display: none; margin-top: 10px; background: #f3f4fc; border-left: 5px solid #6b77c7; border-radius: 8px; padding: 10px 13px; font-size: 15px; line-height: 1.55; color: #454b6e; }
+  .why.show { display: block; }
+  .scorebox { display: none; background: #3d4a9c; color: #f3f4ff; border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 7px 0 #28316e; margin-top: 8px; position: relative; overflow: hidden; }
+  .scorebox.show { display: block; }
+  .scorebox.fail { background: #a5352a; box-shadow: 0 7px 0 #7d2b21; }
+  .scorebox .pct { font-size: 46px; font-weight: bold; line-height: 1; }
+  .scorebox .sub { font-size: 16px; margin-top: 8px; opacity: .95; line-height: 1.5; }
+  .scorebox .verdict { font-size: 22px; font-weight: bold; margin-top: 12px; }
+  .missed { background: #fff; color: #1f2233; border-radius: 12px; padding: 12px 14px; margin-top: 14px; text-align: left; font-size: 15px; line-height: 1.5; }
+  .missed div + div { margin-top: 8px; }
+  .missed b { color: #28316e; }
+
+  a.home { display: inline-block; margin-top: 16px; color: #5d6384; text-decoration: none; font-size: 14px; }
+  a.home:hover { text-decoration: underline; }
+  footer { text-align: center; font-size: 12px; color: #8a8fa8; margin-top: 18px; }
+
+  .timerbar { display: none; position: sticky; top: 0; z-index: 40; margin: 0 0 14px; padding: 10px 14px;
+    background: #28316e; color: #eef0ff; border-radius: 12px; box-shadow: 0 4px 0 #1b2150; align-items: center; gap: 12px; }
+  .timerbar.on { display: flex; }
+  body.testing .nav { position: static; }
+  .timerbar .clock { font-family: 'Courier New', monospace; font-size: 26px; font-weight: bold; letter-spacing: 1px; min-width: 86px; }
+  .timerbar .tlab { font-size: 13px; opacity: .85; }
+  .timerbar .tprog { flex: 1; height: 10px; background: rgba(255,255,255,.22); border-radius: 99px; overflow: hidden; }
+  .timerbar .tprog i { display: block; height: 100%; width: 100%; background: #a9b2ee; border-radius: 99px; transition: width 1s linear; }
+  .timerbar.low { background: #a5352a; box-shadow: 0 4px 0 #7d2b21; animation: tpulse 1s ease-in-out infinite; }
+  .timerbar.low .tprog i { background: #ffd9d4; }
+  .timerbar.done { background: #5d6384; box-shadow: 0 4px 0 #454b6e; animation: none; }
+  @keyframes tpulse { 0%,100% { opacity: 1 } 50% { opacity: .74 } }
+  .timenote { background: #fbeaea; border: 3px solid #e8b4ae; border-radius: 12px; padding: 12px 14px; color: #a5352a; font-size: 15px; font-weight: bold; margin-bottom: 12px; }
+
+  @media (max-width: 640px) {
+    .cards { grid-template-columns: 1fr; }
+    .opts { grid-template-columns: 1fr; }
+    .memgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .mem, .mem.open.word { font-size: 12px; }
+    .matchgrid { grid-template-columns: 1fr 1.6fr; gap: 7px; }
+    .matchgrid .tile { padding: 8px 8px; font-size: 14.5px; }
+    .matchgrid .col.defs .tile { font-size: 13px; }
+    .slot { width: 26px; font-size: 22px; }
+    .spelltiles .tile { min-width: 40px; font-size: 20px; padding: 8px 10px; }
+    .timerbar .clock { font-size: 22px; min-width: 72px; } .timerbar .tlab { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <button class="sound" id="soundBtn" title="Sound effects on" onclick="toggleSound(this)">🔔</button>
+    <div class="ic">📜</div>
+    <h1>Class vocabulary — Part 2</h1>
+    <p>5 new words · cards → games → test · Friday class · Homework for October 16, 2026</p>
+  </header>
+
+  <div class="nav">
+    <a href="#cards">📇 Cards</a>
+    <a href="#g1">🃏 Memory flip</a>
+    <a href="#g2">🕵️ Word detective</a>
+    <a href="#g3">🔁 Review</a>
+    <a href="#test">🎯 Test</a>
+  </div>
+
+  <div class="card intro">
+    <p><strong>Hi Grace!</strong> The five words in Part 2: <strong>nibble · meshuggener · orthodox · goys · disown</strong>. Tap 🔊 to hear each word said properly — then say it out loud yourself.</p><p>Flip the cards, play the games, then take the test: <strong>10 questions</strong>, and you need <strong>all 10 right</strong> to pass. If you miss one, read the cards again and have another go.</p>
+    <div class="badges" id="badges"></div>
+  </div>
+
+  <h2 class="sect" id="cards"><span>📇 The word cards</span></h2>
+  <p class="note">Tap a card to flip it. Tap 🔊 to hear the word, 🐢 to hear it slowly. Flip all five to win the badge.</p>
+  <div id="cardZone"></div>
+
+  <h2 class="sect" id="g1"><span>🃏 Game 1 · Memory flip</span></h2>
+  <div class="card game" id="game1">
+    <div class="gbar"><span class="how">Flip two cards at a time. Find each word and its meaning.</span><span class="stars" id="st1"></span></div>
+    <div id="stage1"></div>
+    <div class="fb" id="fb1"></div>
+    <div class="won" id="won1"><span class="lbl">🏅 Badge won</span>You matched every word with its meaning. Now close your eyes and say all five meanings.</div>
+  </div>
+  <h2 class="sect" id="g2"><span>🕵️ Game 2 · Word detective</span></h2>
+  <div class="card game" id="game2">
+    <div class="gbar"><span class="how">Read the clue. Which word is it describing?</span><span class="stars" id="st2"></span></div>
+    <div id="stage2"></div>
+    <div class="fb" id="fb2"></div>
+    <div class="won" id="won2"><span class="lbl">🏅 Badge won</span>You found every word from its clues. That's exactly what reading is — noticing clues!</div>
+  </div>
+  <h2 class="sect" id="g3"><span>🔁 Game 3 · Review: what's the word?</span></h2>
+  <div class="card game" id="game3">
+    <div class="gbar"><span class="how">Read the teacher's meaning and tap the word. These are words from earlier parts.</span><span class="stars" id="st3"></span></div>
+    <div id="stage3"></div>
+    <div class="fb" id="fb3"></div>
+    <div class="won" id="won3"><span class="lbl">🏅 Badge won</span>The earlier words are still in your head. Great — that's how they get ready for Friday's class quiz.</div>
+  </div>
+
+  <!-- ============ TEST ============ -->
+  <h2 class="sect" id="test"><span>🎯 The test — all right to pass</span></h2>
+
+  <div class="card intro" id="preTest">
+    <p><strong>10 questions</strong>. You need <strong>all 10 right</strong> to pass. Missed one? No problem — read the cards for that word and try again.</p>
+    <p>⏱️ <strong>The clock is on for this part: 10 minutes, one minute a question.</strong> It starts when you
+       press the button below and it does not stop.</p>
+    <div class="center" style="margin-top:14px;">
+      <button class="btn" id="startBtn" onclick="startQuiz()">▶️ Start the test — 10 minutes</button>
+    </div>
+  </div>
+
+  <div class="timerbar" id="timerBar">
+    <span class="clock" id="clock">--:--</span>
+    <span class="tlab">time left</span>
+    <div class="tprog"><i id="tprog"></i></div>
+  </div>
+
+  <div class="timenote" id="timeNote" hidden></div>
+
+  <div id="quizZone" hidden>
+    <div id="quiz"></div>
+    <div class="center" style="margin: 6px 0 16px;">
+      <button class="btn amber" id="submitBtn" onclick="finishQuiz()">Finish the test</button>
+      <button class="btn ghost sm" style="margin-left:8px;" onclick="resetQuiz()">Start over</button>
+    </div>
+  </div>
+
+  <div class="scorebox" id="scorebox"></div>
+
+  <div class="center"><a class="home" href="../homework.html">← 我的作业 My Homework</a></div>
+
+  <footer>Made for Grace · Friday class vocabulary · Homework for October 16, 2026 · Part 2</footer>
+</div>
+
+<script>
+/* ================= data ================= */
+var WORDS = {"fungus": {"slug": "fungus", "w": "fungus", "pos": "n.", "day": 1, "emoji": "🍄", "say": "FUNG-gus", "d": "a living thing, such as a mushroom or mold, that grows on plants, food, or damp surfaces", "kid": "A living thing that is not a plant and not an animal — like a mushroom, or the fuzzy mold on old bread. It grows on plants, on food, or in damp places.", "trick": "Picture a mushroom telling a joke: “I'm a <b>fun guy</b>!” “Fun guy” sounds like <b>fungi</b>, the word for more than one. Just one is a <b>fungus</b> (FUNG-gus). Mushrooms and mold are both kinds of fungus.", "ex": "After a week of rain, a white fungus was growing on the damp log.", "short": "a mushroom or mold", "spell": "fungus", "heavy": false}, "chanting": {"slug": "chanting", "w": "chanting", "pos": "v./n.", "day": 1, "emoji": "📣", "say": "CHAN-ting", "d": "saying or singing words again and again, often together", "kid": "Saying or singing the same words over and over, often in a group — like fans at a game.", "trick": "A <b>chant</b> is a tiny song on repeat. Hear the crowd: “De-fense! De-fense! De-fense!” That's <b>chanting</b> — again and again, all together.", "ex": "The fans were chanting the team's name again and again.", "short": "saying words again and again", "spell": "chanting", "heavy": false}, "material": {"slug": "material", "w": "material", "pos": "n.", "day": 1, "emoji": "🧵", "say": "muh-TEER-ee-ul", "d": "the cloth or substance something is made from; also, information or facts", "kid": "Two meanings! ① The cloth or stuff a thing is made from, like cotton, wood or plastic. ② Information or facts you collect, like for a report.", "trick": "Ask: “What is it <b>ma</b>de of?” <b>Ma</b>terial = what it's <b>ma</b>de from. A report is made from something too — facts! That's material as well.", "ex": "Mom chose a soft blue material to make the curtains.", "short": "what it's made from; also facts", "spell": "material", "heavy": false}, "recognition": {"slug": "recognition", "w": "recognition", "pos": "n.", "day": 1, "emoji": "🏅", "say": "rek-ug-NISH-un", "d": "knowing who or what something is; also, praise for someone’s work", "kid": "Two meanings! ① Knowing who or what something is when you see or hear it again. ② Praise or thanks for the good work someone did.", "trick": "<b>Recogn</b>ition comes from <b>recogn</b>ize. You recognize a friend's face — you know who it is. And a medal is how people recognize your hard work.", "ex": "The firefighter received a medal in recognition of her brave work.", "short": "knowing it; also praise", "spell": "recognition", "heavy": false}, "mouthpiece": {"slug": "mouthpiece", "w": "mouthpiece", "pos": "n.", "day": 1, "emoji": "🎺", "say": "MOWTH-peess", "d": "a part you put in your mouth to speak or play an instrument; also, a person who speaks for someone else", "kid": "Two meanings! ① The part that goes in or at your mouth — on a trumpet, a snorkel, a phone. ② A person who does the talking for someone else.", "trick": "Two words in one: <b>mouth</b> + <b>piece</b> = the piece for your mouth. A person can be a mouthpiece too: they are the “mouth” that speaks for somebody else.", "ex": "Leo wiped the mouthpiece of his trumpet before he started to play.", "short": "the part for your mouth", "spell": "mouthpiece", "heavy": false}, "nibble": {"slug": "nibble", "w": "nibble", "pos": "v./n.", "day": 2, "emoji": "🐭", "say": "NIB-ul", "d": "to take small bites; a small bite", "kid": "To eat with tiny little bites. A nibble is also one tiny bite.", "trick": "<b>Nib-nib-nib</b> — it sounds like a mouse's tiny teeth. Nibble has two little <b>b</b>'s in the middle, like two little bites.", "ex": "The rabbit began to nibble the carrot, one tiny bite at a time.", "short": "take small bites", "spell": "nibble", "heavy": false}, "meshuggener": {"slug": "meshuggener", "w": "meshuggener", "pos": "n.", "day": 2, "emoji": "🌀", "say": "muh-SHOOG-uh-ner", "d": "a Yiddish word for a foolish or crazy person; informal and sometimes insulting", "kid": "A word from Yiddish, a language many Jewish families have spoken. It means a foolish or crazy person. It can hurt someone's feelings, so it's a word to understand when you read it — not one to call people.", "trick": "Say it in four beats: muh · <b>SHOOG</b> · uh · ner (the OO is short, like in b<b>oo</b>k). Remember three things: it's <b>Yiddish</b> · it means a <b>foolish or crazy person</b> · it can be <b>insulting</b>.", "ex": "“Only a meshuggener would walk into a snowstorm without a coat!” said the grandmother in the story.", "short": "Yiddish: a foolish or crazy person", "spell": "meshuggener", "heavy": true}, "orthodox": {"slug": "orthodox", "w": "orthodox", "pos": "adj.", "day": 2, "emoji": "📜", "say": "OR-thuh-doks", "d": "following traditional or accepted beliefs and practices", "kid": "Following the old, accepted ways of believing and doing things, very carefully. You often see it about religion — an Orthodox Jewish family keeps the traditional rules closely.", "trick": "<b>Ortho-</b> means straight or correct — an <b>ortho</b>dontist makes teeth straight. Orthodox = keeping straight to the traditional way.", "ex": "Her grandparents are Orthodox Jews, so they follow the old traditions very carefully.", "short": "following the traditional ways", "spell": "orthodox", "heavy": false}, "goys": {"slug": "goys", "w": "goys", "pos": "n.", "day": 2, "emoji": "📖", "say": "GOYZ", "d": "plural of goy, a Yiddish word for people who are not Jewish; can sound disrespectful depending on context", "kid": "More than one <i>goy</i>. Goy is a Yiddish word for a person who is not Jewish. Depending on how it is said, it can sound disrespectful, so it's a word to understand in a story — not one to call people. (You may also see another plural: <i>goyim</i>.)", "trick": "One <b>goy</b>, two <b>goys</b> — just add s, like boy and boys. Remember three things: it's <b>Yiddish</b> · it means <b>people who are not Jewish</b> · it <b>can sound disrespectful</b>.", "ex": "In the old story, the word goys is used for the villagers who are not Jewish.", "short": "Yiddish: people who are not Jewish", "spell": "goys", "heavy": true}, "disown": {"slug": "disown", "w": "disown", "pos": "v.", "day": 2, "emoji": "💔", "say": "diss-OHN", "d": "to reject someone as part of your family or group", "kid": "To say that someone is not part of your family or group any more, and to turn away from them. It is a very serious and sad thing to do.", "trick": "<b>dis-</b> means not, and <b>own</b> means belonging to you. Dis + own = “you are <b>not</b> one of <b>ours</b> any more.”", "ex": "In the story, the angry father said he would disown his son, but in the end he forgave him.", "short": "reject from your family or group", "spell": "disown", "heavy": true}, "outstretched": {"slug": "outstretched", "w": "outstretched", "pos": "adj.", "day": 3, "emoji": "🤗", "say": "owt-STRECHT", "d": "extended or held out fully", "kid": "Stretched out as far as it can go — like arms held wide open for a hug, or a hand held out to you.", "trick": "Flip the two parts: <b>out</b> + <b>stretched</b> = stretched out. Hold your arms out wide right now — they are outstretched!", "ex": "Grandma ran to us with outstretched arms and gave us a big hug.", "short": "stretched out fully", "spell": "outstretched", "heavy": false}, "nominated": {"slug": "nominated", "w": "nominated", "pos": "v.", "day": 3, "emoji": "🗳️", "say": "NOM-ih-nay-tid", "d": "officially suggested someone for a job, prize, or position", "kid": "Officially put someone's name forward as a good choice for a job, a prize, or a position. (Being nominated isn't winning yet — it means you are one of the choices.)", "trick": "<b>Nom</b> means <b>name</b>. To nominate is to <b>name</b> someone: “I name Maya for class president!”", "ex": "The class nominated Maya for student of the month.", "short": "officially suggested for a job or prize", "spell": "nominated", "heavy": false}, "representative": {"slug": "representative", "w": "representative", "pos": "n.", "day": 3, "emoji": "🙋", "say": "rep-rih-ZEN-tuh-tiv", "d": "someone chosen to speak or act for a person or group", "kid": "A person who is chosen to speak or act for other people — like one student who goes to a meeting for the whole class.", "trick": "Inside is <b>represent</b>: to stand in for others. One representative speaks, and the whole group is heard. Short form: <b>rep</b> — “class rep.”", "ex": "Each class sent one representative to the student council meeting.", "short": "someone chosen to speak for a group", "spell": "representative", "heavy": false}, "trimmings": {"slug": "trimmings", "w": "trimmings", "pos": "n.", "day": 3, "emoji": "🦃", "say": "TRIM-ingz", "d": "small extra foods served with a main dish; also, decorative additions", "kid": "Two meanings! ① The small extra foods that come with a main dish, like stuffing, gravy and cranberry sauce with a turkey. ② Pretty extras added as decoration, like ribbon or lace.", "trick": "You <b>trim</b> a tree with decorations — the pretty extras. <b>Trimmings</b> are the extras: on a plate (gravy, stuffing) or on a dress (ribbon, lace).", "ex": "We had roast turkey with all the trimmings: stuffing, gravy, and cranberry sauce.", "short": "extra foods with a main dish", "spell": "trimmings", "heavy": false}, "emerging": {"slug": "emerging", "w": "emerging", "pos": "adj./v.", "day": 3, "emoji": "🌱", "say": "ih-MUR-jing", "d": "appearing or becoming visible; beginning to develop", "kid": "Coming out so that it can be seen — or just starting to grow and develop.", "trick": "A sub<b>merg</b>ed submarine is under the water. <b>E-</b> means out, so e<b>merg</b>ing = coming out, up into view.", "ex": "The sun was emerging from behind the clouds.", "short": "appearing, coming into view", "spell": "emerging", "heavy": false}, "aroma": {"slug": "aroma", "w": "aroma", "pos": "n.", "day": 4, "emoji": "🍞", "say": "uh-ROH-muh", "d": "a noticeable smell, usually a pleasant one", "kid": "A smell you really notice — usually a nice one, like bread baking or hot chocolate.", "trick": "Say “<b>Ahh</b>-roma!” — the <b>ahh</b> you say when you smell fresh cookies. An aroma is nearly always a good smell.", "ex": "The aroma of fresh bread filled the whole kitchen.", "short": "a smell, usually a nice one", "spell": "aroma", "heavy": false}, "earnest": {"slug": "earnest", "w": "earnest", "pos": "adj.", "day": 4, "emoji": "🤝", "say": "UR-nist", "d": "serious and sincere", "kid": "Serious and really meaning what you say — not joking and not pretending.", "trick": "<b>Earn</b>est: an earnest person <b>earns</b> your trust, because they are serious and they truly mean it.", "ex": "Leo made an earnest promise to take care of the puppy every day.", "short": "serious and sincere", "spell": "earnest", "heavy": false}, "coincidence": {"slug": "coincidence", "w": "coincidence", "pos": "n.", "day": 4, "emoji": "🎂", "say": "koh-IN-sih-dunss", "d": "when two things happen at the same time or in a way that seems connected by chance", "kid": "When two things happen at the same time, or seem connected, just by chance — nobody planned it.", "trick": "<b>Co-</b> means together (like <b>co</b>-pilot). Two things happen together, by chance: “You have the same birthday as me? What a <b>co</b>incidence!”", "ex": "By coincidence, Grace and her teacher were wearing the same sweater.", "short": "two things matching by chance", "spell": "coincidence", "heavy": false}, "loosened": {"slug": "loosened", "w": "loosened", "pos": "v.", "day": 4, "emoji": "👔", "say": "LOO-sund", "d": "made less tight or became less tight", "kid": "Made something less tight — or it became less tight by itself.", "trick": "<b>Loose</b> + <b>n</b> + <b>ed</b>: made it loose. The opposite of tightened. After a huge dinner, Dad loosened his belt — ahh!", "ex": "Dad loosened his tie as soon as he got home from work.", "short": "made less tight", "spell": "loosened", "heavy": false}, "rummaged": {"slug": "rummaged", "w": "rummaged", "pos": "v.", "day": 4, "emoji": "🎒", "say": "RUM-ijd", "d": "searched through things, often quickly and messily", "kid": "Searched for something by moving lots of things around, usually quickly and making a bit of a mess.", "trick": "Think of a <b>rummage</b> sale: a big jumbled pile of stuff to dig through. Rum-rum-rummage — hands digging to the bottom of the bag!", "ex": "Grace rummaged through her backpack, looking for her lost pencil.", "short": "searched quickly and messily", "spell": "rummaged", "heavy": false}, "scenic": {"slug": "scenic", "w": "scenic", "pos": "adj.", "day": 5, "emoji": "🏞️", "say": "SEE-nik", "d": "having beautiful natural views", "kid": "Having beautiful views of nature — mountains, lakes, forests — that are lovely to look at.", "trick": "<b>Scen</b>ic comes from <b>scen</b>e and <b>scen</b>ery. A scenic road has great scenery out of the window. (The <b>c</b> is silent: SEE-nik.)", "ex": "We took the scenic road along the coast and stopped to take pictures.", "short": "with beautiful nature views", "spell": "scenic", "heavy": false}, "dislocate": {"slug": "dislocate", "w": "dislocate", "pos": "v.", "day": 5, "emoji": "🦴", "say": "DISS-loh-kayt", "d": "to force a bone out of its normal position", "kid": "To push or pull a bone out of the place where it belongs, at a joint like the shoulder. It hurts a lot, and a doctor has to put it back.", "trick": "<b>dis-</b> (away) + <b>locate</b> (place, like <b>locat</b>ion). Dislocate = move a bone <b>away</b> from its <b>place</b>.", "ex": "The goalie fell hard and dislocated his shoulder.", "short": "force a bone out of place", "spell": "dislocate", "heavy": false}, "imaginative": {"slug": "imaginative", "w": "imaginative", "pos": "adj.", "day": 5, "emoji": "🎨", "say": "ih-MAJ-ih-nuh-tiv", "d": "good at creating ideas or pictures in the mind", "kid": "Good at thinking up new ideas, stories and pictures in your mind.", "trick": "<b>Imagin</b>ative = full of <b>imagin</b>ation. If you can turn a cardboard box into a spaceship, you are imaginative!", "ex": "Grace wrote an imaginative story about a dragon who was afraid of fire.", "short": "good at creating ideas", "spell": "imaginative", "heavy": false}, "thrilled": {"slug": "thrilled", "w": "thrilled", "pos": "adj.", "day": 5, "emoji": "🎢", "say": "THRILD", "d": "very excited and happy", "kid": "So excited and happy that you can hardly keep still.", "trick": "A <b>thrill</b> is the tingly feeling on a roller coaster. <b>Thrilled</b> = full of that feeling — excited AND happy at once.", "ex": "Grace was thrilled when she found out she was getting a puppy.", "short": "very excited and happy", "spell": "thrilled", "heavy": false}, "intimidate": {"slug": "intimidate", "w": "intimidate", "pos": "v.", "day": 5, "emoji": "🐕", "say": "in-TIM-ih-dayt", "d": "to frighten someone or make them feel less confident or powerful", "kid": "To scare someone, or make them feel small and less sure of themselves — often on purpose.", "trick": "In-<b>timid</b>-ate: <b>timid</b> means shy and afraid. To intimidate someone is to make them <b>timid</b>.", "ex": "The bigger players tried to intimidate our team, but we were not afraid.", "short": "frighten, make less confident", "spell": "intimidate", "heavy": false}};
+var CFG = {"week": false, "today": ["nibble", "meshuggener", "orthodox", "goys", "disown"], "pool": ["fungus", "chanting", "material", "recognition", "mouthpiece"], "games": ["memory", "detective", "review"], "audio": "audio/vocab-oct16/", "sense": [], "story": null, "detective": [["nibble", "🐭", "The mouse didn't gobble the cheese. It took one tiny bite, then another tiny bite. Which word tells what the mouse did?"], ["meshuggener", "🌀", "In a story, a grandmother shakes her head at a man dancing in a snowstorm and uses a Yiddish word for a foolish or crazy person. Which word is it?"], ["orthodox", "📜", "This family follows the traditional beliefs and practices of their religion very carefully, just as their great-grandparents did. Which word describes them?"], ["goys", "📖", "In an old story, one Yiddish word is used that means the people in the town who are not Jewish. Depending on how it is said, it can sound disrespectful. Which word is it?"], ["disown", "💔", "In a story, a father is so angry that he says his daughter is not part of the family any more. Which word means to reject someone like that?"]], "weekdays": {"1": "", "2": "", "3": "", "4": "", "5": ""}, "unit": "Part"};
+
+var QUIZ = [
+  { q: "What does <strong>nibble</strong> (v./n.) mean?",
+    options: ["to take small bites; a small bite", "to take big gulps; a big gulp", "to take short naps; a short nap", "to take quick looks; a quick look"], answer: 0, slug: "nibble",
+    why: "<strong>nibble</strong> means “to take small bites; a small bite.” For example: <em>The rabbit began to nibble the carrot, one tiny bite at a time.</em>" },
+
+  { q: "What does <strong>meshuggener</strong> (n.) mean?",
+    options: ["a Yiddish word for a foolish or crazy person; informal and sometimes insulting", "a Yiddish word for a wise or learned person; formal and very respectful", "a Yiddish word for a very tall or strong person; informal and sometimes funny", "a Yiddish word for a quiet or shy person; informal and sometimes teasing"], answer: 0, slug: "meshuggener",
+    why: "<strong>meshuggener</strong> means “a Yiddish word for a foolish or crazy person; informal and sometimes insulting.” For example: <em>“Only a meshuggener would walk into a snowstorm without a coat!” said the grandmother in the story.</em>" },
+
+  { q: "What does <strong>orthodox</strong> (adj.) mean?",
+    options: ["following traditional or accepted beliefs and practices", "breaking traditional or accepted rules and customs", "inventing brand-new or surprising games and stories", "forgetting important or useful names and numbers"], answer: 0, slug: "orthodox",
+    why: "<strong>orthodox</strong> means “following traditional or accepted beliefs and practices.” For example: <em>Her grandparents are Orthodox Jews, so they follow the old traditions very carefully.</em>" },
+
+  { q: "What does <strong>goys</strong> (n.) mean?",
+    options: ["plural of goy, a Yiddish word for people who are not Jewish; can sound disrespectful depending on context", "plural of goy, a Yiddish word for people who live on small farms; can sound old-fashioned depending on context", "plural of goy, a Yiddish word for people who are very tall; can sound playful depending on context", "plural of goy, a Yiddish word for people who sing well; can sound funny depending on context"], answer: 0, slug: "goys",
+    why: "<strong>goys</strong> means “plural of goy, a Yiddish word for people who are not Jewish; can sound disrespectful depending on context.” For example: <em>In the old story, the word goys is used for the villagers who are not Jewish.</em>" },
+
+  { q: "What does <strong>disown</strong> (v.) mean?",
+    options: ["to reject someone as part of your family or group", "to welcome someone as part of your family or group", "to describe someone to your family or friends", "to visit someone at their home or school"], answer: 0, slug: "disown",
+    why: "<strong>disown</strong> means “to reject someone as part of your family or group.” For example: <em>In the story, the angry father said he would disown his son, but in the end he forgave him.</em>" },
+
+  { q: "<span style=\"font-weight:normal\">The rabbit held the carrot in its paws and took one tiny bite, then another, then another. What did the rabbit do?</span>",
+    options: ["It nibbled the carrot", "It gobbled up the whole carrot", "It buried the carrot", "It dropped the carrot"], answer: 0, slug: "nibble",
+    why: "<strong>nibble</strong> means “to take small bites; a small bite” — that is exactly what happens here." },
+
+  { q: "<span style=\"font-weight:normal\">In a story, a grandmother sees a man riding a bicycle backwards in a snowstorm. She shakes her head and uses a Yiddish word for a foolish or crazy person. Which word does she use?</span>",
+    options: ["meshuggener", "representative", "goys", "orthodox"], answer: 0, slug: "meshuggener",
+    why: "<strong>meshuggener</strong> means “a Yiddish word for a foolish or crazy person; informal and sometimes insulting” — that is exactly what happens here." },
+
+  { q: "<span style=\"font-weight:normal\">One family follows the traditional beliefs and practices of their religion very carefully, the same way their great-grandparents did. Which word describes the family?</span>",
+    options: ["orthodox", "imaginative", "scenic", "emerging"], answer: 0, slug: "orthodox",
+    why: "<strong>orthodox</strong> means “following traditional or accepted beliefs and practices” — that is exactly what happens here." },
+
+  { q: "<span style=\"font-weight:normal\">In an old story, one Yiddish word is used that means people who are not Jewish. Depending on how it is said, the word can sound disrespectful. Which word is it?</span>",
+    options: ["goys", "meshuggener", "orthodox", "trimmings"], answer: 0, slug: "goys",
+    why: "<strong>goys</strong> means “plural of goy, a Yiddish word for people who are not Jewish; can sound disrespectful depending on context” — that is exactly what happens here." },
+
+  { q: "<span style=\"font-weight:normal\">In a story, a father is so angry at his son that he says, “You are not part of this family any more.” What is the father doing?</span>",
+    options: ["He is disowning his son", "He is nominating his son", "He is forgiving his son at last", "He is praising his son"], answer: 0, slug: "disown",
+    why: "<strong>disown</strong> means “to reject someone as part of your family or group” — that is exactly what happens here." }
+];
+</script>
+
+<script>
+/* ================= helpers: shuffle, sound effects, confetti, word audio ================= */
+function shuffle(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function $(id){ return document.getElementById(id); }
+function W(s){ return WORDS[s]; }
+
+var SOUND = true, actx = null;
+function beep(freqs, dur, type, vol){
+  if (!SOUND) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    freqs.forEach(function(f, i){
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = type || 'sine'; o.frequency.value = f;
+      o.connect(g); g.connect(actx.destination);
+      var t0 = actx.currentTime + i * dur;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol || 0.16, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.start(t0); o.stop(t0 + dur + 0.03);
+    });
+  } catch (e) {}
+}
+var sfx = {
+  pop:  function(){ beep([680], 0.06, 'triangle', 0.10); },
+  flip: function(){ beep([520, 700], 0.05, 'triangle', 0.08); },
+  good: function(){ beep([523, 784], 0.12, 'sine'); },
+  bad:  function(){ beep([220, 175], 0.12, 'sawtooth', 0.09); },
+  win:  function(){ beep([523, 659, 784, 1047], 0.13, 'sine'); }
+};
+function toggleSound(btn){
+  SOUND = !SOUND;
+  btn.textContent = SOUND ? '🔔' : '🔕';
+  btn.title = SOUND ? 'Sound effects on (the words always speak)' : 'Sound effects off (the words still speak)';
+  if (SOUND) sfx.pop();
+}
+function confetti(host){
+  var colors = ['#a9b2ee','#f0c079','#8fcbb4','#c9761d','#3d4a9c','#e8c489','#7fd3bd'];
+  var box = document.createElement('div');
+  box.className = 'confetti';
+  for (var i = 0; i < 38; i++){
+    var s = document.createElement('i');
+    s.style.left = (Math.random() * 100) + '%';
+    s.style.background = colors[i % colors.length];
+    s.style.animationDelay = (Math.random() * 0.3).toFixed(2) + 's';
+    box.appendChild(s);
+  }
+  host.appendChild(box);
+  setTimeout(function(){ if (box.parentNode) box.parentNode.removeChild(box); }, 1900);
+}
+function starRow(done, total){ var s = ''; for (var i = 0; i < total; i++) s += (i < done ? '⭐' : '☆'); return s; }
+function shakeEl(el){ if (!el) return; el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+
+/* Word audio: real recordings, one mp3 per word and per example sentence. HTML audio (not WebAudio),
+   so it still plays with the iPad's silent switch on. slow = 70% speed, same pitch. */
+var AUD = {}, playing = null;
+function say(slug, slow, ex){
+  var key = slug + (ex ? '-ex' : '');
+  var a = AUD[key];
+  if (!a) { a = AUD[key] = new Audio(CFG.audio + key + '.mp3'); a.preload = 'auto'; }
+  try { if (playing && playing !== a) playing.pause(); a.pause(); a.currentTime = 0; } catch (e) {}
+  a.defaultPlaybackRate = a.playbackRate = slow ? 0.7 : 1;
+  playing = a;
+  var p = a.play(); if (p && p.catch) p.catch(function(){});
+}
+function sayBtns(slug){
+  return '<button class="say" onclick="event.stopPropagation();say(\'' + slug + '\')">🔊 Hear it</button> '
+       + '<button class="say sm" onclick="event.stopPropagation();say(\'' + slug + '\',1)">🐢 Slow</button>';
+}
+
+/* ================= badges ================= */
+var BADGE = {}, BADGE_META = [];
+function paintBadges(){
+  $('badges').innerHTML = BADGE_META.map(function(b){
+    return '<div class="badge' + (BADGE[b.k] ? ' on' : '') + '"><span class="bi">' + b.ic + '</span>' + b.t
+      + '<div style="font-size:11px;font-weight:normal;margin-top:2px">' + (BADGE[b.k] ? 'done ✓' : 'not yet') + '</div></div>';
+  }).join('');
+}
+function earnBadge(k){ if (BADGE[k]) return; BADGE[k] = true; paintBadges(); }
+</script>
+
+<script>
+/* ================= flip cards ================= */
+var CARD_LIST = CFG.today, seenCards = {};
+function cardHTML(s, i){
+  var w = W(s);
+  return '<div class="fc" id="fc' + i + '" onclick="flip(' + i + ')">'
+    + '<div class="face front">'
+    +   '<div class="em">' + w.emoji + '</div><div class="word">' + w.w + '</div><span class="pos">' + w.pos + '</span>'
+    +   '<div class="sayit">Say it: <b>' + w.say + '</b></div>'
+    +   '<div class="btnrow">' + sayBtns(s) + '</div>'
+    +   '<div class="hint">tap the card to see what it means ↻</div>'
+    + '</div>'
+    + '<div class="face back">'
+    +   '<div class="bw">' + w.emoji + ' ' + w.w + ' <span class="pos">' + w.pos + '</span> ' + sayBtns(s) + '</div>'
+    +   '<div class="row teach"><span class="lbl">📘 Teacher\'s meaning — learn this one</span>' + w.d + '</div>'
+    +   '<div class="row"><span class="lbl">💬 In plain words</span>' + w.kid + '</div>'
+    +   '<div class="row trick"><span class="lbl">🧠 Memory trick</span>' + w.trick + '</div>'
+    +   '<div class="row ex"><span class="lbl">✏️ Example</span><em>' + w.ex + '</em> '
+    +     '<button class="say sm" onclick="event.stopPropagation();say(\'' + s + '\',0,1)">🔊 sentence</button></div>'
+    +   '<div class="hint" style="text-align:center">tap to flip back ↻</div>'
+    + '</div></div>';
+}
+function renderCards(){
+  if (!CFG.week) { $('cardZone').innerHTML = '<div class="cards">' + CARD_LIST.map(cardHTML).join('') + '</div>'; return; }
+  var html = '', names = CFG.weekdays || {};
+  for (var d = 1; d <= 5; d++){
+    html += '<h3 class="day">' + (CFG.unit || 'Day') + ' ' + d + (names[d] ? ' · ' + names[d] : '') + '</h3><div class="cards">';
+    CARD_LIST.forEach(function(s, i){ if (W(s).day === d) html += cardHTML(s, i); });
+    html += '</div>';
+  }
+  $('cardZone').innerHTML = html;
+}
+function flip(i){
+  var el = $('fc' + i);
+  if (el.classList.contains('turn')) return;
+  sfx.flip();
+  el.classList.add('turn');
+  setTimeout(function(){
+    el.classList.toggle('flipped');
+    el.classList.remove('turn');
+    if (el.classList.contains('flipped')) {
+      seenCards[i] = true; el.classList.add('seen');
+      if (Object.keys(seenCards).length === CARD_LIST.length && !BADGE.cards) {
+        earnBadge('cards'); sfx.win(); confetti(el);
+      }
+    }
+  }, 170);
+}
+
+/* ================= games ================= */
+var G = {};   /* per-game state, keyed by game number */
+function fb(n, cls, html){ var f = $('fb' + n); f.className = 'fb' + (cls ? ' ' + cls : ''); f.innerHTML = html || ''; }
+function stars(n, done, total){ $('st' + n).textContent = starRow(done, total); }
+function winGame(n){
+  var g = G[n];
+  if (g.won) return;
+  g.won = true;
+  $('won' + n).classList.add('show');
+  sfx.win(); confetti($('game' + n));
+  earnBadge('g' + n);
+}
+function nextBtn(n, label){ return '<div class="btnrow"><button class="gbtn" onclick="G[' + n + '].next()">' + (label || 'Next ▶') + '</button></div>'; }
+
+/* ---- 🔗 match: tap a word, then its teacher's meaning ---- */
+function gameMatch(n, list){
+  var g = G[n] = { sel: null, done: {}, miss: {}, words: shuffle(list), defs: shuffle(list) };
+  function paint(){
+    $('stage' + n).innerHTML = '<div class="matchgrid"><div class="col">'
+      + g.words.map(function(s){ return '<div class="tile' + (g.done[s] ? ' ok' : g.sel && g.sel.side === 'w' && g.sel.s === s ? ' sel' : '') + '" id="m' + n + 'w' + s + '" onclick="G[' + n + '].tap(\'w\',\'' + s + '\')">' + W(s).w + '</div>'; }).join('')
+      + '</div><div class="col defs">'
+      + g.defs.map(function(s){ return '<div class="tile' + (g.done[s] ? ' ok' : g.sel && g.sel.side === 'd' && g.sel.s === s ? ' sel' : '') + '" id="m' + n + 'd' + s + '" onclick="G[' + n + '].tap(\'d\',\'' + s + '\')">' + W(s).d + '</div>'; }).join('')
+      + '</div></div>';
+    stars(n, list.filter(function(s){ return g.done[s] && !g.miss[s]; }).length, list.length);
+  }
+  g.tap = function(side, s){
+    if (g.done[s]) return;
+    if (!g.sel || g.sel.side === side) { g.sel = { side: side, s: s }; sfx.pop(); if (side === 'w') say(s); paint(); return; }
+    var w = side === 'w' ? s : g.sel.s, d = side === 'd' ? s : g.sel.s;
+    g.sel = null;
+    if (w === d) {
+      g.done[w] = true; sfx.good(); say(w);
+      fb(n, 'ok', '✅ <b>' + W(w).w + '</b> — ' + W(w).d);
+      paint();
+      if (Object.keys(g.done).length === list.length) winGame(n);
+    } else {
+      g.miss[w] = true; sfx.bad();
+      paint();
+      shakeEl($('m' + n + 'w' + w)); shakeEl($('m' + n + 'd' + d));
+      fb(n, 'no', 'Not a pair. That meaning belongs to a different word — try again!');
+    }
+  };
+  paint();
+}
+
+/* ---- 👂 listen: hear a word, tap it ---- */
+function gameListen(n, list){
+  var g = G[n] = { order: shuffle(list), tiles: shuffle(list), i: -1, miss: {}, right: 0, locked: false };
+  function paint(){
+    var s = g.order[g.i];
+    $('stage' + n).innerHTML = '<div class="count">Word ' + (g.i + 1) + ' of ' + list.length + '</div>'
+      + '<div class="btnrow" style="margin:0 0 14px"><button class="say big" onclick="say(\'' + s + '\')">🔊 Play the word</button> '
+      + '<button class="say" onclick="say(\'' + s + '\',1)">🐢 Slow</button></div>'
+      + '<div class="tiles">' + g.tiles.map(function(t){ return '<div class="tile" id="l' + n + t + '" onclick="G[' + n + '].tap(\'' + t + '\')">' + W(t).w + '</div>'; }).join('') + '</div>'
+      + '<div id="ln' + n + '"></div>';
+  }
+  g.next = function(){
+    g.i++; g.locked = false; fb(n);
+    if (g.i >= list.length) { $('stage' + n).innerHTML = ''; winGame(n); return; }
+    paint(); say(g.order[g.i]);
+  };
+  g.tap = function(t){
+    if (g.locked) return;
+    var s = g.order[g.i];
+    if (t === s) {
+      g.locked = true; if (!g.miss[s]) g.right++;
+      $('l' + n + t).classList.add('ok'); sfx.good();
+      fb(n, 'ok', '✅ <b>' + W(s).w + '</b> — ' + W(s).d);
+      stars(n, g.right, list.length);
+      $('ln' + n).innerHTML = nextBtn(n, g.i + 1 < list.length ? 'Next word ▶' : 'Finish ▶');
+    } else {
+      g.miss[s] = true; sfx.bad(); shakeEl($('l' + n + t));
+      fb(n, 'no', 'Not that one — that is <b>' + W(t).w + '</b> (' + W(t).short + '). Press 🔊 and listen again.');
+    }
+  };
+  $('stage' + n).innerHTML = '<div class="btnrow"><button class="gbtn" onclick="G[' + n + '].next()">▶ Start — turn your sound on</button></div>';
+  stars(n, 0, list.length);
+}
+
+/* ---- 🃏 memory: word cards and meaning cards, face down ---- */
+function gameMemory(n, list){
+  var deck = shuffle(list.map(function(s){ return { s: s, k: 'w' }; }).concat(list.map(function(s){ return { s: s, k: 'm' }; })));
+  var g = G[n] = { deck: deck, open: [], done: {}, moves: 0, busy: false };
+  function face(c, i){
+    var cls = 'mem', inner = '<span class="q">?</span>';
+    var up = g.done[c.s] || g.open.indexOf(i) >= 0;
+    if (up) {
+      cls += ' open' + (c.k === 'w' ? ' word' : '') + (g.done[c.s] ? ' ok' : '');
+      inner = c.k === 'w' ? '<div><span class="me">' + W(c.s).emoji + '</span>' + W(c.s).w + '</div>' : '<div>' + W(c.s).short + '</div>';
+    }
+    return '<div class="' + cls + '" id="mm' + n + '_' + i + '" onclick="G[' + n + '].tap(' + i + ')">' + inner + '</div>';
+  }
+  function paint(){
+    $('stage' + n).innerHTML = '<div class="count">Moves: ' + g.moves + ' · pairs found: ' + Object.keys(g.done).length + ' of ' + list.length + '</div>'
+      + '<div class="memgrid">' + g.deck.map(face).join('') + '</div>';
+    stars(n, Object.keys(g.done).length, list.length);
+  }
+  g.tap = function(i){
+    var c = g.deck[i];
+    if (g.busy || g.done[c.s] || g.open.indexOf(i) >= 0) return;
+    g.open.push(i); sfx.flip();
+    if (c.k === 'w') say(c.s);
+    paint();
+    if (g.open.length < 2) return;
+    g.moves++;
+    var a = g.deck[g.open[0]], b = g.deck[g.open[1]];
+    if (a.s === b.s) {
+      g.done[a.s] = true; g.open = []; sfx.good();
+      fb(n, 'ok', '✅ <b>' + W(a.s).w + '</b> — ' + W(a.s).d);
+      paint();
+      if (Object.keys(g.done).length === list.length) { fb(n, 'ok', 'All pairs found in ' + g.moves + ' moves! (The best possible is ' + list.length + '.)'); winGame(n); }
+    } else {
+      g.busy = true;
+      fb(n, 'no', a.k === b.k ? 'Two ' + (a.k === 'w' ? 'words' : 'meanings') + ' — find a word and its meaning.' : 'Not a match. Remember where they are!');
+      setTimeout(function(){ g.open = []; g.busy = false; paint(); }, 1100);
+    }
+  };
+  paint();
+}
+
+/* ---- 🤔 sense or nonsense ---- */
+function gameSense(n, items){
+  var g = G[n] = { items: shuffle(items), i: -1, right: 0, locked: false };
+  g.next = function(){
+    g.i++; g.locked = false; fb(n);
+    if (g.i >= g.items.length) { $('stage' + n).innerHTML = ''; winGame(n); return; }
+    $('stage' + n).innerHTML = '<div class="count">Sentence ' + (g.i + 1) + ' of ' + g.items.length + '</div>'
+      + '<div class="sentence">' + g.items[g.i][0] + '</div>'
+      + '<div class="btnrow" style="margin-top:14px"><button class="tile" id="sy' + n + '" onclick="G[' + n + '].tap(true)">✅ Makes sense</button>'
+      + '<button class="tile" id="sn' + n + '" onclick="G[' + n + '].tap(false)">❌ Nonsense</button></div><div id="sx' + n + '"></div>';
+  };
+  g.tap = function(yes){
+    if (g.locked) return;
+    g.locked = true;
+    var it = g.items[g.i], ok = yes === it[1];
+    $(yes ? 'sy' + n : 'sn' + n).classList.add(ok ? 'ok' : 'sel');
+    if (ok) { g.right++; sfx.good(); fb(n, 'ok', '✅ Right! ' + it[2]); }
+    else { sfx.bad(); shakeEl($(yes ? 'sy' + n : 'sn' + n)); fb(n, 'no', '❌ Not quite. ' + (it[1] ? 'It makes sense: ' : 'It\'s nonsense: ') + it[2]); }
+    stars(n, g.right, g.items.length);
+    $('sx' + n).innerHTML = nextBtn(n, g.i + 1 < g.items.length ? 'Next sentence ▶' : 'Finish ▶');
+  };
+  stars(n, 0, items.length);
+  g.next();
+}
+
+/* ---- 🔤 spell it: letter tiles, in order ---- */
+function gameSpell(n, list){
+  var g = G[n] = { order: shuffle(list), i: -1, clean: 0, locked: false };
+  function target(s){ return W(s).spell; }
+  function paint(){
+    var s = g.order[g.i], t = target(s), w = W(s);
+    var pre = w.w.toLowerCase().indexOf(t.toLowerCase()) > 0 ? w.w.slice(0, w.w.toLowerCase().indexOf(t.toLowerCase())) : '';
+    var slots = (pre ? '<span class="slot pre">' + pre.trim() + '</span>' : '')
+      + t.split('').map(function(ch, k){
+          if (ch === ' ') return '<span class="slot gap"></span>';
+          if (ch === '-') return '<span class="slot fixed">-</span>';
+          return '<span class="slot" id="sl' + n + '_' + k + '">' + (k < g.pos ? ch : '') + '</span>';
+        }).join('');
+    $('stage' + n).innerHTML = '<div class="count">Word ' + (g.i + 1) + ' of ' + list.length + '</div>'
+      + '<div class="spellhead"><div class="se">' + w.emoji + '</div><div class="sm">It means: <b>' + w.short + '</b></div>'
+      + '<div class="btnrow" style="margin:0"><button class="say big" onclick="say(\'' + s + '\')">🔊 Hear it</button> <button class="say" onclick="say(\'' + s + '\',1)">🐢 Slow</button></div></div>'
+      + '<div class="slots">' + slots + '</div>'
+      + '<div class="tiles spelltiles">' + g.tiles.map(function(c, k){
+          return '<div class="tile' + (g.used[k] ? ' used' : '') + '" id="tt' + n + '_' + k + '" onclick="G[' + n + '].tap(' + k + ')">' + c + '</div>'; }).join('') + '</div>'
+      + '<div id="sp' + n + '"></div>';
+  }
+  function skip(){ var t = target(g.order[g.i]); while (g.pos < t.length && (t[g.pos] === ' ' || t[g.pos] === '-')) g.pos++; }
+  g.next = function(){
+    g.i++; g.locked = false; fb(n);
+    if (g.i >= list.length) { $('stage' + n).innerHTML = ''; winGame(n); return; }
+    var t = target(g.order[g.i]), letters = t.replace(/[ -]/g, '').split('');
+    var abc = 'aeioulnrstmdcbhpgk';
+    for (var d = 0; d < 2; d++) letters.push(abc[Math.floor(Math.random() * abc.length)]);
+    g.tiles = shuffle(letters); g.used = {}; g.pos = 0; g.miss = 0; g.slotMiss = 0;
+    skip(); paint();
+    if (g.i > 0) say(g.order[g.i]);   /* round 1 waits for a tap: browsers block sound before one */
+  };
+  g.tap = function(k){
+    if (g.locked || g.used[k]) return;
+    var s = g.order[g.i], t = target(s);
+    if (g.tiles[k] === t[g.pos]) {
+      g.used[k] = true; g.pos++; g.slotMiss = 0; sfx.pop(); skip(); paint();
+      if (g.pos >= t.length) {
+        g.locked = true; if (!g.miss) g.clean++;
+        sfx.good(); say(s); stars(n, g.clean, list.length);
+        fb(n, 'ok', '✅ <b>' + W(s).w + '</b> — ' + W(s).d);
+        $('sp' + n).innerHTML = nextBtn(n, g.i + 1 < list.length ? 'Next word ▶' : 'Finish ▶');
+      }
+    } else {
+      g.miss++; g.slotMiss++; sfx.bad(); shakeEl($('tt' + n + '_' + k));
+      if (g.slotMiss >= 2) {
+        for (var j = 0; j < g.tiles.length; j++) if (!g.used[j] && g.tiles[j] === t[g.pos]) { $('tt' + n + '_' + j).classList.add('hintme'); break; }
+        fb(n, 'no', 'Here\'s a hint — the glowing letter comes next.');
+      } else fb(n, 'no', 'Not that letter. Say the word slowly and listen for the next sound.');
+    }
+  };
+  stars(n, 0, list.length);
+  g.next();
+}
+
+/* ---- 📖 story fill ---- */
+function gameStory(n, story){
+  var parts = story.text.split(/\{([a-z-]+)\}/), blanks = [];
+  for (var i = 1; i < parts.length; i += 2) blanks.push(parts[i]);
+  var g = G[n] = { fill: blanks.map(function(){ return null; }), ok: {}, act: null, chips: shuffle(blanks), checks: 0, firstRight: null };
+  function paint(){
+    var h = '', b = 0;
+    parts.forEach(function(p, i){
+      if (i % 2 === 0) { h += p; return; }
+      var k = b++, v = g.fill[k];
+      h += '<span class="bl' + (g.ok[k] ? ' ok' : v ? ' full' : '') + (g.act === k ? ' act' : '') + '" id="bl' + n + '_' + k + '" onclick="G[' + n + '].blank(' + k + ')">'
+        + (v ? story.forms[v] : '<i>' + (k + 1) + '</i>') + '</span>';
+    });
+    var placed = g.fill.filter(Boolean);
+    $('stage' + n).innerHTML = '<div class="count">📖 ' + story.title + '</div><div class="story">' + h + '</div>'
+      + '<div class="tiles" style="margin-top:14px">' + g.chips.map(function(s){
+          return placed.indexOf(s) >= 0 ? '' : '<div class="tile" onclick="G[' + n + '].chip(\'' + s + '\')">' + story.forms[s] + '</div>'; }).join('') + '</div>'
+      + (placed.length === blanks.length && !g.won ? '<div class="btnrow"><button class="gbtn" onclick="G[' + n + '].check()">✔ Check my story</button></div>' : '');
+  }
+  g.chip = function(s){
+    var k = g.act !== null && !g.fill[g.act] ? g.act : g.fill.indexOf(null);
+    if (k < 0) return;
+    g.fill[k] = s; g.act = null; sfx.pop(); fb(n); paint();
+  };
+  g.blank = function(k){
+    if (g.ok[k]) return;
+    if (g.fill[k]) { g.fill[k] = null; sfx.pop(); } else g.act = g.act === k ? null : k;
+    paint();
+  };
+  g.check = function(){
+    var wrong = [];
+    g.fill.forEach(function(s, k){ if (s === blanks[k]) g.ok[k] = true; else wrong.push(k); });
+    g.checks++;
+    if (g.firstRight === null) g.firstRight = blanks.length - wrong.length;
+    stars(n, g.firstRight, blanks.length);
+    if (!wrong.length) { sfx.good(); paint(); fb(n, 'ok', '✅ Every word is in the right place!'); winGame(n); return; }
+    sfx.bad();
+    var msg = wrong.map(function(k){ var s = g.fill[k]; return '“' + story.forms[s] + '” means <i>' + W(s).d + '</i> — does that fit blank ' + (k + 1) + '?'; });
+    wrong.forEach(function(k){ g.fill[k] = null; });
+    paint();
+    fb(n, 'no', (blanks.length - wrong.length) + ' of ' + blanks.length + ' are right (they are green now). The others went back:<br>' + msg.join('<br>'));
+  };
+  stars(n, 0, blanks.length);
+  paint();
+}
+
+/* ---- 🕵️ detective (clue → word) and 🔁 review (teacher's meaning → word) share one engine ---- */
+function gameChoose(n, rounds, pool){
+  var g = G[n] = { rounds: rounds, i: -1, right: 0, locked: false, miss: false };
+  g.next = function(){
+    g.i++; g.locked = false; g.miss = false; fb(n);
+    if (g.i >= rounds.length) { $('stage' + n).innerHTML = ''; winGame(n); return; }
+    var r = rounds[g.i];
+    var opts = pool.length <= 5 ? shuffle(pool) : shuffle([r.s].concat(shuffle(pool.filter(function(x){ return x !== r.s; })).slice(0, 3)));
+    $('stage' + n).innerHTML = '<div class="count">' + (g.i + 1) + ' of ' + rounds.length + '</div>'
+      + (r.clue ? '<div class="clue"><span class="ce">' + r.e + '</span><span class="ct">' + r.clue + '</span></div>'
+                : '<div class="defbox">“' + W(r.s).d + '”</div>')
+      + '<div class="tiles">' + opts.map(function(t){ return '<div class="tile" id="c' + n + t + '" onclick="G[' + n + '].tap(\'' + t + '\')">' + W(t).w + '</div>'; }).join('') + '</div>'
+      + '<div id="cx' + n + '"></div>';
+  };
+  g.tap = function(t){
+    if (g.locked) return;
+    var s = rounds[g.i].s;
+    if (t === s) {
+      g.locked = true; if (!g.miss) g.right++;
+      $('c' + n + t).classList.add('ok'); sfx.good(); say(s);
+      fb(n, 'ok', '✅ <b>' + W(s).w + '</b> — ' + W(s).d);
+      stars(n, g.right, rounds.length);
+      $('cx' + n).innerHTML = nextBtn(n, g.i + 1 < rounds.length ? 'Next ▶' : 'Finish ▶');
+    } else {
+      g.miss = true; sfx.bad(); shakeEl($('c' + n + t));
+      fb(n, 'no', 'Not quite — <b>' + W(t).w + '</b> means <i>' + W(t).d + '</i>. Read it again.');
+    }
+  };
+  stars(n, 0, rounds.length);
+  g.next();
+}
+
+/* ---- set up the page ---- */
+var ICON = { match: '🔗', listen: '👂', memory: '🃏', sense: '🤔', spell: '🔤', story: '📖', detective: '🕵️', review: '🔁' };
+var NAME = { match: 'Match-up', listen: 'Listen', memory: 'Memory', sense: 'Sense?', spell: 'Spell it', story: 'Story', detective: 'Detective', review: CFG.week ? 'Warm-up' : 'Review' };
+BADGE_META.push({ k: 'cards', ic: '📇', t: CFG.week ? 'All 25 cards' : 'Word cards' });
+CFG.games.forEach(function(k, i){ BADGE_META.push({ k: 'g' + (i + 1), ic: ICON[k], t: NAME[k] }); });
+paintBadges();
+renderCards();
+CFG.games.forEach(function(k, i){
+  var n = i + 1;
+  if (k === 'match') gameMatch(n, CFG.today);
+  else if (k === 'listen') gameListen(n, CFG.today);
+  else if (k === 'memory') gameMemory(n, CFG.today);
+  else if (k === 'sense') gameSense(n, CFG.sense);
+  else if (k === 'spell') gameSpell(n, CFG.today);
+  else if (k === 'story') gameStory(n, CFG.story);
+  else if (k === 'detective') gameChoose(n, shuffle(CFG.detective.map(function(d){ return { s: d[0], e: d[1], clue: d[2] }; })), CFG.today);
+  else if (k === 'review') gameChoose(n, shuffle(CFG.pool).slice(0, CFG.week ? 10 : 5).map(function(s){ return { s: s }; }), CFG.pool);
+});
+</script>
+
+<script>
+/* ================= the test (quiz-report.js "picks" format) ================= */
+function shuffleOptions(){
+  QUIZ.forEach(function(it){
+    var correct = it.options[it.answer];
+    it.options = shuffle(it.options);
+    it.answer = it.options.indexOf(correct);
+  });
+}
+shuffleOptions();
+
+var picks = QUIZ.map(function(){ return -1; });
+var locked = false;
+
+var SECS_PER_Q = 60;
+var QUIZ_SECS = QUIZ.length * SECS_PER_Q;
+var tLeft = QUIZ_SECS, tId = null, timedOut = false, started = false;
+
+function fmtT(s){ var m = Math.floor(s/60), x = s % 60; return m + ':' + (x < 10 ? '0' : '') + x; }
+function paintClock(){
+  $('clock').textContent = fmtT(tLeft);
+  $('tprog').style.width = (100 * tLeft / QUIZ_SECS) + '%';
+  $('timerBar').classList.toggle('low', tLeft <= 120 && tLeft > 0);
+}
+function stopClock(){ if (tId) { clearInterval(tId); tId = null; } }
+function renderQuiz(){
+  $('quiz').innerHTML = QUIZ.map(function(it, i){
+    var opts = it.options.map(function(o, j){
+      return '<div class="opt" id="o' + i + '_' + j + '" onclick="pick(' + i + ',' + j + ')">' + o + '</div>';
+    }).join('');
+    return '<div class="qcard"><span class="n">Question ' + (i + 1) + '</span>'
+      + '<div style="font-size:17px;line-height:1.6;">' + it.q + '</div>'
+      + '<div class="opts">' + opts + '</div><div class="why" id="w' + i + '"></div></div>';
+  }).join('');
+}
+renderQuiz();
+
+function startQuiz(){
+  if (started) return;
+  started = true;
+  $('preTest').hidden = true;
+  $('quizZone').hidden = false;
+  $('timerBar').className = 'timerbar on';
+  document.body.classList.add('testing');
+  paintClock();
+  tId = setInterval(function(){
+    tLeft--;
+    if (tLeft <= 0) { tLeft = 0; paintClock(); stopClock(); timedOut = true; finishQuiz(); return; }
+    paintClock();
+  }, 1000);
+  /* the clock on question 1 starts now, not when the page opened */
+  try { var s = window.QuizReport && QuizReport.session(); if (s) s.lastMark = Date.now(); } catch (e) {}
+  $('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function pick(i, j){
+  if (locked) return;
+  picks[i] = j;
+  for (var k = 0; k < QUIZ[i].options.length; k++) $('o' + i + '_' + k).classList.toggle('pick', k === j);
+}
+
+function finishQuiz(){
+  if (locked || !started) return;
+  var blank = [];
+  picks.forEach(function(p, i){ if (p < 0) blank.push(i + 1); });
+  if (blank.length && !timedOut){
+    alert('You still have ' + blank.length + ' question(s) with no answer: ' + blank.join(', ') + '.\n\nEvery blank counts as wrong, so go back and pick something first.');
+    return;
+  }
+  locked = true;
+  stopClock();
+  $('timerBar').className = 'timerbar on done';
+  var score = 0, missed = [];
+  QUIZ.forEach(function(it, i){
+    for (var k = 0; k < it.options.length; k++){
+      var el = $('o' + i + '_' + k);
+      el.classList.remove('pick'); el.classList.add('locked');
+      if (k === it.answer) el.classList.add('right');
+      else if (k === picks[i]) el.classList.add('wrong');
+    }
+    var w = $('w' + i);
+    w.classList.add('show');
+    var hear = ' <button class="say sm" onclick="say(\'' + it.slug + '\')">🔊</button>';
+    if (picks[i] === it.answer){ score++; w.innerHTML = '<strong>✅ Correct.</strong> ' + it.why + hear; }
+    else { w.innerHTML = '<strong>❌ The right answer is in green.</strong> ' + it.why + hear; if (missed.indexOf(it.slug) < 0) missed.push(it.slug); }
+  });
+
+  var pass = score === QUIZ.length;
+  var used = QUIZ_SECS - tLeft;
+  if (timedOut && blank.length) {
+    var note = $('timeNote');
+    note.hidden = false;
+    note.textContent = '⏰ Time was up, so the test was handed in for you. ' + blank.length + ' question(s) were still blank (' + blank.join(', ') + ') and those count as wrong.';
+  }
+  var box = $('scorebox');
+  box.className = 'scorebox show' + (pass ? '' : ' fail');
+  box.innerHTML = '<div class="pct">' + score + ' / ' + QUIZ.length + '</div>'
+    + '<div class="sub">You need all ' + QUIZ.length + ' right to pass · ⏱ ' + fmtT(used) + ' used of ' + fmtT(QUIZ_SECS) + (timedOut ? ' · the clock ran out' : '') + '</div>'
+    + '<div class="verdict">' + (pass ? '🎉 Perfect — you passed!' : 'Almost! ' + (QUIZ.length - score) + ' to fix') + '</div>'
+    + '<div class="sub">' + (pass
+        ? 'Well done Grace — these words are yours now. Use a few of them in your writing paragraph today!'
+        : 'Read these words again (tap 🔊 and say each one out loud), then press “Try again”. The answers get shuffled.') + '</div>'
+    + (pass ? '' : '<div class="missed">' + missed.map(function(s){
+        return '<div>' + W(s).emoji + ' <b>' + W(s).w + '</b> <button class="say sm" onclick="say(\'' + s + '\')">🔊</button><br>' + W(s).d + '<br><i>' + W(s).trick + '</i></div>';
+      }).join('') + '</div><div style="margin-top:14px"><button class="btn amber" onclick="resetQuiz()">🔁 Try again</button></div>');
+  if (pass) { sfx.win(); confetti(box); } else sfx.bad();
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  $('submitBtn').textContent = 'Test finished';
+}
+
+function resetQuiz(){
+  locked = false;
+  started = false;
+  timedOut = false;
+  stopClock();
+  tLeft = QUIZ_SECS;
+  $('timerBar').className = 'timerbar';
+  document.body.classList.remove('testing');
+  $('timeNote').hidden = true;
+  $('preTest').hidden = false;
+  $('quizZone').hidden = true;
+  shuffleOptions();
+  picks = QUIZ.map(function(){ return -1; });
+  renderQuiz();
+  $('scorebox').className = 'scorebox';
+  $('submitBtn').textContent = 'Finish the test';
+  $('preTest').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+</script>
+
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
