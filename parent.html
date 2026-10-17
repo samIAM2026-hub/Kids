@@ -424,6 +424,9 @@
   .attnbox .subhd .mini{margin-left:auto}
   .attnbox .flagrow:last-child{border-bottom:none}
   .attnline{margin-top:6px;color:var(--amber);font-size:12.5px;line-height:1.5}
+  /* 按科目分组的小标题（今天页 / 作业队列） */
+  .subhd.sgrp{color:var(--gold);letter-spacing:.6px;text-transform:none;font-size:12px;margin:14px 0 0}
+  .qtab tr.sgrp td{color:var(--gold);font-size:12px;padding-top:10px}
   .attnok{margin:10px 0 4px;font-size:12.5px;color:var(--mute)}
   .flagrow{display:flex;gap:11px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
   .flagrow .when,.frow .when{font-size:11px;color:var(--mute);width:44px;flex:0 0 auto}
@@ -1308,12 +1311,15 @@ async function queueOp(k, id, op, btn){
       if(op === 'up' || op === 'down'){
         const fut = days.filter(d => d.date > T);
         const list = fut.flatMap(d => d.items.filter(x => !planPinned(x)));
-        const i = list.findIndex(x => x.id === id), j = op === 'up' ? i - 1 : i + 1;
+        // 同一科里的前一份 / 后一份（家长页按科目分组显示，Sam 2026-10-16）
+        const i = list.findIndex(x => x.id === id), sj = it.subj || '';
+        let j = i;
+        do { j += op === 'up' ? -1 : 1; } while(j >= 0 && j < list.length && (list[j].subj || '') !== sj);
         if(i < 0 || j < 0 || j >= list.length) return;
         [list[i], list[j]] = [list[j], list[i]];
         list.forEach((x, n) => { x.q = PlanCore.qSeq(T, n); });
         fut.forEach(d => dirty.add(d.date));
-        msg = `「${it.t}」${op === 'up' ? '往前' : '往后'}挪了一位`;
+        msg = `「${it.t}」在${subjName(sj).replace(/^[^\p{L}\p{N}]+/u, '')}里${op === 'up' ? '往前' : '往后'}挪了一位`;
       } else if(op === 'today'){
         if(where.date === T) return;
         where.items = where.items.filter(x => x.id !== id);
@@ -1342,37 +1348,54 @@ async function queueOp(k, id, op, btn){
 }
 
 /* ===================== 作业队列（每个孩子一张，按排出来的先后） ===================== */
+/* 按科目分组（Sam 2026-10-16：「派给他的作业最好按每个科目分类，而不是都直接放在一块儿」）。
+   组 = 派题时带的 subj 原样（排作业的 PlanCore 也按它分科，同一科严格按先后）；组里保持原来的先后。 */
+// 组的先后跟题库一样（SUBJ_ORDER，在题库那段定义）
+const subjRankP = sj => { const i = SUBJ_ORDER.indexOf(sj); return i < 0 ? SUBJ_ORDER.length : i; };
+function bySubj(list){
+  const m = new Map();
+  list.forEach(it => { const sj = it.subj || ''; if(!m.has(sj)) m.set(sj, []); m.get(sj).push(it); });
+  return [...m].sort((a,b) => subjRankP(a[0]) - subjRankP(b[0]));
+}
+const subjName = sj => sj || '📄 其他';
+
 function viewQueue(){
   const T = iso(today);
   let html = '';
   kidsShown().forEach(k=>{
     html += `<h2 class="sec">${KID[k].av} ${KID[k].n} · 作业队列${qm(`开了「每天按时间自动排」以后，派出去的作业排成一条队，每天按设定的分钟数从前往后取。
-      这里按排出来的先后列出今天和以后的每一份：↑ ↓ 调先后，「今天就做」挪进今天，「撤回」拿掉。今天的单子一天只排一次，今天的没做完明天自动排在最前面。
+      这里按排出来的先后列出今天和以后的每一份，每天里按科目分组，序号是这一科里的第几份：↑ ↓ 在同一科里调先后，「今天就做」挪进今天，「撤回」拿掉。今天的单子一天只排一次，今天的没做完明天自动排在最前面。
       Class Vocab 钉在原来那天，不跟着挪。调完马上重排。`)}</h2>`;
     if(!planOn(k)){ html += `<p class="empty">${KID[k].n} 还没开「每天按时间自动排」。到「今天」页点「⚙ 排作业设置」打开。</p>`; return; }
     const pl = PLAN[k], left = planLeft(k);
     html += `<p class="qhead">每天 <b>${+pl.mins || PLAN_MINS}</b> 分钟 · ${left.n ? `后面还有 <b>${left.n}</b> 份 · 约 ${dur(left.mins*60)} · 排到 ${ymd(left.last)}` : '后面没有了'}${left.days < 3 ? ` · <span class="planlow">快排空了，记得加作业</span>` : ''}</p>`;
     const days = DAYS[k].filter(d => d.date >= T && d.items.length).slice().reverse();   // 旧的在前
     const fut = days.filter(d => d.date > T).flatMap(d => d.items.filter(x => !planPinned(x)));
-    let n = 0;
+    // 序号 = 这一科里第几份（明天往后连着数）：分组以后，同一科的先后才是孩子做的先后
+    const num = {}, cnt = {};
+    days.forEach(d => d.items.forEach(it => { if(d.date !== T){ const sj = it.subj||''; num[d.date+'|'+it.id] = cnt[sj] = (cnt[sj]||0) + 1; } }));
     html += `<table class="dp qtab"><tbody>`;
     days.forEach(d=>{
       const mins = d.items.reduce((s, it) => s + estOf(it, k).mins + EST_GAP, 0);
       html += `<tr class="newday"><td colspan="3"><b>${d.date === T ? '今天' : ymd(d.date)}</b> 周${wdOf(d.date)} · 约 ${dur(mins*60)}${d.date === T ? ' · 今天的一天只排一次' : ''}</td></tr>`;
-      d.items.forEach(it=>{
+      bySubj(d.items).forEach(([sj, items])=>{
+      html += `<tr class="sgrp"><td colspan="3">${esc(subjName(sj))} · ${items.length} 份</td></tr>`;
+      items.forEach(it=>{
         const done = ATT.some(a => a.kid===k && a.id===it.id && a.date===T && (!BANK_BY_ID[it.id] || countsAsDone(a, BANK_BY_ID[it.id])));
-        const pin = planPinned(it), fi = fut.findIndex(x => x.id === it.id);
+        // ↑ ↓ 只在同一科里换（分组以后，跨科换了也看不出动静；排作业本来就是同一科按先后）
+        const pin = planPinned(it), same = fut.filter(x => (x.subj||'') === (it.subj||'')), fi = same.findIndex(x => x.id === it.id);
         const tags = (it.carried && it.movedFrom ? `<span class="late">${moveTxt(it, d.date)}</span>` : '')
           + (it.ahead ? `<span class="late ahead">提前做的</span>` : '') + (pin ? `<span class="late pin">钉在这天</span>` : '');
         const key = esc(k+'|'+it.id);
         const acts = d.date === T
           ? (done ? `<span class="chipst st-done">✓ 做了</span>` : `<button class="mini" data-qop="${key}|tomorrow">明天再做</button>`)
-          : (pin ? '' : `<button class="mini" data-qop="${key}|up"${fi <= 0 ? ' disabled' : ''} title="往前挪一位">↑</button>`
-              + `<button class="mini" data-qop="${key}|down"${fi < 0 || fi >= fut.length-1 ? ' disabled' : ''} title="往后挪一位">↓</button>`)
+          : (pin ? '' : `<button class="mini" data-qop="${key}|up"${fi <= 0 ? ' disabled' : ''} title="在这一科里往前挪一位">↑</button>`
+              + `<button class="mini" data-qop="${key}|down"${fi < 0 || fi >= same.length-1 ? ' disabled' : ''} title="在这一科里往后挪一位">↓</button>`)
             + `<button class="mini" data-qop="${key}|today">今天就做</button>`;
-        html += `<tr><td class="qn">${d.date === T ? '' : ++n}</td>
+        html += `<tr><td class="qn">${d.date === T ? '' : num[d.date+'|'+it.id]}</td>
           <td class="dt"><b>${openLink(it.href, esc(it.t))}</b>${tags}<div class="qsub">${esc(it.subj||'')}${it.book ? ' · '+esc(it.book) : ''} · ${estChip(it, k)}</div></td>
           <td class="qacts">${acts}<button class="mini bad" data-qpull="${key}|${d.date}">撤回</button></td></tr>`;
+      });
       });
     });
     html += `</tbody></table>`;
@@ -1719,7 +1742,12 @@ function viewToday(){
     if(!list.length){
       if(!reads.length) html += `<p class="empty">到「题库」勾选几份，再派给 ${KID[k].n}。</p>`;
     } else {
-      list.forEach(it=>{
+      bySubj(list).forEach(([sj, items])=>{
+      if(bySubj(list).length > 1 || sj){
+        const dn = items.filter(it => doneOf(it)).length;
+        html += `<div class="subhd sgrp">${esc(subjName(sj))} · 做完 ${dn}/${items.length} · 预计 ${estSumTxt(items, k)}</div>`;
+      }
+      items.forEach(it=>{
         const r = doneOf(it), key = k+'|'+it.id, at = tsDate(it.at);
         const pct = r && r.scored ? r.last.pct : null, end = r && r.end, le = r && lastEssay(r.tries);
         const st = `<span data-pg="${esc(key)}">${todayChip(k, it, day)}</span>`;
@@ -1757,6 +1785,7 @@ function viewToday(){
           html += `<div class="moverow">挪到 <input type="date" class="movedate" value="${next}">
             <button class="mini" data-movego="${esc(key)}">确定</button><button class="mini" data-movecancel>取消</button></div>`;
         }
+      });
       });
     }
     if(reads.length) html += `<div class="subhd">📝 看批改 · 不用派，孩子自己打开的</div>` + reads.map(g=>{
