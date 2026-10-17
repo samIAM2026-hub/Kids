@@ -11,8 +11,9 @@
 (function(root){
   const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   const shiftDay = (d, n) => { const x = new Date(d+'T12:00:00'); x.setDate(x.getDate()+n); return iso(x); };
-  // Class Vocab 跟着上课走，钉在派的那天；顺延过来的就不算钉住了，跟着队排
-  const planPinned = it => !it.carried && /Class-Vocab/i.test(decodeURIComponent(it.id||''));
+  // Class Vocab 跟着上课走，钉在派的那天；家长派题时选了「指定日期」的（pin:true，Sam 2026-10-16：「派给孩子这个不能选日期吗」）也钉在那天。
+  // 顺延过来的就不算钉住了，跟着队排
+  const planPinned = it => !it.carried && (it.pin === true || /Class-Vocab/i.test(decodeURIComponent(it.id||'')));
   // Class Vocab 不顺延（Sam 2026-10-11：「Grace 的 vocabulary 除外」）：跟着上课那一周走，没做完就留在原来那天。homework.html 的 carriedIn 里照抄了一份
   const noCarry = it => /Class-Vocab/i.test(decodeURIComponent(it.id||''));
   const pad = (n, w) => String(n).padStart(w, '0');

@@ -360,6 +360,18 @@
   .dst .n2.miss{color:var(--red);font-weight:600}
   .dst .n2.plan{color:var(--blue)}
   .dst .caret{color:var(--gold2);font-size:9px;margin-left:3px}
+  .dst.one{display:inline-flex;align-items:center;white-space:nowrap}
+  .dst .st{font-size:11.5px;font-weight:600;color:var(--cream)}
+  .dst .st.never,.scount .never{color:var(--amber)}
+  .dst .st.plan{color:var(--blue)}
+  .dst .st.miss{color:var(--red)}
+  .dst .st.gone{color:var(--mute)}
+  .ddet{font-size:12.5px;line-height:1.7;margin:2px 0 8px}
+  .ddet .archline{margin-top:6px;justify-content:flex-start;text-align:left}
+  .donebar{border-top:1px solid var(--line);padding:10px 18px 12px}
+  .donetog{font:inherit;font-size:12.5px;font-weight:600;color:var(--green);background:none;border:1px dashed var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+  .donetog:hover,.donetog.open{background:rgba(42,59,88,.35)}
+  .morebar{margin-top:-4px}
   tbody tr.dhist{background:rgba(12,20,36,.35)}
   tbody tr.dhist:hover{background:rgba(12,20,36,.35)}
   .dhist td{padding:4px 12px 10px 50px}
@@ -763,6 +775,7 @@
     /* bank: each row becomes a small card — title on its own line, the facts on a line under it */
     details.subj>summary{padding:12px 14px;font-size:16px}
     .shelf{padding:2px 12px 6px}
+    .donebar{padding:10px 12px 12px}
     details.subj table, details.subj tbody{display:block}
     details.subj tbody tr{display:flex;flex-wrap:wrap;align-items:center;column-gap:12px;row-gap:4px;padding:9px 0}
     details.subj td{padding:0;width:auto!important;text-align:left}
@@ -893,9 +906,9 @@
   <label for="asskid">派给</label>
   <select id="asskid"><option value="grace">👧 Grace</option><option value="warren">👦 Warren</option><option value="both">👧👦 两个人</option></select>
   <label for="assdate" id="assdatel">日期</label>
+  <!-- 开了「每天按时间自动排」的孩子：选排在队里哪儿，或「选日期…」再出日期框（syncAssignBar 切换） -->
+  <select id="assmode" hidden title="派到哪天"><option value="tail">排到队尾</option><option value="front">插到最前</option><option value="today">今天就做</option><option value="date">选日期…</option></select>
   <input type="date" id="assdate">
-  <!-- 开了「每天按时间自动排」的孩子：不选日期，选排在队里哪儿（syncAssignBar 切换） -->
-  <select id="assmode" hidden title="派到队里哪个位置"><option value="tail">排到队尾</option><option value="front">插到最前</option><option value="today">今天就做</option></select>
   <button class="btn solid" id="assgo">派发</button>
   <button class="btn ghost" id="archgo" data-to="1">归档</button>
   <button class="btn ghost" id="assclear">取消</button>
@@ -909,7 +922,7 @@
 <script src="JS/ai-key.js"></script>
 <script src="JS/writing-review.js"></script>
 <script src="JS/writing-kinds.js"></script>
-<script src="JS/plan-core.js?v=1012"></script>
+<script src="JS/plan-core.js?v=1016"></script>
 <script>
 /* =====================================================================
    家长控制台
@@ -2225,7 +2238,9 @@ function estSumTip(items, kid, what){
 // Sam 2026-09-20：搜索框、类型（可判分/练习/参考）、「含已归档」都去掉了 —— 他从来不用，白占地方。
 // 2026-09-27 Sam 又要回搜索框（加了 / 快捷键）和「只看没派过」；用不用得上看「按钮用了几次」。
 // 2026-09-27 Sam 又要回搜索和「只看没派过」：q = 搜索词（搜的时候在用、归档一起搜，摊成一张表）；never = 只看没派给过当前孩子的。
-let F = { kid:'warren', arch:'active', sort:'group', q:'', never:false }, SEL = new Set();
+// 2026-10-16 Sam：「按钮太多…从来都没点过」→ 顶上只留 孩子 · 搜索 · ⋯ 更多；「全部」那页拿掉了（共用的两边各出现一次）。
+let F = { kid:'warren', arch:'active', sort:'group', q:'', never:false, more:false }, SEL = new Set();
+const OPEN_DONE = new Set();   // 科目底下「✓ 已派完 N 本」点开了的那几科
 // 上传 = `added` (when the item joined the bank); 更新 = `updated` (last real change to the page,
 // written by homework-system/bank-dates.mjs). Dates within the last 7 days show in gold.
 const RECENT = shiftDay(iso(today), -6);
@@ -2471,30 +2486,36 @@ function histState(e){
   if(e.date === t) return { txt:'今天 · 还没做', cls:'plan', col:'' };
   return { txt:'派了没做', cls:'miss', col:'' };
 }
-// 最右那格：两行。第一行 派过几次 / 没派过；第二行 最近一次（日期 + 怎样）。
+// 最右那格：一行状态（Sam 2026-10-16「看起来不简洁」）：没派过 / 排在 10-18 / 10-14 · 85% / 派了没做。
+// 点它展开这一份的详情（说明、题数、用时、日期、归档）和全部派发历史。
 function histCell(b){
-  const all = histOf(b.docId), sent = all.filter(e=>!e.self && !e.pulled), self = all.filter(e=>e.self);
-  const two = F.kid==='all';
-  const who = e => two ? KID[e.k].av : '';
-  let n1, n2 = '';
+  const all = histOf(b.docId), sent = all.filter(e=>!e.self && !e.pulled), self = all.filter(e=>e.self), t = iso(today);
+  let txt, cls = '', col = '';
   if(sent.length){
     const e = sent[0], s = histState(e);
-    n1 = `<span class="n1">派过 ${sent.length} 次</span>`;
-    n2 = `<span class="n2 ${s.cls}"${s.col?` style="color:${s.col}"`:''}>${who(e)}${e.date>iso(today)?'排在 '+ymd(e.date):ymd(e.date)+' · '+s.txt.replace('今天 · ','')}</span>`;
-  } else if(self.length){
-    const e = self[0], s = histState(e);
-    n1 = `<span class="n1 never">没派过</span>`;
-    n2 = `<span class="n2" style="color:${s.col}">${who(e)}自己做过 ${ymd(e.date)} · ${s.txt}</span>`;
-  } else n1 = all.length ? `<span class="n1 gone">派过又撤回</span>` : `<span class="n1 never">没派过</span>`;
-  if(!all.length) return `<div class="dst" style="cursor:default">${n1}</div>`;
-
+    if(e.date > t){ txt = '排在 '+ymd(e.date); cls = 'plan'; }
+    else if(s.cls==='plan'){ txt = '今天 · 还没做'; cls = 'plan'; }
+    else if(s.cls==='miss'){ txt = ymd(e.date)+' 派了没做'; cls = 'miss'; }
+    else { txt = ymd(e.date)+' · '+s.txt; col = s.col; }
+  } else if(self.length){ const s = histState(self[0]); txt = '自己做过 · '+s.txt; col = s.col; }
+  else if(all.length){ txt = '撤回过'; cls = 'gone'; }
+  else { txt = '没派过'; cls = 'never'; }
   const open = OPEN_HIST.has(b.docId);
-  return `<button class="dst${open?' open':''}" data-hist="${esc(b.docId)}" title="点开看这份的全部派发历史">${n1.replace('</span>', `<span class="caret">${open?'▾':'▸'}</span></span>`)}${n2}</button>`;
+  return `<button class="dst one${open?' open':''}" data-hist="${esc(b.docId)}" title="点开看说明、题数、用时和派发历史"><span class="st ${cls}"${col?` style="color:${col}"`:''}>${txt}</span><span class="caret">${open?'▾':'▸'}</span></button>`;
 }
-// 点开后行下面那一条：每次派发一行，最新在上
+// 点开后那一块的上半截：原来摊在每行里的说明、题数、预计用时、类型、日期、归档按钮
+function rowDetail(b){
+  const bits = [b.d ? esc(b.d) : '', b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '', estChip(b, F.kid)].filter(Boolean);
+  const sent = histOf(b.docId).filter(e=>!e.self && !e.pulled).length;
+  const dates = bankDates(b).replace(/^<div class="crumb">|<\/div>$/g, '');
+  return `<div class="ddet"><div>${bits.join(' · ')}</div>
+    <div class="crumb">${b.type!=='quiz'?`<span class="badge b-${esc(b.type)}">${LABEL[b.type]||esc(b.type)}</span> `:''}${sent?`派过 ${sent} 次${dates?' · ':''}`:''}${dates}</div>
+    <div class="archline">${archCell(b)}${b.type==='link'?`<button class="linkedit" data-edlink="${esc(b.docId)}" title="改标题 / 网址">编辑</button>`:''}</div></div>`;
+}
+// 点开后行下面那一条：先是详情，再是每次派发一行，最新在上
 function histRow(b, cols){
   const list = histOf(b.docId);
-  return `<tr class="dhist"><td colspan="${cols}"><ul>${list.map(e=>{
+  return `<tr class="dhist"><td colspan="${cols}">${rowDetail(b)}${list.length?'<ul>':''}${list.map(e=>{
     const s = histState(e), at = e.it && tsDate(e.it.at), n = e.r ? e.r.tries.length : 0;
     const extra = [e.self?'没派，自己打开做的':'', at?'派于 '+stamp(at):'', e.it&&e.it.movedFrom?'从 '+ymd(e.it.movedFrom)+' 挪来':'',
                    e.pulled&&tsDate(e.pulled.withdrawnAt)?'撤回 '+stamp(tsDate(e.pulled.withdrawnAt)):'',
@@ -2502,27 +2523,18 @@ function histRow(b, cols){
     return `<li><b>${e.date.slice(5)} 周${wdOf(e.date)}</b><span>${KID[e.k].av} ${KID[e.k].n}</span>
       <span class="${s.cls==='miss'?'n2 miss':''}" style="font-weight:600${s.col?';color:'+s.col:s.cls==='plan'?';color:var(--blue)':''}">${s.txt}</span>
       <span class="crumb">${extra}</span></li>`;
-  }).join('')}</ul></td></tr>`;
+  }).join('')}${list.length?'</ul>':''}</td></tr>`;
 }
 
-// One bank row. withPlace: also say which subject / book it sits in (the by-time list has no groups).
+// One bank row, one line (Sam 2026-10-16): 勾选 · 标题 · 状态。说明、题数、用时、类型、归档都收进点开的那块。
+// withPlace: also say which subject / book it sits in (search results and the by-time list have no groups).
 function bankRow(b, withPlace){
-  const last = histCell(b);
-  const kid = KID[b.kid] || KID.both;
-  const cols = F.kid==='all' ? 6 : 5;
-  const tail = OPEN_HIST.has(b.docId) && histOf(b.docId).length ? histRow(b, cols) : '';
+  const tail = OPEN_HIST.has(b.docId) ? histRow(b, 3) : '';
   return `<tr class="${SEL.has(b.docId)?'sel':''}${b.archived?' arch':''}${assignedTo(b.docId).length?' assigned':''}">
     <td class="c" style="width:34px"><input type="checkbox" class="pick" ${SEL.has(b.docId)?'checked':''} data-id="${esc(b.docId)}"></td>
-    <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)} ${wkTag(WritingKinds.ofPage(b.docId))}${bothBadge(b)}${assignedBadge(b.docId)}</div><div class="d">${esc(b.d)}</div>
-      ${typeof withPlace==='string' ? (withPlace?`<div class="crumb">${esc(withPlace)}</div>`:'')
-        : withPlace?`<div class="crumb">${esc(b.subj)}${b.book?' · '+esc(b.book):''}</div>`:''}${bankDates(b)}</td>
-    ${F.kid==='all'?`<td class="crumb" style="width:92px">${kid.av} ${kid.n}</td>`:''}
-    <td class="c crumb" style="width:84px">${b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '—'}
-        <div>${estChip(b, F.kid)}</div></td>
-    <td class="c" style="width:124px"><span class="badge b-${esc(b.type)}">${LABEL[b.type]||esc(b.type)}</span>
-        <div class="archline">${archCell(b)}${b.type==='link'
-          ? `<button class="linkedit" data-edlink="${esc(b.docId)}" title="改标题 / 网址">编辑</button>` : ''}</div></td>
-    <td class="c" style="width:118px">${last}</td></tr>${tail}`;
+    <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)} ${wkTag(WritingKinds.ofPage(b.docId))}${bothBadge(b)}${assignedBadge(b.docId)}</div>
+      ${withPlace?`<div class="crumb">${esc(b.subj)}${b.book?' · '+esc(b.book):''}</div>`:''}</td>
+    <td class="c" style="width:150px">${histCell(b)}</td></tr>${tail}`;
 }
 
 
@@ -2535,9 +2547,9 @@ function kidTabs(){
     const shared = v==='all' ? 0 : list.filter(b=>b.kid==='both').length;
     return `<button class="kidtab${F.kid===v?' on':''}" data-f="kid" data-v="${esc(v)}" title="${esc(name)}的题库">
       <span class="av">${av}</span> ${esc(name)}
-      <span class="pill${list.length?'':' zero'}">${list.length}${shared?`<span class="sh"> 含共用 ${shared}</span>`:''}</span></button>`;
+      <span class="pill${list.length?'':' zero'}"${shared?` title="含两个人共用的 ${shared} 份"`:''}>${list.length}</span></button>`;
   };
-  return `<div class="kidtabs">${tab('warren',KID.warren.av,'Warren')}${tab('grace',KID.grace.av,'Grace')}${tab('all','📚','全部')}</div>`;
+  return `<div class="kidtabs">${tab('warren',KID.warren.av,'Warren')}${tab('grace',KID.grace.av,'Grace')}</div>`;
 }
 
 /* ===================== 自定义链接 (custom link) =====================
@@ -2668,8 +2680,11 @@ async function delLink(btn){
 }
 
 function viewBank(){
+  if(F.kid!=='grace' && F.kid!=='warren') F.kid = 'warren';
   buildHist();
   const rows = bankRows();
+  // 改过默认的（看归档 / 按时间 / 只看没派过）就让「更多」那条一直开着，免得忘了自己在筛
+  const moreSet = F.arch!=='active' || F.sort!=='group' || F.never, moreOn = F.more || moreSet;
   const nAct = BANK.filter(b=>!b.archived).length;
   const latest = BANK.map(touched).sort().pop();
   let html = `<h2 class="sec">题库 · 在用 ${nAct} · 已归档 ${BANK.length-nAct}${qm(`<p>全部 ${BANK.length} 份都在这里，只有这个页面看得到${latest?`，最近一次上传 / 更新是 <b>${ymd(latest)}</b>`:''}。<b>点标题</b>在新标签页打开看题（家长预览，不记成绩）；勾选后在底部派给孩子。
@@ -2704,16 +2719,17 @@ function viewBank(){
       点 <b>放回</b> 就拿回在用列表。</p>`)}</h2>
     ${kidTabs()}
     <div class="seclead groupbar slim"><input type="search" class="bsearch" id="bsearch" placeholder="搜标题、书名（按 / ）" value="${esc(F.q)}" autocomplete="off">
-      <button class="fchip${F.never?' on':''}" data-never="1" title="只看从来没派给${F.kid==='all'?'任何一个孩子':KID[F.kid].n}的">只看没派过</button>
-      <span class="sep">·</span>${rows.length} 条${F.q.trim()?'（在用、归档一起搜）':''}<span class="sep">·</span>
-      ${[['arch',[['active','在用'],['archived','归档']]],
-         ['sort',[['group','按科目分组'],['time','按时间']]]].map(([f,opts])=>
-        `<span class="seg">${opts.map(([v,l])=>
-          `<button class="fchip${F[f]===v?' on':''}" data-f="${f}" data-v="${v}">${l}</button>`).join('')}</span>`).join('<span class="sep">·</span>')}
+      <span class="crumb">${rows.length} 份${F.q.trim()?' · 在用、归档一起搜':F.arch==='archived'?' · 归档':''}</span>
       <span class="spacer"></span>
+      <button class="fchip${moreOn?' on':''}" data-act="more" title="归档、按时间、只看没派过、自定义链接、全部展开 / 收起">⋯ 更多${moreSet?' ·':''}</button></div>
+    ${moreOn ? `<div class="seclead groupbar slim morebar">
+      ${[['arch',[['active','在用'],['archived','归档']]],
+         ['sort',[['group','按科目'],['time','按时间']]]].map(([f,opts])=>
+        `<span class="seg">${opts.map(([v,l])=>
+          `<button class="fchip${F[f]===v?' on':''}" data-f="${f}" data-v="${v}">${l}</button>`).join('')}</span>`).join('')}
+      <button class="fchip${F.never?' on':''}" data-never="1" title="只看从来没派给${KID[F.kid].n}的">只看没派过</button>
       <button class="fchip" data-act="newlink" title="题库里没有的东西：别的网站上的课、读书会">＋ 自定义链接</button>
-      ${F.sort==='time'?'':`<button class="fchip icon" data-act="expand" title="全部展开" aria-label="全部展开"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg><span class="txt">全部展开</span></button>
-      <button class="fchip icon" data-act="collapse" title="全部收起" aria-label="全部收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg><span class="txt">全部收起</span></button>`}</div>`;
+      ${F.sort==='time'?'':`<button class="fchip" data-act="expand">全部展开</button><button class="fchip" data-act="collapse">全部收起</button>`}</div>` : ''}`;
   html += linkForm();
   if(!rows.length) return html + `<p class="empty">没有匹配的内容。</p>`;
 
@@ -2732,6 +2748,7 @@ function viewBank(){
 
   // 科目 → 书架性质 → 书架 → 单份。rows 已经按科目、book、标题排过，Map 的插入顺序就把同一个
   // 书架的排在一起；性质之间的先后用 KIND_RANK 定，「资料 · 答案 · 成绩单」永远沉在最下面。
+  // 在用列表里，每一份都派给过这个孩子的书 = 「已派完」，收到这一科最下面一行（Sam 2026-10-16：一眼看到还能派什么）。
   const bySubj = new Map();
   rows.forEach(b=>{
     if(!bySubj.has(b.subj)) bySubj.set(b.subj, new Map());
@@ -2742,53 +2759,60 @@ function viewBank(){
     shelves.get(key).push(b);
   });
   const rank = s => { const i = SUBJ_ORDER.indexOf(s); return i < 0 ? 99 : i; };
+  const sentTo = b => histOf(b.docId).some(e=>!e.self && !e.pulled);
+  const foldDone = F.arch==='active' && !F.never;
+  const table = list => `<table><tbody>${list.map(b=>bankRow(b, false)).join('')}</tbody></table>`;
+  const shelfHtml = (subj, book, list, single) => {
+    const key = subj + '|' + book, shut = !single && !OPEN_SHELF.has(key);
+    const all = list.every(b=>SEL.has(b.docId)), nSel = list.filter(b=>SEL.has(b.docId)).length;
+    const nAsg = list.filter(b=>assignedTo(b.docId).length).length, nLeft = list.filter(b=>!sentTo(b)).length;
+    const grp = F.arch==='archived' ? list.filter(b=>b.archived).map(b=>b.docId) : [];
+    return `<div class="shelf"><div class="shelfhead"><input type="checkbox" class="selall"${all?' checked':''} title="整组选"
+        data-ids="${esc(list.map(b=>b.docId).join(' '))}">
+      ${single ? `<span class="shelfname">${esc(book)}</span>`
+               : `<button class="shelftog${shut?'':' open'}" data-shelf="${esc(key)}">${esc(book)}</button>`}
+      <span class="scount">${list.length} 份${!nLeft?'':nLeft===list.length?' · 都没派过':` · <span class="never">还没派 ${nLeft}</span>`}${nAsg?` · <span class="sasg">今天已派 ${nAsg}</span>`:''}${nSel?` · <span class="ssel">已选 ${nSel}</span>`:''}</span>
+      ${grp.length?`<button class="archbtn grpbtn" data-archgrp="${esc(grp.join(' '))}" data-to="0" data-name="${esc(book)}" title="这一组全部放回在用">整组放回</button>`:''}</div>
+      ${shut ? '' : table(list)}</div>`;
+  };
 
   [...bySubj.keys()].sort((a,b)=>rank(a)-rank(b)).forEach(subj=>{
     const byKind = bySubj.get(subj);
     const items = [...byKind.values()].flatMap(m=>[...m.values()].flat());
     const nSel = items.filter(b=>SEL.has(b.docId)).length;
     const nAsg = items.filter(b=>assignedTo(b.docId).length).length;
+    const nLeft = items.filter(b=>!sentTo(b)).length;
     html += `<details class="subj" data-subj="${esc(subj)}"${OPEN.has(subj)?' open':''}>
-      <summary><span class="sname">${esc(subj)}</span><span class="scount">${items.length} 份</span>
+      <summary><span class="sname">${esc(subj)}</span><span class="scount">${foldDone?(nLeft?`还没派 ${nLeft} · `:'')+`共 ${items.length} 份`:`${items.length} 份`}</span>
         ${nAsg?`<span class="sasg">今天已派 ${nAsg}</span>`:''}
         ${nSel?`<span class="ssel">已选 ${nSel}</span>`:''}</summary>`;
 
-    // 没归进任何书架的单份排最前，一直摊开（就几份，折起来反而找不着）
-    const loose = byKind.get('loose');
-    if(loose) html += `<div class="shelf"><table><tbody>${
-      [...loose.values()].flat().map(b=>bankRow(b, false)).join('')}</tbody></table></div>`;
+    // 没归进任何书架的单份排最前，一直摊开（就几份，折起来反而找不着）；派过的跟着进「已派完」
+    const loose = byKind.has('loose') ? [...byKind.get('loose').values()].flat() : [];
+    // 自定义链接（读书会、AoPS 网站这种天天派的）一直摊在外面，不收进「已派完」
+    const looseDone = foldDone ? loose.filter(b=>b.type!=='link' && sentTo(b)) : [], looseLive = loose.filter(b=>!looseDone.includes(b));
+    if(looseLive.length) html += `<div class="shelf">${table(looseLive)}</div>`;
 
-    // 少一层是一层（Sam 2026-09-28：「层级太多，应该一点入就进课件」）：
-    //   · 科目底下只有一种书架，「教材 · 单元」那条分段标签就不出了；
-    //   · 科目底下只有一个书架，书架不折叠 —— 点开科目就直接看到每一份；
-    //   · （2026-10-16 起取消）书架里只有一份也照样有书架那一行 —— Sam：那一份夹在两章中间，看着像掉出来了。
-    const kinds = [...byKind.keys()].filter(k=>k!=='loose');
-    const oneShelf = kinds.reduce((s,k)=>s+byKind.get(k).size, 0) === 1;
-    kinds.sort((a,b)=>(KIND_RANK[a]??99)-(KIND_RANK[b]??99)).forEach(kind=>{
-      const shelves = byKind.get(kind);
-      const n = [...shelves.values()].flat().length;
-      if(kinds.length > 1) html += `<div class="kindband"><span class="kindlbl">${esc(KIND_LBL[kind]||kind)}</span>
-        <span class="scount">${n} 份</span></div>`;
-      shelves.forEach((list, book)=>{
-        // A shelf (a book, a mock test) folds to one line — unless it's the only one under the subject.
-        const key = subj + '|' + book, shut = !oneShelf && !OPEN_SHELF.has(key);
-        const all = list.every(b=>SEL.has(b.docId)), nSel = list.filter(b=>SEL.has(b.docId)).length;
-        const nAsg = list.filter(b=>assignedTo(b.docId).length).length;
-        const nSent = list.filter(b=>histOf(b.docId).some(e=>!e.self && !e.pulled)).length;
-        const grp = list.filter(b=>!!b.archived === (F.arch==='archived')).map(b=>b.docId);
-
-        html += `<div class="shelf"><div class="shelfhead"><input type="checkbox" class="selall"${all?' checked':''} title="整组选"
-            data-ids="${esc(list.map(b=>b.docId).join(' '))}">
-          ${oneShelf ? `<span class="shelfname">${esc(book)}</span>`
-                     : `<button class="shelftog${shut?'':' open'}" data-shelf="${esc(key)}">${esc(book)}</button>`}
-          <span class="scount">${list.length} 份 · <span class="dasg" title="这一组里派给过${F.kid==='all'?'孩子':KID[F.kid].n}的份数">派过 ${nSent}/${list.length}</span>${nAsg?` · <span class="sasg">今天已派 ${nAsg}</span>`:''}${nSel?` · <span class="ssel">已选 ${nSel}</span>`:''} · 最近 ${(v=>`<span class="${v>=RECENT?'recent':''}">${ymd(v)}</span>`)(list.map(touched).sort().pop())}<span class="hint"> · 勾方框整组选</span></span>
-          ${grp.length?`<button class="archbtn grpbtn" data-archgrp="${esc(grp.join(' '))}" data-to="${F.arch==='archived'?0:1}" data-name="${esc(book)}"
-            title="${F.arch==='archived'?'这一组全部放回在用':'这一组全部收进归档（不删文件、不动成绩）'}">${F.arch==='archived'?'整组放回':'整组归档'}</button>`:''}</div>`;
-
-        if(!shut) html += `<table><tbody>${list.map(b=>bankRow(b, false)).join('')}</tbody></table>`;
-        html += `</div>`;
-      });
+    // 少一层是一层（Sam 2026-09-28）：科目底下只有一种书架，分段标签不出；只有一个书架，书架不折叠。
+    const live = [], done = [];
+    [...byKind.keys()].filter(k=>k!=='loose').sort((a,b)=>(KIND_RANK[a]??99)-(KIND_RANK[b]??99)).forEach(kind=>
+      byKind.get(kind).forEach((list, book)=>(foldDone && list.every(sentTo) ? done : live).push({ kind, book, list })));
+    const single = live.length === 1 && !done.length && !looseLive.length;
+    const kindsLive = [...new Set(live.map(x=>x.kind))];
+    kindsLive.forEach(kind=>{
+      const mine = live.filter(x=>x.kind===kind);
+      if(kindsLive.length > 1) html += `<div class="kindband"><span class="kindlbl">${esc(KIND_LBL[kind]||kind)}</span>
+        <span class="scount">${mine.reduce((s,x)=>s+x.list.length,0)} 份</span></div>`;
+      mine.forEach(x=>{ html += shelfHtml(subj, x.book, x.list, single); });
     });
+    if(done.length || looseDone.length){
+      const od = OPEN_DONE.has(subj);
+      html += `<div class="donebar"><button class="donetog${od?' open':''}" data-done="${esc(subj)}" title="每一份都派给过${KID[F.kid].n}的书，收在这里">✓ 已派完${done.length?` ${done.length} 本`:''}${looseDone.length?`${done.length?' +':''} ${looseDone.length} 份`:''} <span class="caret">${od?'▾':'▸'}</span></button></div>`;
+      if(od){
+        done.forEach(x=>{ html += shelfHtml(subj, x.book, x.list, false); });
+        if(looseDone.length) html += `<div class="shelf">${table(looseDone)}</div>`;
+      }
+    }
     html += `</details>`;
   });
   return html;
@@ -4421,8 +4445,9 @@ function render(){
       render(); }));
     viewEl.querySelectorAll('.fchip[data-act]').forEach(c=>c.addEventListener('click',()=>{
       if(c.dataset.act==='newlink'){ LF ? (LF = null, render()) : openLinkForm(null); return; }
-      if(c.dataset.act==='expand') BANK.forEach(b=>{ OPEN.add(b.subj); if(b.book) OPEN_SHELF.add(b.subj+'|'+b.book); });   // 书架 key 仍是 科目|book
-      else { OPEN.clear(); OPEN_SHELF.clear(); }
+      if(c.dataset.act==='more'){ F.more = !F.more; render(); return; }
+      if(c.dataset.act==='expand') BANK.forEach(b=>{ OPEN.add(b.subj); OPEN_DONE.add(b.subj); if(b.book) OPEN_SHELF.add(b.subj+'|'+b.book); });   // 书架 key 仍是 科目|book
+      else { OPEN.clear(); OPEN_SHELF.clear(); OPEN_DONE.clear(); }
       render(); }));
     // Re-render on every pick so the subject's "已选 N" and the shelf's select-all stay in step.
     viewEl.querySelectorAll('input.pick').forEach(cb=>cb.addEventListener('change',()=>{
@@ -4431,6 +4456,8 @@ function render(){
     viewEl.querySelectorAll('[data-hist]').forEach(b=>b.addEventListener('click',()=>{
       const id = b.dataset.hist; OPEN_HIST.has(id)?OPEN_HIST.delete(id):OPEN_HIST.add(id); render(); }));
     viewEl.querySelectorAll('[data-never]').forEach(b=>b.addEventListener('click',()=>{ F.never = !F.never; render(); }));
+    viewEl.querySelectorAll('[data-done]').forEach(b=>b.addEventListener('click',()=>{
+      const s = b.dataset.done; OPEN_DONE.has(s)?OPEN_DONE.delete(s):OPEN_DONE.add(s); render(); }));
     // 搜索：每敲一个字重画一次，重画后把光标放回原处
     const bs = document.getElementById('bsearch');
     if(bs){
@@ -4560,6 +4587,7 @@ function useKey(el){
   if(d.f) return 'bank:'+d.f+'='+d.v;
   if(d.act) return 'bank:'+d.act;
   if(d.never) return 'bank:never';
+  if(d.done) return 'bank:done';
   if(d.hist) return 'bank:hist';
   if(d.archgrp) return 'arch:group';
   if(d.arch) return V==='today' ? 'arch:today' : 'arch:row';
@@ -4599,7 +4627,7 @@ const USE_WATCH = [
   ['sub:more','孩子页 · 更多 ▸'], ['sub:skills','孩子页 · 知识点'], ['sub:focus','孩子页 · 专注情况'], ['sub:reading','孩子页 · 阅读写作'],
   ['kid:assign','孩子页 · ＋ 派题'],
   ['bank:search','题库 · 搜索'], ['key:/','题库 · 按 / 搜索'], ['bank:never','题库 · 只看没派过'], ['bank:hist','题库 · 点开派发历史'],
-  ['bank:kid=warren','题库 · Warren'], ['bank:kid=grace','题库 · Grace'], ['bank:kid=all','题库 · 全部'],
+  ['bank:kid=warren','题库 · Warren'], ['bank:kid=grace','题库 · Grace'], ['bank:more','题库 · ⋯ 更多'], ['bank:done','题库 · 已派完 ▸'],
   ['bank:arch=archived','题库 · 看归档'], ['bank:sort=time','题库 · 按时间'], ['bank:sort=group','题库 · 按科目分组'],
   ['bank:expand','题库 · 全部展开'], ['bank:collapse','题库 · 全部收起'], ['bank:newlink','题库 · ＋ 自定义链接'], ['bank:editlink','题库 · 编辑链接'],
   ['bank:selall','题库 · 整组勾选'], ['bank:pick','题库 · 勾选单份'],
@@ -4632,14 +4660,23 @@ function toast(msg, bad){
 document.getElementById('assdate').value = iso(today);
 document.getElementById('asskid').value = F.kid;   // 题库默认开 Warren 那一页，派给也跟着是 Warren
 
-// 派给的孩子都开了自动排 → 日期框换成「排到队尾 / 插到最前 / 今天就做」
+// 派给的孩子都开了自动排 → 日期框换成「排到队尾 / 插到最前 / 今天就做 / 指定日期」。
+// 每个选项后面写上大概落在哪天（Sam 2026-10-16：「排在队前和队尾对我来说没有什么概念」）；选「指定日期」才出日期框，派的那份钉在那天不被自动排挪走。
 function syncAssignBar(){
   const k = document.getElementById('asskid').value, kids = k==='both' ? ['grace','warren'] : [k];
-  const q = kids.every(planOn);
-  document.getElementById('assdate').hidden = q;
+  const q = kids.every(planOn), sel = document.getElementById('assmode'), dt = document.getElementById('assdate');
+  const T = iso(today), T1 = shiftDay(T, 1), wk = d => ymd(d)+' 周'+wdOf(d);
+  if(q){
+    const tail = kids.map(tailDay).sort().pop();
+    const lbl = { tail:`排到队尾（现排到 ${wk(tail)}）`, front:`插到最前（明天 ${wk(T1)}）`, today:'今天就做', date:'选日期…' };
+    [...sel.options].forEach(o=>{ o.textContent = lbl[o.value]; });
+    if(sel.value==='date' && (!dt.value || dt.value <= T)) dt.value = T1;   // 选日期默认明天
+  }
+  dt.hidden = q && sel.value!=='date';
   document.getElementById('assdatel').textContent = q ? '排在' : '日期';
-  document.getElementById('assmode').hidden = !q;
+  sel.hidden = !q;
 }
+document.getElementById('assmode').addEventListener('change', syncAssignBar);
 document.getElementById('asskid').addEventListener('change', syncAssignBar);
 document.getElementById('assgo').addEventListener('click', async ()=>{
   const k = document.getElementById('asskid').value;
@@ -4647,9 +4684,10 @@ document.getElementById('assgo').addEventListener('click', async ()=>{
   const usePlan = kids.every(planOn), mode = usePlan ? document.getElementById('assmode').value : '';
   const T = iso(today);
   const dayFor = kk => !usePlan ? (document.getElementById('assdate').value || T)
-    : mode==='today' ? T : mode==='front' ? shiftDay(T, 1) : tailDay(kk);
-  const qOf = i => mode==='tail' ? { q: PlanCore.qTail(i) } : mode==='front' ? { q: PlanCore.qFront(i) } : {};
+    : mode==='today' ? T : mode==='front' ? shiftDay(T, 1) : mode==='date' ? (document.getElementById('assdate').value || shiftDay(T, 1)) : tailDay(kk);
+  const qOf = i => mode==='tail' ? { q: PlanCore.qTail(i) } : mode==='front' ? { q: PlanCore.qFront(i) } : mode==='date' ? { pin: true } : {};
   const d = dayFor(kids[0]);
+  if(mode==='date' && d < T){ toast('指定的日期已经过去了，换一天', true); return; }
   const ids = [...SEL], go = document.getElementById('assgo');
   // 题库「全部」里勾了 Grace 的、「派给」却停在 Warren（或选了「两个人」）：先问一句，别悄悄派错人。
   const odd = kids.flatMap(kk => ids.map(id => BANK_BY_ID[id])
@@ -4679,8 +4717,11 @@ document.getElementById('assgo').addEventListener('click', async ()=>{
     });
     await Promise.all([d===TD || d===iso(today) ? loadDay(d) : null, loadDays()]);   // loadDays：派过没有那一格要马上跟上
     if(usePlan && mode!=='today'){ await runPlan(); await Promise.all([loadDay(TD), loadDays()]); }
-    SEL.clear(); render();
-    toast(`已派给 ${kids.map(kk=>KID[kk].n).join(' 和 ')} · ${usePlan ? {tail:'排到队尾', front:'插到最前', today:'今天就做'}[mode] : d} · ${ids.length} 份`);
+    SEL.clear(); render(); syncAssignBar();
+    // 自动排完再说清楚每份落在哪天：一共几天、从哪天到哪天
+    const where = kids.map(kk => { const ds = [...new Set((DAYS[kk]||[]).filter(x => x.date >= T && x.items.some(it => ids.includes(it.id))).map(x => x.date))].sort();
+      return (kids.length>1 ? KID[kk].n+' ' : '') + (!ds.length ? '' : ds.length===1 ? '排在 '+ymd(ds[0])+' 周'+wdOf(ds[0]) : `排在 ${ymd(ds[0])} 到 ${ymd(ds[ds.length-1])}（${ds.length} 天）`); }).filter(Boolean).join('；');
+    toast(`已派给 ${kids.map(kk=>KID[kk].n).join(' 和 ')} · ${ids.length} 份 · ${where || d}`);
   } catch(e){
     console.error(e);
     toast('派发失败：' + (e.code||e.message) + '，没有写进去，稍后再试', true);
