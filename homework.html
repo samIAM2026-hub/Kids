@@ -149,6 +149,15 @@
   details.day>summary::before{content:'▸';color:var(--acc);font-size:16px}
   details.day[open]>summary::before{content:'▾'}
   details.day>summary .gn{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:var(--mute)}
+  /* How homework is checked (Sam 2026-10-16): one sentence always shown, the details folded. */
+  .rules{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:12px 16px;margin:14px 0 4px;font-size:16px;line-height:1.5}
+  .rules summary{cursor:pointer;list-style:none}
+  .rules summary::-webkit-details-marker{display:none}
+  .rules .more{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap}
+  .rules[open] .more{display:none}
+  .rules h4{font-family:'Fraunces',serif;font-size:16px;margin:12px 0 4px}
+  .rules ul{margin:0;padding-left:20px}
+  .rules li{margin:3px 0}
   .note{background:#fffaf0;border:2px solid #e8c766;border-radius:18px;padding:16px 18px;margin-top:14px}
   .note .from{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.8px;
     text-transform:uppercase;color:#a07a12}
@@ -588,13 +597,14 @@ function viewToday(){
   const more = () => !early.length && !next ? '' : `<h3 class="group">Want more? <span class="gn">${early.length ? early.length+' extra done' : 'optional'}</span></h3>`
     + early.map(it=>card(it, doneToday(it))).join('') + (next ? card(next, null) : '');
   if(!ITEMS.length){
-    return reportCard() + markedCards() + `<div class="empty"><span class="e">🎉</span>No homework today!<br>Enjoy your free time.</div>` + more() + petsRow();
+    return reportCard() + markedCards() + `<div class="empty"><span class="e">🎉</span>No homework today!<br>Enjoy your free time.</div>` + rulesBox() + more() + petsRow();
   }
   const nDone = ITEMS.filter(doneToday).length;
   let html = reportCard() + markedCards() + `<div class="progress"><div class="big">${nDone} of ${ITEMS.length} done</div>
     <div class="meter"><i style="width:${Math.round(100*nDone/ITEMS.length)}%"></i></div></div>`;
   if(nDone===ITEMS.length) html += `<div class="cheer">🌟 All done for today — great work, ${esc(ME.n)}!
     <div style="margin-top:12px"><button class="out" data-signout>👋 I'm done · Sign out</button></div></div>`;
+  html += rulesBox();
 
   bySubject(ITEMS).forEach(([subj, items])=>{
     html += `<h3 class="group">${esc(subj)} <span class="gn">${items.filter(doneToday).length} of ${items.length} done</span></h3>`;
@@ -610,6 +620,28 @@ const fromDay = d => { const x = new Date(d+'T12:00:00');
 const lateTag = it => { const o = it.origin||it.movedFrom, n = Math.round((new Date(iso(today)+'T12:00:00') - new Date(o+'T12:00:00')) / 864e5);
   return n > 0 ? `↪ ${n} day${n>1?'s':''} late · from ${fromDay(o)}` : `↪ From ${fromDay(o)}`; };
 // One homework card; a = today's attempt at it, if any.
+// How Mom and Dad check homework (Sam 2026-10-16). Same rules as the parent page: first try ≥ PASS%, and only
+// real working time counts (away = not counted; still for 3+ min = not counted after minute 3, see quiz-report.js).
+function rulesBox(){
+  return `<details class="rules"><summary>📏 <b>How we check your homework:</b> we look at your <b>first try</b> and your <b>real working time</b>.
+    It meets the standard when you get <b>${PASS}% or more on your first try</b> and keep working the whole time.
+    <span class="more">How it works ▸</span></summary>
+    <h4>It does not meet the standard when…</h4>
+    <ul>
+      <li>your first try is under ${PASS}%. Redoing it is great practice, but your first try shows what you really know.</li>
+      <li>you answer very fast and get it wrong. That looks like guessing.</li>
+      <li>you leave the page a lot, or for a long time.</li>
+      <li>you stop and sit still for a long time in the middle.</li>
+    </ul>
+    <h4>How your time is counted</h4>
+    <ul>
+      <li>Only <b>working time</b> counts: the page is in front of you and you are reading, thinking, tapping or typing.</li>
+      <li>If you leave the page (another app, a video, the lock screen), that time does not count — not even a few seconds.</li>
+      <li>If you don't tap, type or scroll for <b>3 minutes</b>, the clock stops after those 3 minutes. Tap again and it starts again.</li>
+      <li>Writing is marked from 1 to 6 by Mom or Dad, not as a percent. 4 out of 6 is solid work.</li>
+    </ul>
+    <p style="margin:10px 0 2px">💡 Tip: take your time on the first try, read carefully, and finish in one go.</p></details>`;
+}
 function card(it, a){
   const scored = a && a.pct!=null;
   const low = scored && a.pct < PASS;
