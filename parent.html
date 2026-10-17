@@ -507,6 +507,14 @@
         padding:9px 12px;font-size:12.5px;line-height:1.8;margin:12px 0 4px}
   .dsum .lbl{display:block;font-size:10.5px;letter-spacing:1.2px;color:var(--gold2)}
   .dsum b{color:var(--cream);font-weight:600}
+  .dsum .srow{display:flex;gap:12px;padding:5px 0;border-bottom:1px dashed rgba(201,162,39,.18);line-height:1.6}
+  .dsum .srow:last-child{border-bottom:none}
+  .dsum .sk{flex:0 0 76px;font-size:11.5px;color:var(--gold2);padding-top:1px}
+  .dsum .sv{flex:1;min-width:0}
+  .dsum .sp{padding:1px 0}
+  .dsum .sm{color:var(--mute);font-size:.92em}
+  .dsum .srow.red .sk{color:var(--red)}
+  .dsum .srow.amber .sk{color:var(--amber)}
   .dnote{border-left:3px solid var(--green);background:rgba(75,182,122,.07);border-radius:0 8px 8px 0;
          padding:9px 12px;font-size:13px;line-height:1.7;margin:8px 0 4px}
   .dnote .lbl{display:block;font-size:10.5px;letter-spacing:1.2px;color:var(--green)}
@@ -2731,55 +2739,55 @@ function dayStats(papers){
 const where = p => p.book || (p.subj||'').replace(/^[^\p{L}\p{N}《]+/u, '');
 
 // The day in plain sentences: what was done, what passed on the first try, what only passed on a retry.
+/* 一天的总结：一行一项，左边小标签，右边内容（Sam 2026-10-16：原来一大段话「format 有点乱」）。
+   卷子列成一份一行：短标题（书名淡色）+ 分数。完成记录和今天页共用。 */
+const plainBook = t => String(t||'').replace(/^[^\p{L}\p{N}《]+/u, '');
+function sumPaper(p, how){
+  const bk = plainBook(where(p)), t = String(p.t||'');
+  // 「SSAT Mock Test 10.5 · Reading B」→「Reading B」，书名另外淡色写
+  const short = t.includes(' · ') ? t.slice(t.lastIndexOf(' · ')+3) : t;
+  const sc = how==='open' ? `<b style="color:${pctColor(p.last.pct)}">${p.last.pct}%</b>${p.tries.length>1?`<span class="sm">（做了 ${p.tries.length} 遍，第一遍 ${p.first.pct}%）</span>`:''}`
+    : how==='fixed' ? `<b style="color:${pctColor(p.first.pct)}">${p.first.pct}%</b> → <b style="color:${pctColor(p.last.pct)}">${p.last.pct}%</b>`
+    : `<b style="color:${pctColor(p.first.pct)}">${p.first.pct}%</b>`;
+  return `<div class="sp">${esc(short)}${bk && !short.includes(bk) ? ` <span class="sm">· ${esc(bk)}</span>` : ''}　${sc}</div>`;
+}
 function histSummary(k, papers, S, U, onToday){
   const n = KID[k].n, uS = unfSum(U);
-  const names = list => list.slice(0,3).map(u=>'「'+esc(u.t)+'」').join('、') + (list.length>3?' 等':'');
+  const row = (label, body, cls) => `<div class="srow${cls?' '+cls:''}"><span class="sk">${label}</span><div class="sv">${body}</div></div>`;
+  const shortT = t => { t = String(t||''); return t.includes(' · ') ? t.slice(t.lastIndexOf(' · ')+3) : t; };
+  const unfList = U.map(u=>`<div class="sp">${esc(shortT(u.t))}　<span class="sm">有效 ${dur(u.active)} · ${unfDone(u)}</span></div>`).join('');
   if(!papers.length) return U.length
-    ? `${n} 这天没有交卷记录，但打开过 <b>${U.length} 份</b>没交卷（${names(U)}），有效时间 <b>${dur(uS)}</b>。`
-    : `${n} 这天没有交卷记录。派了作业却没做的话，到「今天」翻到这一天看。`;
-  const books = [...new Set(papers.map(where).filter(Boolean))];
-  const out = [`${n} 这天做了 <b>${papers.length} 份</b>（交卷 ${S.nAtt} 次），有效时间 <b>${dur(S.active+uS)}</b>` +
-    (books.length ? `，内容是 ${books.slice(0,3).map(esc).join('、')}${books.length>3?' 等':''}` : '') + '。'];
-  if(U.length) out.push(`其中 <b>${dur(uS)}</b> 花在没交卷的 ${U.length} 份上（${names(U)}）。`);
-  if(S.still){
-    const sp = papers.filter(p=>p.still);
-    out.push(`这个有效时间<b>已经扣掉了中间没动的 ${dur(S.still)}</b>（${sp.slice(0,3).map(p=>'「'+esc(p.t)+'」').join('、')}${sp.length>3?' 等':''}：页面开着，却很久没点、没打字，那段不算）。`);
-  }
+    ? row('概况', `这天没有交卷，打开过 <b>${U.length} 份</b>没交卷，有效 <b>${dur(uS)}</b>`) + row('没交卷', unfList)
+    : row('概况', `${n} 这天没有交卷记录。`);
+  const out = [];
+  const books = [...new Set(papers.map(p=>plainBook(where(p))).filter(Boolean))];
+  out.push(row('概况', `做了 <b>${papers.length} 份</b> · 交卷 ${S.nAtt} 次 · 有效 <b>${dur(S.active+uS)}</b>${
+    uS?`<span class="sm">（含没交卷 ${dur(uS)}）</span>`:''}${S.still?` ${stillTag(S.still)}`:''}`));
+  if(books.length) out.push(row('内容', books.map(esc).join('、')));
   const sc = S.scored.length;
   if(sc){
     const fixed = S.scored.filter(p=>p.first.pct<PASS && p.last.pct>=PASS);
     const open = S.scored.filter(p=>p.last.pct<PASS);
-    if(S.firstOk.length===sc) out.push(`打分的 ${sc} 份<b>第一遍就全部达标</b>。`);
-    else {
-      const parts = [];
-      if(S.firstOk.length) parts.push(`${S.firstOk.length} 份第一遍就达标`);
-      if(fixed.length){
-        const lo = Math.min(...fixed.map(p=>p.first.pct)), hi = Math.max(...fixed.map(p=>p.first.pct));
-        parts.push(`<b>${fixed.length} 份第一遍没到 ${PASS}%</b>（第一遍 ${lo===hi?lo:lo+'–'+hi}%），重做后才达标`);
-      }
-      if(open.length) parts.push(`<b style="color:var(--red)">${open.length} 份到最后还没达标</b>（${open.map(p=>'「'+esc(p.t)+'」').join('、')}）`);
-      out.push(`打分的 ${sc} 份里，${parts.join('；')}。`);
-      // Minutes between the first try and the passing one: that close, the answers were still fresh.
-      // Not for practice games: their rounds are different 关, so a later passing round isn't a quick retry.
-      const quick = fixed.filter(p=>!p.prac);
-      const gaps = quick.map(p=>{
-        const ok = p.tries.find(a=>a.pct!=null && a.pct>=PASS);
-        return p.first.at && ok && ok.at ? Math.round((ok.at - p.first.at)/60000) : null;
-      });
-      if(quick.length && gaps.every(g=>g!=null && g<=30))
-        out.push(`${quick.length>1?`这 ${quick.length} 份都是`:'这份是'}第一遍之后 ${Math.max(1,...gaps)} 分钟内就重做到达标。分数涨得这么快，可能是真学会了，也可能是记住了上一遍的答案 —— 建议隔一天再做一遍，看第一遍能不能过。`);
-      const weak = [...new Set(S.scored.filter(p=>p.first.pct<PASS).map(where).filter(Boolean))];
-      if(weak.length) out.push(`第一遍没过的都在 <b>${weak.map(esc).join('、')}</b>。`);
-      if(!onToday) out.push(`第一遍每道题用了几秒、中途有没有切走，到「专注情况」看。`);
-    }
+    const col = S.firstOk.length===sc ? 'var(--green)' : S.firstOk.length ? 'var(--amber)' : 'var(--red)';
+    out.push(row('第一遍达标', `<b style="color:${col}">${S.firstOk.length}/${sc}</b>${S.firstOk.length===sc?' · 全部第一遍就过 ✓':''}`
+      + S.firstOk.map(p=>sumPaper(p,'ok')).join('')));
+    if(fixed.length) out.push(row('重做后达标', fixed.map(p=>sumPaper(p,'fixed')).join(''), 'amber'));
+    if(open.length) out.push(row('还没达标', open.map(p=>sumPaper(p,'open')).join(''), 'red'));
+    // Minutes between the first try and the passing one: that close, the answers were still fresh.
+    // Not for practice games: their rounds are different 关, so a later passing round isn't a quick retry.
+    const quick = fixed.filter(p=>!p.prac);
+    const gaps = quick.map(p=>{
+      const ok = p.tries.find(a=>a.pct!=null && a.pct>=PASS);
+      return p.first.at && ok && ok.at ? Math.round((ok.at - p.first.at)/60000) : null;
+    });
+    if(quick.length && gaps.every(g=>g!=null && g<=30))
+      out.push(row('提醒', `${quick.length>1?`这 ${quick.length} 份都是`:'这份是'}第一遍之后 ${Math.max(1,...gaps)} 分钟内就重做到达标，可能是记住了上一遍的答案 —— 建议隔一天再做一遍，看第一遍能不能过。`));
   }
+  if(U.length) out.push(row('没交卷', unfList));
   const es = S.essays.flatMap(p=>p.tries.filter(a=>a.handin)), todo = es.filter(a=>ess(a).todo).length;
-  if(es.length) out.push(`${sc?'还':''}交了 <b>${es.length} 篇写作</b>（${es.map(a=>(WritingKinds.ofPage(a.id)||WritingKinds.byKey.exam).zh+' '+ess(a).txt).join('、')}，满分 6，不算进达标）` +
-    (todo ? `，<b style="color:var(--amber)">${todo} 篇等你批改</b>，到「写作」标签批。` : `，原文和批改到「写作」标签看。`));
-  if(S.plain.length){
-    const np = S.plain.length;
-    out.push(`${sc?`另外 ${np} 份`:np>1?`${np} 份都`:'这份'}不打分（只记做过、看过），记 ✓。`);
-  }
+  if(es.length) out.push(row('写作', `${es.length} 篇（${es.map(a=>(WritingKinds.ofPage(a.id)||WritingKinds.byKey.exam).zh+' '+ess(a).txt).join('、')}，满分 6，不算进达标）`
+    + (todo ? ` · <b style="color:var(--amber)">${todo} 篇等你批改</b>` : '')));
+  if(S.plain.length) out.push(row('不打分', `${S.plain.length} 份（只记做过、看过）✓`));
   return out.join('');
 }
 
