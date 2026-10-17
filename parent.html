@@ -1464,7 +1464,9 @@ function viewQueue(){
 // 题库的排法：科目 → 书 → 标题。loadAll 之后排一次，加 / 改自定义链接之后再排一次。
 function sortBank(){
   const col = new Intl.Collator('zh', { numeric:true });
-  BANK.sort((a,b) => col.compare(a.subj,b.subj) || col.compare(a.book||'',b.book||'') || col.compare(a.t,b.t));
+  // 书名前面的小图标不参与排序（📕 3B 曾经排在 📙 3A 前面，Sam 2026-10-16）
+  const bare = t => String(t||'').replace(/^[^\p{L}\p{N}《]+/u, '');
+  BANK.sort((a,b) => col.compare(a.subj,b.subj) || col.compare(bare(a.book),bare(b.book)) || col.compare(a.t,b.t));
   BANK_BY_ID = Object.fromEntries(BANK.map(b => [b.docId, b]));
 }
 
@@ -2759,7 +2761,7 @@ function viewBank(){
     // 少一层是一层（Sam 2026-09-28：「层级太多，应该一点入就进课件」）：
     //   · 科目底下只有一种书架，「教材 · 单元」那条分段标签就不出了；
     //   · 科目底下只有一个书架，书架不折叠 —— 点开科目就直接看到每一份；
-    //   · 书架里只有一份，连书架那行都不要，那一份直接摆出来（书名写在它下面一行小字）。
+    //   · （2026-10-16 起取消）书架里只有一份也照样有书架那一行 —— Sam：那一份夹在两章中间，看着像掉出来了。
     const kinds = [...byKind.keys()].filter(k=>k!=='loose');
     const oneShelf = kinds.reduce((s,k)=>s+byKind.get(k).size, 0) === 1;
     kinds.sort((a,b)=>(KIND_RANK[a]??99)-(KIND_RANK[b]??99)).forEach(kind=>{
@@ -2768,10 +2770,6 @@ function viewBank(){
       if(kinds.length > 1) html += `<div class="kindband"><span class="kindlbl">${esc(KIND_LBL[kind]||kind)}</span>
         <span class="scount">${n} 份</span></div>`;
       shelves.forEach((list, book)=>{
-        if(list.length === 1){
-          html += `<div class="shelf"><table><tbody>${bankRow(list[0], book)}</tbody></table></div>`;
-          return;
-        }
         // A shelf (a book, a mock test) folds to one line — unless it's the only one under the subject.
         const key = subj + '|' + book, shut = !oneShelf && !OPEN_SHELF.has(key);
         const all = list.every(b=>SEL.has(b.docId)), nSel = list.filter(b=>SEL.has(b.docId)).length;
