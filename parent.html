@@ -540,6 +540,12 @@
   .taskbox .task{border-bottom:none}
   .taskbox .qtwrap{margin:-2px 0 4px 27px}
   .taskbox .moverow{margin:0 0 8px}
+  .taskbox .task .nm b{font-size:14px}
+  .taskbox .task .nm .tm{font-size:12px;margin-top:3px}
+  .taskbox .task .nm .tm b{display:inline;font-size:inherit}
+  .taskbox .effv{color:var(--cream)}
+  .taskbox .dmeta{font-size:11.5px;color:var(--mute);margin:4px 0}
+  .taskbox .tries{margin-top:2px}
   details.grp .prow{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;background:rgba(255,255,255,.025)}
   .ptop{display:flex;gap:10px;align-items:flex-start}
   .ptop .nm{flex:1;min-width:0;font-size:13px}
@@ -1609,7 +1615,7 @@ function todayChip(k, it, day){
   if(!r) return progChip(k, it.id, day, 0) || `<span class="chipst st-open">未开始</span>`;
   const pct = r.scored ? r.last.pct : null, end = r.end, le = lastEssay(r.tries);
   const again = progChip(k, it.id, day, end ? end.getTime() : 0);
-  return `<span class="chipst ${le&&ess(le).todo?'st-open':pct==null||pct>=80?'st-done':'st-low'}" title="交卷 ${end?stamp(end):''}">${le?'作文 '+ess(le).txt:pct==null?'✓ 完成':pct+'%'}${end?' · '+hm(end):''}</span>${again?' '+again:''}`;
+  return `<span class="chipst ${le&&ess(le).todo?'st-open':pct==null||pct>=80?'st-done':'st-low'}" title="交卷 ${end?stamp(end):''}">${le?'作文 '+ess(le).txt:pct==null?'✓ 完成':pct+'%'}</span>${again?' '+again:''}`;
 }
 function watchProgress(){
   stopProgress();
@@ -1827,10 +1833,19 @@ function viewToday(){
         // 做了的：每一遍的分数、钟点、有效时间（和完成记录一样），后面跟错题和专注 —— 不用再跳去别的标签看
         const wq = r && r.scored && r.last.pct<100 ? wrongQs(r.last.wrong) : [];
         const away = r ? r.tries.reduce((x,a)=>x+((a.focus&&a.focus.awayCount)||0),0) : 0;
-        const tmEst = r ? `<span class="tries">${triesHtml(r)}</span>${n>1?` · <span class="est done">一共 ${dur(spentIt)}</span>`:''}${u?` · 含没交卷 ${dur(u.active)}`:''}${
-            wq.length?` · <span style="color:var(--red)">${n>1?'最后一遍':''}错第 ${wq.map(x=>x.q).join('、')} 题</span>`:''}${away?` · 切走 ${away} 次`:''}`
+        /* 一份作业只露两行（Sam 2026-10-16：「题目里的内容太繁琐，只留重要的信息」）：
+           标题 + 分数；有效时间 · 切走几次 · 错几题。科目书名、每一遍几点交、开了多久、错哪几题、每题有效时间 → 收进「详情」。 */
+        const tmEst = r ? [n>1 && r.scored ? `${r.prac?'每关第一次':'第一遍'} <b style="color:${pctColor(r.first.pct)}">${r.first.pct}%</b> → 最后 <b style="color:${pctColor(r.last.pct)}">${r.last.pct}%</b>` : '',
+            `<b class="effv">有效 ${durS(spentIt)}</b>`, away ? `切走 ${away} 次` : '',
+            wq.length ? `<span style="color:var(--red)">错 ${wq.length} 题</span>` : ''].filter(Boolean).join(' · ')
           : estChip(it, k) + (u && !liveOf(key, false) ? ` · <span class="est done" title="${UNF_TIP}">没交卷，已用 ${dur(u.active)} · ${unfDone(u)}</span>` : '');
-        const tm = r ? '' : [at?'派于 '+stamp(at):'', it.carried ? '' : moveTxt(it, TD)].filter(Boolean).join(' · ');
+        const tm = '';
+        const detail = !r ? '' : fold(k+'|d|'+it.id, `详情 <span class="gs">每一遍、错哪几题、每题有效时间</span>`,
+          `<div class="dmeta">${[it.subj, it.book, LABEL[it.type]||'', it.n ? it.n+(it.type==='quiz'?' 题':' 项') : '', at ? '派于 '+stamp(at) : ''].filter(Boolean).map(esc).join(' · ')}</div>
+           <div class="tries">${triesHtml(r)}</div>
+           ${u ? `<div class="dmeta">另有没交卷的 ${dur(u.active)}（${unfDone(u)}）</div>` : ''}
+           ${wq.length ? `<div class="dmeta" style="color:var(--red)">${n>1?'最后一遍':''}错第 ${wq.map(x=>x.q).join('、')} 题</div>` : ''}
+           ${qTable(r, '', true)}`);
         // 做完了的那份，这里直接能归档（Sam 2026-09-27：不用再跑去题库）
         const bk = BANK_BY_ID[it.id];
         const arch = !r || !bk ? '' : bk.archived ? `<span class="archdone" title="已归档 ${ymd(bk.archivedOn||'')}">已归档</span>`
@@ -1843,10 +1858,10 @@ function viewToday(){
           : `<button class="mini" data-qop="${esc(key)}|up" title="在这一科里往前挪一位">↑</button><button class="mini" data-qop="${esc(key)}|down" title="在这一科里往后挪一位">↓</button><button class="mini" data-qop="${esc(key)}|today">今天就做</button>`);
         // 每份作业一个框，它的「每题有效时间」和改日期都在框里（Sam 2026-10-16：分不清是上面还是下面那份的）
         html += `<div class="taskbox${r?' done':''}"><div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
-          <b>${openLink(it.href, esc(it.t))}${it.carried && it.movedFrom ? `<span class="late">${moveTxt(it, TD)}</span>` : ''}${it.ahead ? `<span class="late ahead">提前做的</span>` : ''}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
-          <span class="tm">${tmEst}${tm?' · '+tm:''}</span>
+          <b>${openLink(it.href, esc(it.t))}${it.carried && it.movedFrom ? `<span class="late">${moveTxt(it, TD)}</span>` : ''}${it.ahead ? `<span class="late ahead">提前做的</span>` : ''}</b>
+          <span class="tm">${tmEst}</span>
           </span><span class="acts">${st}${more ? `<span class="moreb" hidden>${more}</span><button class="mini moretog" data-more="1" title="归档、挪日子、调顺序">⋯</button>` : ''}
-            <button class="mini bad" data-pull="${esc(key)}">撤回</button></span></div>` + (r ? `<div class="qtwrap">${qTable(r, k+'|q|'+it.id)}</div>` : '');
+            <button class="mini bad" data-pull="${esc(key)}">撤回</button></span></div>` + (detail ? `<div class="qtwrap">${detail}</div>` : '');
 
         if(MOVING===key){
           const next = shiftDay(day,1) < iso(today) ? iso(today) : shiftDay(day,1);   // yesterday's → today
@@ -1859,7 +1874,7 @@ function viewToday(){
       });
     }
     const extra = papers.filter(p=>!list.some(it=>it.id===p.id) && !isReviewRead(p.id));
-    if(extra.length) html += fold(k+'|extra', `另外做了 <span class="gs">${extra.length} 份不在这天的单子里 · ${extra.map(scoreBit).join(' · ')}</span>${qm('孩子自己打开做的、以前派的又做了一遍、或者已经撤回的')}`, extra.map(histPaper).join(''));
+    if(extra.length) html += fold(k+'|extra', `另外做了 <span class="gs">${extra.length} 份不在这天的单子里 · ${extra.map(scoreBit).join(' · ')}</span>${qm('孩子自己打开做的、以前派的又做了一遍、或者已经撤回的')}`, extra.map(p=>slimPaper(k, p)).join(''));
     const unfX = U_ALL(k, day).filter(u=>!list.some(it=>it.id===u.id));
     if(unfX.length) html += fold(k+'|unf', `打开过没交卷 <span class="gs">${unfX.length} 份 · ${dur(unfSum(unfX))}</span>${qm(UNF_TIP)}`, unfX.map(unfRow).join(''));
     if(reads.length) html += fold(k+'|reads', `📝 看批改 <span class="gs">${reads.length} 篇 · ${dur(readS)}</span>`, reads.map(g=>{
@@ -1891,6 +1906,24 @@ const fold = (key, head, body) => `${foldOpen(key)}<summary class="subhd grph">$
 // 一份做了的分数，放在组标题里：「90%」「60%→100%」「✓」
 const scoreBit = r => !r ? '' : !r.scored ? '✓'
   : `<b style="color:${pctColor(r.first.pct)}">${r.first.pct}%</b>${r.first.pct!==r.last.pct?`→<b style="color:${pctColor(r.last.pct)}">${r.last.pct}%</b>`:''}`;
+// 「另外做了」的一份，和派的那几份一样只露两行，其余收进「详情」
+function slimPaper(k, p){
+  const b = BANK_BY_ID[p.id] || {}, n = p.tries.length, le = lastEssay(p.tries);
+  const wq = p.scored && p.last.pct<100 ? wrongQs(p.last.wrong) : [];
+  const away = p.tries.reduce((x,a)=>x+((a.focus&&a.focus.awayCount)||0),0);
+  const chip = le ? `<span class="chipst ${ess(le).todo?'st-open':'st-done'}">作文 ${ess(le).txt}</span>`
+    : !p.scored ? `<span class="chipst st-done">✓ 完成</span>` : `<span class="chipst ${p.last.pct>=PASS?'st-done':'st-low'}">${p.last.pct}%</span>`;
+  const line = [n>1 && p.scored ? `${p.prac?'每关第一次':'第一遍'} <b style="color:${pctColor(p.first.pct)}">${p.first.pct}%</b> → 最后 <b style="color:${pctColor(p.last.pct)}">${p.last.pct}%</b>` : '',
+    `<b class="effv">有效 ${durS(p.active)}</b>`, away ? `切走 ${away} 次` : '', wq.length ? `<span style="color:var(--red)">错 ${wq.length} 题</span>` : ''].filter(Boolean).join(' · ');
+  const detail = fold(k+'|d|'+p.id, `详情 <span class="gs">每一遍、错哪几题、每题有效时间</span>`,
+    `<div class="dmeta">${[p.subj, p.book, LABEL[b.type]||'', b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '', p.before ? `这天之前做过 ${p.before} 次` : ''].filter(Boolean).map(esc).join(' · ')}</div>
+     <div class="tries">${triesHtml(p)}</div>
+     ${wq.length ? `<div class="dmeta" style="color:var(--red)">${n>1?'最后一遍':''}错第 ${wq.map(x=>x.q).join('、')} 题</div>` : ''}
+     ${qTable(p, '', true)}`);
+  return `<div class="taskbox done"><div class="task"><span class="ic">📄</span><span class="nm">
+      <b>${openLink(b.href, esc(p.t))}</b><span class="tm">${line}</span></span><span class="acts">${chip}</span></div>
+    <div class="qtwrap">${detail}</div></div>`;
+}
 const U_ALL = (k, day) => unfOn(k, day, day);
 const attnOf = (k, day) => ATT.filter(a=>a.kid===k && a.date===day).map(a=>({ a, f:readFocus(a) }));
 // 卡片收起来也看得到的那一行（放在卡片标题下面的摘要里）
@@ -2839,7 +2872,7 @@ function triesHtml(p){
 
 /* 每题有效时间（Sam 2026-10-16：「每一个题都要列出它的有效时间」）。一份做了几遍就每遍一张小表；默认收起，
    标题行写最慢的那题和蒙的几道。慢题 / 蒙的标准和「需要留意」一样（readFocus）。 */
-function qTable(p, key){
+function qTable(p, key, flat){
   const tries = p.tries.filter(a=>a.qTimes && a.qTimes.length);
   if(!tries.length) return '';
   const many = p.tries.length > 1;
@@ -2857,6 +2890,7 @@ function qTable(p, key){
              body: `${many?`<div class="qth">${p.scored&&!p.prac?nthTry(i):`第 ${i+1} 轮`} · 有效 ${durS(estSecs(a))}</div>`:''}
                <table class="qt"><thead><tr><th>题</th><th>有效时间</th><th>备注</th></tr></thead><tbody>${rows}</tbody></table>` };
   });
+  if(flat) return `<div class="qth">⏱ 每题有效时间 · ${parts[0].head}</div>` + parts.map(x=>x.body).join('');
   return fold(key, `⏱ 每题有效时间 <span class="gs">${parts[0].head}</span>`, parts.map(x=>x.body).join(''));
 }
 
