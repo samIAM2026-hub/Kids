@@ -527,6 +527,12 @@
   .hmet .x{font-size:10.5px;color:var(--mute);line-height:1.5;margin-top:2px}
   .prow{padding:11px 0;border-bottom:1px dashed var(--line)}
   .prow:last-child{border-bottom:none}
+  /* 今天页：每份作业一个框（标题、每一遍、每题有效时间都在框里），框和框之间留空 */
+  .taskbox{border:1px solid var(--line);border-radius:10px;padding:2px 12px 4px;margin:8px 0;background:rgba(255,255,255,.025)}
+  .taskbox .task{border-bottom:none}
+  .taskbox .qtwrap{margin:-2px 0 4px 27px}
+  .taskbox .moverow{margin:0 0 8px}
+  details.grp .prow{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;background:rgba(255,255,255,.025)}
   .ptop{display:flex;gap:10px;align-items:flex-start}
   .ptop .nm{flex:1;min-width:0;font-size:13px}
   .ptop .nm b{font-weight:600;display:block}
@@ -1827,7 +1833,8 @@ function viewToday(){
           : day === iso(today) ? (r ? '' : `<button class="mini" data-qop="${esc(key)}|tomorrow" title="今天不做了，排到明天最前面">明天再做</button>`)
           : planPinned(it) ? `<button class="mini" data-qop="${esc(key)}|today">今天就做</button>`
           : `<button class="mini" data-qop="${esc(key)}|up" title="在这一科里往前挪一位">↑</button><button class="mini" data-qop="${esc(key)}|down" title="在这一科里往后挪一位">↓</button><button class="mini" data-qop="${esc(key)}|today">今天就做</button>`);
-        html += `<div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
+        // 每份作业一个框，它的「每题有效时间」和改日期都在框里（Sam 2026-10-16：分不清是上面还是下面那份的）
+        html += `<div class="taskbox${r?' done':''}"><div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
           <b>${openLink(it.href, esc(it.t))}${it.carried && it.movedFrom ? `<span class="late">${moveTxt(it, TD)}</span>` : ''}${it.ahead ? `<span class="late ahead">提前做的</span>` : ''}</b><span>${esc(it.subj)}${it.book?' · '+esc(it.book):''} · ${LABEL[it.type]||''}${it.n?' · '+it.n+(it.type==='quiz'?' 题':' 项'):''}</span>
           <span class="tm">${tmEst}${tm?' · '+tm:''}</span>
           </span><span class="acts">${st}${more ? `<span class="moreb" hidden>${more}</span><button class="mini moretog" data-more="1" title="归档、挪日子、调顺序">⋯</button>` : ''}
@@ -1838,6 +1845,7 @@ function viewToday(){
           html += `<div class="moverow">挪到 <input type="date" class="movedate" value="${next}">
             <button class="mini" data-movego="${esc(key)}">确定</button><button class="mini" data-movecancel>取消</button></div>`;
         }
+        html += `</div>`;
       });
       html += `</details>`;
       });
