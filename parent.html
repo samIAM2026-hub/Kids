@@ -423,6 +423,21 @@
   .attnbox .subhd{margin-top:2px;display:flex;align-items:center;gap:8px}
   .attnbox .subhd .mini{margin-left:auto}
   .attnbox .flagrow:last-child{border-bottom:none}
+  details.grp{border-bottom:1px dashed var(--line)}
+  details.grp>summary.grph{list-style:none;cursor:pointer;margin:0;padding:11px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    color:var(--gold);letter-spacing:.4px;text-transform:none;font-size:12.5px}
+  details.grp>summary.grph::-webkit-details-marker{display:none}
+  details.grp>summary.grph::before{content:'▸';color:var(--gold2);transition:transform .15s}
+  details.grp[open]>summary.grph::before{transform:rotate(90deg)}
+  details.grp>summary.grph .gs{color:var(--mute);letter-spacing:0}
+  details.grp>summary.grph .gs b{font-weight:600}
+  details.grp[open]{padding-bottom:6px}
+  details.grp .task:last-child{border-bottom:none}
+  .attnbox details.grp{border-bottom:none}
+  .attnbox details.grp>summary.grph{padding:4px 0}
+  .qtab tr.sgrp{cursor:pointer}
+  .qtab tr.sgrp td::before{content:'▸ ';color:var(--gold2)}
+  .qtab tr.sgrp.on td::before{content:'▾ '}
   .attnline{margin-top:6px;color:var(--amber);font-size:12.5px;line-height:1.5}
   /* 按科目分组的小标题（今天页 / 作业队列） */
   .subhd.sgrp{color:var(--gold);letter-spacing:.6px;text-transform:none;font-size:12px;margin:14px 0 0}
@@ -1386,7 +1401,8 @@ function viewQueue(){
       const mins = d.items.reduce((s, it) => s + estOf(it, k).mins + EST_GAP, 0);
       html += `<tr class="newday"><td colspan="3"><b>${d.date === T ? '今天' : ymd(d.date)}</b> 周${wdOf(d.date)} · 约 ${dur(mins*60)}${d.date === T ? ' · 今天的一天只排一次' : ''}</td></tr>`;
       bySubj(d.items).forEach(([sj, items])=>{
-      html += `<tr class="sgrp"><td colspan="3">${esc(subjName(sj))} · ${items.length} 份</td></tr>`;
+      const gk = `q|${k}|${d.date}|${sj||'-'}`, gon = GRP_OPEN.has(gk);
+      html += `<tr class="sgrp${gon?' on':''}" data-qgrp="${esc(gk)}"><td colspan="3">${esc(subjName(sj))} · ${items.length} 份 · 约 ${dur(items.reduce((x, it) => x + estOf(it, k).mins, 0)*60)}</td></tr>`;
       items.forEach(it=>{
         const done = ATT.some(a => a.kid===k && a.id===it.id && a.date===T && (!BANK_BY_ID[it.id] || countsAsDone(a, BANK_BY_ID[it.id])));
         // ↑ ↓ 只在同一科里换（分组以后，跨科换了也看不出动静；排作业本来就是同一科按先后）
@@ -1399,7 +1415,7 @@ function viewQueue(){
           : (pin ? '' : `<button class="mini" data-qop="${key}|up"${fi <= 0 ? ' disabled' : ''} title="在这一科里往前挪一位">↑</button>`
               + `<button class="mini" data-qop="${key}|down"${fi < 0 || fi >= same.length-1 ? ' disabled' : ''} title="在这一科里往后挪一位">↓</button>`)
             + `<button class="mini" data-qop="${key}|today">今天就做</button>`;
-        html += `<tr><td class="qn">${d.date === T ? '' : num[d.date+'|'+it.id]}</td>
+        html += `<tr data-qin="${esc(gk)}"${gon?'':' hidden'}><td class="qn">${d.date === T ? '' : num[d.date+'|'+it.id]}</td>
           <td class="dt"><b>${openLink(it.href, esc(it.t))}</b>${tags}<div class="qsub">${esc(it.subj||'')}${it.book ? ' · '+esc(it.book) : ''} · ${estChip(it, k)}</div></td>
           <td class="qacts">${acts}<button class="mini bad" data-qpull="${key}|${d.date}">撤回</button></td></tr>`;
       });
@@ -1758,16 +1774,16 @@ function viewToday(){
             list.length||S.still?`<div class="x">${list.length?'预计 '+estSumTxt(list, k):''}${S.still?`${list.length?' · ':''}${stillTag(S.still)}`:''}</div>`:''}</div>
         <div><div class="v" style="color:${shareCol}">${share==null?'—':share+'%'}</div><div class="k">在页面上${qm(share==null?'这天还没有交卷记录':`实际用时 ÷ 页面开着的时间（交了卷的那几份）。90% 以上绿色，75–89% 黄色，更低红色。切走 ${fo.n} 次${fo.max?`，最长一次 ${dur(fo.max)}`:''}`)}</div>${
             share!=null?`<div class="x">切走 ${fo.n} 次${fo.max?` · 最长 ${dur(fo.max)}`:''}</div>`:''}</div>
-      </div>`.replace('<div class="hmet">','<div class="hmet h4">') + (papers.length || U_ALL(k, day).length ? `<div class="dsum"><span class="lbl">${dayName(day,'这天')}的总结</span>${histSummary(k, papers, S, U_ALL(k, day), true)}</div>` : '')
-      + (NOTES[k+'|'+day] ? noteBlock(k, day) : '') + attnBox(k, day);
+      </div>`.replace('<div class="hmet">','<div class="hmet h4">') + (papers.length || U_ALL(k, day).length ? fold(k+'|sum', `📋 ${dayName(day,'这天')}的总结 <span class="gs">做了 ${papers.length} 份 · 交卷 ${S.nAtt} 次</span>`,
+          `<div class="dsum">${histSummary(k, papers, S, U_ALL(k, day), true)}</div>`) : '')
+      + (NOTES[k+'|'+day] ? noteBlock(k, day).replace('<details class="dnote" open>', '<details class="dnote">') : '') + attnBox(k, day);
     if(!list.length){
       if(!reads.length) html += `<p class="empty">到「题库」勾选几份，再派给 ${KID[k].n}。</p>`;
     } else {
       bySubj(list).forEach(([sj, items])=>{
-      if(bySubj(list).length > 1 || sj){
-        const dn = items.filter(it => doneOf(it)).length;
-        html += `<div class="subhd sgrp">${esc(subjName(sj))} · 做完 ${dn}/${items.length} · 预计 ${estSumTxt(items, k)}</div>`;
-      }
+      const rs = items.map(doneOf), dn = rs.filter(Boolean).length, bits = rs.filter(Boolean).map(scoreBit).join(' · ');
+      html += foldOpen(k+'|s|'+(sj||'-')) + `<summary class="subhd grph">${esc(subjName(sj))} <span class="gs">做完 ${dn}/${items.length}${
+        bits?' · '+bits:''}${dn<items.length?` · 还剩约 ${estSumTxt(items.filter((it,i)=>!rs[i]), k)}`:''}</span></summary>`;
       items.forEach(it=>{
         const r = doneOf(it), key = k+'|'+it.id, at = tsDate(it.at);
         const pct = r && r.scored ? r.last.pct : null, end = r && r.end, le = r && lastEssay(r.tries);
@@ -1809,20 +1825,21 @@ function viewToday(){
             <button class="mini" data-movego="${esc(key)}">确定</button><button class="mini" data-movecancel>取消</button></div>`;
         }
       });
+      html += `</details>`;
       });
     }
     const extra = papers.filter(p=>!list.some(it=>it.id===p.id) && !isReviewRead(p.id));
-    if(extra.length) html += `<div class="subhd">另外做了 · ${extra.length} 份不在这天的单子里${qm('孩子自己打开做的、以前派的又做了一遍、或者已经撤回的')}</div>` + extra.map(histPaper).join('');
+    if(extra.length) html += fold(k+'|extra', `另外做了 <span class="gs">${extra.length} 份不在这天的单子里 · ${extra.map(scoreBit).join(' · ')}</span>${qm('孩子自己打开做的、以前派的又做了一遍、或者已经撤回的')}`, extra.map(histPaper).join(''));
     const unfX = U_ALL(k, day).filter(u=>!list.some(it=>it.id===u.id));
-    if(unfX.length) html += `<div class="subhd">打开过没交卷 · ${unfX.length} 份${qm(UNF_TIP)}</div>` + unfX.map(unfRow).join('');
-    if(reads.length) html += `<div class="subhd">📝 看批改 · 不用派，孩子自己打开的</div>` + reads.map(g=>{
+    if(unfX.length) html += fold(k+'|unf', `打开过没交卷 <span class="gs">${unfX.length} 份 · ${dur(unfSum(unfX))}</span>${qm(UNF_TIP)}`, unfX.map(unfRow).join(''));
+    if(reads.length) html += fold(k+'|reads', `📝 看批改 <span class="gs">${reads.length} 篇 · ${dur(readS)}</span>`, reads.map(g=>{
       const w = (WR.list||[]).find(x=>x.id===g.wid);
       return `<div class="task"><span class="ic">📝</span><span class="nm">
         <b>${esc(g.t)}</b><span>写作${w?' · '+esc(wkOf(w).zh)+' · 第 '+(w.draftNo||1)+' 稿':''}</span>
         <span class="tm"><span class="est done" title="批改页开在最前面的时间（切走、锁屏那段不算）；页面一共开了 ${dur(g.secs)}。孩子那边不显示计时">实际用时 ${dur(g.active)}</span>${
           g.n>1?` · 这天打开看了 ${g.n} 次`:''}</span></span>
         <span class="acts"><span class="chipst st-done">✓ 看过${g.last?' · '+hm(g.last):''}</span></span></div>`;
-    }).join('');
+    }).join(''));
     if(CARRIED[k].length) html += `<div class="pulled">这天没做完，顺延了 ${CARRIED[k].length} 份：${CARRIED[k].map(p=>
       esc(p.t) + `（→ ${ymd(p.carriedTo)}）`).join('、')}</div>`;
     if(PULLED[k].length) html += `<div class="pulled">这天撤回了 ${PULLED[k].length} 份：${PULLED[k].map(p=>{
@@ -1834,6 +1851,16 @@ function viewToday(){
 
 // 今天页每张卡片里的「需要留意」：这天交的卷子里，按「专注情况」同一套标准要留意的那几份（Sam 2026-10-16：
 // 原来藏在 更多 › 专注情况 里，要放到一眼看得到的地方）。一份都没有就一行小字。
+/* 一组东西默认收起（Sam 2026-10-16：「属于一个项目的，默认收起，打开收起比较容易，也不占空间」）。
+   标题行写够要紧的数（做完几份、分数），点开看细节。开过的记在这台设备上（parent.grp1），换一天、刷新都照旧。 */
+let GRP_OPEN = new Set();
+try { GRP_OPEN = new Set(JSON.parse(localStorage.getItem('parent.grp1')) || []); } catch(e){}
+const grpSave = () => { try { localStorage.setItem('parent.grp1', JSON.stringify([...GRP_OPEN])); } catch(e){} };
+const foldOpen = key => `<details class="grp" data-grp="${esc(key)}"${GRP_OPEN.has(key)?' open':''}>`;
+const fold = (key, head, body) => `${foldOpen(key)}<summary class="subhd grph">${head}</summary>${body}</details>`;
+// 一份做了的分数，放在组标题里：「90%」「60%→100%」「✓」
+const scoreBit = r => !r ? '' : !r.scored ? '✓'
+  : `<b style="color:${pctColor(r.first.pct)}">${r.first.pct}%</b>${r.first.pct!==r.last.pct?`→<b style="color:${pctColor(r.last.pct)}">${r.last.pct}%</b>`:''}`;
 const U_ALL = (k, day) => unfOn(k, day, day);
 const attnOf = (k, day) => ATT.filter(a=>a.kid===k && a.date===day).map(a=>({ a, f:readFocus(a) }));
 // 卡片收起来也看得到的那一行（放在卡片标题下面的摘要里）
@@ -1847,10 +1874,10 @@ function attnBox(k, day){
   if(!mine.length) return '';
   const hit = mine.filter(x=>x.f.attention);
   if(!hit.length) return `<div class="attnok">✓ 专注：这天交的 ${mine.length} 份都没有要特别留意的 <button class="mini" data-gofocus="${k}|${day}">专注情况 ›</button></div>`;
-  return `<div class="attnbox"><div class="subhd">⚠️ 需要留意 · ${hit.length} 份${qm('和「专注情况」里的「需要留意」是同一套标准：切走多、切走久、慢题多、答得很快又答错、中间很久没动。标签写的是它为什么被列进来；这是参考，不是判决。')}
-      <button class="mini" data-gofocus="${k}|${day}">看专注情况 ›</button></div>
-    ${hit.map(({a,f})=>`<div class="flagrow"><span class="when">${a.at?hm(a.at):''}</span>
-      <span class="nm">${esc(a.t)}<div class="flags">${f.flags.map(x=>`<span>${esc(x)}</span>`).join('')}</div></span></div>`).join('')}</div>`;
+  return `<div class="attnbox">${fold(k+'|attn', `⚠️ 需要留意 <span class="gs">${hit.length} 份</span>${qm('和「专注情况」里的「需要留意」是同一套标准：切走多、切走久、慢题多、答得很快又答错、中间很久没动。标签写的是它为什么被列进来；这是参考，不是判决。')}`,
+    hit.map(({a,f})=>`<div class="flagrow"><span class="when">${a.at?hm(a.at):''}</span>
+      <span class="nm">${esc(a.t)}<div class="flags">${f.flags.map(x=>`<span>${esc(x)}</span>`).join('')}</div></span></div>`).join('')
+    + `<p style="margin:6px 0 2px"><button class="mini" data-gofocus="${k}|${day}">看专注情况 ›</button></p>`)}</div>`;
 }
 
 // 「从 10-03 挪来」（手动改日期）/「延后两天 · 10-03 派的」（自动顺延；day = 它现在排在哪天，
@@ -4085,6 +4112,13 @@ function render(){
                    : V==='dispatch'?viewDispatch() : V==='queue'?viewQueue()
                    : V==='skills'?viewSkills() : V==='reading'?viewReading() : V==='essay'?viewEssay()
                    : V==='audio'?viewAudio() : viewFocus();
+  // 收起 / 展开的组：记住开着的那几个
+  viewEl.querySelectorAll('details[data-grp]').forEach(d=>d.addEventListener('toggle',()=>{
+    d.open ? GRP_OPEN.add(d.dataset.grp) : GRP_OPEN.delete(d.dataset.grp); grpSave(); }));
+  viewEl.querySelectorAll('tr[data-qgrp]').forEach(tr=>tr.addEventListener('click',()=>{
+    const gk = tr.dataset.qgrp, on = !GRP_OPEN.has(gk);
+    on ? GRP_OPEN.add(gk) : GRP_OPEN.delete(gk); grpSave(); tr.classList.toggle('on', on);
+    viewEl.querySelectorAll('tr[data-qin]').forEach(r=>{ if(r.dataset.qin===gk) r.hidden = !on; }); }));
   viewEl.querySelectorAll('[data-qop]').forEach(b=>b.addEventListener('click',()=>{
     const [k, id, op] = b.dataset.qop.split('|'); queueOp(k, id, op, b); }));
   viewEl.querySelectorAll('[data-qpull]').forEach(b=>b.addEventListener('click',()=>{
