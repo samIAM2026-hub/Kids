@@ -56,6 +56,11 @@
   var PROG_EVERY_MS = 20000;               // live progress (进行中): at most one write per 20 s while answering
   var BEAT_MS = 60000;                     // …and once a minute while the page is just open (time not handed in)
   var UNF_KEY = 'quizReport.unfinished.v1';   // this device's sessions per kid / page / day (see putProgress)
+  // Sitting still (Sam 2026-10-16 · 实际用时扣掉没动的那段): page in front, but no tap, key or scroll this
+  // long → the kid has stopped. The first STILL_KEEP_MS of the stretch still counts (reading, thinking);
+  // the rest comes off activeSecs and is listed in rec.still.
+  var STILL_MS = 5 * 60 * 1000;
+  var STILL_KEEP_MS = 2 * 60 * 1000;
   var KIDS = {                             // same uids as homework.html; for the name badge only
     mbtSDgfFrOOS4xIT3eXr7pETEt33: { n: 'Grace', av: '👧', fg: '#d84315', bg: '#fff4e8', line: '#ffb37b' },
     paACSAD0W0bBNknKrAf3GfpHy8x1: { n: 'Warren', av: '👦', fg: '#35704a', bg: '#eef6f0', line: '#8bb98f' }
@@ -100,7 +105,7 @@
     if (session && !session.sent && worthProgress()) sendProgress(false);
     if (session && session.progTimer) clearTimeout(session.progTimer);
     session = { startedAt: now(), lastMark: now(), away: [], awayFrom: null, q: {}, sent: false, fixupSent: false,
-                progAt: 0, progTimer: 0 };
+                progAt: 0, progTimer: 0, lastInput: now(), still: [] };
   }
   newSession();
 
@@ -112,6 +117,7 @@
     if (session.awayFrom == null) return;
     if (now() - session.awayFrom >= MIN_AWAY_SECS * 1000) session.away.push({ from: session.awayFrom, to: now() });
     session.awayFrom = null;
+    touched();   // coming back to the page is the kid being here
   }
   document.addEventListener('visibilitychange', function () { document.hidden ? leave() : back(); });
   window.addEventListener('blur', function () { if (!document.hidden) leave(); });
@@ -125,6 +131,51 @@
       var lo = Math.max(a, x.from), hi = Math.min(b, x.to);
       return hi > lo ? s + (hi - lo) : s;
     }, 0) / 1000;
+  }
+
+  // Sitting still (see STILL_MS): time in front since the last tap / key / scroll. Away time is already off
+  // activeSecs, so it never counts as still as well.
+  function stillFor(t) { return (t - session.lastInput) - awayBetween(session.lastInput, t) * 1000; }
+  function stillNow() { return stillFor(now()) >= STILL_MS; }
+  function stillSegs() {
+    var segs = session.still.slice();
+    if (stillNow()) segs.push({ from: session.lastInput + STILL_KEEP_MS, to: now() });
+    return segs;
+  }
+  function stillSecs(seg) { return Math.max(0, (seg.to - seg.from) / 1000 - awayBetween(seg.from, seg.to)); }
+  function stillBetween(a, b) {
+    return stillSegs().reduce(function (s, x) {
+      var lo = Math.max(a, x.from), hi = Math.min(b, x.to);
+      return hi > lo ? s + stillSecs({ from: lo, to: hi }) : s;
+    }, 0);
+  }
+  function touched() {
+    var s = session, t = now();
+    if (stillFor(t) >= STILL_MS) s.still.push({ from: s.lastInput + STILL_KEEP_MS, to: t });
+    s.lastInput = t;
+    if (s.gone) returned();   // the parent's clock stopped while the kid sat still: start it again
+  }
+  ['pointerdown', 'pointermove', 'keydown', 'touchstart', 'wheel', 'input'].forEach(function (ev) {
+    window.addEventListener(ev, touched, { capture: true, passive: true });
+  });
+  document.addEventListener('scroll', touched, { capture: true, passive: true });
+  // Listening to a recording or the page reading aloud is working, not sitting still.
+  // new Audio() never joins the page, so remember every element that was told to play.
+  var played = [];
+  try {
+    var origPlay = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () {
+      if (played.indexOf(this) < 0) played.push(this);
+      if (played.length > 50) played.shift();
+      return origPlay.apply(this, arguments);
+    };
+  } catch (e) {}
+  function playing() {
+    try {
+      if (window.speechSynthesis && speechSynthesis.speaking) return true;
+      return [].concat([].slice.call(document.querySelectorAll('audio,video')), played)
+        .some(function (m) { return !m.paused && !m.ended; });
+    } catch (e) { return false; }
   }
 
   // Per-question time = this answer − max(previous answer, previous page turn).
@@ -431,6 +482,9 @@
     if (s.awayFrom != null) away.push({ from: s.awayFrom, to: t });
     var awaySecs = away.reduce(function (sum, x) { return sum + (x.to - x.from) / 1000; }, 0);
     var secs = (t - s.startedAt) / 1000;
+    var still = stillSegs().map(function (x) { return { at: Math.round((x.from - s.startedAt) / 1000), secs: Math.round(stillSecs(x)) }; })
+      .filter(function (x) { return x.secs > 0; });
+    var stillTotal = still.reduce(function (sum, x) { return sum + x.secs; }, 0);
     var total = result.total || 0;
 
     var rec = {
@@ -440,7 +494,10 @@
       score: total ? result.score : null, total: total,
       pct: total ? Math.round(100 * result.score / total) : null,
       wrong: result.wrong || [],
-      secs: Math.round(secs), activeSecs: Math.round(secs - awaySecs),
+      // activeSecs = in front AND not sitting still (since 2026-10-16; still = what came off for sitting still)
+      secs: Math.round(secs), activeSecs: Math.max(0, Math.round(secs - awaySecs - stillTotal)),
+      still: { count: still.length, secs: stillTotal, keepSecs: STILL_KEEP_MS / 1000, afterSecs: STILL_MS / 1000,
+               segs: still.slice(0, MAX_AWAY_LOG) },
       focus: {
         awayCount: away.length,
         awaySecs: Math.round(awaySecs),
@@ -530,7 +587,7 @@
   }
   function activeNow() {
     var s = session;
-    return Math.max(0, (now() - s.startedAt) / 1000 - awayBetween(s.startedAt, now()));
+    return Math.max(0, (now() - s.startedAt) / 1000 - awayBetween(s.startedAt, now()) - stillBetween(s.startedAt, now()));
   }
   // Only a page that has been in front a little while is worth a doc: a tab opened by mistake isn't.
   function worthProgress() { return session.started || activeNow() >= VIEW_MIN_SECS; }
@@ -538,7 +595,7 @@
   // (HOMEWORK-SYSTEM.md 2026-09-26 · 家长台实时计时): true → keep counting from this write, false → stop at this number.
   function sendProgress(done, gone) {
     var s = session;
-    s.gone = !!gone || !!done || document.hidden || s.awayFrom != null;
+    s.gone = !!gone || !!done || document.hidden || s.awayFrom != null || stillNow();
     if (s.progTimer) { clearTimeout(s.progTimer); s.progTimer = 0; }
     s.progAt = now();
     var total = null;
@@ -570,10 +627,13 @@
   // Back on the page after a "gone" write: say so at once, so the parent's clock starts again (at most one write per away).
   function returned() {
     var s = session;
-    if (s.gone && !s.sent && !document.hidden && s.awayFrom == null && worthProgress()) sendProgress(false);
+    if (s.gone && !s.sent && !document.hidden && s.awayFrom == null && !stillNow() && worthProgress()) sendProgress(false);
   }
   // Open and in front but not answering (reading, the lesson part): keep the time current.
   setInterval(function () {
+    if (!document.hidden && playing()) touched();
+    // Just sat still past STILL_MS: say so now, so the parent's clock stops instead of running on for a minute.
+    if (!document.hidden && !session.sent && worthProgress() && !session.gone && stillNow()) sendProgress(false);
     if (!document.hidden && !session.sent && worthProgress() && now() - session.progAt >= BEAT_MS) sendProgress(false);
   }, 15000);
 
