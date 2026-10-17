@@ -2363,6 +2363,68 @@ function doneDate(b){
   return out;
 }
 
+/* ===================== 整组做完、都过关 → 自动归档（Sam 2026-10-16：「题库怎么没归档」→ 方案「按你的来」） =====================
+   10-04 起归档全靠手点，题库越积越多。现在回来一条更窄的自动规则：
+   · 按「组」看：同一个孩子、同一科、同一本书（没有书的散页自己算一组）；
+   · 组里每一份都派过、派给的每个孩子都交了、而且都过关，整组一起收；一份没过，整组留着（好回炉）；
+   · 过关 = 有一次判了分的 ≥ 80%（取最好那次）；练习游戏 / 写作台交了就算；
+   · 只管 quiz（自定义链接、参考资料、Reading Club 这类天天派的不碰），📌 keep 的不碰，今天以后还排着的不碰；
+   · 放回过的只认放回那天以后的成绩（doneDate 同一套 floor）。归档 ≠ 删除，「放回」随时拿回来。 */
+const PASS_LINE = 80;
+// 这一份过关了没：过关返回「最后一个孩子过关的那天」，没过（或没派过）返回 ''
+function passDate(b){
+  if(!b || !b.docId) return '';
+  const floor = b.reopenedOn || '';
+  let out = '';
+  for(const k of ['grace','warren']){
+    const days = (DAYS[k]||[]).filter(d => d.items.some(it => it.id===b.docId)).map(d => d.date);
+    if(!days.length) continue;
+    const first = days.reduce((a,c) => c<a ? c : a);
+    const from = first > floor ? first : floor;
+    const ok = ATT.filter(a => a.kid===k && a.id===b.docId && !a.demo && a.date && a.date>=from && realTry(a)
+                               && (a.pct==null || a.practice || a.handin || a.pct >= PASS_LINE))
+                  .map(a => a.date).sort();
+    if(!ok.length) return '';
+    if(ok[0] > out) out = ok[0];
+  }
+  return out;
+}
+async function autoArchivePassed(){
+  const groups = new Map();
+  BANK.forEach(b=>{
+    if((b.type||'quiz')!=='quiz' || b.keep) return;
+    const key = [b.kid||'', b.subj||'', b.book || ('#'+b.docId)].join('|');
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(b);
+  });
+  const t = iso(today), todo = [];
+  groups.forEach(list=>{
+    const live = list.filter(b => !b.archived);
+    if(!live.length) return;
+    if(live.some(b => scheduled(b.docId))) return;
+    const dates = live.map(passDate);
+    if(dates.some(d => !d)) return;
+    live.forEach((b, i) => todo.push([b, dates[i]]));
+  });
+  if(!todo.length) return 0;
+  const WHY = '整组做完且过关，自动归档';
+  for(let i=0; i<todo.length; i+=400){
+    const batch = db.batch();
+    todo.slice(i, i+400).forEach(([b, d]) => batch.set(db.collection('bank').doc(b.docId),
+      { archived:true, archivedOn:t, doneOn:d, archivedWhy:WHY }, { merge:true }));
+    await batch.commit();
+  }
+  todo.forEach(([b, d]) => Object.assign(b, { archived:true, archivedOn:t, doneOn:d, archivedWhy:WHY }));
+  const names = [...new Set(todo.map(([b]) => b.book || b.t))];
+  toast(`做完且过关的自动归档 ${todo.length} 份：${names.slice(0,3).join('、')}${names.length>3?' 等':''} —— 在「只看归档」里，点「放回」能拿回来`);
+  return todo.length;
+}
+// 写不成也只是没收起来，页面照常用
+async function autoArchiveSafe(){
+  try { return await autoArchivePassed(); }
+  catch(e){ console.error(e); toast('自动归档没写成：' + (e.code||e.message) + '，题库没变', true); return -1; }
+}
+
 
 /* ===================== 派过没有 · 派发历史（Sam 2026-09-27） =====================
    「是否更方便的查看是否已派发过，派发历史」。原来题库只标「今天已派」，最右那格是最近一次成绩 ——
@@ -2636,7 +2698,7 @@ function viewBank(){
       外站那边判不了分，所以孩子在作业页上自己点「✓ I'm done」，这边显示「✓ 完成」。</p>
       <p>归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。
       每行类型下面有 <b>归档</b> 按钮，点一下就收起来；要一次收一批，就勾选后用底部那条的 <b>归档</b>。归档过的按 <b>放回</b> 回到在用列表。</p>
-      <p><b>归档全靠手点</b>，系统不会自己收，也不再列「建议归档」（Sam 2026-10-04）。归档那行写着 <b>归档 X 月 X 日</b>。
+      <p><b>自动归档</b>（Sam 2026-10-16）：一本书（没书的散页算一份）里每一份都派过、做完、而且都过了 <b>80%</b>，打开 / 刷新家长台时整组自己收起来；有一份没过就整组留着。自定义链接、参考资料、📌 和以后还排着的不碰。别的照旧手点。归档那行写着 <b>归档 X 月 X 日</b>，鼠标停上去能看到是手点的还是自动的。
       点 <b>放回</b> 就拿回在用列表。</p>`)}</h2>
     ${kidTabs()}
     <div class="seclead groupbar slim"><input type="search" class="bsearch" id="bsearch" placeholder="搜标题、书名（按 / ）" value="${esc(F.q)}" autocomplete="off">
@@ -4755,7 +4817,7 @@ document.getElementById('reload').addEventListener('click', async ()=>{
   // 写作、朗读录音也重读（正在批的那篇不打断，回到列表时再读）
   RC.list = null; RC.stale = false;
   if(V==='essay' && WR.cur) WR.stale = true; else WR.list = null;
-  try { await loadAll(); await carryNow(); render(); toast('已刷新'); }
+  try { await loadAll(); await carryNow(); const n = await autoArchiveSafe(); render(); if(!n) toast('已刷新'); }
   catch(e){ console.error(e); toast('刷新失败：' + (e.code||e.message), true); }
 });
 
@@ -4816,6 +4878,7 @@ auth.onAuthStateChanged(async user=>{
   try {
     await loadAll();
     await carryNow();
+    await autoArchiveSafe();
     watchProgress();
     WR.list = null; WR.cur = ''; WR.ed = null;   // the 作文 tab reads its own collection, lazily
     document.getElementById('whoami').textContent = user.email === MOM_EMAIL ? '👩 妈妈' : (user.email || '');
