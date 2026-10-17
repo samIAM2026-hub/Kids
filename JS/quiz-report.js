@@ -56,11 +56,11 @@
   var PROG_EVERY_MS = 20000;               // live progress (进行中): at most one write per 20 s while answering
   var BEAT_MS = 60000;                     // …and once a minute while the page is just open (time not handed in)
   var UNF_KEY = 'quizReport.unfinished.v1';   // this device's sessions per kid / page / day (see putProgress)
-  // Sitting still (Sam 2026-10-16 · 实际用时扣掉没动的那段): page in front, but no tap, key or scroll this
-  // long → the kid has stopped. The first STILL_KEEP_MS of the stretch still counts (reading, thinking);
-  // the rest comes off activeSecs and is listed in rec.still.
-  var STILL_MS = 5 * 60 * 1000;
-  var STILL_KEEP_MS = 2 * 60 * 1000;
+  // Sitting still (Sam 2026-10-16 · 有效时间): page in front, but no tap, key or scroll for STILL_MS → from
+  // then on it doesn't count (the first STILL_KEEP_MS is reading / thinking). It comes off activeSecs, is listed
+  // in rec.still, and per question in qTimes[].stillSecs. (5 min / keep 2 for a few hours on 10-16, then 3 / 3.)
+  var STILL_MS = 3 * 60 * 1000;
+  var STILL_KEEP_MS = 3 * 60 * 1000;
   var KIDS = {                             // same uids as homework.html; for the name badge only
     mbtSDgfFrOOS4xIT3eXr7pETEt33: { n: 'Grace', av: '👧', fg: '#d84315', bg: '#fff4e8', line: '#ffb37b' },
     paACSAD0W0bBNknKrAf3GfpHy8x1: { n: 'Warren', av: '👦', fg: '#35704a', bg: '#eef6f0', line: '#8bb98f' }
@@ -183,9 +183,10 @@
   function turn() { session.lastMark = now(); }
   function answered(q, correct) {
     var t = now(), from = session.lastMark;
-    var r = session.q[q] || (session.q[q] = { q: q, secs: 0, awaySecs: 0 });
+    var r = session.q[q] || (session.q[q] = { q: q, secs: 0, awaySecs: 0, stillSecs: 0 });
     r.secs += (t - from) / 1000;
     r.awaySecs += awayBetween(from, t);
+    r.stillSecs += stillBetween(from, t);   // the tap that answered already closed the still stretch (touched)
     if (correct !== undefined) r.correct = correct;
     session.lastMark = t;
     session.started = true;
@@ -509,7 +510,7 @@
       // sk here too, not only on wrong[]: the parent page needs the denominator (how many
       // questions of a knowledge point were attempted) to work out a per-sk 正确率 at all.
       qTimes: Object.keys(s.q).map(Number).sort(function (a, b) { return a - b; }).map(function (q) {
-        var r = s.q[q], o = { q: q, secs: Math.round(r.secs), awaySecs: Math.round(r.awaySecs) };
+        var r = s.q[q], o = { q: q, secs: Math.round(r.secs), awaySecs: Math.round(r.awaySecs), stillSecs: Math.round(r.stillSecs || 0) };
         if (r.correct !== undefined) o.correct = r.correct;
         var sk = skFor(q);
         if (sk) o.sk = sk;
