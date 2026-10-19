@@ -606,7 +606,10 @@ function viewToday(){
     <div style="margin-top:12px"><button class="out" data-signout>👋 I'm done · Sign out</button></div></div>`;
   html += rulesBox();
 
-  bySubject(ITEMS).forEach(([subj, items])=>{
+  // Not done yet on top, done ones sink to the bottom (Sam 2026-10-18); a subject that's all done goes last.
+  const undoneFirst = items => [...items.filter(it=>!doneToday(it)), ...items.filter(it=>doneToday(it))];
+  bySubject(ITEMS).map(([subj, items])=>[subj, undoneFirst(items)])
+    .sort((a,b)=>(a[1].every(doneToday)?1:0) - (b[1].every(doneToday)?1:0)).forEach(([subj, items])=>{
     html += `<h3 class="group">${esc(subj)} <span class="gn">${items.filter(doneToday).length} of ${items.length} done</span></h3>`;
     items.forEach(it=>{ html += card(it, doneToday(it)); });
   });

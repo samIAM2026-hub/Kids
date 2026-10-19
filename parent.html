@@ -1829,7 +1829,10 @@ function viewToday(){
     if(!list.length){
       if(!reads.length) html += `<p class="empty">到「题库」勾选几份，再派给 ${KID[k].n}。</p>`;
     } else {
-      bySubj(list).forEach(([sj, items])=>{
+      // 没做完的在上面、做完的沉到下面（Sam 2026-10-18）：组里先没做的；整科都做完的组排到最后
+      const undoneFirst = items => [...items.filter(it=>!doneOf(it)), ...items.filter(it=>doneOf(it))];
+      bySubj(list).map(([sj, items])=>[sj, undoneFirst(items)])
+        .sort((a,b)=>(a[1].every(doneOf)?1:0) - (b[1].every(doneOf)?1:0)).forEach(([sj, items])=>{
       const rs = items.map(doneOf), dn = rs.filter(Boolean).length, bits = rs.filter(Boolean).map(scoreBit).join(' · ');
       html += foldOpen(k+'|s|'+(sj||'-')) + `<summary class="subhd grph">${esc(subjName(sj))} <span class="gs">做完 ${dn}/${items.length}${
         bits?' · '+bits:''}${dn<items.length?` · 还剩约 ${estSumTxt(items.filter((it,i)=>!rs[i]), k)}`:''}</span></summary>`;
