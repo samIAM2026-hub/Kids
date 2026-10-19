@@ -2966,8 +2966,12 @@ function qTable(p, key, flat){
   const parts = tries.map(a=>{
     const f = readFocus(a), i = p.tries.indexOf(a);
     const slow = f.qs.reduce((m,q)=>!m||q.active>m.active?q:m, null), nGuess = f.qs.filter(q=>q.guess).length;
+    // SSAT 卷子 10-18 起记他选了哪个（picked，0 = A）；记了选项的卷子里，答错又没有选项 = 空着没答
+    const hasPick = f.qs.some(q=>q.picked!=null);
     const rows = f.qs.map(q=>{
-      const note = [q.correct===false ? '<span class="qx">✗ 答错</span>' : q.correct===true ? '<span class="qok">✓</span>' : '',
+      const note = [q.correct===false ? (q.picked!=null ? `<span class="qx">✗ 选了 (${'ABCDE'[q.picked]||'?'})</span>`
+                                         : hasPick ? '<span class="qg">空着没答</span>' : '<span class="qx">✗ 答错</span>')
+                  : q.correct===true ? '<span class="qok">✓</span>' : '',
         q.guess ? '<span class="qg">答得很快又答错，可能是蒙的</span>' : '', q.slow ? '<span class="qs">慢题</span>' : '',
         q.away ? `切走 ${durS(q.away)}` : '', q.still ? `没动 ${durS(q.still)}` : '',
         q.away || q.still ? `开了 ${durS(q.secs)}` : ''].filter(Boolean).join(' · ');
@@ -3265,7 +3269,8 @@ function readFocus(a){
   const old = a.still && a.still.how==='q' ? Object.fromEntries(a.still.qs.map(x=>[x.q, x.fg-STILL.oldKeep])) : {};
   const qs = a.qTimes.map(q=>{
     const away = q.awaySecs||0, still = typeof q.stillSecs==='number' ? q.stillSecs : (old[q.q]||0);
-    return { q:q.q, secs:q.secs||0, active:Math.max(0,(q.secs||0)-away-still), away, still, correct:q.correct };
+    return { q:q.q, secs:q.secs||0, active:Math.max(0,(q.secs||0)-away-still), away, still, correct:q.correct,
+             picked: typeof q.picked==='number' ? q.picked : null };
   });
   const sorted = qs.map(q=>q.active).sort((x,y)=>x-y);
   const med = sorted.length ? sorted[Math.floor(sorted.length/2)] : 0;

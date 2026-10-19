@@ -211,7 +211,11 @@
   function wrongList() {
     return Object.keys(session.q).map(Number).filter(function (q) { return session.q[q].correct === false; })
       .sort(function (a, b) { return a - b; })
-      .map(function (q) { var sk = skFor(q); return sk ? { q: q, sk: sk } : { q: q }; });
+      .map(function (q) {
+        var sk = skFor(q), o = sk ? { q: q, sk: sk } : { q: q };
+        if (typeof session.q[q].picked === 'number') o.picked = session.q[q].picked;   // SSAT: which option (0 = A)
+        return o;
+      });
   }
 
   /* ---------- adapters ---------- */
@@ -301,7 +305,10 @@
           data.items.filter(function (x) { return x.type !== 'passage'; }).forEach(function (it) {
             var ok = answers[it.n] === it.ans;
             if (ok) score++;
-            (session.q[it.n] || (session.q[it.n] = { q: it.n, secs: 0, awaySecs: 0 })).correct = ok;
+            var r = session.q[it.n] || (session.q[it.n] = { q: it.n, secs: 0, awaySecs: 0 });
+            r.correct = ok;
+            // Which option he picked (0 = A); left out for a blank. Sam 2026-10-18: 分析错题时要知道他选了哪个
+            if (typeof answers[it.n] === 'number') r.picked = answers[it.n];
           });
           submit({ score: score, total: data.count || data.items.length, wrong: wrongList() });
         });
@@ -512,6 +519,7 @@
       qTimes: Object.keys(s.q).map(Number).sort(function (a, b) { return a - b; }).map(function (q) {
         var r = s.q[q], o = { q: q, secs: Math.round(r.secs), awaySecs: Math.round(r.awaySecs), stillSecs: Math.round(r.stillSecs || 0) };
         if (r.correct !== undefined) o.correct = r.correct;
+        if (typeof r.picked === 'number') o.picked = r.picked;
         var sk = skFor(q);
         if (sk) o.sk = sk;
         return o;
