@@ -41,13 +41,17 @@
       if(d.date === T && !planToday){ d.items.forEach(it => { out[T] = out[T] || []; out[T].push(it); seen.add(it.id); }); return; }
       d.items.forEach((it, i)=>{
         const x = it.q ? { ...it } : { ...it, q: (it.carried ? (it.origin || d.date) : d.date) + '|' + String(i).padStart(3, '0') };
-        if(seen.has(x.id) || pool.some(y => y.id === x.id)) return;   // 同一份派了两天：只留最早那份
+        // 钉在某天的（Class Vocab、选了日期派的）可以一连几天都派同一份（Sam 2026-10-18：Part 1–5 周日到周三每天重复）：
+        // 每天各留各的；别的照旧，同一份派了两天只留最早那份
+        const rep = pinned(x);
+        if(rep ? (out[d.date] || []).some(y => y.id === x.id) : (seen.has(x.id) || pool.some(y => y.id === x.id))) return;
         if(d.date === T){
           if(x.carried) return addFree(T, x);
           if(keepToday(x) || pinned(x)) return add(T, x);
         }
         else {
-          if(doneAhead(x)) return add(T, { ...x, ahead: true });
+          // 前面哪天已经有这一份（重复派的），今天做过不算「提前做」，后面那天照样留着
+          if(doneAhead(x) && !(rep && seen.has(x.id))) return add(T, { ...x, ahead: true });
           if(pinned(x)) return add(d.date, x);
         }
         pool.push(x);
