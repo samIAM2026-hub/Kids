@@ -15,7 +15,8 @@
   // 顺延过来的就不算钉住了，跟着队排
   const planPinned = it => !it.carried && (it.pin === true || /Class-Vocab/i.test(decodeURIComponent(it.id||'')));
   // Class Vocab 不顺延（Sam 2026-10-11：「Grace 的 vocabulary 除外」）：跟着上课那一周走，没做完就留在原来那天。homework.html 的 carriedIn 里照抄了一份
-  const noCarry = it => /Class-Vocab/i.test(decodeURIComponent(it.id||''));
+  // 每个工作日都派的（daily:true，BASA 课件，Sam 2026-10-19：「星期一到星期五 不管他做没做 都要排」）也不顺延：每天各是各的，第二天本来就有一份
+  const noCarry = it => it.daily === true || /Class-Vocab/i.test(decodeURIComponent(it.id||''));
   const pad = (n, w) => String(n).padStart(w, '0');
   const qTail  = i => '~' + Date.now() + '|' + pad(i, 3);
   const qFront = i => '!' + pad(9e12 - Date.now(), 13) + '|' + pad(i, 3);
@@ -51,7 +52,8 @@
         }
         else {
           // 前面哪天已经有这一份（重复派的），今天做过不算「提前做」，后面那天照样留着
-          if(doneAhead(x) && !(rep && seen.has(x.id))) return add(T, { ...x, ahead: true });
+          // 每天都派的（daily）天天做，做过从来不算「提前做」（不然周末会把下周一那份拉到周末）
+          if(doneAhead(x) && !x.daily && !(rep && seen.has(x.id))) return add(T, { ...x, ahead: true });
           if(pinned(x)) return add(d.date, x);
         }
         pool.push(x);

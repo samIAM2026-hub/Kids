@@ -506,8 +506,9 @@ async function load(){
     [...(x.withdrawn||[]), ...(x.items||[])].forEach(it=>{ if(it.subj) label.set(it.id, it.subj); }); });
   const day = days.docs.find(d=>d.id===iso(today));
   // Same pinning as parent.html's planPinned: a class-vocab day belongs to its own day, so it's never offered early.
+  // Daily items (BASA, every weekday) are never offered early either — tomorrow has its own copy.
   NEXT = !(prof.plan && prof.plan.on) ? [] : days.docs.filter(d=>d.id>iso(today)).sort((a,b)=>a.id.localeCompare(b.id))
-    .flatMap(d=>((d.data()||{}).items||[]).filter(it=>!/Class-Vocab/i.test(decodeURIComponent(it.id||''))))
+    .flatMap(d=>((d.data()||{}).items||[]).filter(it=>!it.daily && !/Class-Vocab/i.test(decodeURIComponent(it.id||''))))
     .map(it=>({ ...it, subj: subjOf(it.subj) }));
   ITEMS = ((day && day.data()) || {}).items || [];
   ITEMS = ITEMS.map(it=>({ ...it, subj: subjOf(it.subj) }));
@@ -555,7 +556,7 @@ function carriedIn(days, todayDoc, carry){
   const out = [];
   days.filter(d=>d.date>=first && d.date<t).sort((a,b)=>a.date.localeCompare(b.date)).forEach(d=>{
     d.items.forEach(it=>{
-      if(have.has(it.id) || /Class-Vocab/i.test(decodeURIComponent(it.id||''))) return;   // Class Vocab never carries over (same rule as PlanCore.noCarry)
+      if(have.has(it.id) || it.daily || /Class-Vocab/i.test(decodeURIComponent(it.id||''))) return;   // Class Vocab and daily items never carry over (same rule as PlanCore.noCarry)
       const quiz = (it.type||'quiz')==='quiz';
       if(ATT.some(a=>a.id===it.id && a.date>=d.date && a.date<t && (!quiz || a.real))) return;
       have.add(it.id);
