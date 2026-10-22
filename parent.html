@@ -295,6 +295,9 @@
   td .crumb{font-size:10.5px;color:var(--mute);letter-spacing:.2px}
   input[type=checkbox]{width:16px;height:16px;accent-color:var(--gold);cursor:pointer}
   .badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap}
+  /* 最近 NEW_DAYS 天上传的（Sam 2026-10-22：「最新上传的最好有标识，要不看不到」） */
+  .badge.b-new{background:rgba(224,163,62,.22);color:var(--amber);border:1px solid rgba(224,163,62,.6)}
+  .snew{font-size:11px;font-weight:700;color:var(--amber);margin-left:8px}
   .b-quiz{background:rgba(91,143,199,.18);color:var(--blue)}
   .b-ref{background:rgba(147,162,189,.15);color:var(--mute)}
   .b-practice{background:rgba(201,162,39,.16);color:var(--gold)}
@@ -2251,6 +2254,10 @@ const OPEN_DONE = new Set();   // 科目底下「✓ 已派完 N 本」点开了
 // written by homework-system/bank-dates.mjs). Dates within the last 7 days show in gold.
 const RECENT = shiftDay(iso(today), -6);
 const touched = b => b.updated && b.updated > (b.added||'') ? b.updated : (b.added||'');
+// 最近 NEW_DAYS 天（含今天）上传的：行里标「🆕 新」，题库最上面单独一组摊开，科目标题上写几份新的
+const NEW_DAYS = 3;
+const isNew = b => !!b.added && b.added >= shiftDay(iso(today), 1-NEW_DAYS);
+const newBadge = b => isNew(b) ? `<span class="badge b-new" title="${esc(ymd(b.added))} 上传">🆕 新</span> ` : '';
 function bankDates(b){
   const part = (lbl, s) => s ? `<span class="${s>=RECENT?'recent':''}">${lbl} ${ymd(s)}</span>` : '';
   // 归档过的多写两个日期：什么时候做完的、什么时候收起来的（Sam 2026-09-20）
@@ -2539,7 +2546,7 @@ function bankRow(b, withPlace){
   const tail = OPEN_HIST.has(b.docId) ? histRow(b, 3) : '';
   return `<tr class="${SEL.has(b.docId)?'sel':''}${b.archived?' arch':''}${assignedTo(b.docId).length?' assigned':''}">
     <td class="c" style="width:34px"><input type="checkbox" class="pick" ${SEL.has(b.docId)?'checked':''} data-id="${esc(b.docId)}"></td>
-    <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)} ${wkTag(WritingKinds.ofPage(b.docId))}${bothBadge(b)}${assignedBadge(b.docId)}</div>
+    <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)} ${newBadge(b)}${wkTag(WritingKinds.ofPage(b.docId))}${bothBadge(b)}${assignedBadge(b.docId)}</div>
       ${withPlace?`<div class="crumb">${esc(b.subj)}${b.book?' · '+esc(b.book):''}</div>`:''}</td>
     <td class="c" style="width:150px">${histCell(b)}</td></tr>${tail}`;
 }
@@ -2755,6 +2762,12 @@ function viewBank(){
       <div class="shelf"><table><tbody>${list.map(b=>bankRow(b, true)).join('')}</tbody></table></div></details>`;
   }
 
+  // 新上传的先单独摊在最上面（科目默认都收着，不然看不到）；它们在下面自己的科目里也还在
+  const fresh = rows.filter(isNew).sort((a,b)=>(b.added||'').localeCompare(a.added||''));
+  if(fresh.length) html += `<details class="subj" data-subj="__new" open>
+      <summary><span class="sname">🆕 最近 ${NEW_DAYS} 天上传</span><span class="scount">${fresh.length} 份</span></summary>
+      <div class="shelf"><table><tbody>${fresh.map(b=>bankRow(b, true)).join('')}</tbody></table></div></details>`;
+
   // 科目 → 书架性质 → 书架 → 单份。rows 已经按科目、book、标题排过，Map 的插入顺序就把同一个
   // 书架的排在一起；性质之间的先后用 KIND_RANK 定，「资料 · 答案 · 成绩单」永远沉在最下面。
   // 在用列表里，每一份都派给过这个孩子的书 = 「已派完」，收到这一科最下面一行（Sam 2026-10-16：一眼看到还能派什么）。
@@ -2795,6 +2808,7 @@ function viewBank(){
     html += `<details class="subj" data-subj="${esc(subj)}"${OPEN.has(subj)?' open':''}>
       <summary><span class="sname">${esc(subj)}</span><span class="scount">${foldDone?(nLeft?`还没做 ${nLeft} · `:'')+`共 ${items.length} 份`:`${items.length} 份`}</span>
         ${nAsg?`<span class="sasg">今天已派 ${nAsg}</span>`:''}
+        ${items.some(isNew)?`<span class="snew">🆕 ${items.filter(isNew).length} 份新</span>`:''}
         ${nSel?`<span class="ssel">已选 ${nSel}</span>`:''}</summary>`;
 
     // 没归进任何书架的单份排最前，一直摊开（就几份，折起来反而找不着）；派过的跟着进「已派完」
