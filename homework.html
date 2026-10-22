@@ -366,8 +366,7 @@
         <button class="out" id="switch">👋 I'm done · Sign out</button>
       </div>
       <nav class="tabs">
-        <button class="tab on" data-v="today">Today <span class="n" id="ntoday"></span></button>
-        <button class="tab" data-v="todo">To do <span class="n" id="ntodo"></span></button>
+        <button class="tab on" data-v="todo">To do <span class="n" id="ntodo"></span></button>
         <button class="tab" data-v="done">Done <span class="n" id="ndone"></span></button>
         <button class="tab" data-v="report">My day <span class="n" id="nrep"></span></button>
         <button class="tab" data-v="scores">My scores</button>
@@ -464,12 +463,11 @@ const pageUrl = href => isUrl(href) ? href : encodeURI('Quizzes/' + href);
 // 回得来，别人的网站加不上那颗按钮 —— 同一个标签页跳过去就困在那儿了。
 const extAttr = href => isUrl(href) ? ' target="_blank" rel="noopener"' : '';
 
-let ME = null, ITEMS = [], ATT = [], DAYS = [], V = 'today';
+let ME = null, ITEMS = [], ATT = [], DAYS = [], V = 'todo';
 // My bank items (kid == me or 'both', archived ones too) — To do / Done. null = couldn't read it.
 let BANK = null;
-// Dad's 「每天按时间自动排」 (HOMEWORK-SYSTEM.md 2026-10-06): the queue is the days after today, in order.
-// Done with today → "Want more?" offers the next one; Dad's page later files it under today as done ahead.
-let NEXT = [];
+// Dad's queue (the auto-plan's days after today): item id → place in line. Up next follows it before book order.
+let QUEUE = new Map();
 // Writing Lab pieces Dad or Mom marked that this kid hasn't opened yet (Writing-Lab.html stamps seenAt).
 let MARKED = [];
 // PET / SIB: my pet doc and the other kid's — null = not picked yet, undefined = couldn't read it.
@@ -516,11 +514,9 @@ async function load(){
   // Never assigned (picked from To do): the bank knows its subject.
   (BANK||[]).forEach(b=>{ if(b.subj && !label.has(b.docId)) label.set(b.docId, b.subj); });
   const day = days.docs.find(d=>d.id===iso(today));
-  // Same pinning as parent.html's planPinned: a class-vocab day belongs to its own day, so it's never offered early.
-  // Daily items (BASA, every weekday) are never offered early either — tomorrow has its own copy.
-  NEXT = !(prof.plan && prof.plan.on) ? [] : days.docs.filter(d=>d.id>iso(today)).sort((a,b)=>a.id.localeCompare(b.id))
-    .flatMap(d=>((d.data()||{}).items||[]).filter(it=>!it.daily && !/Class-Vocab/i.test(decodeURIComponent(it.id||''))))
-    .map(it=>({ ...it, subj: subjOf(it.subj) }));
+  QUEUE = new Map();
+  days.docs.filter(d=>d.id>iso(today)).sort((a,b)=>a.id.localeCompare(b.id))
+    .forEach(d=>((d.data()||{}).items||[]).forEach(it=>{ if(!QUEUE.has(it.id)) QUEUE.set(it.id, QUEUE.size); }));
   ITEMS = ((day && day.data()) || {}).items || [];
   ITEMS = ITEMS.map(it=>({ ...it, subj: subjOf(it.subj) }));
   const todayDoc = (day && day.data()) || {};
@@ -599,37 +595,6 @@ function markedCards(){
     <span class="go">Read it →</span></a>`).join('');
 }
 
-function viewToday(){
-  const day = iso(today);
-  const doneToday = it => ATT.find(a=>a.id===it.id && a.date===day);
-  // Want more? — what was done early today, then the next one in line. Only once today's list is all done.
-  const ids = new Set(ITEMS.map(it=>it.id));
-  // Done early on an earlier day (Dad's page hasn't filed it yet): not offered again.
-  const atDay = it => it.at && it.at.toDate ? iso(it.at.toDate()) : day;
-  const doneBefore = it => ATT.some(a=>a.id===it.id && a.real && a.date<day && a.date>=atDay(it));
-  const extra = NEXT.filter(it=>!ids.has(it.id) && !doneBefore(it)), early = extra.filter(doneToday), next = extra.find(it=>!doneToday(it));
-  const more = () => !early.length && !next ? '' : `<h3 class="group">Want more? <span class="gn">${early.length ? early.length+' extra done' : 'optional'}</span></h3>`
-    + early.map(it=>card(it, doneToday(it))).join('') + (next ? card(next, null) : '');
-  if(!ITEMS.length){
-    return reportCard() + markedCards() + `<div class="empty"><span class="e">🎉</span>No homework today!<br>Enjoy your free time.</div>` + rulesBox() + more() + petsRow();
-  }
-  const nDone = ITEMS.filter(doneToday).length;
-  let html = reportCard() + markedCards() + `<div class="progress"><div class="big">${nDone} of ${ITEMS.length} done</div>
-    <div class="meter"><i style="width:${Math.round(100*nDone/ITEMS.length)}%"></i></div></div>`;
-  if(nDone===ITEMS.length) html += `<div class="cheer">🌟 All done for today — great work, ${esc(ME.n)}!
-    <div style="margin-top:12px"><button class="out" data-signout>👋 I'm done · Sign out</button></div></div>`;
-  html += rulesBox();
-
-  // Not done yet on top, done ones sink to the bottom (Sam 2026-10-18); a subject that's all done goes last.
-  const undoneFirst = items => [...items.filter(it=>!doneToday(it)), ...items.filter(it=>doneToday(it))];
-  bySubject(ITEMS).map(([subj, items])=>[subj, undoneFirst(items)])
-    .sort((a,b)=>(a[1].every(doneToday)?1:0) - (b[1].every(doneToday)?1:0)).forEach(([subj, items])=>{
-    html += `<h3 class="group">${esc(subj)} <span class="gn">${items.filter(doneToday).length} of ${items.length} done</span></h3>`;
-    items.forEach(it=>{ html += card(it, doneToday(it)); });
-  });
-  return html + (nDone===ITEMS.length ? more() : '') + petsRow();
-}
-
 // "Fri" for a day this week, "Sep 28" further back.
 const fromDay = d => { const x = new Date(d+'T12:00:00');
   return today - x < 6*864e5 ? x.toLocaleDateString('en-US', { weekday:'short' }) : x.toLocaleDateString('en-US', { month:'short', day:'numeric' }); };
@@ -681,7 +646,8 @@ function card(it, a){
     <div class="body">
       <div class="t">${esc(it.t)}</div>
       <div class="meta"><span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book)}${size}${it.carried?`<span class="carry">${lateTag(it)}</span>`:''}${
-        it.retry!=null?`<span class="carry">↻ Try again · best ${it.retry}%</span>`:''}${it.fixed?`<span class="carry">📅 Today</span>`:''}</div>
+        it.retry!=null?`<span class="carry">↻ Try again · best ${it.retry}%</span>`:''}${it.fixed?`<span class="carry">📅 Today</span>`:''}${
+        it.picked && !it.carried?`<span class="carry">⭐ Picked for you</span>`:''}</div>
       ${status}
     </div>
     ${btn}
@@ -837,15 +803,18 @@ function viewMistakes(){
 }
 
 /* ---------- To do / Done: the whole bank, no assigning (HOMEWORK-SYSTEM.md 2026-10-22) ----------
-   Sam: 「以后没有派作业的过程，所有题都在题库里，孩子直接找需要做的题，直接做」. Step 1 of 3: these two tabs
-   run beside Today while Dad still assigns. To do = my bank items (kid me or 'both', not archived) not done yet;
-   Done = what I finished, day by day.
+   Sam: 「以后没有派作业的过程，所有题都在题库里，孩子直接找需要做的题，直接做」, then 「我不用再继续派题，他能看到
+   所有的题」: To do is the page the kids land on (the Today tab is gone). To do = my bank items (kid me or 'both',
+   not archived) not done yet; Done = what I finished, day by day.
+   · Anything Dad or Mom still assigns for today (or that carried on to today) goes first in Up next, tagged
+     Picked for you, until it's done today. Assigning is optional now, never needed.
    · Done = handed in: a quiz needs a real try, a Read / Practice / link counts once opened (parent.html countsAsDone).
      A quiz whose best score is under PASS stays in To do, tagged Try again.
    · Every-weekday shelves (BASA, same list as plan-day.mjs DAILY_BOOKS) and the class-vocab Parts are per day:
      on their days they sit in To do until done that day, and never move to Done for good.
+   · Whatever is already in Dad's queue (auto-plan days after today) comes first, in that order.
    · Math goes in book order, MATH_PER_DAY a day (the same cap as PlanCore): only the next ones are open.
-   · Up next = today's fixed items, then the next math, then the rest (newest shelf first), one subject at a time.
+   · Up next = picked ones, today's fixed items, then the next math, then the rest (newest shelf first), one subject at a time.
      Try again ones wait in their subject's list.
    · The bar counts working time (activeSecs) of what was handed in today, against the DAY_MINS day. */
 const DAY_MINS = 90, MATH_PER_DAY = 3, UP_NEXT = 5;
@@ -903,15 +872,22 @@ function library(){
     }
     if(vd) fixed.push({ ...it, fixed:true }); else todo.push(it);
   });
+  // Picked by Dad or Mom for today: first, until done today, and not listed twice.
+  const doneToday = id => ATT.some(a=>a.id===id && a.date===day && counts(byId.get(id), a));
+  const picked = ITEMS.filter(it=>!doneToday(it.id)).map(it=>({ ...it, picked:true }));
+  const pickedIds = new Set(picked.map(it=>it.id));
+  [fixed, todo].forEach(list=>{ for(let i = list.length-1; i>=0; i--) if(pickedIds.has(list[i].id)) list.splice(i, 1); });
   // Try again ones wait in their subject's list: they never hold up new lessons or take an Up next spot.
   const fresh = todo.filter(it=>it.retry==null), redo = todo.filter(it=>it.retry!=null).sort(restOrder(todo));
-  // Math: new lessons in order, and only as many as are left of today's MATH_PER_DAY.
+  // What's already in Dad's queue goes first, in queue order; the rest after it (Infinity − Infinity is NaN → next rule).
+  const qp = it => QUEUE.has(it.id) ? QUEUE.get(it.id) : Infinity, queued = order => (a, b) => (qp(a) - qp(b)) || order(a, b);
+  // Math: new lessons in order, and only as many as are left of today's MATH_PER_DAY (picked math counts too).
   const mathToday = new Set(ATT.filter(a=>a.date===day && a.subj==='Math' && counts(byId.get(a.id), a)).map(a=>a.id)).size;
-  const math = fresh.filter(it=>it.subj==='Math').sort(mathOrder);
-  const mathOpen = math.slice(0, Math.max(0, MATH_PER_DAY - mathToday));
-  const rest = fresh.filter(it=>it.subj!=='Math').sort(restOrder(todo));
-  // Up next: fixed ones, the open math, then one per subject in turn up to UP_NEXT.
-  const next = [...fixed, ...mathOpen];
+  const math = fresh.filter(it=>it.subj==='Math').sort(queued(mathOrder));
+  const mathOpen = math.slice(0, Math.max(0, MATH_PER_DAY - mathToday - picked.filter(it=>it.subj==='Math').length));
+  const rest = fresh.filter(it=>it.subj!=='Math').sort(queued(restOrder(todo)));
+  // Up next: picked, fixed, the open math, then one per subject in turn up to UP_NEXT.
+  const next = [...picked, ...fixed, ...mathOpen];
   const queues = bySubject(rest).map(([, xs])=>xs.slice());
   while(next.length < UP_NEXT && queues.some(q=>q.length)) queues.forEach(q=>{ if(q.length && next.length < UP_NEXT) next.push(q.shift()); });
   const inNext = new Set(next.map(it=>it.id));
@@ -921,14 +897,17 @@ function library(){
 }
 function viewTodo(){
   const L = library();
-  let html = `<h2 class="sec">To do</h2><p class="lead2">Everything that's waiting for you. Start with <b>Up next</b>, or pick any one you like.</p>`;
-  if(!L) return html + `<div class="empty"><span class="e">📡</span>Couldn't load your list.<br>Check the Wi-Fi, then pull down to refresh.</div>`;
+  // Dad's report and marked writing stay on top, the homework rules and the pets at the bottom (as Today had them).
+  let html = reportCard() + markedCards() + `<h2 class="sec">To do</h2><p class="lead2">Everything that's waiting for you. Start with <b>Up next</b>, or pick any one you like.</p>`;
+  const foot = () => rulesBox() + petsRow();
+  if(!L) return html + `<div class="empty"><span class="e">📡</span>Couldn't load your list.<br>Check the Wi-Fi, then pull down to refresh.</div>` + foot();
   const m = Math.round(L.secs/60);
   html += `<div class="progress"><div class="big">${m} of ${DAY_MINS} minutes today</div>
     <div class="meter"><i style="width:${Math.min(100, Math.round(100*m/DAY_MINS))}%"></i></div></div>`;
-  if(m >= DAY_MINS) html += `<div class="cheer">🌟 ${DAY_MINS} minutes done today, great work, ${esc(ME.n)}!</div>`;
+  if(m >= DAY_MINS) html += `<div class="cheer">🌟 ${DAY_MINS} minutes done today, great work, ${esc(ME.n)}!
+    <div style="margin-top:12px"><button class="out" data-signout>👋 I'm done · Sign out</button></div></div>`;
   html += `<p class="lead2" style="font-size:14.5px;margin-top:6px">Only working time counts, and it's added when you hand a page in.</p>`;
-  if(!L.next.length && !L.groups.length) return html + `<div class="empty"><span class="e">🎉</span>Nothing left to do!<br>Dad or Mom will add more soon.</div>`;
+  if(!L.next.length && !L.groups.length) return html + `<div class="empty"><span class="e">🎉</span>Nothing left to do!<br>Dad or Mom will add more soon.</div>` + foot();
   if(L.next.length) html += `<h3 class="group">⭐ Up next <span class="gn">${L.next.length}</span></h3>` + L.next.map(it=>card(it, null)).join('');
   L.groups.forEach(([subj, items])=>{
     const later = subj==='Math' && L.mathLater ? ` · ${L.mathLater} more lessons later` : '';
@@ -936,7 +915,7 @@ function viewTodo(){
   });
   if(L.mathLater && !L.groups.some(([s])=>s==='Math'))
     html += `<p class="lead2" style="margin-top:18px">🧮 Math: ${L.mathLater} more lesson${L.mathLater>1?'s':''} open up in order, ${MATH_PER_DAY} a day${L.mathToday>=MATH_PER_DAY?' (today\'s are done)':''}.</p>`;
-  return html;
+  return html + foot();
 }
 function viewDone(){
   const since = iso(new Date(today.getTime() - 14*864e5));
@@ -1278,15 +1257,13 @@ function viewPet(){
 
 const viewEl = document.getElementById('view');
 function render(){
-  viewEl.innerHTML = V==='today' ? viewToday() : V==='todo' ? viewTodo() : V==='done' ? viewDone() : V==='report' ? viewReport()
+  viewEl.innerHTML = V==='todo' ? viewTodo() : V==='done' ? viewDone() : V==='report' ? viewReport()
     : V==='scores' ? viewScores() : V==='pet' ? viewPet() : viewMistakes();
   const L = library();
   document.getElementById('ntodo').textContent = L && L.next.length ? L.next.length : '';
   document.getElementById('ndone').textContent = L ? new Set(ATT.filter(a=>a.date===iso(today) && counts(L.byId.get(a.id), a)).map(a=>a.id)).size || '' : '';
   document.getElementById('nrep').textContent = summaryOf(iso(today)) ? '📝' : '';
   document.getElementById('npet').textContent = petOf(PET) && GAME ? stageIc({ ...PET, xp:GAME.xp }) : '';
-  const nDone = ITEMS.filter(it=>ATT.find(a=>a.id===it.id && a.date===iso(today))).length;
-  document.getElementById('ntoday').textContent = ITEMS.length ? `${nDone}/${ITEMS.length}` : '';
   const nm = mistakes().length;
   document.getElementById('nmiss').textContent = nm || '';
 }
@@ -1309,7 +1286,7 @@ function skyNow(){
 skyNow(); setInterval(skyNow, 5*60*1000);
 
 function showPick(msg){
-  ME = null; ITEMS = []; ATT = []; DAYS = []; MARKED = []; BANK = null; viewEl.innerHTML = '';
+  ME = null; ITEMS = []; ATT = []; DAYS = []; MARKED = []; BANK = null; QUEUE = new Map(); viewEl.innerHTML = '';
   PET = undefined; SIB = undefined; GAME = null; petSkipped = false;
   closePop(); toastEl.hidden = true;
   document.body.className = '';
