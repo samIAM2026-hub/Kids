@@ -604,6 +604,8 @@ const fromDay = d => { const x = new Date(d+'T12:00:00');
 // Carried over (HOMEWORK-SYSTEM.md 2026-10-05): "↪ 2 days late · from Fri", counted from the first day it was assigned.
 const lateTag = it => { const o = it.origin||it.movedFrom, n = Math.round((new Date(iso(today)+'T12:00:00') - new Date(o+'T12:00:00')) / 864e5);
   return n > 0 ? `↪ ${n} day${n>1?'s':''} late · from ${fromDay(o)}` : `↪ From ${fromDay(o)}`; };
+const madeDay = d => new Date(d+'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' });
+const madeNew = d => (today - new Date(d+'T00:00:00')) < 3*864e5;
 // One homework card; a = today's attempt at it, if any.
 // How Mom and Dad check homework (Sam 2026-10-16). Same rules as the parent page: first try ≥ PASS%, and only
 // real working time counts (away = not counted; still for 3+ min = not counted after minute 3, see quiz-report.js).
@@ -644,11 +646,13 @@ function card(it, a){
     btn = `<a class="go again" href="${esc(pageUrl(it.href))}"${extAttr(it.href)}>Open again${ext?' ↗':''}</a>`;
   }
   const size = it.n ? `${it.book?' · ':''}${it.n} ${it.type==='quiz'?'questions':'steps'}` : '';
+  // When Dad made the page (bank `added`; Sam 2026-10-22: 「不知道是哪天做的」) — the last 3 days also get 🆕 New.
+  const made = it.added ? ` · Made ${madeDay(it.added)}${madeNew(it.added)?'<span class="carry">🆕 New</span>':''}` : '';
   return `<div class="card${a?' done':''}">
     <span class="ic">${esc(it.ic)||'📄'}</span>
     <div class="body">
       <div class="t">${esc(it.t)}</div>
-      <div class="meta"><span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book)}${size}${it.carried?`<span class="carry">${lateTag(it)}</span>`:''}${
+      <div class="meta"><span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book)}${size}${made}${it.carried?`<span class="carry">${lateTag(it)}</span>`:''}${
         it.retry!=null?`<span class="carry">↻ Try again · best ${it.retry}%</span>`:''}${it.fixed?`<span class="carry">📅 Today</span>`:''}${
         it.picked && !it.carried?`<span class="carry">⭐ Picked for you</span>`:''}</div>
       ${status}
@@ -882,7 +886,7 @@ function library(){
   });
   // Picked by Dad or Mom for today: first, until done today, and not listed twice.
   const doneToday = id => ATT.some(a=>a.id===id && a.date===day && counts(byId.get(id), a));
-  const picked = ITEMS.filter(it=>!doneToday(it.id)).map(it=>({ ...it, picked:true }));
+  const picked = ITEMS.filter(it=>!doneToday(it.id)).map(it=>({ ...it, picked:true, added:(byId.get(it.id)||{}).added||'' }));
   const pickedIds = new Set(picked.map(it=>it.id));
   [fixed, todo].forEach(list=>{ for(let i = list.length-1; i>=0; i--) if(pickedIds.has(list[i].id)) list.splice(i, 1); });
   // Try again ones wait in their subject's list: they never hold up new lessons or take an Up next spot.
