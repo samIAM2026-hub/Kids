@@ -888,7 +888,7 @@
       <button class="stab extra" data-v="dispatch">派发记录</button>
       <button class="stab extra" data-v="skills">知识点</button>
       <button class="stab extra" data-v="reading">阅读写作</button>
-      <button class="stab assign" id="kidassign">📚 题库</button>
+      <button class="stab assign" id="kidassign">＋ 派题</button>
     </nav>
   </div>
 </header>
@@ -903,19 +903,17 @@
 
 <div id="assignbar" hidden><div class="inner">
   <span class="n">已选 <b id="seln">0</b> 份<span class="mins" id="selmin"></span><span class="selwarn" id="selwarn" hidden></span></span>
-  <!-- 2026-10-22 Sam：「家长页把派题按钮换成上架/下架」—— 不再派题，孩子在作业页 To do 里看得到所有上架的。
-       派发那几样留在 #assold 里藏着（代码还在，assMins / assWarn 还读 asskid），不显示。 -->
-  <span id="assold" hidden>
+  <!-- 2026-10-22 上架 / 下架管孩子 To do 里看得到什么；派题是可选的（Sam 当晚：「我不能给孩子派作业」→ 派发放回来）：
+       派了的在孩子那边排在 Up next 最前面、标 Picked for you。 -->
   <label for="asskid">派给</label>
   <select id="asskid"><option value="grace">👧 Grace</option><option value="warren">👦 Warren</option><option value="both">👧👦 两个人</option></select>
   <label for="assdate" id="assdatel">日期</label>
   <select id="assmode" hidden title="派到哪天"><option value="tail">排到队尾</option><option value="front">插到最前</option><option value="today">今天就做</option><option value="date">选日期…</option></select>
   <input type="date" id="assdate">
   <button class="btn solid" id="assgo">派发</button>
-  </span>
-  <button class="btn solid" id="archgo" data-to="1">下架</button>
+  <button class="btn ghost" id="archgo" data-to="1">下架</button>
   <button class="btn ghost" id="assclear">取消</button>
-  <span class="keyhint">键盘：A 上架 / 下架 · Esc 取消 · / 搜索</span>
+  <span class="keyhint">键盘：Enter 派发 · A 上架 / 下架 · Esc 取消 · / 搜索</span>
 </div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -2696,7 +2694,8 @@ function viewBank(){
   const moreSet = F.arch!=='active' || F.sort!=='group' || F.never, moreOn = F.more || moreSet;
   const nAct = BANK.filter(b=>!b.archived).length;
   const latest = BANK.map(touched).sort().pop();
-  let html = `<h2 class="sec">题库 · 上架 ${nAct} · 下架 ${BANK.length-nAct}${qm(`<p><b>2026-10-22 起不用派题</b>：上架的每一份，孩子在作业页 <b>To do</b> 里都看得到、自己挑着做，做完自动进 Done。
+  let html = `<h2 class="sec">题库 · 上架 ${nAct} · 下架 ${BANK.length-nAct}${qm(`<p><b>2026-10-22 起派题是可选的</b>：上架的每一份，孩子在作业页 <b>To do</b> 里都看得到、自己挑着做，做完自动进 Done。
+      想指定就勾选后在底部<b>派发</b>，派了的在孩子那边排在最前面、标 Picked for you。
       不想让他现在做的就<b>下架</b>（每行类型下面那颗，或勾选一批后用底部那条），要他做了再<b>上架</b>。下架不删文件、不动成绩。下面是以前的说明，「归档」就是现在的「下架」。</p><p>全部 ${BANK.length} 份都在这里，只有这个页面看得到${latest?`，最近一次上传 / 更新是 <b>${ymd(latest)}</b>`:''}。<b>点标题</b>在新标签页打开看题（家长预览，不记成绩）；勾选后在底部派给孩子。
       今天已经派出去的标着 <span class="badge b-assigned" style="cursor:default">✓ Assigned</span>（后面是派给了谁）。</p>
       <p><b>每行最右那格 = 派过没有</b>，颜色一眼分：<span style="color:var(--amber)">琥珀色「没派过」</span> ·
@@ -4542,7 +4541,7 @@ function navSync(){
   document.querySelectorAll('[data-top]').forEach(x=>x.classList.toggle('on', x.dataset.top===top));
   document.getElementById('subtabs').hidden = !KV;
   document.querySelectorAll('.stab[data-v]').forEach(x=>x.classList.toggle('on', x.dataset.v===V));
-  if(KV) document.getElementById('kidassign').textContent = `📚 ${KID[KV].n} 的题库`;
+  if(KV) document.getElementById('kidassign').textContent = `＋ 给 ${KID[KV].n} 派题`;
 }
 document.querySelectorAll('[data-top]').forEach(t=>t.addEventListener('click',()=>{
   const top = t.dataset.top;
@@ -4561,7 +4560,7 @@ document.getElementById('kidassign').addEventListener('click',()=>{
 });
 
 /* ===================== 键盘快捷键（电脑上，Sam 2026-09-27） =====================
-   /  搜题库（不在题库就先跳过去）· A 上架 / 下架勾选的 · Esc 取消勾选（Enter 派发 2026-10-22 起拿掉了）。
+   /  搜题库（不在题库就先跳过去）· Enter 派发勾选的 · A 上架 / 下架勾选的 · Esc 取消勾选。
    光标在输入框、下拉框里，或者按着 ⌘ / Ctrl / Alt 时一律不管，免得打字时误触。 */
 document.addEventListener('keydown', e=>{
   if(gate && !gate.hidden) return;
@@ -4576,7 +4575,8 @@ document.addEventListener('keydown', e=>{
     return;
   }
   if(V!=='bank' || !SEL.size) return;
-  if(e.key==='a' || e.key==='A'){ e.preventDefault(); used('key:a'); document.getElementById('archgo').click(); }
+  if(e.key==='Enter' && !(a && /^(BUTTON|A|SUMMARY)$/.test(a.tagName))){ e.preventDefault(); used('key:enter'); document.getElementById('assgo').click(); }
+  else if(e.key==='a' || e.key==='A'){ e.preventDefault(); used('key:a'); document.getElementById('archgo').click(); }
   else if(e.key==='Escape'){ used('key:esc'); SEL.clear(); render(); }
 });
 
@@ -4770,8 +4770,18 @@ function assMins(){
   el.innerHTML = ' · ⏱ 预计 <b>' + esc(estSumTxt(items, kid)) + '</b>';
   el.title = estSumTip(items, kid, kid==='both' ? '每人 ' : '');
 }
-// 原来提醒「勾的里面 7 天内派过」（Sam 2026-09-27）；2026-10-22 起不派题，这句不再出现
-function assWarn(){ document.getElementById('selwarn').hidden = true; }
+// 勾的里面有 7 天内（含以后排着的）已经派给这个孩子的：底部那条提醒一句，免得重复派（Sam 2026-09-27）
+function assWarn(){
+  const el = document.getElementById('selwarn'), k = document.getElementById('asskid').value;
+  const kids = k==='both' ? ['grace','warren'] : [k], from = shiftDay(iso(today), -7);
+  const hits = [...SEL].map(id=>{
+    const e = (HIST.get(id)||[]).find(e=>!e.self && !e.pulled && kids.includes(e.k) && e.date>=from);
+    return e && [BANK_BY_ID[id], e];
+  }).filter(Boolean);
+  el.hidden = !hits.length;
+  el.textContent = hits.length ? `⚠ 其中 ${hits.length} 份最近派过` : '';
+  el.title = hits.map(([b, e])=>`${b?b.t:''} —— ${KID[e.k].n} ${e.date.slice(5)}${e.date>iso(today)?'（还排着）':''}`).join('\n');
+}
 document.getElementById('asskid').addEventListener('change', ()=>{ assMins(); assWarn(); });
 document.getElementById('assclear').addEventListener('click',()=>{ SEL.clear(); render(); });
 
