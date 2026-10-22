@@ -844,7 +844,7 @@
 <div id="gate">
   <div class="eyebrow">Parent Console</div>
   <h1>家长控制台</h1>
-  <p class="sub">这里可以看到全部题库、派发每日作业、查看两个孩子的完成记录。孩子那边看不到这个页面。</p>
+  <p class="sub">这里可以看到全部题库、管理上架下架、查看两个孩子的完成记录。孩子那边看不到这个页面。</p>
   <button class="btn solid" id="signin">用 Google 账号登录</button>
   <div class="or">或者</div>
   <label class="pinrow">妈妈输入 4 位密码
@@ -871,7 +871,7 @@
          thing — so it is a real tab, second, no longer a side door on the right. -->
     <nav class="tabs">
       <button class="tab on" data-top="today">今天</button>
-      <button class="tab" data-top="bank" title="全部卷子，勾选后派给孩子">📚 题库<span class="wide"> · 派题</span> <span class="pill" id="bankn"></span></button>
+      <button class="tab" data-top="bank" title="全部卷子；上架的孩子在作业页 To do 里都看得到">📚 题库<span class="wide"> · 上架下架</span> <span class="pill" id="bankn"></span></button>
       <button class="tab" data-top="grace">👧 Grace <span class="pill hot" data-kpill="grace" hidden></span></button>
       <button class="tab" data-top="warren">👦 Warren <span class="pill hot" data-kpill="warren" hidden></span></button>
     </nav>
@@ -888,7 +888,7 @@
       <button class="stab extra" data-v="dispatch">派发记录</button>
       <button class="stab extra" data-v="skills">知识点</button>
       <button class="stab extra" data-v="reading">阅读写作</button>
-      <button class="stab assign" id="kidassign">＋ 派题</button>
+      <button class="stab assign" id="kidassign">📚 题库</button>
     </nav>
   </div>
 </header>
@@ -903,16 +903,19 @@
 
 <div id="assignbar" hidden><div class="inner">
   <span class="n">已选 <b id="seln">0</b> 份<span class="mins" id="selmin"></span><span class="selwarn" id="selwarn" hidden></span></span>
+  <!-- 2026-10-22 Sam：「家长页把派题按钮换成上架/下架」—— 不再派题，孩子在作业页 To do 里看得到所有上架的。
+       派发那几样留在 #assold 里藏着（代码还在，assMins / assWarn 还读 asskid），不显示。 -->
+  <span id="assold" hidden>
   <label for="asskid">派给</label>
   <select id="asskid"><option value="grace">👧 Grace</option><option value="warren">👦 Warren</option><option value="both">👧👦 两个人</option></select>
   <label for="assdate" id="assdatel">日期</label>
-  <!-- 开了「每天按时间自动排」的孩子：选排在队里哪儿，或「选日期…」再出日期框（syncAssignBar 切换） -->
   <select id="assmode" hidden title="派到哪天"><option value="tail">排到队尾</option><option value="front">插到最前</option><option value="today">今天就做</option><option value="date">选日期…</option></select>
   <input type="date" id="assdate">
   <button class="btn solid" id="assgo">派发</button>
-  <button class="btn ghost" id="archgo" data-to="1">归档</button>
+  </span>
+  <button class="btn solid" id="archgo" data-to="1">下架</button>
   <button class="btn ghost" id="assclear">取消</button>
-  <span class="keyhint">键盘：Enter 派发 · A 归档 · Esc 取消 · / 搜索</span>
+  <span class="keyhint">键盘：A 上架 / 下架 · Esc 取消 · / 搜索</span>
 </div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -1729,8 +1732,8 @@ function todoStrip(){
 let SETOPEN = false;   // 「⚙ 排作业设置」这次打开页面期间点开过没有（改开关会重画，得记着）
 function viewToday(){
   const day = TD, isToday = day===iso(today);
-  let html = todoStrip() + `<h2 class="sec">${isToday?'今天':'作业'} · ${day} 周${wdOf(day)}${qm(`孩子登录后只看得到这里派的内容，看不到题库本身。
-      派错了、要换：<b>撤回</b>从孩子这天的作业里拿掉；没做完：<b>改日期</b>挪到另一天。做过的成绩都会保留。`)}</h2>
+  let html = todoStrip() + `<h2 class="sec">${isToday?'今天':'作业'} · ${day} 周${wdOf(day)}${qm(`2026-10-22 起不用派题：孩子登录后在 <b>To do</b> 里看到题库里上架的全部，自己挑着做，每天目标 ${PLAN_MINS} 分钟。
+      这里还派得出（或自动排进来）的那几份，在孩子那边排在最前面、标 Picked for you。做过的成绩都会保留。`)}</h2>
     <div class="daynav">
       <button class="fchip" data-day="${shiftDay(day,-1)}">‹ ${dayName(shiftDay(day,-1), '前一天')}</button>
       <input type="date" id="tdpick" value="${day}">
@@ -1810,8 +1813,10 @@ function viewToday(){
       sc ? `第一遍达标 <b style="color:${fstCol}">${S.firstOk.length}/${sc}</b>` : '',
       daySpent ? `有效 <b>${dayTxt}</b>${fo.secs?`（开了 ${dur(fo.secs + unfAll.reduce((x,u)=>x+u.secs,0))}）`:''}` : list.length ? `预计 <b>${estSumTxt(list, k)}</b>` : '',
       share!=null ? `有效占 <b style="color:${shareCol}">${share}%</b>${fo.n?` · 切走 ${fo.n} 次`:''}` : ''].filter(Boolean).join(' · ');
-    html += kidCard('today', k, (list.length?'已派 '+list.length+' 份':isToday?'今天还没派':'这天没派') + leftTxt,
-      (line || (readS ? `没派东西 · 看批改 有效时间 <b>${dur(readS)}</b>` : `到「题库」勾选几份，再派给 ${KID[k].n}`))
+    // 不派题以后（2026-10-22）卡片头看的是这天做了几份、离 PLAN_MINS 分钟还差多少；派了的照旧写「已派 N 份」
+    const goal = `做了 ${papers.length} 份 · ${Math.round(daySpent/60)}/${PLAN_MINS} 分钟${daySpent>=PLAN_MINS*60?' ✓':''}`;
+    html += kidCard('today', k, (list.length?'已派 '+list.length+' 份 · ':'') + goal + leftTxt,
+      (line || (readS ? `看批改 有效时间 <b>${dur(readS)}</b>` : `${isToday?'今天':'这天'}还没交卷 · 孩子从 To do 里自己挑`))
       + attnLine(k, day)
       + (nTodo ? `<div class="attnline">✍️ ${nTodo} 篇作文等你批改 <button class="mini" data-gokid="${k}" data-gov="essay">去批改 ›</button></div>` : '')) + `
       <div class="hmet">
@@ -1827,7 +1832,7 @@ function viewToday(){
           `<div class="dsum">${histSummary(k, papers, S, U_ALL(k, day), true)}</div>`) : '')
       + (NOTES[k+'|'+day] ? noteBlock(k, day).replace('<details class="dnote" open>', '<details class="dnote">') : '') + attnBox(k, day);
     if(!list.length){
-      if(!reads.length) html += `<p class="empty">到「题库」勾选几份，再派给 ${KID[k].n}。</p>`;
+      if(!reads.length && !papers.length) html += `<p class="empty">${isToday?'今天':'这天'}还没交卷。孩子在作业页 To do 里自己挑着做。</p>`;
     } else {
       // 没做完的在上面、做完的沉到下面（Sam 2026-10-18）：组里先没做的；整科都做完的组排到最后
       const undoneFirst = items => [...items.filter(it=>!doneOf(it)), ...items.filter(it=>doneOf(it))];
@@ -1866,9 +1871,9 @@ function viewToday(){
            ${qTable(r, '', true)}`);
         // 做完了的那份，这里直接能归档（Sam 2026-09-27：不用再跑去题库）
         const bk = BANK_BY_ID[it.id];
-        const arch = !r || !bk ? '' : bk.archived ? `<span class="archdone" title="已归档 ${ymd(bk.archivedOn||'')}">已归档</span>`
+        const arch = !r || !bk ? '' : bk.archived ? `<span class="archdone" title="已下架 ${ymd(bk.archivedOn||'')}">已下架</span>`
 
-          : `<button class="mini" data-arch="${esc(it.id)}" data-to="1" title="从题库的在用列表收起来，不删文件、不动成绩，也不从孩子的作业里拿掉">归档</button>`;
+          : `<button class="mini" data-arch="${esc(it.id)}" data-to="1" title="下架：孩子的 To do 里看不到了；不删文件、不动成绩，也不从孩子今天的作业里拿掉">下架</button>`;
         // 只露状态和撤回，其余的收在「⋯」后面（Sam 2026-10-11）
         const more = arch + (!planOn(k) || day < iso(today) ? `<button class="mini" data-move="${esc(key)}">改日期</button>`
           : day === iso(today) ? (r ? '' : `<button class="mini" data-qop="${esc(key)}|tomorrow" title="今天不做了，排到明天最前面">明天再做</button>`)
@@ -1892,7 +1897,7 @@ function viewToday(){
       });
     }
     const extra = papers.filter(p=>!list.some(it=>it.id===p.id) && !isReviewRead(p.id));
-    if(extra.length) html += fold(k+'|extra', `另外做了 <span class="gs">${extra.length} 份不在这天的单子里 · ${extra.map(scoreBit).join(' · ')}</span>${qm('孩子自己打开做的、以前派的又做了一遍、或者已经撤回的')}`, extra.map(p=>slimPaper(k, p)).join(''));
+    if(extra.length) html += fold(k+'|extra', `${list.length?'另外做了':'自己挑着做的'} <span class="gs">${extra.length} 份${list.length?'不在这天的单子里':''} · ${extra.map(scoreBit).join(' · ')}</span>${qm('孩子从 To do 里自己挑的、以前派的又做了一遍、或者已经撤回的')}`, extra.map(p=>slimPaper(k, p)).join(''));
     const unfX = U_ALL(k, day).filter(u=>!list.some(it=>it.id===u.id));
     if(unfX.length) html += fold(k+'|unf', `打开过没交卷 <span class="gs">${unfX.length} 份 · ${dur(unfSum(unfX))}</span>${qm(UNF_TIP)}`, unfX.map(unfRow).join(''));
     if(reads.length) html += fold(k+'|reads', `📝 看批改 <span class="gs">${reads.length} 篇 · ${dur(readS)}</span>`, reads.map(g=>{
@@ -2300,7 +2305,8 @@ function bankRows(kid){
     if(q.length) return q.every(w => bankHay(b).includes(w));   // 搜索：在用、归档都搜
     if(F.arch==='active' && b.archived) return false;
     if(F.arch==='archived' && !b.archived) return false;
-    if(F.never && (HIST.get(b.docId)||[]).some(e=>!e.self && !e.pulled && kids.includes(e.k))) return false;
+    // 只看没做过（2026-10-22 起不派题，原来的「只看没派过」改成看做过没有：派的、自己挑的都算）
+    if(F.never && (HIST.get(b.docId)||[]).some(e=>e.r && kids.includes(e.k))) return false;
     return true;
   });
 }
@@ -2321,9 +2327,9 @@ function archCell(b){
   const why = [b.doneOn ? '完成 '+ymd(b.doneOn) : '', b.archivedOn ? '归档 '+ymd(b.archivedOn) : '',
                b.archivedWhy || ''].filter(Boolean).join(' · ');
   return b.archived
-    ? `<span class="badge b-arch"${why?` title="${esc(why)}"`:''}>已归档</span>
-       <button class="archbtn" data-arch="${esc(b.docId)}" data-to="0" title="放回在用列表">放回</button>`
-    : `<button class="archbtn" data-arch="${esc(b.docId)}" data-to="1" title="从默认列表里收起来，不删文件、不动成绩">归档</button>`;
+    ? `<span class="badge b-arch"${why?` title="${esc(why)}"`:''}>已下架</span>
+       <button class="archbtn" data-arch="${esc(b.docId)}" data-to="0" title="上架：孩子的 To do 里又看得到">上架</button>`
+    : `<button class="archbtn" data-arch="${esc(b.docId)}" data-to="1" title="下架：孩子的 To do 里看不到了；不删文件、不动成绩">下架</button>`;
 }
 
 // 归档 = 从默认题库列表里收起来。文件留着、历史成绩照样指得到、归档的还能派作业（§三之二）。
@@ -2500,9 +2506,9 @@ function histCell(b){
     else if(s.cls==='plan'){ txt = '今天 · 还没做'; cls = 'plan'; }
     else if(s.cls==='miss'){ txt = ymd(e.date)+' 派了没做'; cls = 'miss'; }
     else { txt = ymd(e.date)+' · '+s.txt; col = s.col; }
-  } else if(self.length){ const s = histState(self[0]); txt = '自己做过 · '+s.txt; col = s.col; }
+  } else if(self.length){ const s = histState(self[0]); txt = ymd(self[0].date)+' · '+s.txt; col = s.col; }
   else if(all.length){ txt = '撤回过'; cls = 'gone'; }
-  else { txt = '没派过'; cls = 'never'; }
+  else { txt = '没做过'; cls = 'never'; }
   const open = OPEN_HIST.has(b.docId);
   return `<button class="dst one${open?' open':''}" data-hist="${esc(b.docId)}" title="点开看说明、题数、用时和派发历史"><span class="st ${cls}"${col?` style="color:${col}"`:''}>${txt}</span><span class="caret">${open?'▾':'▸'}</span></button>`;
 }
@@ -2690,7 +2696,8 @@ function viewBank(){
   const moreSet = F.arch!=='active' || F.sort!=='group' || F.never, moreOn = F.more || moreSet;
   const nAct = BANK.filter(b=>!b.archived).length;
   const latest = BANK.map(touched).sort().pop();
-  let html = `<h2 class="sec">题库 · 在用 ${nAct} · 已归档 ${BANK.length-nAct}${qm(`<p>全部 ${BANK.length} 份都在这里，只有这个页面看得到${latest?`，最近一次上传 / 更新是 <b>${ymd(latest)}</b>`:''}。<b>点标题</b>在新标签页打开看题（家长预览，不记成绩）；勾选后在底部派给孩子。
+  let html = `<h2 class="sec">题库 · 上架 ${nAct} · 下架 ${BANK.length-nAct}${qm(`<p><b>2026-10-22 起不用派题</b>：上架的每一份，孩子在作业页 <b>To do</b> 里都看得到、自己挑着做，做完自动进 Done。
+      不想让他现在做的就<b>下架</b>（每行类型下面那颗，或勾选一批后用底部那条），要他做了再<b>上架</b>。下架不删文件、不动成绩。下面是以前的说明，「归档」就是现在的「下架」。</p><p>全部 ${BANK.length} 份都在这里，只有这个页面看得到${latest?`，最近一次上传 / 更新是 <b>${ymd(latest)}</b>`:''}。<b>点标题</b>在新标签页打开看题（家长预览，不记成绩）；勾选后在底部派给孩子。
       今天已经派出去的标着 <span class="badge b-assigned" style="cursor:default">✓ Assigned</span>（后面是派给了谁）。</p>
       <p><b>每行最右那格 = 派过没有</b>，颜色一眼分：<span style="color:var(--amber)">琥珀色「没派过」</span> ·
       <span style="color:var(--green)">绿色「派过 N 次」</span>（下面一行是最近那次）· 灰色「派过又撤回」。最近那次写
@@ -2722,15 +2729,15 @@ function viewBank(){
       点 <b>放回</b> 就拿回在用列表。</p>`)}</h2>
     ${kidTabs()}
     <div class="seclead groupbar slim"><input type="search" class="bsearch" id="bsearch" placeholder="搜标题、书名（按 / ）" value="${esc(F.q)}" autocomplete="off">
-      <span class="crumb">${rows.length} 份${F.q.trim()?' · 在用、归档一起搜':F.arch==='archived'?' · 归档':''}</span>
+      <span class="crumb">${rows.length} 份${F.q.trim()?' · 上架、下架一起搜':F.arch==='archived'?' · 下架的':''}</span>
       <span class="spacer"></span>
-      <button class="fchip${moreOn?' on':''}" data-act="more" title="归档、按时间、只看没派过、自定义链接、全部展开 / 收起">⋯ 更多${moreSet?' ·':''}</button></div>
+      <button class="fchip${moreOn?' on':''}" data-act="more" title="下架的、按时间、只看没做过、自定义链接、全部展开 / 收起">⋯ 更多${moreSet?' ·':''}</button></div>
     ${moreOn ? `<div class="seclead groupbar slim morebar">
-      ${[['arch',[['active','在用'],['archived','归档']]],
+      ${[['arch',[['active','上架的'],['archived','下架的']]],
          ['sort',[['group','按科目'],['time','按时间']]]].map(([f,opts])=>
         `<span class="seg">${opts.map(([v,l])=>
           `<button class="fchip${F[f]===v?' on':''}" data-f="${f}" data-v="${v}">${l}</button>`).join('')}</span>`).join('')}
-      <button class="fchip${F.never?' on':''}" data-never="1" title="只看从来没派给${KID[F.kid].n}的">只看没派过</button>
+      <button class="fchip${F.never?' on':''}" data-never="1" title="只看${KID[F.kid]?KID[F.kid].n:''}还没做过的">只看没做过</button>
       <button class="fchip" data-act="newlink" title="题库里没有的东西：别的网站上的课、读书会">＋ 自定义链接</button>
       ${F.sort==='time'?'':`<button class="fchip" data-act="expand">全部展开</button><button class="fchip" data-act="collapse">全部收起</button>`}</div>` : ''}`;
   html += linkForm();
@@ -2762,7 +2769,8 @@ function viewBank(){
     shelves.get(key).push(b);
   });
   const rank = s => { const i = SUBJ_ORDER.indexOf(s); return i < 0 ? 99 : i; };
-  const sentTo = b => histOf(b.docId).some(e=>!e.self && !e.pulled);
+  // 做过了（派的、孩子自己挑的都算）—— 2026-10-22 起不派题，原来看「派过没有」
+  const sentTo = b => histOf(b.docId).some(e=>e.r);
   const foldDone = F.arch==='active' && !F.never;
   const table = list => `<table><tbody>${list.map(b=>bankRow(b, false)).join('')}</tbody></table>`;
   const shelfHtml = (subj, book, list, single) => {
@@ -2774,8 +2782,8 @@ function viewBank(){
         data-ids="${esc(list.map(b=>b.docId).join(' '))}">
       ${single ? `<span class="shelfname">${esc(book)}</span>`
                : `<button class="shelftog${shut?'':' open'}" data-shelf="${esc(key)}">${esc(book)}</button>`}
-      <span class="scount">${list.length} 份${!nLeft?'':nLeft===list.length?' · 都没派过':` · <span class="never">还没派 ${nLeft}</span>`}${nAsg?` · <span class="sasg">今天已派 ${nAsg}</span>`:''}${nSel?` · <span class="ssel">已选 ${nSel}</span>`:''}</span>
-      ${grp.length?`<button class="archbtn grpbtn" data-archgrp="${esc(grp.join(' '))}" data-to="0" data-name="${esc(book)}" title="这一组全部放回在用">整组放回</button>`:''}</div>
+      <span class="scount">${list.length} 份${!nLeft?'':nLeft===list.length?' · 都没做过':` · <span class="never">还没做 ${nLeft}</span>`}${nAsg?` · <span class="sasg">今天已派 ${nAsg}</span>`:''}${nSel?` · <span class="ssel">已选 ${nSel}</span>`:''}</span>
+      ${grp.length?`<button class="archbtn grpbtn" data-archgrp="${esc(grp.join(' '))}" data-to="0" data-name="${esc(book)}" title="这一组全部上架">整组上架</button>`:''}</div>
       ${shut ? '' : table(list)}</div>`;
   };
 
@@ -2786,7 +2794,7 @@ function viewBank(){
     const nAsg = items.filter(b=>assignedTo(b.docId).length).length;
     const nLeft = items.filter(b=>!sentTo(b)).length;
     html += `<details class="subj" data-subj="${esc(subj)}"${OPEN.has(subj)?' open':''}>
-      <summary><span class="sname">${esc(subj)}</span><span class="scount">${foldDone?(nLeft?`还没派 ${nLeft} · `:'')+`共 ${items.length} 份`:`${items.length} 份`}</span>
+      <summary><span class="sname">${esc(subj)}</span><span class="scount">${foldDone?(nLeft?`还没做 ${nLeft} · `:'')+`共 ${items.length} 份`:`${items.length} 份`}</span>
         ${nAsg?`<span class="sasg">今天已派 ${nAsg}</span>`:''}
         ${nSel?`<span class="ssel">已选 ${nSel}</span>`:''}</summary>`;
 
@@ -2810,7 +2818,7 @@ function viewBank(){
     });
     if(done.length || looseDone.length){
       const od = OPEN_DONE.has(subj);
-      html += `<div class="donebar"><button class="donetog${od?' open':''}" data-done="${esc(subj)}" title="每一份都派给过${KID[F.kid].n}的书，收在这里">✓ 已派完${done.length?` ${done.length} 本`:''}${looseDone.length?`${done.length?' +':''} ${looseDone.length} 份`:''} <span class="caret">${od?'▾':'▸'}</span></button></div>`;
+      html += `<div class="donebar"><button class="donetog${od?' open':''}" data-done="${esc(subj)}" title="每一份${KID[F.kid].n}都做过的书，收在这里">✓ 已做完${done.length?` ${done.length} 本`:''}${looseDone.length?`${done.length?' +':''} ${looseDone.length} 份`:''} <span class="caret">${od?'▾':'▸'}</span></button></div>`;
       if(od){
         done.forEach(x=>{ html += shelfHtml(subj, x.book, x.list, false); });
         if(looseDone.length) html += `<div class="shelf">${table(looseDone)}</div>`;
@@ -4417,11 +4425,11 @@ function render(){
   if(V!=='usage') viewEl.insertAdjacentHTML('beforeend', `<div class="foot"><button data-usage="1">📊 按钮用了几次（这台设备）</button></div>`);
   viewEl.querySelectorAll('[data-usage]').forEach(b=>b.addEventListener('click',()=>go('usage')));
 
-  // 底部那颗归档键跟着选中的走：选的全是归档过的，它就变成「放回在用」
+  // 底部那颗键跟着选中的走：选的全是下架的，它就变成「上架」（2026-10-22 起归档 = 下架：孩子的 To do 里看不到）
   const selArch = [...SEL].map(id=>BANK_BY_ID[id]).filter(Boolean);
   const allArch = selArch.length > 0 && selArch.every(b=>b.archived);
   const ag = document.getElementById('archgo');
-  ag.textContent = allArch ? '放回在用' : '归档';
+  ag.textContent = allArch ? '上架' : '下架';
   ag.dataset.to = allArch ? '0' : '1';
   // 单份归档 / 放回：题库和「今天」都有
   viewEl.querySelectorAll('button[data-arch]').forEach(btn=>btn.addEventListener('click', async ()=>{
@@ -4429,11 +4437,11 @@ function render(){
     btn.disabled = true;
     try {
       await setArchived([id], on);
-      toast(`${on?'已归档':'已放回在用'}「${b?b.t:''}」`);
+      toast(`${on?'已下架':'已上架'}「${b?b.t:''}」`);
       render();   // 在「在用」筛选下，刚归档的这行会从列表里退场
     } catch(e){
       console.error(e); btn.disabled = false;
-      toast('归档没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
+      toast('上架 / 下架没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
     }
   }));
   viewEl.querySelectorAll('[data-gotoday]').forEach(b=>b.addEventListener('click',()=>go('today')));
@@ -4487,11 +4495,11 @@ function render(){
       btn.disabled = true;
       try {
         await setArchived(ids, on);
-        toast(`${on?'已归档':'已放回在用'}「${btn.dataset.name}」${ids.length} 份`);
+        toast(`${on?'已下架':'已上架'}「${btn.dataset.name}」${ids.length} 份`);
         render();
       } catch(e){
         console.error(e); btn.disabled = false;
-        toast('归档没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
+        toast('上架 / 下架没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
       }
     }));
     viewEl.querySelectorAll('input.selall').forEach(cb=>cb.addEventListener('change',()=>{
@@ -4534,7 +4542,7 @@ function navSync(){
   document.querySelectorAll('[data-top]').forEach(x=>x.classList.toggle('on', x.dataset.top===top));
   document.getElementById('subtabs').hidden = !KV;
   document.querySelectorAll('.stab[data-v]').forEach(x=>x.classList.toggle('on', x.dataset.v===V));
-  if(KV) document.getElementById('kidassign').textContent = `＋ 给 ${KID[KV].n} 派题`;
+  if(KV) document.getElementById('kidassign').textContent = `📚 ${KID[KV].n} 的题库`;
 }
 document.querySelectorAll('[data-top]').forEach(t=>t.addEventListener('click',()=>{
   const top = t.dataset.top;
@@ -4553,7 +4561,7 @@ document.getElementById('kidassign').addEventListener('click',()=>{
 });
 
 /* ===================== 键盘快捷键（电脑上，Sam 2026-09-27） =====================
-   /  搜题库（不在题库就先跳过去）· Enter 派发勾选的 · A 归档勾选的 · Esc 取消勾选。
+   /  搜题库（不在题库就先跳过去）· A 上架 / 下架勾选的 · Esc 取消勾选（Enter 派发 2026-10-22 起拿掉了）。
    光标在输入框、下拉框里，或者按着 ⌘ / Ctrl / Alt 时一律不管，免得打字时误触。 */
 document.addEventListener('keydown', e=>{
   if(gate && !gate.hidden) return;
@@ -4568,8 +4576,7 @@ document.addEventListener('keydown', e=>{
     return;
   }
   if(V!=='bank' || !SEL.size) return;
-  if(e.key==='Enter' && !(a && /^(BUTTON|A|SUMMARY)$/.test(a.tagName))){ e.preventDefault(); used('key:enter'); document.getElementById('assgo').click(); }
-  else if(e.key==='a' || e.key==='A'){ e.preventDefault(); used('key:a'); document.getElementById('archgo').click(); }
+  if(e.key==='a' || e.key==='A'){ e.preventDefault(); used('key:a'); document.getElementById('archgo').click(); }
   else if(e.key==='Escape'){ used('key:esc'); SEL.clear(); render(); }
 });
 
@@ -4741,17 +4748,17 @@ document.getElementById('assgo').addEventListener('click', async ()=>{
 document.getElementById('archgo').addEventListener('click', async ()=>{
   const go = document.getElementById('archgo'), on = go.dataset.to==='1';
   const ids = [...SEL].filter(id => BANK_BY_ID[id] && !!BANK_BY_ID[id].archived !== on);
-  if(!ids.length){ toast(on?'选中的已经都在归档里了':'选中的都在在用列表里'); return; }
+  if(!ids.length){ toast(on?'选中的已经都下架了':'选中的都已经上架了'); return; }
   const asg = ids.filter(id => assignedTo(id).length).length;
-  if(on && !confirm(`把这 ${ids.length} 份收进归档？\n\n只是从默认列表里收起来，文件和成绩记录都不动，随时能放回来。${asg?`\n其中 ${asg} 份今天已经派出去了，归档不会把它们从孩子的作业里拿掉。`:''}`)) return;
+  if(on && !confirm(`把这 ${ids.length} 份下架？\n\n孩子的 To do 里就看不到了；文件和成绩记录都不动，随时能再上架。${asg?`\n其中 ${asg} 份今天派过，下架不会把它们从孩子今天的作业里拿掉。`:''}`)) return;
   go.disabled = true;
   try {
     await setArchived(ids, on);
     SEL.clear(); render();
-    toast(`${on?'已归档':'已放回在用'} ${ids.length} 份`);
+    toast(`${on?'已下架':'已上架'} ${ids.length} 份`);
   } catch(e){
     console.error(e);
-    toast('归档没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
+    toast('上架 / 下架没改成：' + (e.code||e.message) + '，题库没变，稍后再试', true);
   } finally { go.disabled = false; }
 });
 // 底部那条上的「⏱ 预计 45 分钟」：选中的加起来估计要多久，换个孩子（他俩速度不一样）也跟着变。
@@ -4763,18 +4770,8 @@ function assMins(){
   el.innerHTML = ' · ⏱ 预计 <b>' + esc(estSumTxt(items, kid)) + '</b>';
   el.title = estSumTip(items, kid, kid==='both' ? '每人 ' : '');
 }
-// 勾的里面有 7 天内（含以后排着的）已经派给这个孩子的：底部那条提醒一句，免得重复派（Sam 2026-09-27）
-function assWarn(){
-  const el = document.getElementById('selwarn'), k = document.getElementById('asskid').value;
-  const kids = k==='both' ? ['grace','warren'] : [k], from = shiftDay(iso(today), -7);
-  const hits = [...SEL].map(id=>{
-    const e = (HIST.get(id)||[]).find(e=>!e.self && !e.pulled && kids.includes(e.k) && e.date>=from);
-    return e && [BANK_BY_ID[id], e];
-  }).filter(Boolean);
-  el.hidden = !hits.length;
-  el.textContent = hits.length ? `⚠ 其中 ${hits.length} 份最近派过` : '';
-  el.title = hits.map(([b, e])=>`${b?b.t:''} —— ${KID[e.k].n} ${e.date.slice(5)}${e.date>iso(today)?'（还排着）':''}`).join('\n');
-}
+// 原来提醒「勾的里面 7 天内派过」（Sam 2026-09-27）；2026-10-22 起不派题，这句不再出现
+function assWarn(){ document.getElementById('selwarn').hidden = true; }
 document.getElementById('asskid').addEventListener('change', ()=>{ assMins(); assWarn(); });
 document.getElementById('assclear').addEventListener('click',()=>{ SEL.clear(); render(); });
 

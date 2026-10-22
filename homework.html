@@ -546,9 +546,12 @@ async function load(){
   });
   if(!DAYS.some(d=>d.date===iso(today)) && left.length)
     DAYS.push({ date:iso(today), items:left.map(it=>({ id:it.id, t:it.t, subj:subjOf(it.subj) })), withdrawn:[], summary:null });
+  // From PET_CUT the pet runs on the no-assigning rules (kid-pets.js top): any page pays, a day counts at DAY_MINS.
+  const bk = new Map((BANK||[]).map(b=>[b.docId, b]));
   GAME = KidPets.compute(
-    ATT.map(a=>({ id:a.id, t:a.t, kind:a.kind, pct:a.pct, wrong:a.wrong.length, date:a.date, at:a.when?+a.when:0 })),
-    DAYS, iso(today));
+    ATT.map(a=>({ id:a.id, t:a.t, kind:a.kind, pct:a.pct, wrong:a.wrong.length, date:a.date, at:a.when?+a.when:0,
+                  secs:a.active, done:counts(bk.get(a.id), a), daily:dailyItem(bk.get(a.id)), subj:a.subj })),
+    DAYS, iso(today), { cut: PET_CUT, dayMins: DAY_MINS });
 }
 // 没做完自动顺延 (HOMEWORK-SYSTEM.md 2026-10-04). Same rule as parent.html's carryList — keep them alike:
 // an item from one of the last CARRY_DAYS days (not before carry.since) that wasn't handed in from
@@ -818,6 +821,9 @@ function viewMistakes(){
      Try again ones wait in their subject's list.
    · The bar counts working time (activeSecs) of what was handed in today, against the DAY_MINS day. */
 const DAY_MINS = 90, MATH_PER_DAY = 3, UP_NEXT = 5;
+// The day the pet's streak and XP switched to these rules (Sam 2026-10-22: 「宠物连胜改成看当天满 90 分钟」).
+const PET_CUT = '2026-10-23';
+const minsDay = d => d >= PET_CUT;
 const DAILY_BOOKS = ['🖊️ BASA'];
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const nat = new Intl.Collator('en', { numeric:true }).compare;
@@ -833,6 +839,8 @@ function vocabDays(b){
   const cls = `${y}-${String(mo+1).padStart(2,'0')}-${m[2].padStart(2,'0')}`;
   return /Week-Test/i.test(m[3]) ? { test:true, from:shiftIso(cls, 6) } : { from:shiftIso(cls, 2), to:shiftIso(cls, 5) };
 }
+// Done every day it's on (BASA, the vocab Parts) rather than once.
+const dailyItem = b => { if(!b) return false; const v = vocabDays(b); return DAILY_BOOKS.includes(b.book) || !!(v && !v.test); };
 // Bank shelves are partly Chinese (Dad's labels); the kids read English. Chinese lessons may stay Chinese.
 const BOOK_EN = { '🩹 错题补练':'🩹 Fix-up practice', '🧰 常用工具':'🧰 Tools' };
 const libItem = b => ({ id:b.docId, t:b.t||'', href:b.href||decodeURIComponent(b.docId), type:b.type||'quiz', n:b.n||0,
@@ -1010,7 +1018,8 @@ function habitat(p, extra){
 function petDoc(pet, g){
   return { kind:pet.kind, name:pet.name, chosenAt:pet.chosenAt,
     xp:g.xp, lv:g.lv, streak:g.streak, best:g.best, pages:g.pages, badges:g.badges.map(b=>b.id),
-    todayDone:g.todayDone, left:(g.todayLeft||[]).length, day:iso(today), updatedAt:Date.now() };
+    // left = pages still to do today; on the 90-minute days (minsDay) it is minutes still to do instead
+    todayDone:g.todayDone, left:g.leftMins!=null ? Math.max(0, g.leftMins) : (g.todayLeft||[]).length, day:iso(today), updatedAt:Date.now() };
 }
 
 // petCards/{uid}: what the sign-in screen is allowed to see. Pet status only — the rules make
@@ -1112,12 +1121,12 @@ function showNews(prev, n, from){
     // pairing them would tell him a run ended on a day that didn't end it. So when `after` is 0
     // (the latest break ended nothing, the fire was already out) name no day at all.
     const k = GAME.streakBroke, left = (GAME.todayLeft||[]).length;
-    const restart = left ? `Finish today's ${plural(left, 'page')} and a new one starts at 1.`
+    const restart = left ? `Finish ${missedList(GAME.todayLeft)} today and a new one starts at 1.`
       : 'A new one starts on your next full homework day.';
     const keep = `Your XP, badges and best (${plural(GAME.best, 'day')}) all stay.`;
     rows += k.after
       ? `<div class="r"><span class="v" style="color:var(--mute)">🔥→0</span><span class="t">Your streak of ${plural(k.after, 'day')} stopped<small>The homework from ${
-          dayName(k.date)} wasn't all done${k.missed.length ? ` — ${missedList(k.missed)}` : ''}. ${restart} ${keep}</small></span></div>`
+          dayName(k.date)} wasn't all done${k.mins!=null ? ` — you did ${k.mins} of ${DAY_MINS} minutes` : k.missed.length ? ` — ${missedList(k.missed)}` : ''}. ${restart} ${keep}</small></span></div>`
       : `<div class="r"><span class="v" style="color:var(--mute)">🔥→0</span><span class="t">Your 🔥 streak has stopped<small>While you were away, a homework day went by without everything getting done. ${restart} ${keep}</small></span></div>`;
   }
   n.badges.slice(0,3).forEach(b=>{
@@ -1188,15 +1197,18 @@ function streakWhy(g){
   if(g.streak){
     const nxt = `${g.streak+1} in a row`;
     const line = left ? `Finish ${missedList(g.todayLeft)} today and it's ${nxt}.`
-      : g.todayDone ? `Today's homework is all done, so the fire is safe. Do it again next homework day to make it ${nxt}.`
+      : g.todayDone ? (minsDay(iso(today)) ? `You've done ${DAY_MINS} minutes today, so the fire is safe. Do ${DAY_MINS} again tomorrow to make it ${nxt}.`
+        : `Today's homework is all done, so the fire is safe. Do it again next homework day to make it ${nxt}.`)
       : `No homework today, so nothing can break it. Your next full homework day makes it ${nxt}.`;
     return `<div class="streakwhy">All done since <b>${dayName(g.streakFrom)}</b>. ${line}</div>`;
   }
   const b = g.streakBroke;
-  const start = left ? `Finish all ${plural(left, 'page')} left today and a new streak starts at 1.`
+  const start = left ? `Finish ${missedList(g.todayLeft)} today and a new streak starts at 1.`
+    : minsDay(iso(today)) ? `Do ${DAY_MINS} minutes of homework in a day and a new streak starts at 1.`
     : `Finish everything a homework day gives you, on that day, and a new streak starts at 1.`;
   if(!b) return `<div class="streakwhy">${start}</div>`;
-  const what = b.missed.length ? ` — ${missedList(b.missed)} ${b.missed.length===1?'was':'were'}n't done that day`
+  const what = b.mins!=null ? ` — you did ${b.mins} of ${DAY_MINS} minutes that day`
+    : b.missed.length ? ` — ${missedList(b.missed)} ${b.missed.length===1?'was':'were'}n't done that day`
     : ` — it wasn't all finished`;
   return `<div class="streakwhy gone">🔥 <b>Your streak stopped ${onDay(b.date)}</b>${what}.${
     b.after ? ` That ended a run of ${plural(b.after, 'day')}.` : ''} ${start}</div>`;
@@ -1330,8 +1342,8 @@ function renderPick(){
     const yest = new Date(today); yest.setDate(yest.getDate() - 1);
     const fresh = c.day === iso(today), known = fresh || c.day === iso(yest);
     const streak = !known ? null : (!fresh && c.left > 0) ? 0 : (c.streak||0);
-    const wh = fresh && c.todayDone ? 'All done today ⭐'
-      : fresh && c.left ? `${plural(c.left, 'page')} still to do today`
+    const wh = fresh && c.todayDone ? (minsDay(c.day) ? `${DAY_MINS} minutes done today ⭐` : 'All done today ⭐')
+      : fresh && c.left ? (minsDay(c.day) ? `${c.left} min still to do today` : `${plural(c.left, 'page')} still to do today`)
       : fresh ? 'No homework today'
       : `Last homework ${dayName(c.day)}`;
     return `<button class="who ${k.cls}" type="button" data-kid="${key}">

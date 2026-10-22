@@ -10,10 +10,15 @@
            every page of a homework day done that same day +10
            Nothing for speed (it would reward guessing), and failing first never pays more
            than getting it right first time.
+           From opt.cut on (2026-10-23, HOMEWORK-SYSTEM.md 2026-10-22: no more assigning) a page
+           pays whether or not it was assigned — once per page, or once a day for the daily ones
+           (BASA, the class-vocab Parts) — and a day of opt.dayMins working minutes pays the day bonus.
    Streak  homework days in a row with everything done that day. Days with no homework
            are skipped; today can't break it until today is over. Doing a page late still
            pays XP but never brings a broken streak back — compute() returns streakFrom,
            streakBroke and todayLeft so the page can say all this in the kid's own words.
+           From opt.cut on every day is a homework day and it counts when it reaches opt.dayMins
+           working minutes; the days before keep the old rule, so nothing already earned changes.
 ===================================================================== */
 (function (root) {
   'use strict';
@@ -83,10 +88,13 @@
     return catalog(kind, subj).find(b => b.id === id) || null;
   }
 
-  /* att : [{ id, t, pct (null if not scored), wrong (count), date 'YYYY-MM-DD', at (ms), kind }]
+  /* att : [{ id, t, pct (null if not scored), wrong (count), date 'YYYY-MM-DD', at (ms), kind,
+              secs (working seconds), done (counts as doing the page), daily (a page done every day), subj }]
      days: [{ date, items:[{id, t, subj}], withdrawn:[…same] }]   subj = English subject name
-     today: 'YYYY-MM-DD' */
-  function compute(att, days, today) {
+     today: 'YYYY-MM-DD'
+     opt : { cut: 'YYYY-MM-DD', dayMins } — the 90-minute rule from cut on (see top); leave out for the old rule only */
+  function compute(att, days, today, opt) {
+    const cut = (opt && opt.cut) || '9999-12-31', dayMins = (opt && opt.dayMins) || 90;
     att = att.filter(a => a.id).slice().sort((a, b) => (a.at || 0) - (b.at || 0));
     const byItem = new Map();
     att.forEach(a => { if (!byItem.has(a.id)) byItem.set(a.id, []); byItem.get(a.id).push(a); });
@@ -100,11 +108,11 @@
     // Withdrawn items count too, so taking one back later doesn't shrink the pet.
     const jobs = [];
     days.forEach(d => {
-      if (d.date > today) return;
+      if (d.date > today || d.date >= cut) return;
       [...(d.items || []), ...(d.withdrawn || [])].forEach(it => jobs.push({ date: d.date, id: it.id, t: it.t, subj: it.subj }));
     });
     jobs.sort(byDate);
-    const usedPage = new Set(), usedPass = new Set();
+    const usedPage = new Set(), usedPass = new Set(), paid = new Set();
     jobs.forEach(j => {
       const list = byItem.get(j.id) || [];
       const a = list.find(x => x.date >= j.date && !usedPage.has(x));
@@ -113,6 +121,19 @@
       events.push({ at: a.at, xp: XP.page, kind: 'page', t: j.t || a.t, subj: j.subj });
       const p = list.find(x => x.date >= j.date && x.pct != null && x.pct >= PASS && !usedPass.has(x));
       if (p) { usedPass.add(p); events.push({ at: p.at, xp: XP.pass, kind: 'pass', t: j.t || p.t, subj: j.subj }); }
+      paid.add(j.id);
+    });
+    // From cut on: any page done pays, assigned or not — once per page (not again if an assigned day
+    // already paid for it), once a day for the daily ones. The 80% bonus goes with it, same way.
+    const paidKey = new Set(), passKey = new Set();
+    att.forEach(a => {
+      if (a.date < cut || a.date > today || !a.done || usedPage.has(a)) return;
+      const key = a.daily ? a.id + '|' + a.date : a.id;
+      if (!a.daily && paid.has(a.id)) return;
+      if (!paidKey.has(key)) { paidKey.add(key); usedPage.add(a); events.push({ at: a.at, xp: XP.page, kind: 'page', t: a.t, subj: a.subj }); }
+      if (a.pct != null && a.pct >= PASS && !passKey.has(key) && !usedPass.has(a)) {
+        passKey.add(key); usedPass.add(a); events.push({ at: a.at, xp: XP.pass, kind: 'pass', t: a.t, subj: a.subj });
+      }
     });
 
     // Redoing: Comeback (under 80% → pass), Perfect, and clearing a Mistakes-notebook page.
@@ -151,12 +172,24 @@
     // Homework days: all done that same day → bonus + streak.
     // `broke` keeps the last homework day that wasn't finished and what was left on it, so the
     // page can tell the kid why a streak ended instead of the fire just disappearing on him.
-    let run = 0, best = 0, todayDone = false, from = null, broke = null, todayLeft = null;
-    days.filter(d => d.date <= today && (d.items || []).length).sort(byDate).forEach(d => {
-      const hits = d.items.map(it => (byItem.get(it.id) || []).find(a => a.date === d.date));
-      const missed = d.items.filter((it, i) => !hits[i]).map(it => it.t || '');
-      if (hits.every(Boolean)) {
-        const at = Math.max(...hits.map(h => h.at || 0));
+    // From cut on, every day up to today is a homework day and counts at dayMins working minutes;
+    // `missed` / todayLeft then say the minutes ("only 40 of 90 minutes", "50 more minutes") and broke.mins has the number.
+    let run = 0, best = 0, todayDone = false, from = null, broke = null, todayLeft = null, leftMins = null;
+    const secsOn = {}; att.forEach(a => { if (a.date >= cut) secsOn[a.date] = (secsOn[a.date] || 0) + (a.secs || 0); });
+    const hwDays = days.filter(d => d.date <= today && d.date < cut && (d.items || []).length).map(d => ({ ...d }));
+    if (cut <= today) for (let d = cut; d <= today; ) {
+      hwDays.push({ date: d, mins: Math.round((secsOn[d] || 0) / 60) });
+      const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + 1);
+      d = x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+    }
+    hwDays.sort(byDate).forEach(d => {
+      const byMins = d.mins != null;
+      const hits = byMins ? [] : d.items.map(it => (byItem.get(it.id) || []).find(a => a.date === d.date));
+      const ok = byMins ? d.mins >= dayMins : hits.every(Boolean);
+      const missed = byMins ? (d.date === today ? [`${dayMins - d.mins} more minutes`] : [`only ${d.mins} of ${dayMins} minutes`])
+        : d.items.filter((it, i) => !hits[i]).map(it => it.t || '');
+      if (ok) {
+        const at = byMins ? Math.max(0, ...att.filter(a => a.date === d.date).map(a => a.at || 0)) : Math.max(...hits.map(h => h.at || 0));
         events.push({ at, xp: XP.day, kind: 'day', date: d.date });
         run++; if (run === 1) from = d.date;
         best = Math.max(best, run);
@@ -165,10 +198,11 @@
         if (run >= 14) earn('streak14', at);
         if (d.date === today) todayDone = true;
       } else if (d.date !== today) {
-        broke = { date: d.date, after: run, missed };
+        broke = { date: d.date, after: run, missed, mins: byMins ? d.mins : null };
         run = 0; from = null;
       } else {
         todayLeft = missed;                    // today isn't finished yet — it can still be saved
+        if (byMins) leftMins = dayMins - d.mins;
       }
     });
 
@@ -194,7 +228,7 @@
 
     const badges = [...earned].map(([id, at]) => ({ id, at })).sort((a, b) => a.at - b.at);
     return { xp, ...level(xp), stage: stageOf(xp), streak: run, best, todayDone, pages, subj, badges, events,
-             streakFrom: from, streakBroke: broke, todayLeft };
+             streakFrom: from, streakBroke: broke, todayLeft, leftMins };
   }
 
   const api = { PASS, XP, STAGE_LV, PETS, level, stageOf, catalog, badgeInfo, compute };
