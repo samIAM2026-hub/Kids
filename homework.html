@@ -121,6 +121,12 @@
   div.row[style*="--sc"]{border-left:8px solid var(--sc)}   /* .row's own border is set further down; this one wins */
   .card.done{border-left-color:var(--sc, #b9d7c0)}
   .sjt{display:inline-flex;align-items:center;gap:5px;font-weight:600;color:var(--ink);margin-right:8px;white-space:nowrap}
+  /* parent mode: everything only a parent sees is gold and marked 🔑 */
+  .pbar{background:#fff4d6;border:2px solid #c9a227;color:#5b4636;border-radius:12px;padding:8px 12px;margin:8px 0 2px;font-size:15px}
+  .pbar a{color:#8a5a00;font-weight:700;margin-left:8px}
+  .go.pbtn{background:#c9a227;color:#1c1a17;border:2px solid #a8851a}
+  .pmini{flex:0 0 auto;background:#fff4d6;color:#7a5a00;border:2px solid #c9a227;border-radius:12px;font:600 14px inherit;padding:8px 10px;cursor:pointer;margin-left:6px}
+  .parentmode #switch{border-color:#c9a227;color:#7a5a00;background:#fff4d6}
   .whyline{font-size:15px;font-weight:600;color:var(--acc);margin:4px 0 2px}
   .sjt i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--sc)}
   .wk{display:inline-block;font-weight:600;font-size:.72rem;line-height:1.6;color:var(--wk);border:1px solid var(--wk);
@@ -379,6 +385,7 @@
         <span class="spacer"></span>
         <button class="out" id="switch">👋 I'm done · Sign out</button>
       </div>
+      <div class="pbar" id="pbar" hidden></div>
       <nav class="tabs">
         <button class="tab on" data-v="today">Today <span class="n" id="ntoday"></span></button>
         <button class="tab" data-v="library">Library <span class="n" id="nlib"></span></button>
@@ -433,8 +440,14 @@ const firebaseConfig = {
   projectId: 'family-checklist-acc6b',
   appId: '1:127899043154:web:5a49cce9a1913fbc41e68b'
 };
-// Named app: this sign-in is stored apart from the parent console's and the checklists'.
-const app = firebase.initializeApp(firebaseConfig, 'kid');
+/* Parent mode (Sam 2026-10-23: 「家长界面最好和孩子的界面一致，有家长特殊按键的话可以标注」): homework.html?as=warren
+   is this same page, showing exactly what Warren sees, opened with the parent's sign-in. Using the app name the
+   parent console uses ('parent') shares its saved login. The parent-only buttons are gold and marked 🔑; nothing a
+   kid's sign-in does (pet saves, the 30-minute sign-out, "I'm done" on a link) happens in parent mode. */
+const AS = new URLSearchParams(location.search).get('as');
+const PARENT = AS === 'grace' || AS === 'warren';
+// Named app: this sign-in is stored apart from the parent console's and the checklists' (parent mode shares the console's).
+const app = firebase.initializeApp(firebaseConfig, PARENT ? 'parent' : 'kid');
 const auth = app.auth(), db = app.firestore();
 
 const KIDS = {
@@ -681,6 +694,12 @@ function card(it, a, x = {}){
   }
   if(x.lib) btn = x.inToday ? `<span class="go in">✓ In Today</span>` : `<button class="go again" data-add="${esc(it.id)}">＋ Today</button>`;
   if(x.unpick) btn += `<button class="unpick" data-unpick="${esc(it.id)}" title="Take it off Today" aria-label="Take it off Today">✕</button>`;
+  // Parent mode: the kid's own buttons that write as the kid give way to the parent's, gold and marked 🔑
+  if(PARENT){
+    if(x.lib) btn = (x.inToday ? `<span class="go in">✓ In Today</span>` : `<button class="go pbtn" data-passign="${esc(it.id)}">🔑 放进今天</button>`)
+      + `<button class="pmini" data-punstock="${esc(it.id)}">🔑 下架</button>`;
+    else if(!a) btn = `<a class="go" href="${esc(pageUrl(it.href))}"${extAttr(it.href)}>Start →</a><button class="pmini" data-ppull="${esc(it.id)}">🔑 撤回</button>`;
+  }
   const size = it.n ? `${it.book?' · ':''}${it.n} ${it.type==='quiz'?'questions':'steps'}` : '';
   // When Dad made the page (bank `added`; Sam 2026-10-22: 「不知道是哪天做的」) — the last 3 days also get 🆕 New.
   const made = it.added ? ` · Made ${madeDay(it.added)}${madeNew(it.added)?'<span class="carry">🆕 New</span>':''}` : '';
@@ -1181,6 +1200,7 @@ function toast(msg){
 // summary and celebrate what changed: a level, a stage, a badge or the streak gets the big
 // card; XP alone gets a small toast.
 async function afterLoad(from){
+  if(PARENT) return;   // the pet is the kid's: never saved from the parent's look at the page
   const me = ME;
   if(PET===undefined) return;                 // couldn't read it — try again next time
   if(!PET){
@@ -1267,6 +1287,7 @@ function showNews(prev, n, from){
 }
 
 function showPicker(){
+  if(PARENT) return;   // picking a pet is the kid's to do
   openPop(`<h2>Pick your pet!</h2>
     <p class="plead">Your pet grows every time you do your homework. It stays with you, so choose carefully!</p>
     <div class="petopts">${Object.entries(KidPets.PETS).map(([k,p])=>`<button class="petopt" type="button" id="po-${k}" data-kind="${k}" aria-pressed="false">
@@ -1513,6 +1534,7 @@ pin.addEventListener('keydown',e=>{ if(e.key==='Enter') tryPin(); });
 
 let firstAuth = true;
 auth.onAuthStateChanged(async user=>{
+  if(PARENT) return parentStart(user);
   const restored = firstAuth; firstAuth = false;   // first call = the sign-in saved on this device
   if(!user){ showPick(signinMsg); signinMsg = ''; return; }
   const key = Object.keys(KIDS).find(k=>KIDS[k].uid===user.uid);
@@ -1540,8 +1562,78 @@ auth.onAuthStateChanged(async user=>{
   }
   afterLoad('signin').catch(console.error);
 });
-document.getElementById('switch').addEventListener('click',()=>auth.signOut());
+document.getElementById('switch').addEventListener('click',()=>{ if(PARENT) location.href = 'parent.html'; else auth.signOut(); });
+
+/* ---------- parent mode (see AS / PARENT at the top) ---------- */
+async function parentStart(user){
+  signinEl.hidden = true; appEl.hidden = false;
+  if(!user || Object.values(KIDS).some(k=>k.uid===user.uid)){
+    viewEl.innerHTML = `<div class="empty"><span class="e">🔑</span>家长模式要先在家长台登录（Google 或妈妈的密码）。<br>
+      <a class="go" href="parent.html" style="margin-top:12px;display:inline-block">去家长台登录 →</a></div>`;
+    return;
+  }
+  ME = { ...KIDS[AS], key: AS };
+  document.body.className = ME.cls + ' parentmode';
+  document.getElementById('hav').textContent = ME.av;
+  document.getElementById('hname').textContent = `Hi, ${ME.n}!`;
+  document.getElementById('hdate').textContent = today.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  document.getElementById('switch').textContent = '🔑 ← 家长台';
+  const other = Object.keys(KIDS).find(k=>k!==AS);
+  document.getElementById('pbar').hidden = false;
+  document.getElementById('pbar').innerHTML = `🔑 <b>家长模式</b>：这就是 ${ME.n} 看到的页面。金色 🔑 按钮只有家长看得到。
+    <a href="?as=${other}">换成 ${KIDS[other].av} ${KIDS[other].n}</a>`;
+  viewEl.innerHTML = `<div class="empty"><span class="e">⏳</span>正在读 ${ME.n} 的作业…</div>`;
+  try { await load(); render(); }
+  catch(e){ console.error(e); viewEl.innerHTML = `<div class="empty"><span class="e">📡</span>读不到 ${ME.n} 的作业：${esc(e.code||e.message)}</div>`; }
+}
+const todayRef = () => db.doc(`assignments/${ME.uid}/days/${iso(today)}`);
+async function parentDo(btn, work, done){
+  btn.disabled = true;
+  try { await work(); await load(); render(); toast(done); }
+  catch(e){ console.error('[parent]', e); btn.disabled = false; alert('没改成：' + (e.code||e.message)); }
+}
+// 🔑 放进今天: onto today's list for this kid (the same item shape the console's 派发 writes; no longer withdrawn)
+function parentAssign(id, btn){
+  const b = (BANK||[]).find(x=>x.docId===id); if(!b) return;
+  parentDo(btn, ()=>db.runTransaction(async tx=>{
+    const x = (await tx.get(todayRef())).data() || {}, items = x.items || [];
+    if(items.some(it=>it.id===id)) return;
+    tx.set(todayRef(), { items: [...items, { id, t:b.t, href:b.href||decodeURIComponent(id), type:b.type||'quiz', n:b.n||0, ic:b.ic||'', subj:b.subj||'', book:b.book||'',
+      at: firebase.firestore.Timestamp.now() }], withdrawn: (x.withdrawn||[]).filter(it=>it.id!==id),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+  }), `已放进 ${ME.n} 今天：${b.t}`);
+}
+// 🔑 撤回: off today — an assigned item moves to withdrawn; a rule-made one (BASA, vocab) is marked withdrawn so the
+// rule leaves it out; one the kid picked comes off their picks too
+function parentPull(id, btn){
+  const L = library(), it = L && L.today.find(x=>x.id===id); if(!it) return;
+  if(!confirm(`从 ${ME.n} 今天的作业里撤回「${it.t}」？做过的成绩会保留。`)) return;
+  parentDo(btn, async ()=>{
+    await db.runTransaction(async tx=>{
+      const x = (await tx.get(todayRef())).data() || {}, items = x.items || [], gone = items.find(i=>i.id===id);
+      const w = { ...(gone || { id, t:it.t, href:it.href, type:it.type, n:it.n||0, ic:it.ic||'', subj:'', book:'' }), withdrawnAt: firebase.firestore.Timestamp.now() };
+      tx.set(todayRef(), { items: items.filter(i=>i.id!==id), withdrawn: [...(x.withdrawn||[]).filter(p=>p.id!==id), w],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+    });
+    if(PICKS.some(p=>p.id===id)){
+      const ref = db.doc(`kidPicks/${ME.uid}__${iso(today)}`);
+      await ref.set({ items: PICKS.filter(p=>p.id!==id), updatedAt: Date.now() }, { merge:true });
+    }
+  }, `已撤回：${it.t}`);
+}
+// 🔑 下架: off the shelf — gone from this kid's Library (and the other kid's, if it's shared)
+function parentUnstock(id, btn){
+  const b = (BANK||[]).find(x=>x.docId===id); if(!b) return;
+  if(!confirm(`把「${b.t}」下架？${b.kid==='both'?'这份是两个孩子共用的，两个人的 Library 里都会拿掉。':''}\n文件和成绩都不动，在家长台题库里随时能再上架。`)) return;
+  parentDo(btn, async ()=>{
+    await db.doc('bank/'+id).set({ archived:true, archivedOn: iso(today), archivedWhy:'家长手动归档' }, { merge:true });
+    await FsCache.bumpBank(db);
+  }, `已下架：${b.t}`);
+}
 viewEl.addEventListener('click', e=>{
+  const pa = e.target.closest('[data-passign]'); if(pa) parentAssign(pa.dataset.passign, pa);
+  const pp = e.target.closest('[data-ppull]'); if(pp) parentPull(pp.dataset.ppull, pp);
+  const pu = e.target.closest('[data-punstock]'); if(pu) parentUnstock(pu.dataset.punstock, pu);
   const ad = e.target.closest('[data-add]'); if(ad) setPick(ad.dataset.add, true, ad);
   const un = e.target.closest('[data-unpick]'); if(un) setPick(un.dataset.unpick, false, un);
   if(e.target.closest('[data-signout]')) auth.signOut();
@@ -1560,7 +1652,7 @@ setInterval(()=>{
   // Midnight while the page just sits there (nothing hidden, nothing clicked). Not mid-popup:
   // that would throw away a card he hasn't read, or a pet name he's halfway through typing.
   if(dateChanged() && popEl.hidden){ location.reload(); return; }
-  if(ME && idle()) auth.signOut();
+  if(ME && !PARENT && idle()) auth.signOut();
 }, 60*1000);
 
 // A page left open overnight still thinks it's yesterday: it would show yesterday's homework as
@@ -1573,7 +1665,7 @@ function dateChanged(){ const d = new Date(); d.setHours(0,0,0,0); return +d !==
 function comeBack(){
   if(dateChanged()){ location.reload(); return; }
   if(!ME) return;
-  if(idle()) auth.signOut();
+  if(!PARENT && idle()) auth.signOut();
   else load().then(render).then(()=>afterLoad('back')).catch(console.error);
 }
 window.addEventListener('pageshow', e=>{ if(e.persisted) comeBack(); });
