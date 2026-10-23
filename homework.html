@@ -115,6 +115,13 @@
   .card{display:flex;align-items:center;gap:16px;background:var(--paper);border:2px solid var(--line);
         border-radius:18px;padding:16px 18px;margin-top:14px}
   .card.done{border-color:#b9d7c0}
+  /* Every subject has its own colour (Sam 2026-10-23: 「每个科目颜色要不一样，这样才能分清」): a thick left edge on each
+     card / row and a small dot + name in the card's line. Same colours as the parent page chart (SUBJ_COL). */
+  .card{border-left:8px solid var(--sc, var(--line))}
+  div.row[style*="--sc"]{border-left:8px solid var(--sc)}   /* .row's own border is set further down; this one wins */
+  .card.done{border-left-color:var(--sc, #b9d7c0)}
+  .sjt{display:inline-flex;align-items:center;gap:5px;font-weight:600;color:var(--ink);margin-right:8px;white-space:nowrap}
+  .sjt i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--sc)}
   .wk{display:inline-block;font-weight:600;font-size:.72rem;line-height:1.6;color:var(--wk);border:1px solid var(--wk);
       background:color-mix(in srgb, var(--wk) 12%, #fff);border-radius:999px;padding:0 .55em;margin-right:.45em;white-space:nowrap}
   a.card.marked{text-decoration:none;color:inherit;border-color:var(--gold, #c9a227);background:#fffaf0;margin-bottom:14px}
@@ -675,11 +682,11 @@ function card(it, a, x = {}){
   const size = it.n ? `${it.book?' · ':''}${it.n} ${it.type==='quiz'?'questions':'steps'}` : '';
   // When Dad made the page (bank `added`; Sam 2026-10-22: 「不知道是哪天做的」) — the last 3 days also get 🆕 New.
   const made = it.added ? ` · Made ${madeDay(it.added)}${madeNew(it.added)?'<span class="carry">🆕 New</span>':''}` : '';
-  return `<div class="card${a?' done':''}" data-hay="${esc([it.t, it.book, it.subj].join(' ').toLowerCase())}">
+  return `<div class="card${a?' done':''}" style="--sc:${subjCol(it.subj)}" data-hay="${esc([it.t, it.book, it.subj].join(' ').toLowerCase())}">
     <span class="ic">${esc(it.ic)||'📄'}</span>
     <div class="body">
       <div class="t">${esc(it.t)}</div>
-      <div class="meta"><span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book)}${size}${made}${it.carried?`<span class="carry">${lateTag(it)}</span>`:''}${
+      <div class="meta">${it.subj?`<span class="sjt"><i></i>${esc(it.subj)}</span>`:''}<span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book)}${size}${made}${it.carried?`<span class="carry">${lateTag(it)}</span>`:''}${
         it.retry!=null?`<span class="carry">↻ Try again · best ${it.retry}%</span>`:''}${it.fixed?`<span class="carry">📅 ${it.daily?'Every weekday':'Today'}</span>`:''}${
         it.picked && !it.carried?`<span class="carry">⭐ Picked for you</span>`:''}${it.mine?`<span class="carry mine">🙋 I picked</span>`:''}</div>
       ${status}
@@ -769,7 +776,7 @@ function viewReport(){
       const col = a.pct==null || a.pct>=PASS ? 'var(--green)' : 'var(--red)';
       const tries = list.filter(b=>b.id===a.id);
       const k = tries.indexOf(a);
-      html += `<div class="row"><span class="d">${a.when?(a.when.getHours()%12||12)+':'+String(a.when.getMinutes()).padStart(2,'0')+(a.when.getHours()<12?' AM':' PM'):''}</span>
+      html += `<div class="row" style="--sc:${subjCol(a.subj)}"><span class="d">${a.when?(a.when.getHours()%12||12)+':'+String(a.when.getMinutes()).padStart(2,'0')+(a.when.getHours()<12?' AM':' PM'):''}</span>
         <div class="body"><div class="t"><span class="subj">${esc(a.subj)}</span>${esc(a.t)}</div>
           <div class="sub">${a.secs?mins(a.secs):''}${tries.length>1?` · try ${k+1}`:''}</div></div>
         <span class="sc" style="color:${col}">${a.pct==null?'✓':a.pct+'%'}</span></div>`;
@@ -795,7 +802,7 @@ function viewScores(){
   </div>`;
   mine.forEach(a=>{
     const col = a.pct==null || a.pct>=PASS ? 'var(--green)' : 'var(--red)';
-    html += `<div class="row"><span class="d">${a.date.slice(5)}</span>
+    html += `<div class="row" style="--sc:${subjCol(a.subj)}"><span class="d">${a.date.slice(5)}</span>
       <div class="body"><div class="t"><span class="subj">${esc(a.subj)}</span>${esc(a.t)}</div>
         <div class="bar"><i style="width:${a.pct==null?100:a.pct}%;background:${col}"></i></div></div>
       <span class="sc" style="color:${col}">${a.pct==null?'✓':a.pct+'%'}</span>
@@ -829,7 +836,7 @@ function viewMistakes(){
   bySubject(list).forEach(([subj, rows])=>{
     html += `<h3 class="group">${esc(subj)} <span class="gn">${rows.length} to fix</span></h3>`;
     rows.forEach(a=>{
-      html += `<div class="row"><span class="d">${a.date.slice(5)}</span>
+      html += `<div class="row" style="--sc:${subjCol(a.subj)}"><span class="d">${a.date.slice(5)}</span>
         <div class="body"><div class="t">${esc(a.t)}</div>
           <div class="lead2" style="font-size:14.5px">${a.wrong.length} question${a.wrong.length>1?'s':''} to practise</div></div>
         ${a.href?`<a class="go" href="${esc(pageUrl(a.href))}"${extAttr(a.href)}>Practise${isUrl(a.href)?' ↗':''}</a>`:''}</div>`;
@@ -854,7 +861,8 @@ function viewMistakes(){
 const DAY_MINS = 90, MATH_PER_DAY = 3, UP_NEXT = 3;
 // Subject colours — the same fixed order as the parent page's time chart, so a colour means one subject everywhere.
 const SUBJ_COL = { SSAT:'#2a78d6', Math:'#eb6834', Chinese:'#1baf7a', Writing:'#eda100', Vocabulary:'#e87ba4', Reading:'#008300' };
-const subjDot = sj => `<span class="sdot" style="background:${SUBJ_COL[sj]||'#6250d6'}"></span>`;
+const subjCol = sj => SUBJ_COL[sj] || '#6250d6';
+const subjDot = sj => `<span class="sdot" style="background:${subjCol(sj)}"></span>`;
 // The day the pet's streak and XP switched to these rules (Sam 2026-10-22: 「宠物连胜改成看当天满 90 分钟」).
 const PET_CUT = '2026-10-23';
 const minsDay = d => d >= PET_CUT;
@@ -1031,7 +1039,7 @@ function viewDone(){
       <span class="gn">${rows.size} done${secs?` · ${mins(secs)}`:''}</span></summary>`;
     rows.forEach(a=>{
       const low = a.pct!=null && a.pct<PASS, col = low ? 'var(--red)' : 'var(--green)';
-      html += `<div class="row"><span class="d">${esc(a.subj)}</span>
+      html += `<div class="row" style="--sc:${subjCol(a.subj)}"><span class="d">${esc(a.subj)}</span>
         <div class="body"><div class="t">${esc(a.t)}</div>${low?`<div class="sub">↻ Under ${PASS}%, so it's back in To do</div>`:''}</div>
         <span class="sc" style="color:${col}">${a.pct==null?'✓':a.pct+'%'}</span></div>`;
     });
