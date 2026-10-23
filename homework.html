@@ -476,6 +476,8 @@ let ME = null, ITEMS = [], ATT = [], DAYS = [], V = 'today';
 let BANK = null;
 // What I put into my own Today from the Library: kidPicks/{uid}__{today}.items = [{ id, at }].
 let PICKS = [];
+// What Dad or Mom took off today (assignments/{uid}/days/{today}.withdrawn): never put back into Today by a rule.
+let WITHDRAWN = new Set();
 // Dad's queue (the auto-plan's days after today): item id → place in line. Up next follows it before book order.
 let QUEUE = new Map();
 // Writing Lab pieces Dad or Mom marked that this kid hasn't opened yet (Writing-Lab.html stamps seenAt).
@@ -540,6 +542,7 @@ async function load(){
   ITEMS = ((day && day.data()) || {}).items || [];
   ITEMS = ITEMS.map(it=>({ ...it, subj: subjOf(it.subj) }));
   const todayDoc = (day && day.data()) || {};
+  WITHDRAWN = new Set((todayDoc.withdrawn||[]).map(it=>it.id));
   ATT = att.docs.map(d=>{
     const a = d.data();
     const when = a.submittedAt && a.submittedAt.toDate ? a.submittedAt.toDate() : null;
@@ -905,11 +908,12 @@ function library(){
     if(b.archived) return;
     const it = libItem(b), done = tries(b.docId), vd = vocabDays(b), daily = DAILY_BOOKS.includes(b.book);
     if(daily || (vd && !vd.test)){
-      if(vd ? day>=vd.from && day<=vd.to : weekday) put({ ...it, fixed:true, daily });
-      else if(!vd) lib.push(it);                       // a weekday shelf can still be picked at the weekend
+      // Taken off today on the parent page (撤回) → back in the Library, not in Today
+      if((vd ? day>=vd.from && day<=vd.to : weekday) && !WITHDRAWN.has(b.docId)) put({ ...it, fixed:true, daily });
+      else if(!vd) lib.push(it);                       // a weekday shelf can still be picked at the weekend, or after it was taken off today
       return;
     }
-    if(vd && day >= vd.from && !done.some(a=>a.pct!=null && a.pct>=PASS)) put({ ...it, fixed:true });   // Week Test, from Thursday
+    if(vd && day >= vd.from && !WITHDRAWN.has(b.docId) && !done.some(a=>a.pct!=null && a.pct>=PASS)) put({ ...it, fixed:true });   // Week Test, from Thursday
     if(done.length){
       const best = Math.max(...done.map(a=>a.pct==null ? -1 : a.pct));
       if(it.type!=='quiz' || best<0 || best>=PASS) return;
