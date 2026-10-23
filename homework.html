@@ -121,6 +121,7 @@
   div.row[style*="--sc"]{border-left:8px solid var(--sc)}   /* .row's own border is set further down; this one wins */
   .card.done{border-left-color:var(--sc, #b9d7c0)}
   .sjt{display:inline-flex;align-items:center;gap:5px;font-weight:600;color:var(--ink);margin-right:8px;white-space:nowrap}
+  .whyline{font-size:15px;font-weight:600;color:var(--acc);margin:4px 0 2px}
   .sjt i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--sc)}
   .wk{display:inline-block;font-weight:600;font-size:.72rem;line-height:1.6;color:var(--wk);border:1px solid var(--wk);
       background:color-mix(in srgb, var(--wk) 12%, #fff);border-radius:999px;padding:0 .55em;margin-right:.45em;white-space:nowrap}
@@ -485,7 +486,7 @@ let BANK = null;
 let PICKS = [];
 // What Dad or Mom took off today (assignments/{uid}/days/{today}.withdrawn): never put back into Today by a rule.
 let WITHDRAWN = new Set();
-// Dad's queue (the auto-plan's days after today): item id → place in line. Up next follows it before book order.
+// Dad's queue (the auto-plan's days after today): item id → { i: place in line, date: the day it's planned for }.
 let QUEUE = new Map();
 // Writing Lab pieces Dad or Mom marked that this kid hasn't opened yet (Writing-Lab.html stamps seenAt).
 let MARKED = [];
@@ -545,7 +546,8 @@ async function load(){
   const day = days.docs.find(d=>d.id===iso(today));
   QUEUE = new Map();
   days.docs.filter(d=>d.id>iso(today)).sort((a,b)=>a.id.localeCompare(b.id))
-    .forEach(d=>((d.data()||{}).items||[]).forEach(it=>{ if(!QUEUE.has(it.id)) QUEUE.set(it.id, QUEUE.size); }));
+    // the every-weekday copies (daily:true) are put there by the morning script, not planned by Dad — left out
+    .forEach(d=>((d.data()||{}).items||[]).forEach(it=>{ if(!it.daily && !QUEUE.has(it.id)) QUEUE.set(it.id, { i: QUEUE.size, date: d.id }); }));
   ITEMS = ((day && day.data()) || {}).items || [];
   ITEMS = ITEMS.map(it=>({ ...it, subj: subjOf(it.subj) }));
   const todayDoc = (day && day.data()) || {};
@@ -686,6 +688,7 @@ function card(it, a, x = {}){
     <span class="ic">${esc(it.ic)||'📄'}</span>
     <div class="body">
       <div class="t">${esc(it.t)}</div>
+      ${it.why?`<div class="whyline">${esc(it.why)}</div>`:''}
       <div class="meta">${it.subj?`<span class="sjt"><i></i>${esc(it.subj)}</span>`:''}<span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book)}${size}${made}${it.carried?`<span class="carry">${lateTag(it)}</span>`:''}${
         it.retry!=null?`<span class="carry">↻ Try again · best ${it.retry}%</span>`:''}${it.fixed?`<span class="carry">📅 ${it.daily?'Every weekday':'Today'}</span>`:''}${
         it.picked && !it.carried?`<span class="carry">⭐ Picked for you</span>`:''}${it.mine?`<span class="carry mine">🙋 I picked</span>`:''}</div>
@@ -854,11 +857,11 @@ function viewMistakes(){
      A quiz whose best score is under PASS stays in the Library, tagged Try again.
    · Every-weekday shelves (BASA, same list as plan-day.mjs DAILY_BOOKS) and the class-vocab Parts are per day:
      on their days they come into Today by themselves and never move to Done for good.
-   · Suggested (top of the Library): Dad's queue first (auto-plan days after today), math in book order with
-     MATH_PER_DAY a day counting what's already in Today, then the rest (newest shelf first), one subject at a time.
+   · Suggested (top of the Library): only pages with a reason, and the card says it — Dad planned it for a later
+     day · a recent quiz under PASS · the weakest SSAT part lately · next in a book being worked on · new this week.
      Nothing is locked: any page can go into Today.
    · The bar counts working time (activeSecs) of what was handed in today, against the DAY_MINS day. */
-const DAY_MINS = 90, MATH_PER_DAY = 3, UP_NEXT = 3;
+const DAY_MINS = 90, UP_NEXT = 4;
 // Subject colours — the same fixed order as the parent page's time chart, so a colour means one subject everywhere.
 const SUBJ_COL = { SSAT:'#2a78d6', Math:'#eb6834', Chinese:'#1baf7a', Writing:'#eda100', Vocabulary:'#e87ba4', Reading:'#008300' };
 const subjCol = sj => SUBJ_COL[sj] || '#6250d6';
@@ -931,20 +934,47 @@ function library(){
   });
   PICKS.forEach(p=>{ const b = byId.get(p.id); if(b) put({ ...libItem(b), mine:true }); });
   const inToday = new Set(today_.map(it=>it.id));
-  // Suggested: never what's already in Today; Try again ones wait in their subject's list.
-  const fresh = lib.filter(it=>it.retry==null && !inToday.has(it.id));
-  const qp = it => QUEUE.has(it.id) ? QUEUE.get(it.id) : Infinity, queued = order => (a, b) => (qp(a) - qp(b)) || order(a, b);
-  const math = fresh.filter(it=>it.subj==='Math').sort(queued(mathOrder));
-  const mathInToday = today_.filter(it=>it.subj==='Math').length;
-  const mathOpen = math.slice(0, Math.max(0, MATH_PER_DAY - mathInToday));
-  const rest = fresh.filter(it=>it.subj!=='Math').sort(queued(restOrder(lib)));
-  const next = mathOpen.slice(0, UP_NEXT);
-  const queues = bySubject(rest).map(([, xs])=>xs.slice());
-  while(next.length < UP_NEXT && queues.some(q=>q.length)) queues.forEach(q=>{ if(q.length && next.length < UP_NEXT) next.push(q.shift()); });
+  // Suggested (Sam 2026-10-23: 「这个 suggest for you 是怎么评估出来的…如果没有理由的话，它的这个 section 的存在也没有必要」
+  // → 选二): only pages there is a real reason for, and the card says the reason. At most one per reason, in this
+  // order, UP_NEXT in all; no reason at all → no section. Never what's already in Today.
+  const cand = lib.filter(it=>!inToday.has(it.id)), used = new Set(), next = [];
+  const take = (it, why) => { if(it && !used.has(it.id) && next.length < UP_NEXT){ used.add(it.id); next.push({ ...it, why }); } };
+  const since30 = shiftIso(day, -30), dayTxt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+  // 1 · Dad lined it up for a later day (the auto-plan's queue)
+  const planned = cand.filter(it=>QUEUE.has(it.id)).sort((a,b)=>QUEUE.get(a.id).i - QUEUE.get(b.id).i)[0];
+  if(planned) take(planned, `📅 Dad planned this for ${dayTxt(QUEUE.get(planned.id).date)}`);
+  // 2 · a quiz from the last 30 days that hasn't reached PASS yet — the most recent one
+  const lastTry = id => ATT.filter(a=>a.id===id && a.pct!=null).sort((a,b)=>(b.when||0)-(a.when||0))[0];
+  const retry = cand.filter(it=>it.retry!=null).map(it=>({ it, a: lastTry(it.id) }))
+    .filter(x=>x.a && x.a.date>=since30).sort((x,y)=>y.a.date.localeCompare(x.a.date))[0];
+  if(retry) take(retry.it, `↻ Your best so far is ${retry.it.retry}% (last try ${dayTxt(retry.a.date)}). ${PASS}% passes.`);
+  // 3 · the weakest SSAT part lately: first try on each page, last 30 days, a part needs 2 pages to count
+  const PARTS = [['Math', /Quant|Math Mistakes|Strategy 2/i], ['Reading', /Reading/i], ['Synonyms', /Synonym/i], ['Analogies', /Analog/i]];
+  const partOf = t => (PARTS.find(([, re])=>re.test(t||'')) || [])[0];
+  const firsts = new Map();
+  ATT.filter(a=>a.subj==='SSAT' && a.pct!=null && a.date>=since30).forEach(a=>{ const f = firsts.get(a.id); if(!f || (a.when||0)<(f.when||0)) firsts.set(a.id, a); });
+  const parts = {}; firsts.forEach(a=>{ const p = partOf(a.t); if(p) (parts[p] = parts[p] || []).push(a.pct); });
+  const weak = Object.entries(parts).filter(([, v])=>v.length>=2)
+    .map(([p, v])=>[p, Math.round(v.reduce((x, y)=>x+y, 0)/v.length), v.length]).sort((a, b)=>a[1]-b[1])[0];
+  if(weak && weak[1] < PASS) take(cand.filter(it=>it.subj==='SSAT' && it.retry==null && partOf(it.t)===weak[0])
+      .sort((a, b)=>(b.added||'').localeCompare(a.added||'') || nat(a.t, b.t))[0],
+    `🎯 Your weakest SSAT part lately: ${weak[0]} — ${weak[1]}% on your first tries (${weak[2]} pages)`);
+  // 4 · the next one in a book worked on in the last 30 days (numbered pages only: lessons, weeks, parts)
+  const lastIn = new Map();   // book → { a: latest attempt that counts, t: that page's title }
+  BANK.forEach(b=>{ const a = tries(b.docId).sort((x, y)=>(y.when||0)-(x.when||0))[0], bk = BOOK_EN[b.book]||b.book;
+    if(a && bk && a.date>=since30 && (!lastIn.has(bk) || (a.when||0)>(lastIn.get(bk).a.when||0))) lastIn.set(bk, { a, t: b.t }); });
+  [...lastIn.entries()].sort((x, y)=>(y[1].a.when||0)-(x[1].a.when||0)).some(([bk, x])=>{
+    const it = cand.filter(i=>i.retry==null && i.book===bk && Number.isFinite(firstNum(i.t))).sort(mathOrder)[0];
+    if(it) take(it, `➡️ Next in ${bk.replace(/^\W+/, '')}: you did “${x.t}” on ${dayTxt(x.a.date)}`);
+    return !!it;
+  });
+  // 5 · new this week
+  const newest = cand.filter(it=>it.retry==null && it.added && it.added>=shiftIso(day, -6)).sort((a, b)=>b.added.localeCompare(a.added))[0];
+  if(newest) take(newest, `🆕 New — Dad added it ${dayTxt(newest.added)}`);
   // The Library lists everything (Today's ones say ✓ In Today); math in book order, the rest newest shelf first.
   const groups = bySubject([...lib.filter(it=>it.subj==='Math').sort(mathOrder), ...lib.filter(it=>it.subj!=='Math').sort(restOrder(lib))]);
   const secs = ATT.filter(a=>a.date===day).reduce((s,a)=>s+a.active, 0);
-  return { today: today_, next, groups, inToday, mathInToday, secs, byId };
+  return { today: today_, next, groups, inToday, secs, byId };
 }
 // Put a page into my Today, or take one I added back off (before I start it). One small doc a day.
 async function setPick(id, on, btn){
@@ -1002,7 +1032,8 @@ function viewLibrary(){
   if(!L) return html + `<div class="empty"><span class="e">📡</span>Couldn't load the Library.<br>Check the Wi-Fi, then pull down to refresh.</div>`;
   html += `<input type="search" class="libsearch" id="libsearch" placeholder="🔍 Search the Library" autocomplete="off">`;
   const lib = (it, x) => card(it, null, { lib:true, inToday: L.inToday.has(it.id), ...x });
-  if(L.next.length) html += `<div data-sugg><h3 class="group">⭐ Suggested for you <span class="gn">${L.next.length}</span></h3>${L.next.map(it=>lib(it)).join('')}</div>`;
+  if(L.next.length) html += `<div data-sugg><h3 class="group">⭐ Suggested for you <span class="gn">${L.next.length}</span></h3>
+    <p class="lead2" style="font-size:14.5px;margin:2px 0 0">Each one says why it's here.</p>${L.next.map(it=>lib(it)).join('')}</div>`;
   if(!L.groups.length) return html + `<div class="empty"><span class="e">🎉</span>Nothing left in the Library!<br>Dad or Mom will add more soon.</div>`;
   L.groups.forEach(([subj, items])=>{
     const nNew = items.filter(it=>it.added && madeNew(it.added)).length;
