@@ -88,6 +88,16 @@
 
   /* ---------- generic card ---------- */
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  /* 作业时间柱状图（2026-10-22）：每天 / 每周，Grace 和 Warren 并排，颜色分科目 */
+  .tchart{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px 8px;margin-top:14px}
+  .tchart>summary{cursor:pointer;list-style:none;font-weight:700;color:var(--cream);font-size:15px}
+  .tchart>summary::-webkit-details-marker{display:none}
+  .tchart .tsub{color:var(--mute);font-size:12.5px;margin:4px 0 6px}
+  .tchart h4{margin:12px 0 2px;font-size:13.5px;color:var(--cream)}
+  .tlegend{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;color:var(--mute);margin:4px 0}
+  .tlegend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .tchart svg{display:block;width:100%;height:auto}
+  .tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr));gap:4px 18px}
   .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(330px,100%),1fr));gap:14px;margin-top:16px;
          align-items:start}   /* not stretch: a kid with nothing that day must not become a tall empty column */
   h2.sec{font-size:19px;margin:26px 0 2px}
@@ -1061,6 +1071,8 @@ let BANK = [], BANK_BY_ID = {}, ATT = [];
 let TD = iso(today), ASSIGN = { grace:[], warren:[] }, PULLED = { grace:[], warren:[] }, CARRIED = { grace:[], warren:[] };
 // Today's items whatever day 今日作业 is showing: the bank marks these "Assigned".
 let TODAY_ITEMS = { grace:[], warren:[] };
+// 孩子自己从 Library 放进这天 Today 的（kidPicks/{uid}__{day}.items = [{ id, at }]，2026-10-22 · Today + Library）
+let KPICK = { grace:[], warren:[] };
 // The kid-facing daily report (HOMEWORK-SYSTEM.md 「每日总结」): `summary` on the day doc, written by
 // homework-system/daily-summary.mjs. "kid|date" → the summary, or null once read and there is none.
 let NOTES = {}, notesLoading = '';
@@ -1162,7 +1174,9 @@ function toAtt(doc){
 }
 
 async function loadDay(d){
-  const [g, w] = await Promise.all([dayRef('grace', d).get(), dayRef('warren', d).get()]);
+  const pick = k => db.doc(`kidPicks/${KID[k].uid}__${d}`).get().then(x=>(x.data()||{}).items||[]).catch(e=>{ console.warn('[kidPicks]', e.code||e); return []; });
+  const [g, w, pg, pw] = await Promise.all([dayRef('grace', d).get(), dayRef('warren', d).get(), pick('grace'), pick('warren')]);
+  if(d === TD) KPICK = { grace: pg, warren: pw };
   [['grace', g], ['warren', w]].forEach(([k, snap])=>{
     const x = snap.data() || {};
     // TD may have moved on while this was loading; then only today's copy (if it's today) is still wanted.
@@ -1731,6 +1745,69 @@ function todoStrip(){
 }
 
 let SETOPEN = false;   // 「⚙ 排作业设置」这次打开页面期间点开过没有（改开关会重画，得记着）
+/* ===================== 作业时间柱状图（Sam 2026-10-22：「两个每天的作业量按实际做作业的时间来衡量；
+   两个可以用 BAR graph 的形式做比较；每天的和每周的；然后再用颜色分出科目来」） =====================
+   时间 = 有效时间，和卡片上「有效」同一个口径：交了卷的（estSecs）+ 打开没交卷的那段（UNF）+ 看批改（算写作）。
+   每天：最近 14 天；每周：最近 7 周（周一到周日）。每个日子两根柱，左 Grace 右 Warren，按科目叠起来；
+   虚线 = 目标（每天 PLAN_MINS，每周 × 7）。颜色固定顺序、深色底那一套（dataviz 校验过），孩子页的科目小色块是同一套的浅色版。 */
+const T_SUBJ = [['SSAT', /SSAT/i, '#3987e5', 'SSAT'], ['Math', /Math|Algebra/i, '#d95926', '数学'], ['Chinese', /Chinese|中文/i, '#199e70', '中文'],
+  ['Writing', /Writing|写作|看批改/i, '#c98500', '写作'], ['Vocabulary', /Vocab/i, '#d55181', '单词'], ['Reading', /Reading/i, '#008300', '阅读'], ['Other', /./, '#9085e9', '其他']];
+const tSubj = label => { const i = T_SUBJ.findIndex(([n, re]) => n!=='Other' && re.test(label||'')); return i<0 ? T_SUBJ.length-1 : i; };
+// 一个孩子、一段日子（含头尾）每科多少秒
+function tSecs(k, from, to){
+  const v = T_SUBJ.map(()=>0);
+  ATT.forEach(a=>{ if(a.kid===k && a.date>=from && a.date<=to && !a.demo) v[tSubj(a.subj)] += estSecs(a); });
+  unfOn(k, from, to).forEach(u=>{ v[tSubj((BANK_BY_ID[u.id]||{}).subj)] += u.active||0; });
+  return v;
+}
+function tBars(rows, target, label, W = 720){
+  const H = W < 500 ? 230 : 250, L = 40, R = 8, T = 22, B = 44, ph = H-T-B, sum = v => v.reduce((a,b)=>a+b,0);
+  const max = Math.max(target*1.12, ...rows.flatMap(r=>[sum(r.g), sum(r.w)]));
+  const step = max>600 ? 200 : max>300 ? 100 : max>150 ? 30 : 15, top = Math.ceil(max/step)*step;
+  const y = v => T + ph - ph*v/top, slot = (W-L-R)/rows.length, bw = Math.min(16, slot*0.34);
+  let h = `<text x="${L-6}" y="11" font-size="10" text-anchor="end" fill="#93a2bd">分钟</text>`;
+  for(let v=0; v<=top; v+=step) h += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#2a3b58"/><text x="${L-6}" y="${y(v)+3.5}" font-size="10" text-anchor="end" fill="#93a2bd">${v}</text>`;
+  h += `<line x1="${L}" x2="${W-R}" y1="${y(target)}" y2="${y(target)}" stroke="#f3f0e7" stroke-dasharray="5 4" stroke-width="1.2" opacity=".8"/>
+    <text x="${W-R}" y="${y(target)-4}" font-size="10" text-anchor="end" fill="#f3f0e7">目标 ${target}</text>`;
+  rows.forEach((r, i)=>{
+    const cx = L + slot*i + slot/2;
+    [['g', cx-bw-1.5, 'G', 'Grace'], ['w', cx+1.5, 'W', 'Warren']].forEach(([key, x, tag, nm])=>{
+      const v = r[key], t = sum(v); let acc = 0;
+      const det = T_SUBJ.map((z, j)=>v[j] ? `${z[3]} ${v[j]}` : '').filter(Boolean).join(' · ') || '没做';
+      h += `<g><title>${nm} · ${label(r.d).replace(' ', ' ')}：共 ${t} 分钟｜${det}</title>`;
+      v.forEach((m, j)=>{ if(!m) return;
+        const y0 = y(acc), y1 = y(acc+m); acc += m;
+        const isTop = v.slice(j+1).every(z=>!z);
+        h += `<rect x="${x}" y="${y1}" width="${bw}" height="${Math.max(0.5, y0-y1-2)}" rx="${isTop?3:0}" fill="${T_SUBJ[j][2]}"/>`; });
+      h += `<rect x="${x-3}" y="${T}" width="${bw+6}" height="${ph}" fill="transparent"/></g>`;
+      if(t) h += `<text x="${x+bw/2}" y="${y(t)-4}" font-size="9" text-anchor="middle" fill="#c9d2e3">${t}</text>`;
+      h += `<text x="${x+bw/2}" y="${H-B+12}" font-size="9" text-anchor="middle" fill="#93a2bd">${tag}</text>`;
+    });
+    label(r.d).split(' ').forEach((ln, li)=>{ h += `<text x="${cx}" y="${H-B+26+li*12}" font-size="10" text-anchor="middle" fill="${li?'#93a2bd':'#f3f0e7'}">${ln}</text>`; });
+  });
+  h += `<line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" stroke="#93a2bd"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="作业时间柱状图">${h}</svg>`;
+}
+function timeCharts(){
+  // 手机上 14 天挤不下：窄屏只画 7 天、5 周，画布也窄一些（字就不会被缩得看不清）
+  const T0 = iso(today), WD = ['日','一','二','三','四','五','六'], narrow = window.innerWidth < 640, CW = narrow ? 380 : 720;
+  const nD = narrow ? 7 : 14, nW = narrow ? 5 : 7;
+  const mins = v => v.map(s=>Math.round(s/60));
+  const days = []; for(let i=nD-1; i>=0; i--) days.push(shiftDay(T0, -i));
+  const daily = days.map(d=>({ d, g: mins(tSecs('grace', d, d)), w: mins(tSecs('warren', d, d)) }));
+  const mon = shiftDay(T0, -((new Date(T0+'T12:00:00').getDay()+6)%7));
+  const weeks = []; for(let i=nW-1; i>=0; i--) weeks.push(shiftDay(mon, -7*i));
+  const weekly = weeks.map(w=>({ d:w, g: mins(tSecs('grace', w, shiftDay(w, 6))), w: mins(tSecs('warren', w, shiftDay(w, 6))) }));
+  const dl = d => { const x = new Date(d+'T12:00:00'); return `${x.getMonth()+1}/${x.getDate()} ${WD[x.getDay()]}`; };
+  const wl = d => { const x = new Date(d+'T12:00:00'); return `${x.getMonth()+1}/${x.getDate()} 起`; };
+  // 默认打开；点收起记在这台设备上（和「这一页怎么看」同一个 parent.g2.* 开关）
+  let shut = false; try { shut = localStorage.getItem('parent.g2.tchart')==='0'; } catch(e){}
+  return `<details class="tchart" data-guide="tchart"${shut?'':' open'}><summary>⏱ 作业时间 · Grace 和 Warren</summary>
+    <div class="tsub">有效时间（交了卷的 + 打开没交卷的那段 + 看批改），按科目分颜色。每个日子两根柱：G = Grace，W = Warren；鼠标停在柱子上看每科几分钟。</div>
+    <div class="tlegend">${T_SUBJ.map(z=>`<span><i style="background:${z[2]}"></i>${z[3]}</span>`).join('')}</div>
+    <div class="tgrid"><div><h4>每天 · 最近 ${nD} 天</h4>${tBars(daily, PLAN_MINS, dl, CW)}</div>
+    <div><h4>每周 · 最近 ${nW} 周（周一到周日）</h4>${tBars(weekly, PLAN_MINS*7, wl, CW)}</div></div></details>`;
+}
 function viewToday(){
   const day = TD, isToday = day===iso(today);
   let html = todoStrip() + `<h2 class="sec">${isToday?'今天':'作业'} · ${day} 周${wdOf(day)}${qm(`2026-10-22 起不用派题：孩子登录后在 <b>To do</b> 里看到题库里上架的全部，自己挑着做，每天目标 ${PLAN_MINS} 分钟。
@@ -1755,7 +1832,7 @@ function viewToday(){
       ${['grace','warren'].map(k=>{ const p = PLAN[k] || {}, on = !!p.on;
         return `<span class="planone"><button class="fchip${on?' on':''}" data-plan="${k}" data-on="${on?0:1}">${KID[k].av} ${KID[k].n} · ${on?'开':'关'}</button>${on?`
           <button class="fchip" data-planmins="${k}" title="点一下改每天多少分钟">${+p.mins||PLAN_MINS} 分钟/天</button>`:''}</span>`; }).join('')}
-    </div></div><div class="grid2">`;
+    </div></div>${timeCharts()}<div class="grid2">`;
   const guide = `<details class="hguide" data-guide="today"${guideOpen('today')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li><b>一张卡片看全这一天</b>：最上面一行 = 完成几份、第一遍达标几份、有效时间（页面开了多久）、有效占比；收着也看得到「⚠️ 需要留意」和「✍️ 待批改」。
         展开是这天的总结、每份卷子每一遍的分数和用时、错了哪几题、切走几次。翻 ‹ › 就是看别的日子（原来「完成记录」「专注情况」的内容，现在收在孩子页的「更多」里）。</li>
@@ -1897,6 +1974,12 @@ function viewToday(){
       html += `</details>`;
       });
     }
+    // 孩子自己从 Library 放进今天的（不在派的单子里的那几份）
+    const mine = (KPICK[k]||[]).map(x=>x.id).filter(id=>!list.some(it=>it.id===id));
+    if(mine.length) html += fold(k+'|mine', `🙋 孩子自己放进今天的 <span class="gs">${mine.length} 份 · ${mine.map(id=>scoreBit(dayResult(k, id, day))||'还没做').join(' · ')}</span>`,
+      mine.map(id=>{ const b = BANK_BY_ID[id] || {}, r = dayResult(k, id, day);
+        return `<div class="task"><span class="ic">${esc(b.ic||'📄')}</span><span class="nm"><b>${esc(b.t||decodeURIComponent(id))}</b><span>${esc(b.subj||'')}${b.book?' · '+esc(b.book):''}</span></span>
+          <span class="acts"><span class="chipst ${r?'st-done':'st-open'}">${r?(scoreBit(r)==='✓'?'✓ 完成':scoreBit(r)):'还没做'}</span></span></div>`; }).join(''));
     const extra = papers.filter(p=>!list.some(it=>it.id===p.id) && !isReviewRead(p.id));
     if(extra.length) html += fold(k+'|extra', `${list.length?'另外做了':'自己挑着做的'} <span class="gs">${extra.length} 份${list.length?'不在这天的单子里':''} · ${extra.map(scoreBit).join(' · ')}</span>${qm('孩子从 To do 里自己挑的、以前派的又做了一遍、或者已经撤回的')}`, extra.map(p=>slimPaper(k, p)).join(''));
     const unfX = U_ALL(k, day).filter(u=>!list.some(it=>it.id===u.id));
@@ -4416,7 +4499,7 @@ function render(){
     // Fetched lazily: Reading Club being down must never block the other four tabs.
     if(!RD.data && !RD.err && !RD.loading) loadReading();
   }
-  viewEl.querySelectorAll('details.hguide').forEach(d=>d.addEventListener('toggle',()=>{
+  viewEl.querySelectorAll('details.hguide, details.tchart').forEach(d=>d.addEventListener('toggle',()=>{
     try { localStorage.setItem('parent.g2.'+d.dataset.guide, d.open?'1':'0'); } catch(e){}
   }));
   viewEl.querySelectorAll('details.kc').forEach(d=>d.addEventListener('toggle',()=>{

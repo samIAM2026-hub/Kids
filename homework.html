@@ -96,6 +96,12 @@
        padding:10px 16px;border-bottom:4px solid transparent;white-space:nowrap}
   .tab.on{color:var(--acc);border-bottom-color:var(--acc)}
   .tab .n:empty{display:none}
+  /* Today + Library (2026-10-22): "In Today" pill, the ✕ on my own picks, subject colour dots (same colours as the parent page chart) */
+  .go.in{background:var(--greenbg);color:var(--green);border:2px solid var(--green)}
+  .unpick{flex:0 0 auto;background:none;border:none;cursor:pointer;font-size:20px;color:var(--mute);padding:6px 4px}
+  .carry.mine{background:#e3eefb;color:#1f5aa6}
+  .sdot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:1px}
+  .libsearch{width:100%;font:inherit;font-size:17px;padding:11px 14px;border:2px solid var(--line);border-radius:14px;background:var(--paper);color:var(--ink);margin:14px 0 4px}
   .tab .n{font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--paper);border-radius:99px;
           padding:1px 8px;margin-left:5px;color:var(--ink2)}
 
@@ -366,7 +372,8 @@
         <button class="out" id="switch">👋 I'm done · Sign out</button>
       </div>
       <nav class="tabs">
-        <button class="tab on" data-v="todo">To do <span class="n" id="ntodo"></span></button>
+        <button class="tab on" data-v="today">Today <span class="n" id="ntoday"></span></button>
+        <button class="tab" data-v="library">Library <span class="n" id="nlib"></span></button>
         <button class="tab" data-v="done">Done <span class="n" id="ndone"></span></button>
         <button class="tab" data-v="report">My day <span class="n" id="nrep"></span></button>
         <button class="tab" data-v="scores">My scores</button>
@@ -463,9 +470,11 @@ const pageUrl = href => isUrl(href) ? href : encodeURI('Quizzes/' + href);
 // 回得来，别人的网站加不上那颗按钮 —— 同一个标签页跳过去就困在那儿了。
 const extAttr = href => isUrl(href) ? ' target="_blank" rel="noopener"' : '';
 
-let ME = null, ITEMS = [], ATT = [], DAYS = [], V = 'todo';
-// My bank items (kid == me or 'both', archived ones too) — To do / Done. null = couldn't read it.
+let ME = null, ITEMS = [], ATT = [], DAYS = [], V = 'today';
+// My bank items (kid == me or 'both', archived ones too) — Today / Library / Done. null = couldn't read it.
 let BANK = null;
+// What I put into my own Today from the Library: kidPicks/{uid}__{today}.items = [{ id, at }].
+let PICKS = [];
 // Dad's queue (the auto-plan's days after today): item id → place in line. Up next follows it before book order.
 let QUEUE = new Map();
 // Writing Lab pieces Dad or Mom marked that this kid hasn't opened yet (Writing-Lab.html stamps seenAt).
@@ -488,7 +497,7 @@ function touch(force){
 /* ---------- data ---------- */
 async function load(){
   const sib = Object.values(KIDS).find(k=>k.uid!==ME.uid);
-  const [days, att, pet, sibPet, wr, prof, bank] = await Promise.all([
+  const [days, att, pet, sibPet, wr, prof, bank, picks] = await Promise.all([
     // All my assigned days (today's included): older days tell the subject of past attempts.
     db.collection(`assignments/${ME.uid}/days`).get(),
     // No orderBy here: kidId == x plus orderBy another field would need a composite index.
@@ -500,9 +509,11 @@ async function load(){
     db.doc(`kids/${ME.uid}`).get().then(d=>d.data()||{}).catch(e=>{ console.warn('[profile]', e.code||e); return {}; }),
     // My bank items, for To do / Done (2026-10-22). Can't read it → those two tabs say so, nothing else breaks.
     db.collection('bank').where('kid','in',[ME.key,'both']).get()
-      .then(s=>s.docs.map(d=>({ docId:d.id, ...d.data() }))).catch(e=>{ console.warn('[bank]', e.code||e); return null; })
+      .then(s=>s.docs.map(d=>({ docId:d.id, ...d.data() }))).catch(e=>{ console.warn('[bank]', e.code||e); return null; }),
+    // My own picks for today. Can't read them → an empty pick list, nothing else breaks.
+    db.doc(`kidPicks/${ME.uid}__${iso(today)}`).get().then(d=>(d.data()||{}).items||[]).catch(e=>{ console.warn('[picks]', e.code||e); return []; })
   ]);
-  BANK = bank;
+  BANK = bank; PICKS = picks;
   MARKED = wr ? wr.docs.map(d=>Object.assign({ id:d.id }, d.data())).filter(w=>w.status==='reviewed' && !w.seenAt) : [];
   // A pet that can't be read this time keeps what we already knew.
   if(pet!==undefined || !PET) PET = pet;
@@ -629,7 +640,9 @@ function rulesBox(){
     </ul>
     <p style="margin:10px 0 2px">💡 Tip: take your time on the first try, read carefully, and finish in one go.</p></details>`;
 }
-function card(it, a){
+// x.lib: a Library card — its button puts it into Today (or says it's there). x.unpick: one I put into Today
+// myself and haven't started — it gets a ✕ to take it off again.
+function card(it, a, x = {}){
   const scored = a && a.pct!=null;
   const low = scored && a.pct < PASS;
   // A custom link lives on another site: nothing over there can mark it done, so he does it himself.
@@ -645,16 +658,18 @@ function card(it, a){
             : `<div class="status ok">✓ Done · ${a.pct}% ⭐ Nice job!</div>`;
     btn = `<a class="go again" href="${esc(pageUrl(it.href))}"${extAttr(it.href)}>Open again${ext?' ↗':''}</a>`;
   }
+  if(x.lib) btn = x.inToday ? `<span class="go in">✓ In Today</span>` : `<button class="go again" data-add="${esc(it.id)}">＋ Today</button>`;
+  if(x.unpick) btn += `<button class="unpick" data-unpick="${esc(it.id)}" title="Take it off Today" aria-label="Take it off Today">✕</button>`;
   const size = it.n ? `${it.book?' · ':''}${it.n} ${it.type==='quiz'?'questions':'steps'}` : '';
   // When Dad made the page (bank `added`; Sam 2026-10-22: 「不知道是哪天做的」) — the last 3 days also get 🆕 New.
   const made = it.added ? ` · Made ${madeDay(it.added)}${madeNew(it.added)?'<span class="carry">🆕 New</span>':''}` : '';
-  return `<div class="card${a?' done':''}">
+  return `<div class="card${a?' done':''}" data-hay="${esc([it.t, it.book, it.subj].join(' ').toLowerCase())}">
     <span class="ic">${esc(it.ic)||'📄'}</span>
     <div class="body">
       <div class="t">${esc(it.t)}</div>
       <div class="meta"><span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book)}${size}${made}${it.carried?`<span class="carry">${lateTag(it)}</span>`:''}${
-        it.retry!=null?`<span class="carry">↻ Try again · best ${it.retry}%</span>`:''}${it.fixed?`<span class="carry">📅 Today</span>`:''}${
-        it.picked && !it.carried?`<span class="carry">⭐ Picked for you</span>`:''}</div>
+        it.retry!=null?`<span class="carry">↻ Try again · best ${it.retry}%</span>`:''}${it.fixed?`<span class="carry">📅 ${it.daily?'Every weekday':'Today'}</span>`:''}${
+        it.picked && !it.carried?`<span class="carry">⭐ Picked for you</span>`:''}${it.mine?`<span class="carry mine">🙋 I picked</span>`:''}</div>
       ${status}
     </div>
     ${btn}
@@ -809,22 +824,23 @@ function viewMistakes(){
   return html;
 }
 
-/* ---------- To do / Done: the whole bank, no assigning (HOMEWORK-SYSTEM.md 2026-10-22) ----------
-   Sam: 「以后没有派作业的过程，所有题都在题库里，孩子直接找需要做的题，直接做」, then 「我不用再继续派题，他能看到
-   所有的题」: To do is the page the kids land on (the Today tab is gone). To do = my bank items (kid me or 'both',
-   not archived) not done yet; Done = what I finished, day by day.
-   · Anything Dad or Mom still assigns for today (or that carried on to today) goes first in Up next, tagged
-     Picked for you, until it's done today. Assigning is optional now, never needed.
+/* ---------- Today + Library (HOMEWORK-SYSTEM.md 2026-10-22) ----------
+   Sam: 「把孩子的作业分为今天要做的和题库两个部分；孩子和家长都可以选择题库里的题来做，选中的题就进入今天要做的题里」.
+   Today = what Dad or Mom picked for today (assignments, carry-over included) + the fixed daily ones
+   (every-weekday shelves, the class-vocab Parts / Week Test on their days) + what I put in myself from the
+   Library (kidPicks). Library = my bank items (kid me or 'both', not archived) not done yet, by subject.
    · Done = handed in: a quiz needs a real try, a Read / Practice / link counts once opened (parent.html countsAsDone).
-     A quiz whose best score is under PASS stays in To do, tagged Try again.
+     A quiz whose best score is under PASS stays in the Library, tagged Try again.
    · Every-weekday shelves (BASA, same list as plan-day.mjs DAILY_BOOKS) and the class-vocab Parts are per day:
-     on their days they sit in To do until done that day, and never move to Done for good.
-   · Whatever is already in Dad's queue (auto-plan days after today) comes first, in that order.
-   · Math goes in book order, MATH_PER_DAY a day (the same cap as PlanCore): only the next ones are open.
-   · Up next = picked ones, today's fixed items, then the next math, then the rest (newest shelf first), one subject at a time.
-     Try again ones wait in their subject's list.
+     on their days they come into Today by themselves and never move to Done for good.
+   · Suggested (top of the Library): Dad's queue first (auto-plan days after today), math in book order with
+     MATH_PER_DAY a day counting what's already in Today, then the rest (newest shelf first), one subject at a time.
+     Nothing is locked: any page can go into Today.
    · The bar counts working time (activeSecs) of what was handed in today, against the DAY_MINS day. */
-const DAY_MINS = 90, MATH_PER_DAY = 3, UP_NEXT = 5;
+const DAY_MINS = 90, MATH_PER_DAY = 3, UP_NEXT = 3;
+// Subject colours — the same fixed order as the parent page's time chart, so a colour means one subject everywhere.
+const SUBJ_COL = { SSAT:'#2a78d6', Math:'#eb6834', Chinese:'#1baf7a', Writing:'#eda100', Vocabulary:'#e87ba4', Reading:'#008300' };
+const subjDot = sj => `<span class="sdot" style="background:${SUBJ_COL[sj]||'#6250d6'}"></span>`;
 // The day the pet's streak and XP switched to these rules (Sam 2026-10-22: 「宠物连胜改成看当天满 90 分钟」).
 const PET_CUT = '2026-10-23';
 const minsDay = d => d >= PET_CUT;
@@ -867,67 +883,120 @@ function library(){
   const day = iso(today), wd = today.getDay(), weekday = wd>0 && wd<6;
   const byId = new Map(BANK.map(b=>[b.docId, b]));
   const tries = id => ATT.filter(a=>a.id===id && counts(byId.get(id), a));
-  const fixed = [], todo = [];
+  const doneOn = id => tries(id).filter(a=>a.date===day).sort((a,b)=>(b.pct??-1)-(a.pct??-1))[0] || null;
+  // Today: Dad's / Mom's picks, then the fixed daily ones, then mine — each page once.
+  const today_ = [], seen = new Set();
+  const put = it => { if(seen.has(it.id)) return; seen.add(it.id); today_.push({ ...it, a: doneOn(it.id) }); };
+  // The auto-plan's every-weekday copies (daily:true) are fixed ones, not a pick
+  ITEMS.forEach(it=>put({ ...it, picked:!it.daily, fixed:!!it.daily, daily:!!it.daily, added:(byId.get(it.id)||{}).added||'' }));
+  const lib = [];
   BANK.forEach(b=>{
     if(b.archived) return;
-    const it = libItem(b), done = tries(b.docId), vd = vocabDays(b);
-    if(DAILY_BOOKS.includes(b.book) || (vd && !vd.test)){
-      const on = vd ? day>=vd.from && day<=vd.to : weekday;
-      if(on && !done.some(a=>a.date===day)) fixed.push({ ...it, fixed:true });
+    const it = libItem(b), done = tries(b.docId), vd = vocabDays(b), daily = DAILY_BOOKS.includes(b.book);
+    if(daily || (vd && !vd.test)){
+      if(vd ? day>=vd.from && day<=vd.to : weekday) put({ ...it, fixed:true, daily });
+      else if(!vd) lib.push(it);                       // a weekday shelf can still be picked at the weekend
       return;
     }
-    if(vd && day < vd.from) return;                 // the Week Test opens on Thursday
+    if(vd && day >= vd.from && !done.some(a=>a.pct!=null && a.pct>=PASS)) put({ ...it, fixed:true });   // Week Test, from Thursday
     if(done.length){
       const best = Math.max(...done.map(a=>a.pct==null ? -1 : a.pct));
       if(it.type!=='quiz' || best<0 || best>=PASS) return;
       it.retry = best;
     }
-    if(vd) fixed.push({ ...it, fixed:true }); else todo.push(it);
+    if(!vd) lib.push(it);
   });
-  // Picked by Dad or Mom for today: first, until done today, and not listed twice.
-  const doneToday = id => ATT.some(a=>a.id===id && a.date===day && counts(byId.get(id), a));
-  const picked = ITEMS.filter(it=>!doneToday(it.id)).map(it=>({ ...it, picked:true, added:(byId.get(it.id)||{}).added||'' }));
-  const pickedIds = new Set(picked.map(it=>it.id));
-  [fixed, todo].forEach(list=>{ for(let i = list.length-1; i>=0; i--) if(pickedIds.has(list[i].id)) list.splice(i, 1); });
-  // Try again ones wait in their subject's list: they never hold up new lessons or take an Up next spot.
-  const fresh = todo.filter(it=>it.retry==null), redo = todo.filter(it=>it.retry!=null).sort(restOrder(todo));
-  // What's already in Dad's queue goes first, in queue order; the rest after it (Infinity − Infinity is NaN → next rule).
+  PICKS.forEach(p=>{ const b = byId.get(p.id); if(b) put({ ...libItem(b), mine:true }); });
+  const inToday = new Set(today_.map(it=>it.id));
+  // Suggested: never what's already in Today; Try again ones wait in their subject's list.
+  const fresh = lib.filter(it=>it.retry==null && !inToday.has(it.id));
   const qp = it => QUEUE.has(it.id) ? QUEUE.get(it.id) : Infinity, queued = order => (a, b) => (qp(a) - qp(b)) || order(a, b);
-  // Math: new lessons in order, and only as many as are left of today's MATH_PER_DAY (picked math counts too).
-  const mathToday = new Set(ATT.filter(a=>a.date===day && a.subj==='Math' && counts(byId.get(a.id), a)).map(a=>a.id)).size;
   const math = fresh.filter(it=>it.subj==='Math').sort(queued(mathOrder));
-  const mathOpen = math.slice(0, Math.max(0, MATH_PER_DAY - mathToday - picked.filter(it=>it.subj==='Math').length));
-  const rest = fresh.filter(it=>it.subj!=='Math').sort(queued(restOrder(todo)));
-  // Up next: picked, fixed, the open math, then one per subject in turn up to UP_NEXT.
-  const next = [...picked, ...fixed, ...mathOpen];
+  const mathInToday = today_.filter(it=>it.subj==='Math').length;
+  const mathOpen = math.slice(0, Math.max(0, MATH_PER_DAY - mathInToday));
+  const rest = fresh.filter(it=>it.subj!=='Math').sort(queued(restOrder(lib)));
+  const next = mathOpen.slice(0, UP_NEXT);
   const queues = bySubject(rest).map(([, xs])=>xs.slice());
   while(next.length < UP_NEXT && queues.some(q=>q.length)) queues.forEach(q=>{ if(q.length && next.length < UP_NEXT) next.push(q.shift()); });
-  const inNext = new Set(next.map(it=>it.id));
-  const groups = bySubject([...mathOpen, ...rest, ...redo].filter(it=>!inNext.has(it.id)));
+  // The Library lists everything (Today's ones say ✓ In Today); math in book order, the rest newest shelf first.
+  const groups = bySubject([...lib.filter(it=>it.subj==='Math').sort(mathOrder), ...lib.filter(it=>it.subj!=='Math').sort(restOrder(lib))]);
   const secs = ATT.filter(a=>a.date===day).reduce((s,a)=>s+a.active, 0);
-  return { next, groups, mathLater: math.length - mathOpen.length, mathToday, secs, byId };
+  return { today: today_, next, groups, inToday, mathInToday, secs, byId };
 }
-function viewTodo(){
+// Put a page into my Today, or take one I added back off (before I start it). One small doc a day.
+async function setPick(id, on, btn){
+  if(!ME) return;
+  const ref = db.doc(`kidPicks/${ME.uid}__${iso(today)}`);
+  if(btn) btn.disabled = true;
+  try {
+    // Only take the new list once it has really been saved (a failed commit must not show a pick that isn't there).
+    PICKS = await db.runTransaction(async tx=>{
+      const cur = ((await tx.get(ref)).data()||{}).items || [];
+      const items = on ? (cur.some(p=>p.id===id) ? cur : [...cur, { id, at: Date.now() }]) : cur.filter(p=>p.id!==id);
+      tx.set(ref, { kidId: ME.uid, date: iso(today), items, updatedAt: Date.now() });
+      return items;
+    });
+    render();
+    const b = (BANK||[]).find(x=>x.docId===id);
+    toast(on ? `Added to Today: ${b ? b.t : ''}` : 'Taken off Today');
+  } catch(e){
+    console.error('[pick]', e);
+    if(btn) btn.disabled = false;
+    alert("Couldn't save that just now. Check the wifi and try again.");
+  }
+}
+function viewToday(){
   const L = library();
-  // Dad's report and marked writing stay on top, the homework rules and the pets at the bottom (as Today had them).
-  let html = reportCard() + markedCards() + `<h2 class="sec">To do</h2><p class="lead2">Everything that's waiting for you. Start with <b>Up next</b>, or pick any one you like.</p>`;
+  let html = reportCard() + markedCards();
   const foot = () => rulesBox() + petsRow();
-  if(!L) return html + `<div class="empty"><span class="e">📡</span>Couldn't load your list.<br>Check the Wi-Fi, then pull down to refresh.</div>` + foot();
+  if(!L) return html + `<div class="empty"><span class="e">📡</span>Couldn't load your homework.<br>Check the Wi-Fi, then pull down to refresh.</div>` + foot();
   const m = Math.round(L.secs/60);
   html += `<div class="progress"><div class="big">${m} of ${DAY_MINS} minutes today</div>
     <div class="meter"><i style="width:${Math.min(100, Math.round(100*m/DAY_MINS))}%"></i></div></div>`;
   if(m >= DAY_MINS) html += `<div class="cheer">🌟 ${DAY_MINS} minutes done today, great work, ${esc(ME.n)}!
     <div style="margin-top:12px"><button class="out" data-signout>👋 I'm done · Sign out</button></div></div>`;
-  html += `<p class="lead2" style="font-size:14.5px;margin-top:6px">Only working time counts, and it's added when you hand a page in.</p>`;
-  if(!L.next.length && !L.groups.length) return html + `<div class="empty"><span class="e">🎉</span>Nothing left to do!<br>Dad or Mom will add more soon.</div>` + foot();
-  if(L.next.length) html += `<h3 class="group">⭐ Up next <span class="gn">${L.next.length}</span></h3>` + L.next.map(it=>card(it, null)).join('');
-  L.groups.forEach(([subj, items])=>{
-    const later = subj==='Math' && L.mathLater ? ` · ${L.mathLater} more lessons later` : '';
-    html += `<details class="day"><summary>${esc(subj)} <span class="gn">${items.length} to do${later}</span></summary>${items.map(it=>card(it, null)).join('')}</details>`;
+  html += `<p class="lead2" style="font-size:14.5px;margin-top:6px">Only working time counts. Need more? <button class="link" data-tab="library">Pick from the Library →</button></p>`;
+  const left = L.today.filter(it=>!it.a);
+  html += `<h3 class="group">To do <span class="gn">${left.length} left</span></h3>`;
+  html += left.length ? left.map(it=>card(it, null, { unpick: it.mine && !ATT.some(a=>a.id===it.id && a.date===iso(today)) })).join('')
+    : `<div class="empty"><span class="e">${L.today.length?'🎉':'📚'}</span>${L.today.length?'All done for today\'s list!':'Nothing in Today yet.'}<br>
+        <button class="go" data-tab="library" style="margin-top:12px">Pick from the Library →</button></div>`;
+  // Done today: everything handed in today, whether it was in the list or not.
+  const doneIds = new Set(), doneCards = [];
+  L.today.filter(it=>it.a).forEach(it=>{ doneIds.add(it.id); doneCards.push(card(it, it.a)); });
+  ATT.filter(a=>a.date===iso(today) && counts(L.byId.get(a.id), a)).forEach(a=>{
+    if(doneIds.has(a.id)) return; doneIds.add(a.id);
+    const b = L.byId.get(a.id), it = b ? libItem(b) : { id:a.id, t:a.t, href:a.href, type:a.pct!=null?'quiz':'ref', subj:a.subj, book:'' };
+    const best = ATT.filter(x=>x.id===a.id && x.date===a.date).sort((x,y)=>(y.pct??-1)-(x.pct??-1))[0];
+    doneCards.push(card(it, best));
   });
-  if(L.mathLater && !L.groups.some(([s])=>s==='Math'))
-    html += `<p class="lead2" style="margin-top:18px">🧮 Math: ${L.mathLater} more lesson${L.mathLater>1?'s':''} open up in order, ${MATH_PER_DAY} a day${L.mathToday>=MATH_PER_DAY?' (today\'s are done)':''}.</p>`;
+  if(doneCards.length) html += `<h3 class="group">Done today <span class="gn">${doneCards.length}</span></h3>` + doneCards.join('');
   return html + foot();
+}
+function viewLibrary(){
+  const L = library();
+  let html = `<h2 class="sec">Library</h2><p class="lead2">Everything you can do. Tap <b>＋ Today</b> to put it on today's list.</p>`;
+  if(!L) return html + `<div class="empty"><span class="e">📡</span>Couldn't load the Library.<br>Check the Wi-Fi, then pull down to refresh.</div>`;
+  html += `<input type="search" class="libsearch" id="libsearch" placeholder="🔍 Search the Library" autocomplete="off">`;
+  const lib = (it, x) => card(it, null, { lib:true, inToday: L.inToday.has(it.id), ...x });
+  if(L.next.length) html += `<div data-sugg><h3 class="group">⭐ Suggested for you <span class="gn">${L.next.length}</span></h3>${L.next.map(it=>lib(it)).join('')}</div>`;
+  if(!L.groups.length) return html + `<div class="empty"><span class="e">🎉</span>Nothing left in the Library!<br>Dad or Mom will add more soon.</div>`;
+  L.groups.forEach(([subj, items])=>{
+    const nNew = items.filter(it=>it.added && madeNew(it.added)).length;
+    html += `<details class="day" data-libgrp><summary>${subjDot(subj)}${esc(subj)} <span class="gn">${items.length}${nNew?` · 🆕 ${nNew} new`:''}${
+      subj==='Math'?' · in book order':''}</span></summary>${items.map(it=>lib(it)).join('')}</details>`;
+  });
+  return html;
+}
+// Library search: hides cards that don't match and opens the subjects that do (no re-render, so the box keeps focus).
+function libFilter(q){
+  const w = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const sugg = viewEl.querySelector('[data-sugg]'); if(sugg) sugg.hidden = w.length > 0;
+  viewEl.querySelectorAll('details[data-libgrp]').forEach(d=>{
+    let any = false;
+    d.querySelectorAll('.card').forEach(c=>{ const ok = w.every(x=>c.dataset.hay.includes(x)); c.hidden = !ok; any = any || ok; });
+    d.hidden = !any; d.open = w.length > 0 && any;
+  });
 }
 function viewDone(){
   const since = iso(new Date(today.getTime() - 14*864e5));
@@ -1273,10 +1342,11 @@ function viewPet(){
 
 const viewEl = document.getElementById('view');
 function render(){
-  viewEl.innerHTML = V==='todo' ? viewTodo() : V==='done' ? viewDone() : V==='report' ? viewReport()
+  viewEl.innerHTML = V==='today' ? viewToday() : V==='library' ? viewLibrary() : V==='done' ? viewDone() : V==='report' ? viewReport()
     : V==='scores' ? viewScores() : V==='pet' ? viewPet() : viewMistakes();
   const L = library();
-  document.getElementById('ntodo').textContent = L && L.next.length ? L.next.length : '';
+  document.getElementById('ntoday').textContent = L && L.today.length ? `${L.today.filter(it=>it.a).length}/${L.today.length}` : '';
+  const ls = document.getElementById('libsearch'); if(ls) ls.addEventListener('input', ()=>libFilter(ls.value));
   document.getElementById('ndone').textContent = L ? new Set(ATT.filter(a=>a.date===iso(today) && counts(L.byId.get(a.id), a)).map(a=>a.id)).size || '' : '';
   document.getElementById('nrep').textContent = summaryOf(iso(today)) ? '📝' : '';
   document.getElementById('npet').textContent = petOf(PET) && GAME ? stageIc({ ...PET, xp:GAME.xp }) : '';
@@ -1302,7 +1372,7 @@ function skyNow(){
 skyNow(); setInterval(skyNow, 5*60*1000);
 
 function showPick(msg){
-  ME = null; ITEMS = []; ATT = []; DAYS = []; MARKED = []; BANK = null; QUEUE = new Map(); viewEl.innerHTML = '';
+  ME = null; ITEMS = []; ATT = []; DAYS = []; MARKED = []; BANK = null; QUEUE = new Map(); PICKS = []; viewEl.innerHTML = '';
   PET = undefined; SIB = undefined; GAME = null; petSkipped = false;
   closePop(); toastEl.hidden = true;
   document.body.className = '';
@@ -1418,6 +1488,8 @@ auth.onAuthStateChanged(async user=>{
 });
 document.getElementById('switch').addEventListener('click',()=>auth.signOut());
 viewEl.addEventListener('click', e=>{
+  const ad = e.target.closest('[data-add]'); if(ad) setPick(ad.dataset.add, true, ad);
+  const un = e.target.closest('[data-unpick]'); if(un) setPick(un.dataset.unpick, false, un);
   if(e.target.closest('[data-signout]')) auth.signOut();
   const op = e.target.closest('[data-open]');
   if(op) linkOpened(op.dataset.open);
