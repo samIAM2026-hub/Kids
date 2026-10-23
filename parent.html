@@ -89,6 +89,16 @@
 
   /* ---------- generic card ---------- */
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  /* 今天一眼（2026-10-23 · 使用体验）：每个孩子一行 —— 几分钟 / 还剩几份 / 待批 / 要留意 */
+  .glance{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-top:14px;display:grid;gap:6px}
+  .glance .gl{font-size:14px;color:var(--cream);line-height:1.6}
+  .glance .gl b{font-size:15px;margin-right:6px}
+  .glance .ok{color:var(--green)} .glance .low{color:var(--amber)}
+  .glance a,.glance button.lk{color:var(--gold);background:none;border:none;font:inherit;cursor:pointer;padding:0;text-decoration:underline}
+  /* 勾几份一起撤回 / 一起改日期 */
+  .tsel{width:18px;height:18px;margin:0 8px 0 0;flex:0 0 auto;accent-color:var(--gold);cursor:pointer}
+  .bulkrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:rgba(201,162,39,.12);border:1px solid var(--gold2);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:13.5px;color:var(--cream)}
+  .bulkrow input[type=date]{font:inherit;background:var(--ink2);color:var(--cream);border:1px solid var(--line);border-radius:6px;padding:3px 6px}
   /* 作业时间柱状图（2026-10-22）：每天 / 每周，Grace 和 Warren 并排，颜色分科目 */
   .tchart{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px 8px;margin-top:14px}
   .tchart>summary{cursor:pointer;list-style:none;font-weight:700;color:var(--cream);font-size:15px}
@@ -1755,6 +1765,8 @@ function todoStrip(){
 }
 
 let SETOPEN = false;   // 「⚙ 排作业设置」这次打开页面期间点开过没有（改开关会重画，得记着）
+// 「今天」页勾选的那几份（"kid|itemId"），一起撤回 / 一起改日期（Sam 2026-10-23：Grace 一天 27 份只能一份一份撤）
+const TSEL = new Set();
 /* ===================== 作业时间柱状图（Sam 2026-10-22：「两个每天的作业量按实际做作业的时间来衡量；
    两个可以用 BAR graph 的形式做比较；每天的和每周的；然后再用颜色分出科目来」） =====================
    时间 = 有效时间，和卡片上「有效」同一个口径：交了卷的（estSecs）+ 打开没交卷的那段（UNF）+ 看批改（算写作）。
@@ -1798,6 +1810,22 @@ function tBars(rows, target, label, W = 720){
   h += `<line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" stroke="#93a2bd"/>`;
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="作业时间柱状图">${h}</svg>`;
 }
+// 今天一眼（Sam 2026-10-23「今天一打开先看到要处理的事」）：每个孩子一行 —— 今天几分钟、还剩几份没做、几篇作文待批、几份要留意
+function todayGlance(){
+  const T0 = iso(today);
+  return `<div class="glance">${['grace','warren'].map(k=>{
+    const m = Math.round(tSecs(k, T0, T0).reduce((a, b)=>a+b, 0)/60);
+    const ids = [...new Set([...ASSIGN[k].map(it=>it.id), ...(KPICK[k]||[]).map(x=>x.id)])];
+    const left = ids.filter(id=>!dayResult(k, id, T0)).length;
+    const essays = ATT.filter(a=>a.kid===k && a.handin && ess(a).todo).length;
+    const att = attnOf(k, T0).filter(x=>x.f.attention).length;
+    return `<div class="gl"><b>${KID[k].av} ${KID[k].n}</b><span class="${m>=PLAN_MINS?'ok':'low'}">${m}/${PLAN_MINS} 分钟</span>
+      · ${ids.length ? (left ? `还有 ${left} 份没做` : `<span class="ok">今天的都做完了</span>`) : '今天的单子是空的（孩子自己从 Library 挑）'}
+      ${essays ? ` · <button class="lk" data-gokid="${k}" data-gov="essay">✍️ ${essays} 篇作文待批</button>` : ''}
+      ${att ? ` · ⚠️ ${att} 份要留意` : ''}
+      · <a href="homework.html?as=${k}" target="_blank" rel="noopener">👀 ${KID[k].n} 的界面</a></div>`;
+  }).join('')}</div>`;
+}
 function timeCharts(){
   // 手机上 14 天挤不下：窄屏只画 7 天、5 周，画布也窄一些（字就不会被缩得看不清）
   const T0 = iso(today), WD = ['日','一','二','三','四','五','六'], narrow = window.innerWidth < 640, CW = narrow ? 380 : 720;
@@ -1810,9 +1838,10 @@ function timeCharts(){
   const weekly = weeks.map(w=>({ d:w, g: mins(tSecs('grace', w, shiftDay(w, 6))), w: mins(tSecs('warren', w, shiftDay(w, 6))) }));
   const dl = d => { const x = new Date(d+'T12:00:00'); return `${x.getMonth()+1}/${x.getDate()} ${WD[x.getDay()]}`; };
   const wl = d => { const x = new Date(d+'T12:00:00'); return `${x.getMonth()+1}/${x.getDate()} 起`; };
-  // 默认打开；点收起记在这台设备上（和「这一页怎么看」同一个 parent.g2.* 开关）
-  let shut = false; try { shut = localStorage.getItem('parent.g2.tchart')==='0'; } catch(e){}
-  return `<details class="tchart" data-guide="tchart"${shut?'':' open'}><summary>⏱ 作业时间 · Grace 和 Warren</summary>
+  // 默认收成一行（本周两人各几分钟），点开才是两张图；点开 / 收起记在这台设备上（parent.g2.* 开关）
+  let open = false; try { open = localStorage.getItem('parent.g2.tchart')==='1'; } catch(e){}
+  const wk = weekly[weekly.length-1], tot = v => v.reduce((a, b)=>a+b, 0);
+  return `<details class="tchart" data-guide="tchart"${open?' open':''}><summary>⏱ 作业时间 · 本周（周一起）Grace <b>${tot(wk.g)}</b> 分钟 · Warren <b>${tot(wk.w)}</b> 分钟 · 目标 ${PLAN_MINS*7} <span style="color:var(--mute);font-weight:400">· 点开看每天、每周的图 ▸</span></summary>
     <div class="tsub">有效时间（交了卷的 + 打开没交卷的那段 + 看批改），按科目分颜色。每个日子两根柱：G = Grace，W = Warren；鼠标停在柱子上看每科几分钟。</div>
     <div class="tlegend">${T_SUBJ.map(z=>`<span><i style="background:${z[2]}"></i>${z[3]}</span>`).join('')}</div>
     <div class="tgrid"><div><h4>每天 · 最近 ${nD} 天</h4>${tBars(daily, PLAN_MINS, dl, CW)}</div>
@@ -1820,7 +1849,7 @@ function timeCharts(){
 }
 function viewToday(){
   const day = TD, isToday = day===iso(today);
-  let html = todoStrip() + `<h2 class="sec">${isToday?'今天':'作业'} · ${day} 周${wdOf(day)}${qm(`2026-10-22 起不用派题：孩子登录后在 <b>To do</b> 里看到题库里上架的全部，自己挑着做，每天目标 ${PLAN_MINS} 分钟。
+  let html = (isToday ? '' : todoStrip()) + `<h2 class="sec">${isToday?'今天':'作业'} · ${day} 周${wdOf(day)}${qm(`2026-10-22 起不用派题：孩子登录后在 <b>To do</b> 里看到题库里上架的全部，自己挑着做，每天目标 ${PLAN_MINS} 分钟。
       这里还派得出（或自动排进来）的那几份，在孩子那边排在最前面、标 Picked for you。做过的成绩都会保留。`)}</h2>
     <div class="daynav">
       <button class="fchip" data-day="${shiftDay(day,-1)}">‹ ${dayName(shiftDay(day,-1), '前一天')}</button>
@@ -1843,7 +1872,7 @@ function viewToday(){
       ${['grace','warren'].map(k=>{ const p = PLAN[k] || {}, on = !!p.on;
         return `<span class="planone"><button class="fchip${on?' on':''}" data-plan="${k}" data-on="${on?0:1}">${KID[k].av} ${KID[k].n} · ${on?'开':'关'}</button>${on?`
           <button class="fchip" data-planmins="${k}" title="点一下改每天多少分钟">${+p.mins||PLAN_MINS} 分钟/天</button>`:''}</span>`; }).join('')}
-    </div></div>${timeCharts()}<div class="grid2">`;
+    </div></div>${isToday ? todayGlance() : ''}${timeCharts()}<div class="grid2">`;
   const guide = `<details class="hguide" data-guide="today"${guideOpen('today')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li><b>一张卡片看全这一天</b>：最上面一行 = 完成几份、第一遍达标几份、有效时间（页面开了多久）、有效占比；收着也看得到「⚠️ 需要留意」和「✍️ 待批改」。
         展开是这天的总结、每份卷子每一遍的分数和用时、错了哪几题、切走几次。翻 ‹ › 就是看别的日子（原来「完成记录」「专注情况」的内容，现在收在孩子页的「更多」里）。</li>
@@ -1923,6 +1952,13 @@ function viewToday(){
     if(!list.length){
       if(!reads.length && !papers.length) html += `<p class="empty">${isToday?'今天':'这天'}还没交卷。孩子在作业页 To do 里自己挑着做。</p>`;
     } else {
+      // 一起撤回 / 一起改日期：勾了几份就出来这一条；没做的有 3 份以上，给一个「全选没做的」
+      const undone = list.filter(it=>!doneOf(it)), picked = undone.filter(it=>TSEL.has(k+'|'+it.id));
+      if(picked.length) html += `<div class="bulkrow">已选 <b>${picked.length}</b> 份
+        <button class="mini bad" data-bulkpull="${k}">一起撤回</button>
+        · 挪到 <input type="date" class="bulkdate" data-bulkdate="${k}" value="${shiftDay(iso(today), 1)}"><button class="mini" data-bulkmove="${k}">一起挪</button>
+        <button class="mini" data-bulkclear="${k}">取消</button></div>`;
+      else if(undone.length >= 3) html += `<div class="bulkrow" style="background:none;border-style:dashed">要一次撤回或改日期好几份：勾选每份前面的方框，或者 <button class="mini" data-bulkall="${k}">全选没做的 ${undone.length} 份</button></div>`;
       // 没做完的在上面、做完的沉到下面（Sam 2026-10-18）：组里先没做的；整科都做完的组排到最后
       const undoneFirst = items => [...items.filter(it=>!doneOf(it)), ...items.filter(it=>doneOf(it))];
       bySubj(list).map(([sj, items])=>[sj, undoneFirst(items)])
@@ -1969,7 +2005,7 @@ function viewToday(){
           : planPinned(it) ? `<button class="mini" data-qop="${esc(key)}|today">今天就做</button>`
           : `<button class="mini" data-qop="${esc(key)}|up" title="在这一科里往前挪一位">↑</button><button class="mini" data-qop="${esc(key)}|down" title="在这一科里往后挪一位">↓</button><button class="mini" data-qop="${esc(key)}|today">今天就做</button>`);
         // 每份作业一个框，它的「每题有效时间」和改日期都在框里（Sam 2026-10-16：分不清是上面还是下面那份的）
-        html += `<div class="taskbox${r?' done':''}"><div class="task"><span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
+        html += `<div class="taskbox${r?' done':''}"><div class="task">${r ? '' : `<input type="checkbox" class="tsel" data-tsel="${esc(key)}"${TSEL.has(key)?' checked':''} title="勾上，和别的一起撤回或改日期">`}<span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
           <b>${openLink(it.href, esc(it.t))}${it.carried && it.movedFrom ? `<span class="late">${moveTxt(it, TD)}</span>` : ''}${it.ahead ? `<span class="late ahead">提前做的</span>` : ''}</b>
           <span class="tm">${tmEst}</span>
           </span><span class="acts">${st}${more ? `<span class="moreb" hidden>${more}</span><button class="mini moretog" data-more="1" title="归档、挪日子、调顺序">⋯</button>` : ''}
@@ -4179,6 +4215,19 @@ async function newDayCheck(){
   location.reload();
 }
 document.addEventListener('visibilitychange', newDayCheck);
+/* 回到这一页就悄悄补读（Sam 2026-10-23：在家长模式 / 别的标签页改了作业，这里不点「刷新」看不到）：
+   最多一分钟一次，只读变了的（fs-cache：题库看版本号、成绩只补新的、作业单只重读两周内的，几十次读）。
+   在改日期、在输入框里打字、在批作文的时候不重画，免得打断。 */
+let QUIET_AT = Date.now();
+async function quietRefresh(){
+  if(document.hidden || !auth.currentUser || (gate && !gate.hidden) || Date.now() - QUIET_AT < 60e3) return;
+  QUIET_AT = Date.now();
+  try { await loadAll(); } catch(e){ console.warn('[quiet refresh]', e.code||e); return; }
+  const a = document.activeElement, busy = MOVING || (a && viewEl.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) || (V==='essay' && WR.cur);
+  if(!busy) render();
+}
+document.addEventListener('visibilitychange', quietRefresh);
+window.addEventListener('focus', quietRefresh);
 window.addEventListener('pageshow', newDayCheck);
 window.addEventListener('focus', newDayCheck);
 
@@ -4462,6 +4511,14 @@ function render(){
       if(v == null || !(m >= 10 && m <= 300)) return v == null ? null : toast('填 10 到 300 之间的分钟数', true);
       if(m !== cur) setPlan(k, { mins: m, on: true }, b);
     }));
+    viewEl.querySelectorAll('[data-tsel]').forEach(c=>c.addEventListener('change',()=>{ c.checked ? TSEL.add(c.dataset.tsel) : TSEL.delete(c.dataset.tsel); render(); }));
+    viewEl.querySelectorAll('[data-bulkall]').forEach(b=>b.addEventListener('click',()=>{ const k = b.dataset.bulkall;
+      ASSIGN[k].filter(it=>!dayResult(k, it.id, TD)).forEach(it=>TSEL.add(k+'|'+it.id)); render(); }));
+    viewEl.querySelectorAll('[data-bulkclear]').forEach(b=>b.addEventListener('click',()=>{ const k = b.dataset.bulkclear;
+      [...TSEL].filter(x=>x.startsWith(k+'|')).forEach(x=>TSEL.delete(x)); render(); }));
+    viewEl.querySelectorAll('[data-bulkpull]').forEach(b=>b.addEventListener('click',()=>bulkPull(b.dataset.bulkpull, b)));
+    viewEl.querySelectorAll('[data-bulkmove]').forEach(b=>b.addEventListener('click',()=>{ const k = b.dataset.bulkmove;
+      bulkMove(k, viewEl.querySelector(`[data-bulkdate="${k}"]`).value, b); }));
     viewEl.querySelectorAll('[data-pull]').forEach(b=>b.addEventListener('click',()=>{
       const [k, id] = b.dataset.pull.split('|'); pullItem(k, id, b); }));
     viewEl.querySelectorAll('[data-move]').forEach(b=>b.addEventListener('click',()=>{
@@ -4900,6 +4957,49 @@ document.getElementById('assclear').addEventListener('click',()=>{ SEL.clear(); 
 
 // 撤回: the item leaves the kid's day. A copy goes to `withdrawn`, so the parent sees what was taken
 // back and the kids page still knows the subject of any score on it. Attempts are never touched.
+// 勾选的几份一起撤回（这一天的作业单，一个 transaction）
+async function bulkPull(k, btn){
+  const d = TD, ids = ASSIGN[k].filter(it=>TSEL.has(k+'|'+it.id)).map(it=>it.id);
+  if(!ids.length) return;
+  if(!confirm(`从 ${KID[k].n} ${d} 的作业里撤回这 ${ids.length} 份？做过的成绩都会保留。`)) return;
+  btn.disabled = true;
+  const ref = dayRef(k, d);
+  try {
+    await db.runTransaction(async tx=>{
+      const x = (await tx.get(ref)).data() || {}, items = x.items || [], now = firebase.firestore.Timestamp.now();
+      const gone = items.filter(i=>ids.includes(i.id));
+      tx.set(ref, { items: items.filter(i=>!ids.includes(i.id)),
+        withdrawn: [...(x.withdrawn||[]).filter(p=>!ids.includes(p.id)), ...gone.map(g=>({ ...g, withdrawnAt: now }))],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+    });
+    ids.forEach(id=>TSEL.delete(k+'|'+id));
+    await Promise.all([loadDay(d), loadDays()]);
+    if(planOn(k) && d >= iso(today)){ await runPlan(); await Promise.all([loadDay(TD), loadDays()]); }
+    render(); toast(`已撤回 ${KID[k].n} ${d} 的 ${ids.length} 份`);
+  } catch(e){ console.error(e); btn.disabled = false; toast('撤回失败：' + (e.code||e.message) + '，没有改动', true); }
+}
+// 勾选的几份一起挪到另一天（只有没做的能勾，所以不用像单份那样留这天的记录）
+async function bulkMove(k, to, btn){
+  const from = TD, ids = ASSIGN[k].filter(it=>TSEL.has(k+'|'+it.id)).map(it=>it.id);
+  if(!ids.length) return;
+  if(!to || to===from) return toast('选一个别的日期', true);
+  btn.disabled = true;
+  const src = dayRef(k, from), dst = dayRef(k, to);
+  try {
+    await db.runTransaction(async tx=>{
+      const [sn, tn] = await Promise.all([tx.get(src), tx.get(dst)]);
+      const sItems = (sn.data()||{}).items || [], tItems = (tn.data()||{}).items || [], now = firebase.firestore.FieldValue.serverTimestamp();
+      const go = sItems.filter(i=>ids.includes(i.id));
+      // 手动改日期就是「挪来」，不再算自动顺延；已经顺延过的往后挪，还是「延后 N 天」（和 moveItem 一样）
+      const moved = go.filter(f=>!tItems.some(i=>i.id===f.id)).map(f=>{ const { carried, origin, ...rest } = f; return { ...(carried && to > from ? f : rest), movedFrom: from }; });
+      tx.set(src, { items: sItems.filter(i=>!ids.includes(i.id)), updatedAt: now }, { merge:true });
+      tx.set(dst, { items: [...tItems, ...moved], withdrawn: ((tn.data()||{}).withdrawn || []).filter(p=>!ids.includes(p.id)), updatedAt: now }, { merge:true });
+    });
+    ids.forEach(id=>TSEL.delete(k+'|'+id));
+    await Promise.all([loadDay(from), to===iso(today) ? loadDay(to) : null, loadDays()]); render();
+    toast(`已把 ${KID[k].n} 的 ${ids.length} 份从 ${from} 挪到 ${to}`);
+  } catch(e){ console.error(e); btn.disabled = false; toast('改日期失败：' + (e.code||e.message) + '，没有改动', true); }
+}
 async function pullItem(k, id, btn, day){
   const d = day || TD, it = (day ? ((DAYS[k].find(x=>x.date===d)||{}).items||[]) : ASSIGN[k]).find(x=>x.id===id);
   if(!it) return;
