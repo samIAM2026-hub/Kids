@@ -903,18 +903,19 @@
          later whether they stay — see USE below). An extra that is the current view stays visible. -->
     <nav class="subtabs" id="subtabs" hidden>
       <!-- 2026-10-16 Sam：完成记录 · 专注情况 · 总结都并进了「今天」，这三样收进「更多」（还能点开，按天回看也能在「今天」翻日期） -->
+      <!-- 2026-10-23 Sam：「家长界面最好和孩子的界面一致」→ 孩子的作业页本身开一个家长模式（homework.html?as=kid），金色 🔑 按钮是家长才有的；
+           排、撤、挪都在那里做了，所以这排只留家长台独有的：批作文、听录音、题库；作业队列和各种记录收进「更多」（2026-10-23 · 使用体验 4） -->
+      <a class="stab assign" id="kidview" href="homework.html" target="_blank" rel="noopener">👀 孩子的界面</a>
       <button class="stab" data-v="essay">写作 <span class="pill hot" id="essayn" hidden></span></button>
-      <button class="stab" data-v="queue">作业队列</button>
       <button class="stab" data-v="audio">朗读录音</button>
+      <button class="stab assign" id="kidassign">📚 题库</button>
       <button class="stab more" id="stmore" aria-expanded="false">更多 ▸</button>
+      <button class="stab extra" data-v="queue">作业队列</button>
       <button class="stab extra" data-v="hist">完成记录</button>
       <button class="stab extra" data-v="focus">专注情况</button>
-      <button class="stab extra" data-v="dispatch">派发记录</button>
       <button class="stab extra" data-v="skills">知识点</button>
       <button class="stab extra" data-v="reading">阅读写作</button>
-      <button class="stab assign" id="kidassign">＋ 派题</button>
-      <!-- 2026-10-23 Sam：「家长界面最好和孩子的界面一致」→ 孩子的作业页本身开一个家长模式（homework.html?as=kid），金色 🔑 按钮是家长才有的 -->
-      <a class="stab assign" id="kidview" href="homework.html" target="_blank" rel="noopener">👀 孩子的界面</a>
+      <button class="stab extra" data-v="dispatch">派发记录</button>
     </nav>
   </div>
 </header>
@@ -933,13 +934,18 @@
        派了的在孩子那边排在 Up next 最前面、标 Picked for you。 -->
   <label for="asskid">派给</label>
   <select id="asskid"><option value="grace">👧 Grace</option><option value="warren">👦 Warren</option><option value="both">👧👦 两个人</option></select>
+  <!-- 2026-10-23 · 使用体验 5：多数时候只是「放进今天」，所以它是一颗大按钮；排到队尾 / 插到最前 / 选日期收进「其它日期 ▸」 -->
+  <button class="btn solid" id="asstoday">📌 放进今天</button>
+  <button class="btn ghost" id="assmoretog" aria-expanded="false">其它日期 ▸</button>
+  <span id="assmore" hidden>
   <label for="assdate" id="assdatel">日期</label>
   <select id="assmode" hidden title="派到哪天"><option value="tail">排到队尾</option><option value="front">插到最前</option><option value="today">今天就做</option><option value="date">选日期…</option></select>
   <input type="date" id="assdate">
-  <button class="btn solid" id="assgo">派发</button>
+  <button class="btn ghost" id="assgo">派发</button>
+  </span>
   <button class="btn ghost" id="archgo" data-to="1">下架</button>
   <button class="btn ghost" id="assclear">取消</button>
-  <span class="keyhint">键盘：Enter 派发 · A 上架 / 下架 · Esc 取消 · / 搜索</span>
+  <span class="keyhint">键盘：Enter 放进今天 · A 上架 / 下架 · Esc 取消 · / 搜索</span>
 </div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -4710,7 +4716,7 @@ function navSync(){
   document.querySelectorAll('[data-top]').forEach(x=>x.classList.toggle('on', x.dataset.top===top));
   document.getElementById('subtabs').hidden = !KV;
   document.querySelectorAll('.stab[data-v]').forEach(x=>x.classList.toggle('on', x.dataset.v===V));
-  if(KV) document.getElementById('kidassign').textContent = `＋ 给 ${KID[KV].n} 派题`;
+  if(KV) document.getElementById('kidassign').textContent = `📚 ${KID[KV].n} 的题库`;
   if(KV){ const kv = document.getElementById('kidview'); kv.href = `homework.html?as=${KV}`; kv.textContent = `👀 ${KID[KV].n} 的界面`; }
 }
 document.querySelectorAll('[data-top]').forEach(t=>t.addEventListener('click',()=>{
@@ -4730,7 +4736,7 @@ document.getElementById('kidassign').addEventListener('click',()=>{
 });
 
 /* ===================== 键盘快捷键（电脑上，Sam 2026-09-27） =====================
-   /  搜题库（不在题库就先跳过去）· Enter 派发勾选的 · A 上架 / 下架勾选的 · Esc 取消勾选。
+   /  搜题库（不在题库就先跳过去）· Enter 把勾选的放进今天 · A 上架 / 下架勾选的 · Esc 取消勾选。
    光标在输入框、下拉框里，或者按着 ⌘ / Ctrl / Alt 时一律不管，免得打字时误触。 */
 document.addEventListener('keydown', e=>{
   if(gate && !gate.hidden) return;
@@ -4745,7 +4751,7 @@ document.addEventListener('keydown', e=>{
     return;
   }
   if(V!=='bank' || !SEL.size) return;
-  if(e.key==='Enter' && !(a && /^(BUTTON|A|SUMMARY)$/.test(a.tagName))){ e.preventDefault(); used('key:enter'); document.getElementById('assgo').click(); }
+  if(e.key==='Enter' && !(a && /^(BUTTON|A|SUMMARY)$/.test(a.tagName))){ e.preventDefault(); used('key:enter'); document.getElementById('asstoday').click(); }
   else if(e.key==='a' || e.key==='A'){ e.preventDefault(); used('key:a'); document.getElementById('archgo').click(); }
   else if(e.key==='Escape'){ used('key:esc'); SEL.clear(); render(); }
 });
@@ -4797,7 +4803,7 @@ function useKey(el){
   if(el.matches('a.open')) return 'open:'+V;
   if(el.tagName==='SUMMARY' && el.parentElement.classList.contains('hguide')) return 'guide';
   if(el.tagName==='SUMMARY' && el.parentElement.classList.contains('subj')) return 'bank:subject';
-  return { assgo:'assign:go', archgo:'assign:arch', assclear:'assign:clear', kidassign:'kid:assign',
+  return { assgo:'assign:go', asstoday:'assign:today', assmoretog:'assign:more', archgo:'assign:arch', assclear:'assign:clear', kidassign:'kid:assign',
            reload:'reload', lock:'lock', tdpick:'today:datebox', hdpick:'hist:datebox' }[el.id] || '';
 }
 document.addEventListener('click', e=>{
@@ -4862,6 +4868,17 @@ function syncAssignBar(){
   sel.hidden = !q;
 }
 document.getElementById('assmode').addEventListener('change', syncAssignBar);
+// 📌 放进今天 = 派发，排在「今天」（开了自动排的选「今天就做」，没开的日期填今天），走的是同一段派发代码
+document.getElementById('asstoday').addEventListener('click', ()=>{
+  const sel = document.getElementById('assmode'), dt = document.getElementById('assdate'), mode = sel.value, date = dt.value;
+  sel.value = 'today'; dt.value = iso(today);
+  document.getElementById('assgo').click();
+  sel.value = mode; dt.value = date;   // 「其它日期」里原来选的不动（派发读的是点下去那一刻的值）
+});
+document.getElementById('assmoretog').addEventListener('click', ()=>{
+  const m = document.getElementById('assmore'), b = document.getElementById('assmoretog');
+  m.hidden = !m.hidden; b.textContent = m.hidden ? '其它日期 ▸' : '其它日期 ◂'; b.setAttribute('aria-expanded', !m.hidden); syncAssignBar();
+});
 document.getElementById('asskid').addEventListener('change', syncAssignBar);
 document.getElementById('assgo').addEventListener('click', async ()=>{
   const k = document.getElementById('asskid').value;
