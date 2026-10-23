@@ -937,6 +937,7 @@
 <script src="JS/writing-review.js"></script>
 <script src="JS/writing-kinds.js"></script>
 <script src="JS/plan-core.js?v=1019"></script>
+<script src="JS/fs-cache.js"></script>
 <script>
 /* =====================================================================
    家长控制台
@@ -1191,10 +1192,12 @@ async function loadDay(d){
 // assigns a handful a day, so fetch them all, the same call ATT already makes.
 let DAYS = { grace: [], warren: [] };
 async function loadDays(){
-  const got = await Promise.all(['grace','warren'].map(k =>
-    db.collection(`assignments/${KID[k].uid}/days`).get()));
+  // 少读：两周前往后的（含以后排着的）每次重读，更早的用本机那份（一周全读一次）
+  const got = await Promise.all(['grace','warren'].map(k => FsCache.byDay(`pc1.days.${k}`,
+    ()=>db.collection(`assignments/${KID[k].uid}/days`),
+    from=>db.collection(`assignments/${KID[k].uid}/days`).where(firebase.firestore.FieldPath.documentId(), '>=', from), shiftDay(iso(today), -14))));
   ['grace','warren'].forEach((k, i)=>{
-    DAYS[k] = got[i].docs
+    DAYS[k] = got[i]
       .map(d => ({ date: d.id, items: d.data().items || [], withdrawn: d.data().withdrawn || [], carried: d.data().carried || [] }))
       .filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x.date))
       .sort((a, b) => b.date.localeCompare(a.date));   // newest day first
@@ -1502,12 +1505,16 @@ function sortBank(){
 }
 
 async function loadAll(){
-  const [bankSnap, attSnap, progSnap, , , , profs] = await Promise.all([
-    db.collection('bank').get(),
-    // A family writes a handful a day, so fetch them all: "最近一次" needs more than three weeks.
-    db.collection('attempts').orderBy('submittedAt','desc').get(),
-    // 没交卷的时间：一个孩子一份卷子一天一条，量不大，全拿（2026-09-24 之前的没带时间，toUnf 会跳过）
-    db.collection('progress').get(),
+  // 少读（JS/fs-cache.js，2026-10-22 免费额度一天 5 万次读用完了）：题库、成绩、没交卷的时间都先用这台设备上的那份，
+  // 只补读变了的 / 新的；右上角「刷新」清掉那份、全部重读。
+  const [bankDocs, attDocs, progDocs, , , , profs] = await Promise.all([
+    // 题库：meta/bank 的版本号没变（每次写题库都会改它）就用本机那份
+    FsCache.bank(db, 'pc1.bank', db.collection('bank')),
+    // 成绩全都要（「最近一次」要看三周以前的）：本机那份 + 比最新那条还新的
+    FsCache.attempts('pc1.att', ()=>db.collection('attempts').orderBy('submittedAt','desc'),
+      ts=>db.collection('attempts').where('submittedAt','>',ts)),
+    // 没交卷的时间：一个孩子一份卷子一天一条（2026-09-24 之前的没带时间，toUnf 会跳过）。前天往后的重读，更早的用本机那份
+    FsCache.byDay('pc1.prog', ()=>db.collection('progress'), from=>db.collection('progress').where('day','>=',from), shiftDay(iso(today), -2)),
     loadDay(TD),
     TD === iso(today) ? null : loadDay(iso(today)),
     loadDays(),
@@ -1515,11 +1522,11 @@ async function loadAll(){
     Promise.all(['grace','warren'].map(k => db.doc(`kids/${KID[k].uid}`).get()))
   ]);
   ['grace','warren'].forEach((k, i)=>{ CARRY[k] = (profs[i].data()||{}).carry || null; PLAN[k] = (profs[i].data()||{}).plan || null; });
-  BANK = bankSnap.docs.map(d => Object.assign({ docId:d.id }, d.data()));
+  BANK = bankDocs.map(d => Object.assign({ docId:d.id }, d.data()));
   sortBank();
-  ATT = attSnap.docs.map(toAtt).filter(Boolean);
+  ATT = attDocs.map(toAtt).filter(Boolean).sort((a,b)=>(b.at||0)-(a.at||0));   // newest first, as everything below expects
   UNF = {};
-  progSnap.docs.forEach(d=>{ const u = toUnf(d.id, d.data()); if(u) UNF[d.id] = u; });
+  progDocs.forEach(d=>{ const u = toUnf(d.id, d.data()); if(u) UNF[d.id] = u; });
   buildEst();   // 用时估算要等题库和成绩都到齐才算得出来
 }
 
@@ -2434,6 +2441,7 @@ async function setArchived(ids, on){
     // 放回 = 「我还要用它」。记下放回的日子：再归档时完成日期只认那天以后的。
     : { archived:false, archivedOn: del, archivedWhy: del, doneOn: del, reopenedOn: t }, { merge:true }));
   await batch.commit();
+  FsCache.bumpBank(db);   // 告诉别的设备题库变了（孩子页、别的家长页就会重读题库）
   // BANK 和 BANK_BY_ID 指的是同一批对象，改一处两边都跟上，不用重新拉一次题库
   ids.forEach(id=>{
     const b = BANK_BY_ID[id];
@@ -2528,6 +2536,7 @@ async function autoArchivePassed(){
       { archived:true, archivedOn:t, doneOn:d, archivedWhy:WHY }, { merge:true }));
     await batch.commit();
   }
+  FsCache.bumpBank(db);
   todo.forEach(([b, d]) => Object.assign(b, { archived:true, archivedOn:t, doneOn:d, archivedWhy:WHY }));
   const names = [...new Set(todo.map(([b]) => b.book || b.t))];
   toast(`做完且过关的自动归档 ${todo.length} 份：${names.slice(0,3).join('、')}${names.length>3?' 等':''} —— 在「只看归档」里，点「放回」能拿回来`);
@@ -2732,6 +2741,7 @@ async function saveLink(btn){
   btn.disabled = true;
   try {
     await db.collection('bank').doc(id).set(data, { merge:true });
+    FsCache.bumpBank(db);
     const local = { ...data, mins: mins==null ? undefined : mins };
     if(mins==null) delete local.mins;
     const cur = BANK_BY_ID[id];
@@ -2767,6 +2777,7 @@ async function delLink(btn){
   btn.disabled = true;
   try {
     await db.collection('bank').doc(id).delete();
+    FsCache.bumpBank(db);
     BANK = BANK.filter(x=>x.docId!==id); delete BANK_BY_ID[id]; SEL.delete(id);
     LF = null; render();
     toast(`已删掉「${b.t}」`);
@@ -4968,6 +4979,7 @@ document.getElementById('reload').addEventListener('click', async ()=>{
   // 写作、朗读录音也重读（正在批的那篇不打断，回到列表时再读）
   RC.list = null; RC.stale = false;
   if(V==='essay' && WR.cur) WR.stale = true; else WR.list = null;
+  FsCache.clear('pc1.');   // 「刷新」= 全部从服务器重读，不用本机那份
   try { await loadAll(); await carryNow(); const n = await autoArchiveSafe(); render(); if(!n) toast('已刷新'); }
   catch(e){ console.error(e); toast('刷新失败：' + (e.code||e.message), true); }
 });

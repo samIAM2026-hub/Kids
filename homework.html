@@ -392,6 +392,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="JS/fs-cache.js"></script>
 <script src="JS/kid-pets.js"></script>
 <script src="JS/writing-kinds.js"></script>
 <script>
@@ -498,18 +499,26 @@ function touch(force){
 async function load(){
   const sib = Object.values(KIDS).find(k=>k.uid!==ME.uid);
   const [days, att, pet, sibPet, wr, prof, bank, picks] = await Promise.all([
-    // All my assigned days (today's included): older days tell the subject of past attempts.
-    db.collection(`assignments/${ME.uid}/days`).get(),
-    // No orderBy here: kidId == x plus orderBy another field would need a composite index.
-    db.collection('attempts').where('kidId','==',ME.uid).get(),
+    // Read less (JS/fs-cache.js, 2026-10-22: the free plan's 50,000 reads a day ran out). All my assigned days
+    // (older ones tell the subject of past attempts): the last 14 days and later are re-read, older ones come
+    // from this device's copy.
+    FsCache.byDay(`kc1.days.${ME.uid}`, ()=>db.collection(`assignments/${ME.uid}/days`),
+      from=>db.collection(`assignments/${ME.uid}/days`).where(firebase.firestore.FieldPath.documentId(), '>=', from), shiftIso(iso(today), -14))
+      .then(docs=>({ docs })),
+    // Attempts: only the newer ones once there's a copy (that needs the attempts kidId + submittedAt index;
+    // without it the copy is used for 20 minutes) — plus what this device just sent, so a score shows at once.
+    FsCache.attempts(`kc1.att.${ME.uid}`, ()=>db.collection('attempts').where('kidId','==',ME.uid),
+      ts=>db.collection('attempts').where('kidId','==',ME.uid).where('submittedAt','>',ts), 20*60e3)
+      .then(docs=>{ const by = new Map(docs.map(d=>[d.id, d])); FsCache.sent(ME.uid).forEach(d=>{ if(!by.has(d.id)) by.set(d.id, d); }); return { docs:[...by.values()] }; }),
     getPet(ME.uid), getPet(sib.uid),
     // Same no-orderBy rule as attempts. Can't read them → no reminder card, nothing else breaks.
     db.collection('writings').where('kidId','==',ME.uid).get().catch(e=>{ console.warn('[writings]', e.code||e); return null; }),
     // kids/{uid}.carry — Dad's 「没做完自动顺延」 switch. Can't read it → no carry-over, nothing else breaks.
     db.doc(`kids/${ME.uid}`).get().then(d=>d.data()||{}).catch(e=>{ console.warn('[profile]', e.code||e); return {}; }),
     // My bank items, for To do / Done (2026-10-22). Can't read it → those two tabs say so, nothing else breaks.
-    db.collection('bank').where('kid','in',[ME.key,'both']).get()
-      .then(s=>s.docs.map(d=>({ docId:d.id, ...d.data() }))).catch(e=>{ console.warn('[bank]', e.code||e); return null; }),
+    // From this device's copy unless meta/bank says the bank changed (or it's 6 hours old).
+    FsCache.bank(db, `kc1.bank.${ME.key}`, db.collection('bank').where('kid','in',[ME.key,'both']))
+      .then(docs=>docs.map(d=>({ docId:d.id, ...d.data() }))).catch(e=>{ console.warn('[bank]', e.code||e); return null; }),
     // My own picks for today. Can't read them → an empty pick list, nothing else breaks.
     db.doc(`kidPicks/${ME.uid}__${iso(today)}`).get().then(d=>(d.data()||{}).items||[]).catch(e=>{ console.warn('[picks]', e.code||e); return []; })
   ]);
@@ -699,12 +708,14 @@ async function markLinkDone(id, btn){
   btn.disabled = true; btn.textContent = 'Saving…';
   const aid = Date.now().toString(36) + Math.random().toString(36).slice(2,10);
   try {
-    await db.doc('attempts/'+aid).set({
+    const rec = {
       kidId: ME.uid, itemId: id, href: it.href || '', t: it.t || '',
       kind: 'link', score: null, total: 0, pct: null, wrong: [],
       secs, activeSecs: secs,
       submittedAt: firebase.firestore.Timestamp.now(), reportVersion: 2
-    });
+    };
+    await db.doc('attempts/'+aid).set(rec);
+    FsCache.addSent(aid, rec);   // shows at once, even while attempts come from this device's copy
     await load(); render(); await afterLoad('link');
   } catch(e){
     console.error('[link done]', e);

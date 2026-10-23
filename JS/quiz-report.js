@@ -479,6 +479,17 @@
   }).catch(function () {});
 
   /* ---------- queue + send ---------- */
+  // A copy of every attempt this device has sent, for the homework page (JS/fs-cache.js reads the same key):
+  // it reads attempts from its own copy to save Firestore reads (2026-10-22, free plan), and adds these so a
+  // score shows the moment the kid gets back. Last 3 days, at most 60.
+  function keepSent(id, data) {
+    try {
+      var cut = Date.now() - 3 * 864e5, key = 'quizReport.sent.v1';
+      var list = (JSON.parse(localStorage.getItem(key)) || []).filter(function (x) { return x.id !== id && (x.at || 0) > cut; });
+      list.push({ id: id, at: Date.now(), data: data });
+      localStorage.setItem(key, JSON.stringify(list.slice(-60)));
+    } catch (e) {}
+  }
   function readQueue() { try { return JSON.parse(localStorage.getItem(QUEUE_KEY)) || []; } catch (e) { return []; } }
   function writeQueue(q) { try { localStorage.setItem(QUEUE_KEY, JSON.stringify(q)); } catch (e) {} }
 
@@ -701,6 +712,7 @@
           });
           delete data.localId; delete data.startedAtMs; delete data.submittedAtMs; delete data.writing;
           return createOnce(ref, data).then(function () {
+            keepSent(r.localId, Object.assign({}, data, { startedAt: { __ts: r.startedAtMs }, submittedAt: { __ts: r.submittedAtMs } }));
             // The attempt is in: tell the parent page (it re-reads attempts when a progress doc turns done).
             // Fix rounds are their own tiny attempt after the real one — no need to flip anything for those.
             if (r.kind !== 'fixup') putProgress({
