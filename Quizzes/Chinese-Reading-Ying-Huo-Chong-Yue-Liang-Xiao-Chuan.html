@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《萤火虫》和《月亮的小船》 The Firefly & The Moon Boat · 17 new characters + read aloud</title>
+<!-- =====================================================================
+  《萤火虫》和《月亮的小船》— two short night-time stories, five steps, ending in a recorded read-aloud.
+  Built from the 《儿歌汇总复习 1》 page (Quizzes/Chinese-Reading-Er-Ge-Fu-Xi-1.html).
+  Source: 泊远静颐《月亮的小船》.pdf (Sam, 2026-10-22, from WeChat): 3 pages, a new-character box of 17:
+  夜 挂 船 弟 漂 台 抬 亭 停 慢 安 落 轻 带 沙 响 照 (pinyin as printed: yè guà chuán dì piāo tái tái
+  tíng tíng màn ān luò qīng dài shā xiǎng zhào), then 《萤火虫》 (8 paragraphs) and 《月亮的小船》 (6).
+  台 and 亭 are NOT in the stories — the box pairs them with 抬 and 停 (台 + 扌 = 抬, 亭 + 亻 = 停);
+  their cards say so. Pinyin in the text = what the sheet prints over it (提 tí, 着急 zháo jí, 照亮 zhào liàng,
+  直 zhí, 摇摇 yáo yáo, 别 bié, 带 dài, 温暖 wēn nuǎn, 阵 zhèn, 静静 jìng jìng, 如 rú, 能 néng, 陪 péi,
+  温柔 wēn róu) + the box. h = the story title, on its first paragraph only.
+
+  1 Characters  — 17 cards, pinyin hidden until tapped, ✓/✗ self-mark (localStorage)
+  2 Words       — the words from the stories, tap to hear + peek pinyin
+  3 Read        — 14 paragraphs, pinyin hidden by default, two read-through rounds
+  4 Check       — 25-question marked test (picks adapter → quiz-report.js scores it)
+  5 Record      — two takes of both stories, saved like the other read-aloud
+                  pages: recordings/{id} + recordingAudio/{id}, same named app
+                  ('kid') as homework.html, counted per day. poemId 'cn-yinghuochong-yueliang'.
+                  Long (~370 characters), so 240 s at 16 kbps like 《拔萝卜》.
+  The recorder lives in its own <script> so the lesson still works if the
+  Firebase scripts can't load.
+===================================================================== -->
+<style>
+  :root{
+    --cream:#f7f3e8; --card:#fffdf6; --ink:#2b2720; --muted:#8a8070;
+    --night:#2f4078;     /* night indigo (kept the old names so the shared CSS below reads the same) */
+    --night-d:#1c2752;
+    --moon:#d6a21e;      /* firefly / moon gold */
+    --moon-d:#94680a;
+    --leaf:#3f7d4e; --leaf-d:#2f5f3b;   /* green = right / done */
+    --red:#c0392b; --softred:#fbeae7;
+    --line:#e6dcc6;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif; background:var(--cream);
+       color:var(--ink); padding:16px 12px 70px; line-height:1.65;}
+  .zh{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",Georgia,serif;}
+  .wrap{max-width:900px; margin:0 auto;}
+  [hidden]{display:none !important;}
+  .hide{display:none !important;}
+
+  header{background:linear-gradient(180deg,#121a3a 0%,#2f4078 60%,#557a9a 100%); color:#fff3dc;
+         border-radius:22px; padding:22px 18px 20px; text-align:center; position:relative; overflow:hidden;
+         box-shadow:0 7px 0 #141c3d;}
+  header .moonball{font-size:3.4rem; line-height:1; margin:0 auto 4px;}
+  header h1{font-size:2.1rem; margin:.1em 0 0; letter-spacing:.12em; font-weight:normal;
+            font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",Georgia,serif;}
+  header .en-title{font-size:1.02rem; color:#f3d27a; margin:.1em 0 .35em;}
+  header .sub{font-size:.88rem; opacity:.85; margin:0;}
+  header .star{position:absolute; color:#f3d27a; opacity:.7; font-size:.8rem;}
+
+  .teacher{background:#fbf5e4; border:2px solid #efdfb4; border-left:8px solid var(--moon);
+           border-radius:14px; padding:12px 16px; margin:16px 0 6px; font-size:.93rem; color:#5d5238;}
+  .teacher b{color:var(--moon-d);}
+  .teacher .cn{display:block; margin-top:6px; color:var(--muted); font-size:.88rem;}
+
+  .tabs{position:sticky; top:0; z-index:20; display:flex; gap:6px; flex-wrap:wrap; justify-content:center;
+        background:rgba(247,243,232,.96); padding:8px 4px; margin:10px -12px 18px; border-bottom:2px solid var(--line);
+        backdrop-filter:blur(4px);}
+  .tabs button{border:2px solid var(--line); background:var(--card); color:var(--muted); cursor:pointer;
+        font-family:inherit; font-size:.82rem; padding:6px 11px; border-radius:999px;}
+  .tabs button.on{background:var(--night); border-color:var(--night); color:#fff;}
+
+  section{background:var(--card); border:2px solid var(--line); border-radius:20px; padding:20px 18px;
+          margin-bottom:22px; box-shadow:0 6px 20px rgba(90,65,39,.08); scroll-margin-top:60px;}
+  h2{font-size:1.2rem; color:var(--night); margin:0 0 4px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  h2 .cnt{font-size:.78rem; color:var(--muted); font-weight:normal;}
+  .lead{color:var(--muted); font-size:.9rem; margin:0 0 16px;}
+  .lead b{color:#5d5238;}
+
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
+  .tb{border:2px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;
+      font-family:inherit; font-size:.85rem; padding:7px 13px; border-radius:12px;}
+  .tb.on{background:var(--night); border-color:var(--night); color:#fff;}
+  select.tb{padding:7px 8px; max-width:210px;}
+  .tally{font-size:.86rem; color:var(--muted); margin:0 0 12px;}
+  .bar{height:11px; background:#ece4d0; border-radius:8px; overflow:hidden; margin:4px 0 14px;}
+  .bar > div{height:100%; width:0%; background:linear-gradient(90deg,#f3d27a,var(--leaf)); transition:width .35s;}
+
+  /* ---- 1. character cards ---- */
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;}
+  .zi{border:2px solid var(--line); border-radius:16px; background:#fffdf6; padding:12px 8px 10px;
+      text-align:center; cursor:pointer; position:relative; transition:transform .12s;}
+  .zi:active{transform:scale(.97);}
+  .zi .hz{font-size:3rem; line-height:1.2; color:var(--ink); font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif;}
+  .zi .py{font-size:1.05rem; color:var(--moon-d); font-weight:bold; min-height:1.3em; visibility:hidden;}
+  .zi .en{font-size:.8rem; color:var(--ink); min-height:1.2em; line-height:1.35; visibility:hidden;}
+  .zi .bits{font-size:.74rem; color:var(--muted); line-height:1.35; margin-top:4px; visibility:hidden;}
+  .zi .ci{font-size:1rem; color:var(--night); margin-top:5px; line-height:1.5; visibility:hidden;}
+  .zi.open .py,.zi.open .en,.zi.open .bits,.zi.open .ci{visibility:visible;}
+  .zi .tapme{font-size:.72rem; color:var(--muted);}
+  .zi.open .tapme{display:none;}
+  .zi.know{background:#eef5ea; border-color:var(--leaf);}
+  .zi.again{background:var(--softred); border-color:#e8b3a8;}
+  .zi .mk{position:absolute; top:5px; right:8px; font-size:.85rem;}
+  .zi .row{display:flex; gap:5px; justify-content:center; margin-top:8px;}
+  .zi .row button{border:1px solid var(--line); background:#fff; border-radius:9px; cursor:pointer;
+                  font-family:inherit; font-size:.72rem; padding:4px 8px; color:var(--muted);}
+  .zi .row button.y{color:var(--leaf);} .zi .row button.n{color:var(--red);}
+
+  /* ---- 2. word chips ---- */
+  .words{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:9px;}
+  .wchip{border:2px solid var(--line); background:#fffdf6; border-radius:14px; padding:9px 10px 8px;
+         text-align:center; cursor:pointer;}
+  .wchip .w{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif; font-size:1.5rem; color:var(--ink); line-height:1.3;}
+  .wchip .w b{color:var(--moon-d); font-weight:normal;}
+  .wchip .p{font-size:.85rem; color:var(--moon-d); font-weight:bold; visibility:hidden; min-height:1.3em;}
+  .wchip .e{font-size:.76rem; color:var(--muted); visibility:hidden; min-height:1.2em; line-height:1.3;}
+  .wchip.open .p,.wchip.open .e{visibility:visible;}
+  .wchip.read{background:#eef5ea; border-color:var(--leaf);}
+
+  /* ---- 3. the text ---- */
+  .para{display:flex; gap:10px; align-items:flex-start; padding:13px 0; border-top:1px solid var(--line);}
+  .para:first-of-type{border-top:none;}
+  .para .pbody{flex:1 1 auto;}
+  .para .ptxt{font-size:1.35rem; line-height:2.7; font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif;}
+  .para .ptr{font-size:.88rem; color:var(--muted); font-style:italic; margin-top:4px; line-height:1.55;}
+  body.notr .ptr{display:none;}
+  .para .pact{flex:0 0 auto; display:flex; flex-direction:column; gap:5px; align-items:center; padding-top:8px;}
+  .pact button{border:2px solid var(--line); background:#fff; border-radius:11px; cursor:pointer;
+               font-family:inherit; font-size:.74rem; padding:5px 8px; color:var(--muted); min-width:62px;}
+  .pact button.sp{color:var(--night);}
+  .pact button.tick.on{background:var(--leaf); border-color:var(--leaf); color:#fff;}
+  ruby{ruby-position:over; cursor:pointer; border-bottom:2px dotted #d8ccac;}
+  rt{font-size:.42em; color:var(--moon-d); font-family:Georgia,"PingFang SC",serif; letter-spacing:0;
+     font-weight:normal; visibility:hidden;}
+  body.showpy rt{visibility:visible;}
+  ruby.peek rt{visibility:visible;}
+  .new{color:var(--moon-d); font-weight:bold;}
+  .roundbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+  .round{flex:1 1 200px; border:2px solid var(--line); border-radius:14px; padding:10px 14px; background:#fffdf6;}
+  .round.done{background:#eef5ea; border-color:var(--leaf);}
+  .round .rt2{font-size:.86rem; color:var(--muted);}
+  .round .rn{font-size:1.1rem; color:var(--moon-d);}
+  .round.done .rn{color:var(--leaf-d);}
+  .done-note{margin-top:16px; text-align:center; font-size:1rem; color:var(--leaf-d); background:#eef5ea;
+             border-radius:14px; padding:14px; display:none;}
+  .done-note.show{display:block;}
+
+  /* ---- 4. the marked test ---- */
+  .qcard{border-top:1px solid var(--line); padding:16px 0 8px;}
+  .qcard:first-of-type{border-top:none;}
+  .qcard .n{font-size:.74rem; color:var(--muted); letter-spacing:.06em; text-transform:uppercase;}
+  .qcard .qt{font-size:1rem; margin:3px 0 10px;}
+  .qcard .qt .zh{font-size:1.2rem;}
+  .say{border:2px solid var(--night); background:#f3ece2; color:var(--night); border-radius:12px; cursor:pointer;
+       font-family:inherit; font-size:.92rem; padding:7px 14px; margin-right:6px;}
+  .fb{color:var(--moon-d); font-weight:bold; letter-spacing:.04em;}
+  .topts{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px;}
+  .opt{border:2px solid var(--line); background:#fffdf6; border-radius:13px; padding:11px 10px; font-size:1.02rem;
+       cursor:pointer; text-align:center; color:var(--ink);}
+  .opt.zhopt{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif; font-size:1.8rem; padding:6px 8px;}
+  .opt:hover{border-color:var(--night);}
+  .opt.pick{border-color:var(--moon); background:#fdf4e2;}
+  .opt.locked{cursor:default;}
+  .opt.right{background:#e9f2e5; border-color:var(--leaf); color:var(--leaf-d); font-weight:bold;}
+  .opt.wrong{background:var(--softred); border-color:#e8b3a8; color:var(--red);}
+  .why{display:none; margin-top:10px; font-size:.88rem; padding:10px 13px; border-radius:12px;
+       background:#fdf6e9; border-left:5px solid #e6d2ae; color:#6b6047;}
+  .why.show{display:block;}
+  .submit{display:block; width:100%; margin-top:18px; border:none; background:var(--night); color:#fff;
+          border-radius:14px; padding:14px; font-family:inherit; font-size:1.05rem; cursor:pointer;}
+  .submit:hover{background:var(--night-d);}
+  .submit.ghost{background:#f7f3e6; color:var(--ink); border:2px solid var(--line);}
+  .scorebox{display:none; margin-top:16px; border-radius:16px; padding:18px; text-align:center;
+            background:#eef5ea; border:2px solid var(--leaf);}
+  .scorebox.show{display:block;}
+  .scorebox.fail{background:var(--softred); border-color:#e8b3a8;}
+  .scorebox .pct{font-size:2.4rem; color:var(--leaf-d);}
+  .scorebox.fail .pct{color:var(--red);}
+  .scorebox .sub2{font-size:.9rem; color:var(--muted); margin-top:4px;}
+  .scorebox .verdict{font-size:1.1rem; margin-top:8px;}
+
+  /* ---- 5. recording ---- */
+  .who{display:flex; align-items:center; gap:9px; justify-content:center; font-size:13.5px; color:#5b5346; margin-bottom:12px;}
+  .who b{color:var(--night);}
+  .who a{color:var(--moon-d);}
+  .notice{background:#fff6e0; border:3px solid #c9973f; border-radius:14px; padding:14px 16px; font-size:.95rem; line-height:1.6;}
+  .notice b{color:var(--moon-d);}
+  .readcopy{background:#fbf8ef; border:2px solid var(--line); border-radius:14px; padding:12px 16px; margin-bottom:14px;}
+  .readcopy p{font-family:"Kaiti SC","STKaiti","KaiTi","PingFang SC",serif; font-size:1.3rem; line-height:2.1; margin:.2em 0 .7em; text-align:center;}
+  @media (max-width:480px){ .para .ptxt{font-size:1.08rem;} .readcopy p{font-size:1.08rem;} }
+  .rh{display:block; font-size:1.05rem; color:var(--night); line-height:1.6; letter-spacing:.1em; font-weight:bold;}
+  .tips{border-left:5px solid var(--leaf); background:#f1f6ef; border-radius:0 10px 10px 0; padding:10px 15px;
+        font-size:.92rem; line-height:1.6; color:#2e4a33; margin-bottom:14px;}
+  .tips b{color:var(--leaf-d);}
+  .tips li{margin-left:18px;}
+  .rbar{display:flex; align-items:center; gap:11px; font-size:14px; color:#5b5346; margin:2px 0 14px; flex-wrap:wrap;}
+  .rbar .track{flex:1; min-width:120px; height:13px; background:#e6dcc6; border-radius:10px; overflow:hidden;}
+  .rbar .fill{display:block; height:100%; width:0; background:var(--leaf); border-radius:10px; transition:width .3s;}
+  .take{border:3px solid #e6dcc4; border-radius:14px; padding:14px 15px; margin-bottom:11px; background:#fffef9;}
+  .take.rec{border-color:var(--red); background:#fff8f7;}
+  .take.done{border-color:var(--leaf); background:#f4faf3;}
+  .take .top{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .take .tn{background:var(--night); color:#f5ecd9; width:30px; height:30px; border-radius:50%; text-align:center;
+            line-height:30px; font-weight:bold; font-size:15px; flex:none;}
+  .take.done .tn{background:var(--leaf);}
+  .take .lbl{font-size:17px; color:var(--night); font-weight:bold;}
+  .take .stat{margin-left:auto; font-size:13.5px; color:#6b6156; font-family:ui-monospace,Menlo,monospace;}
+  .take .stat.ok{color:var(--leaf-d); font-weight:bold;}
+  .take .stat.bad{color:var(--red); font-weight:bold;}
+  .rbtn{font-family:inherit; font-size:16px; border:none; border-radius:11px; padding:10px 18px; cursor:pointer;
+        background:var(--night); color:#f5ecd9; box-shadow:0 4px 0 var(--night-d);}
+  .rbtn:active{transform:translateY(2px); box-shadow:0 2px 0 var(--night-d);}
+  .rbtn[disabled]{opacity:.45; cursor:not-allowed;}
+  .rbtn.red{background:var(--red); box-shadow:0 4px 0 #8c261c;}
+  .rbtn.ghost{background:#f7f3e6; color:#4a4339; box-shadow:0 4px 0 #ddcaa3; font-size:14px; padding:8px 14px;}
+  .rrow{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:11px;}
+  .meter{flex:1; min-width:110px; height:12px; background:#f0e6cf; border-radius:8px; overflow:hidden;}
+  .meter i{display:block; height:100%; width:0; background:var(--red); border-radius:8px; transition:width .06s linear;}
+  .clock{font-family:ui-monospace,Menlo,monospace; font-size:20px; color:var(--red); font-weight:bold; min-width:62px;}
+  audio{width:100%; margin-top:10px; border-radius:8px;}
+  .hist{margin-top:8px; font-size:13px; color:#8a7f6d;}
+  .hist button{font-family:inherit; font-size:13px; background:none; border:none; color:var(--moon-d); text-decoration:underline; cursor:pointer; padding:0;}
+  .allgood{background:#e8f5e6; border:3px solid var(--leaf); border-radius:14px; padding:15px 18px; text-align:center;
+           font-size:16px; line-height:1.6; color:var(--leaf-d); margin-bottom:14px;}
+  .allgood .big{font-size:32px; display:block; margin-bottom:4px;}
+
+  a.home{display:block; text-align:center; margin-top:8px; color:var(--muted); text-decoration:none; font-size:.86rem;}
+  a.home:hover{text-decoration:underline;}
+  @media (max-width:430px){ .take .stat{margin-left:0; width:100%;} .para{flex-direction:column;} .para .pact{flex-direction:row; padding-top:0;} }
+  @media print{
+    .tabs,.toolbar,.pact,.zi .row,a.home,.submit,#s-rec{display:none !important;}
+    body{background:#fff;} section{break-inside:avoid; box-shadow:none;}
+    rt,.zi .py,.zi .en,.zi .bits,.zi .ci{visibility:visible !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="star" style="top:14px;left:22px">✨</span><span class="star" style="top:26px;right:26px">⭐</span>
+  <div class="moonball">🌙</div>
+  <h1>萤火虫 · 月亮的小船</h1>
+  <p class="en-title">The Firefly &amp; The Moon Boat · 17 new characters + read aloud</p>
+  <p class="sub">Characters · words · read the stories · quick check · record yourself</p>
+</header>
+
+<div class="teacher">
+  <b>How this page works:</b> start with the 17 new characters from the box on your sheet — say each one out
+  loud <b>before</b> you tap it, then tap to check. Look for the pairs: <b>台 → 抬</b> (add a hand 扌) and
+  <b>亭 → 停</b> (add a person 亻). Then read the <b>two stories</b>. The pinyin starts <b>hidden</b>:
+  try first, tap a character only if you are stuck. Finish with the quick check, then record yourself
+  reading both stories <b>twice</b> — your parents will listen to it.
+  <span class="cn zh">《萤火虫》和《月亮的小船》：先认 17 个生字（先自己读，再点开对答案），再读词语和两篇课文，做一个小测，最后把两篇课文朗读两遍录下来。</span>
+</div>
+
+<div class="tabs" id="tabs">
+  <button data-go="s-zi" class="on">✨ 1 · Characters</button>
+  <button data-go="s-words">🐜 2 · Words</button>
+  <button data-go="s-read">📖 3 · Read</button>
+  <button data-go="s-test">✅ 4 · Check</button>
+  <button data-go="s-rec">🎙️ 5 · Record</button>
+</div>
+
+<!-- ============ 1. the eleven new characters ============ -->
+<section id="s-zi">
+  <h2>✨ The 17 new characters <span class="cnt" id="ziCnt">· 17 characters</span></h2>
+  <p class="lead">These are the 17 characters in the box at the top of your sheet.
+    Look at a character and <b>say it out loud first</b>. Then tap the card to see if you were right —
+    it shows the pinyin, what it means, and words from today's stories. Mark it <b>✓ got it</b> or <b>✗ practise</b>.
+    Keep going until all seventeen are green.</p>
+  <div class="toolbar">
+    <button class="tb" id="onlyAgain">✗ Only the ones to practise</button>
+    <button class="tb" id="shuffleZi">🔀 Mix up the order</button>
+    <button class="tb" id="closeZi">🙈 Cover them all again</button>
+    <button class="tb" id="resetZi">↺ Clear my marks</button>
+  </div>
+  <div class="bar"><div id="ziBar"></div></div>
+  <p class="tally" id="ziTally"></p>
+  <div class="grid" id="ziGrid"></div>
+</section>
+
+<!-- ============ 2. words from the text ============ -->
+<section id="s-words">
+  <h2>🐜 Words from the stories <span class="cnt" id="wCnt"></span></h2>
+  <p class="lead">These are the words you will meet in the stories. Read each one to yourself, then tap it to
+    <b>hear it</b> and check the pinyin. A tapped word turns green. The orange characters are today's new characters.</p>
+  <div class="toolbar">
+    <button class="tb" id="closeW">🙈 Cover them all again</button>
+  </div>
+  <p class="tally" id="wTally"></p>
+  <div class="words" id="wordGrid"></div>
+</section>
+
+<!-- ============ 3. read the text ============ -->
+<section id="s-read">
+  <h2>📖 Read the stories aloud — twice <span class="cnt">· 2 stories · 14 paragraphs</span></h2>
+  <p class="lead"><b>Round 1:</b> read it through, tapping any character you are unsure of (it shows the pinyin
+    and says it). <b>Round 2:</b> read it again without tapping anything. Tick each paragraph as you finish it. Read slowly and softly — these are quiet night-time stories.
+    The orange characters are today's new characters.</p>
+  <div class="toolbar">
+    <button class="tb" id="pyToggle">🔤 Pinyin: hidden</button>
+    <button class="tb on" id="trToggle">🇬🇧 English: showing</button>
+    <button class="tb" id="slowBtn">🐢 Slow: off</button>
+    <select class="tb" id="voiceSel" title="Reading voice"></select>
+    <button class="tb" id="readAll">▶️ Hear both stories</button>
+    <button class="tb" id="resetRead">↺ Clear my ticks</button>
+  </div>
+  <div class="roundbar">
+    <div class="round" id="r1"><div class="rt2">Round 1 · tap what you need</div><div class="rn" id="r1n">0 / 14 paragraphs</div></div>
+    <div class="round" id="r2"><div class="rt2">Round 2 · no tapping</div><div class="rn" id="r2n">0 / 14 paragraphs</div></div>
+  </div>
+  <div id="story"></div>
+  <div class="done-note" id="doneNote">🎉 Both rounds done! Do the quick check next, then record yourself at the bottom.</div>
+</section>
+
+<!-- ============ 4. the marked test ============ -->
+<section id="s-test">
+  <h2>✅ Quick check <span class="cnt" id="testCnt"></span></h2>
+  <p class="lead">Press <b>🔊</b> to hear a word, then pick the character you heard. Then three
+    fill-the-gap questions about the look-alike pairs, and five questions about the stories. Nothing is marked until you hand it in.</p>
+  <p class="lead hide" id="noVoice" style="color:var(--red)">This device has no Chinese voice, so the pinyin is
+    written next to each 🔊 button instead.</p>
+  <div id="quiz"></div>
+  <button class="submit" id="submitBtn" onclick="finishQuiz()">Hand in the check</button>
+  <div class="scorebox" id="scorebox"></div>
+  <button class="submit ghost" id="resetBtn" style="display:none" onclick="resetQuiz()">↺ Start the check again</button>
+</section>
+
+<!-- ============ 5. record the read-aloud ============ -->
+<section id="s-rec">
+  <h2>🎙️ Read it out loud — record it <span class="cnt">· 2 takes today</span></h2>
+  <p class="lead">This is the last step. Read <b>both stories</b>, 《萤火虫》 first and then 《月亮的小船》 —
+    that is one take. Listen back, then do take 2. Each take is saved on its own the moment you stop,
+    and your parents can listen to it on their page.</p>
+
+  <div class="readcopy" id="readCopy"></div>
+  <div class="tips"><b>Before you press record</b><ul>
+    <li>Say the title first: <b>萤火虫</b> … then <b>月亮的小船</b>. Take a breath between the two stories.</li>
+    <li><b>着</b> has two sounds: 着急 = <b>zháo</b> jí and 睡着 = shuì <b>zháo</b>, but 提着 · 笑着 · 抬着 · 陪着 · 照着 = <b>zhe</b>.</li>
+    <li><b>一</b> changes its tone: 一阵 = <b>yí</b> zhèn, but 一只 · 一直 · 一起 = <b>yì</b>.</li>
+    <li>弟弟 = dì di, 摇摇头 = yáo yao tóu, 漂 and 飘 are both <b>piāo</b>.</li>
+    <li>Read 《月亮的小船》 <b>softly and slowly</b> — the moon is quiet (安安静静), so your voice can be too.</li>
+  </ul></div>
+
+  <div class="who" id="who">Checking who's signed in…</div>
+  <div id="recApp" hidden>
+    <div class="rbar"><span>🎙️ Takes saved today</span><span class="track"><span class="fill" id="rFill"></span></span><b id="rCount">0 / 2</b></div>
+    <div class="allgood" id="allgood" hidden><span class="big">🌙</span>Both readings are saved for <b>today</b>. Well done —
+      your parents can listen to them now.</div>
+    <div id="takes"></div>
+  </div>
+  <div id="signin" class="notice" hidden>
+    <b>Sign in first.</b> Open <a href="../homework.html">我的作业 · My Homework</a>, tap your name and type your PIN,
+    then come back here — the recorder needs to know whose voice it's saving. Everything above still works without signing in.
+  </div>
+</section>
+
+<a class="home" href="../homework.html">← 我的作业 My Homework</a>
+<a class="home" href="index.html">all quizzes</a>
+</div>
+
+<script>
+/* ================= the two stories (pinyin: printed on the sheet, or from its new-character box) =================
+   {字|pinyin} → tappable ruby, pinyin hidden until tapped or toggled.
+   {!字|pinyin} → one of the 17 new characters (orange), when it needs a reading other than the box's.
+   A new character written without braces gets the box pinyin from NEWPY (renderPara looks it up).
+   h = the story title, on the first paragraph of each story. Everything else is plain text. */
+const STORY = [
+  { h:'《萤火虫》',
+    cn:'夏天的夜里，黑黑的。小草睡着了，小花也闭上了眼睛。',
+    en:'It was a summer night, and very dark. The little grass was asleep, and the little flowers had closed their eyes.' },
+  { cn:'一只小萤火虫，{提|tí}着小小的灯，飞呀飞。',
+    en:'A little firefly, carrying a tiny lamp, flew and flew.' },
+  { cn:'小蚂蚁迷路了，找不到回家的路，坐在草边{着|zháo}{急|jí}。',
+    en:'A little ant was lost. It could not find the way home, and sat by the grass, worried.' },
+  { cn:'萤火虫飞过来：“小蚂蚁，不要怕，我送你回家。”',
+    en:'The firefly flew over: “Little ant, don’t be afraid. I’ll take you home.”' },
+  { cn:'小小的灯光，照{亮|liàng}前面的小路。它们走过草地，走过石头边，一{直|zhí}送到蚂蚁家门口。',
+    en:'The tiny light lit up the little path ahead. They went across the grass, past the stones, all the way to the ant’s front door.' },
+  { cn:'蚂蚁说：“谢谢你，萤火虫。”',
+    en:'The ant said, “Thank you, firefly.”' },
+  { cn:'萤火虫笑着{摇|yáo}{摇|yáo}头，又{提|tí}着小灯，向前飞去。它还要去帮助{别|bié}的小虫。',
+    en:'The firefly smiled and shook its head, picked up its little lamp again and flew on. It still had other little bugs to help.' },
+  { cn:'夜里的光不大，但是可以给{别|bié}人带去{温|wēn}{暖|nuǎn}。',
+    en:'A light at night may be small, but it can bring warmth to other people.' },
+  { h:'《月亮的小船》',
+    cn:'夜里，月亮挂在天上，像一只小小的白船。',
+    en:'At night the moon hangs in the sky, like a tiny white boat.' },
+  { cn:'小弟弟坐在门口，抬着头看月亮。他想：月亮小船，你要漂去哪里？是不是漂过青山，漂过大河？',
+    en:'Little brother sits in the doorway, looking up at the moon. He thinks: Moon boat, where are you floating to? Over the green hills? Across the big river?' },
+  { cn:'一{阵|zhèn}风吹过来，云慢慢飘走。月亮船{静|jìng}{静|jìng}停在黑黑的天上。',
+    en:'A gust of wind blows by, and the clouds slowly drift away. The moon boat stays quietly in the dark sky.' },
+  { cn:'小弟{!弟|di}轻声说：月亮船，{如|rú}果你{能|néng}落下来，带我一起去远方好不好？',
+    en:'Little brother says softly: Moon boat, if you can come down, will you take me far away with you?' },
+  { cn:'月亮不说话，安安{静|jìng}{静|jìng}，{陪|péi}着地上的小朋友。',
+    en:'The moon says nothing. Quiet and still, it keeps the child on the ground company.' },
+  { cn:'夜里很安静，风吹树叶沙沙响。天上的月亮小船，一直{温|wēn}{柔|róu}地照着大地。',
+    en:'The night is very quiet; the wind makes the leaves rustle, sha-sha. Up in the sky, the moon boat shines gently on the land all night.' }
+];
+
+/* ================= the 17 new characters (the box on the sheet, in its order) ================= */
+const ZI = [
+  { hz:'夜', py:'yè',     en:'night',                       bits:'a lid 亠 on top, 亻 (a person) on the left, 夕 (evening) on the right', ci:['夜里','夏天的夜里'] },
+  { hz:'挂', py:'guà',    en:'to hang (up)',                bits:'扌 (a hand) + 圭 (two 土) — you hang things up with your hand', ci:['挂在天上','挂起来'] },
+  { hz:'船', py:'chuán',  en:'a boat',                      bits:'舟 (an old word for boat) on the left, 几 over 口 on the right', ci:['小船','月亮船'] },
+  { hz:'弟', py:'dì',     en:'younger brother',             bits:'two little dots 丷 on top, then a 弓-like shape with a line down the middle', ci:['弟弟','小弟弟'] },
+  { hz:'漂', py:'piāo',   en:'to float (on water)',         bits:'氵 (water) + 票 — it floats on water. 飘 (also piāo) has 风: it drifts in the wind', ci:['漂过大河','漂去哪里'] },
+  { hz:'台', py:'tái',    en:'a stage, a platform',         bits:'厶 on top of 口. Not in today’s stories — add a hand 扌 and it becomes 抬', ci:['舞台','台上'] },
+  { hz:'抬', py:'tái',    en:'to lift up, to raise',        bits:'扌 (a hand) + 台 — use your hand to lift something up', ci:['抬头','抬着头'] },
+  { hz:'亭', py:'tíng',   en:'a pavilion (a little roofed hut in a park)', bits:'亠 + 口 + 冖 + 丁 — a little roof on top. Not in today’s stories — add 亻 and it becomes 停', ci:['亭子','凉亭'] },
+  { hz:'停', py:'tíng',   en:'to stop, to stay',            bits:'亻 (a person) + 亭 — a person stops at the pavilion to rest', ci:['停下','停在天上'] },
+  { hz:'慢', py:'màn',    en:'slow',                        bits:'忄 (heart) + 曼 — a calm heart goes slowly', ci:['慢慢','慢慢飘走'] },
+  { hz:'安', py:'ān',     en:'calm, safe',                  bits:'宀 (a roof) over 女 — safe and calm at home', ci:['安静','安安静静'] },
+  { hz:'落', py:'luò',    en:'to fall, to come down',       bits:'艹 on top, then 氵 + 各 — leaves and raindrops fall down', ci:['落下来','落叶'] },
+  { hz:'轻', py:'qīng',   en:'light, soft, gentle',         bits:'车 (a cart) on the left + 又 over 工 on the right', ci:['轻声','轻轻的'] },
+  { hz:'带', py:'dài',    en:'to take along, to bring',     bits:'a top like 卅 with a line across, then 冖 and 巾 (cloth)', ci:['带我去','带去温暖'] },
+  { hz:'沙', py:'shā',    en:'sand; 沙沙 = a rustling sound', bits:'氵 (water) + 少 (a little) — tiny little bits by the water', ci:['沙沙响','沙子'] },
+  { hz:'响', py:'xiǎng',  en:'to make a sound',             bits:'口 (a mouth) + 向 — a sound comes out', ci:['响声','沙沙响'] },
+  { hz:'照', py:'zhào',   en:'to shine on',                 bits:'日 and 召 on top, four dots 灬 (fire) at the bottom — light and heat', ci:['照亮','照着大地'] }
+];
+
+/* ================= words from the stories ================= */
+const WORDS = [
+  ['夏天','xià tiān','summer'],                       ['夜里','yè lǐ','at night'],
+  ['睡着了','shuì zháo le','fell asleep'],             ['闭上眼睛','bì shàng yǎn jing','to close your eyes'],
+  ['萤火虫','yíng huǒ chóng','a firefly'],             ['提着灯','tí zhe dēng','carrying a lamp'],
+  ['蚂蚁','mǎ yǐ','an ant'],                          ['迷路','mí lù','to get lost'],
+  ['着急','zháo jí','worried'],                       ['不要怕','bú yào pà','don’t be afraid'],
+  ['照亮','zhào liàng','to light up'],                ['石头','shí tou','a stone'],
+  ['一直','yì zhí','all the way, the whole time'],     ['谢谢你','xiè xie nǐ','thank you'],
+  ['摇摇头','yáo yao tóu','to shake your head'],       ['帮助','bāng zhù','to help'],
+  ['别人','bié rén','other people'],                  ['带去温暖','dài qù wēn nuǎn','to bring warmth'],
+  ['月亮','yuè liang','the moon'],                    ['挂在天上','guà zài tiān shang','hanging in the sky'],
+  ['小船','xiǎo chuán','a little boat'],              ['小弟弟','xiǎo dì di','little brother'],
+  ['抬着头','tái zhe tóu','with your head up'],        ['漂过大河','piāo guò dà hé','to float across a big river'],
+  ['青山','qīng shān','green hills'],                 ['一阵风','yí zhèn fēng','a gust of wind'],
+  ['慢慢','màn màn','slowly'],                        ['飘走','piāo zǒu','to drift away'],
+  ['静静','jìng jìng','quietly'],                     ['停在','tíng zài','to stop at, to stay at'],
+  ['轻声说','qīng shēng shuō','to say softly'],        ['如果','rú guǒ','if'],
+  ['落下来','luò xià lái','to come down'],             ['远方','yuǎn fāng','far away'],
+  ['安安静静','ān ān jìng jìng','quiet and still'],    ['陪着','péi zhe','to keep someone company'],
+  ['小朋友','xiǎo péng you','a child, children'],      ['沙沙响','shā shā xiǎng','to rustle'],
+  ['温柔','wēn róu','gentle']
+];
+const NEWSET = ZI.map(z=>z.hz).join('');
+const NEWPY = {}; ZI.forEach(z=>{ NEWPY[z.hz] = z.py; });
+
+/* ================= the marked test. Answer written at index 0, shuffled on load. ================= */
+/* say = what the 🔊 button reads; fb = the pinyin shown instead when the device has no Chinese voice.
+   Listening distractors are look-alikes, never same-sound characters (no 台 for 抬, no 亭 for 停, no 飘 for 漂) —
+   the same-sound pairs get their own fill-the-gap questions instead. */
+const QUIZ = [
+  { say:'夜，夜里的夜', fb:'yè — 夜里', q:'Which character did you hear?',
+    options:["夜","衣","交","京"], answer:0, zhopt:true,
+    why:'夜 (yè, night) has the lid 亠, then 亻 and 夕 (evening) underneath. 衣 (yī), 交 (jiāo) and 京 (jīng) have the same lid on top but something else below.' },
+  { say:'挂，挂在天上的挂', fb:'guà — 挂在天上', q:'Which character did you hear?',
+    options:["挂","娃","桂","封"], answer:0, zhopt:true,
+    why:'挂 (guà, hang) is 扌 (hand) + 圭. 娃 (wá) has 女 on the left, 桂 (guì) has 木, and 封 (fēng) has 圭 on the left with 寸 on the right.' },
+  { say:'船，小船的船', fb:'chuán — 小船', q:'Which character did you hear?',
+    options:["船","般","舟","铅"], answer:0, zhopt:true,
+    why:'船 (chuán, boat) is 舟 + 几 over 口. 般 (bān) has 舟 too but 殳 on the right. 舟 (zhōu) alone has no right side. 铅 (qiān) has the same right side but 钅 (metal).' },
+  { say:'弟，弟弟的弟', fb:'dì — 弟弟', q:'Which character did you hear?',
+    options:["弟","弗","单","关"], answer:0, zhopt:true,
+    why:'弟 (dì) starts with two dots 丷 and has a 弓-like shape. 弗 (fú) has no dots on top. 单 (dān) and 关 (guān) start with the two dots too, but are different below.' },
+  { say:'漂，漂过大河的漂', fb:'piāo — 漂过大河', q:'Which character did you hear?',
+    options:["漂","源","深","演"], answer:0, zhopt:true,
+    why:'漂 (piāo, float on water) is 氵 + 票. 源 (yuán), 深 (shēn) and 演 (yǎn) have 氵 too, with a different right side.' },
+  { say:'台，舞台的台', fb:'tái — 舞台', q:'Which character did you hear?',
+    options:["台","合","吉","古"], answer:0, zhopt:true,
+    why:'台 (tái, stage) is 厶 on top of 口. 合 (hé) has a 人 roof, 吉 (jí) has 士, 古 (gǔ) has 十 on top of 口.' },
+  { say:'抬，抬头的抬', fb:'tái — 抬头', q:'Which character did you hear?',
+    options:["抬","拾","治","招"], answer:0, zhopt:true,
+    why:'抬 (tái, lift) is 扌 + 台. 拾 (shí) is 扌 + 合. 治 (zhì) has 台 with 氵, not a hand. 招 (zhāo) is 扌 + 召.' },
+  { say:'亭，亭子的亭', fb:'tíng — 亭子', q:'Which character did you hear?',
+    options:["亭","享","高","京"], answer:0, zhopt:true,
+    why:'亭 (tíng, pavilion) ends with 丁 at the bottom. 享 (xiǎng) ends with 子, 高 (gāo) with 冂 and 口, 京 (jīng) with 小.' },
+  { say:'停，停下的停', fb:'tíng — 停下', q:'Which character did you hear?',
+    options:["停","信","候","倍"], answer:0, zhopt:true,
+    why:'停 (tíng, stop) is 亻 + 亭. 信 (xìn), 候 (hòu) and 倍 (bèi) have 亻 too, with a different right side.' },
+  { say:'慢，慢慢的慢', fb:'màn — 慢慢', q:'Which character did you hear?',
+    options:["慢","惯","情","怕"], answer:0, zhopt:true,
+    why:'慢 (màn, slow) is 忄 + 曼. 惯 (guàn), 情 (qíng) and 怕 (pà, from 不要怕) have 忄 too, with a different right side.' },
+  { say:'安，安静的安', fb:'ān — 安静', q:'Which character did you hear?',
+    options:["安","字","宝","家"], answer:0, zhopt:true,
+    why:'安 (ān, calm) is 宀 over 女. 字 (zì) has 子, 宝 (bǎo) has 玉, 家 (jiā) has 豕 under the same roof.' },
+  { say:'落，落下来的落', fb:'luò — 落下来', q:'Which character did you hear?',
+    options:["落","客","各","荷"], answer:0, zhopt:true,
+    why:'落 (luò, fall) is 艹 over 氵 + 各. 各 (gè) is only the bottom right part, 客 (kè) puts 各 under a roof, 荷 (hé) is 艹 over 亻 + 可.' },
+  { say:'轻，轻声的轻', fb:'qīng — 轻声', q:'Which character did you hear?',
+    options:["轻","经","径","转"], answer:0, zhopt:true,
+    why:'轻 (qīng, soft) has 车 (cart) on the left. 经 (jīng) has 纟 (silk) and 径 (jìng) has 彳 with the same right side. 转 (zhuǎn) has 车 but a different right side.' },
+  { say:'带，带我去的带', fb:'dài — 带我去', q:'Which character did you hear?',
+    options:["带","常","市","希"], answer:0, zhopt:true,
+    why:'带 (dài, bring) has a 卅-like top with 冖 and 巾 below. 常 (cháng), 市 (shì) and 希 (xī) all end in 巾 too, but the top is different.' },
+  { say:'沙，沙沙响的沙', fb:'shā — 沙沙响', q:'Which character did you hear?',
+    options:["沙","抄","炒","妙"], answer:0, zhopt:true,
+    why:'沙 (shā, sand) is 氵 + 少. 抄 (chāo) has 扌, 炒 (chǎo) has 火, 妙 (miào) has 女 with the same 少.' },
+  { say:'响，响声的响', fb:'xiǎng — 响声', q:'Which character did you hear?',
+    options:["响","晌","呵","吧"], answer:0, zhopt:true,
+    why:'响 (xiǎng, make a sound) is 口 + 向. 晌 (shǎng) has 日 with the same 向. 呵 (hē) and 吧 (ba) have 口 with a different right side.' },
+  { say:'照，照亮的照', fb:'zhào — 照亮', q:'Which character did you hear?',
+    options:["照","熊","点","然"], answer:0, zhopt:true,
+    why:'照 (zhào) has 日 and 召 on top of the four fire dots 灬. 熊 (xióng), 点 (diǎn) and 然 (rán) have 灬 too, but a different top.' },
+  { q:'Which character goes in the gap? 小弟弟坐在门口，___着头看月亮。', options:["抬","台","拾","招"], answer:0, zhopt:true,
+    why:'抬 (tái) = 扌 (hand) + 台: to lift up, so 抬着头 = with his head up. 台 sounds the same but means a stage. 拾 (shí) is to pick up, 招 (zhāo) is to wave someone over.' },
+  { q:'Which character goes in the gap? 月亮船静静___在黑黑的天上。', options:["停","亭","信","候"], answer:0, zhopt:true,
+    why:'停 (tíng) = 亻 (a person) + 亭: to stop and stay. 亭 sounds the same but is a pavilion, a little hut. 信 (xìn) is a letter, 候 (hòu) is to wait.' },
+  { q:'Which character goes in the gap? 一阵风吹过来，云慢慢___走。', options:["飘","漂","票","跳"], answer:0, zhopt:true,
+    why:'飘 (piāo) has 风 (wind): clouds drift in the wind. 漂 sounds the same but has 氵 (water) — that is the moon boat in 漂过大河. 票 (piào) is a ticket, 跳 (tiào) is to jump.' },
+  { q:'小蚂蚁为什么着急？ Why was the little ant worried?',
+    options:["It lost its way home","It had nothing to eat","Its little lamp broke","Its friend ran away"], answer:0, zhopt:false,
+    why:'小蚂蚁迷路了，找不到回家的路 — the ant was lost and could not find the way home.' },
+  { q:'萤火虫送蚂蚁回家以后，又去做什么？ What did the firefly do after taking the ant home?',
+    options:["Flew on to help other bugs","Went home to go to sleep","Stayed at the ant’s house","Asked the ant for a present"], answer:0, zhopt:false,
+    why:'又提着小灯，向前飞去。它还要去帮助别的小虫 — it picked up its lamp and flew on to help other little bugs.' },
+  { q:'月亮像什么？ What does the moon look like?', options:["小白船","小白兔","小灯笼","大圆盘"], answer:0, zhopt:true,
+    why:'月亮挂在天上，像一只小小的白船 — the moon is like a tiny white boat. That is why the story is called 月亮的小船.' },
+  { q:'小弟弟想让月亮船做什么？ What does little brother want the moon boat to do?',
+    options:["Come down and take him far away","Shine more brightly on his house","Sail back across the big river","Stop the wind from blowing hard"], answer:0, zhopt:false,
+    why:'如果你能落下来，带我一起去远方好不好？ — he asks the moon boat to come down and take him far away with it.' },
+  { q:'夜里的光不大，但是可以给别人带去温暖。What does it mean?',
+    options:["Even a small light can help others","Small lights are hard to see at night","A big lamp keeps you warmer at night","Fireflies like to stay out at night"], answer:0, zhopt:false,
+    why:'The firefly’s lamp is tiny, but it took the lost ant all the way home. Even a small light — or a small kind act — can bring warmth to others.' }
+];
+
+/* ================= helpers ================= */
+const $ = id => document.getElementById(id);
+function memGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function memSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function shuffled(a){ const x=a.slice();
+  for(let i=x.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]]; } return x; }
+const ZI_KEY='moonboat_zi_v1', W_KEY='moonboat_words_v1', READ_KEY='moonboat_read_v1', VOICE_KEY='zhongqiu_voice', SLOW_KEY='zhongqiu_slow';
+
+/* ================= reading voice ================= */
+let zhVoices=[], chosenVoice=null, slow = memGet(SLOW_KEY)==='1';
+const NOVELTY=/Bells|Bubbles|Jester|Organ|Trinoids|Whisper|Zarvox|Bahh|Boing|Wobble|Superstar|Cellos|Good News|Bad News/i;
+function rankVoice(v){
+  const n=v.name, l=v.lang||'';
+  if(/Google/i.test(n) && /普通话|zh-CN/i.test(n+l)) return 0;
+  if(/Ting-?ting/i.test(n)) return 1;
+  if(l==='zh-CN' && !NOVELTY.test(n)) return 2;
+  if(/^zh/i.test(l) && !NOVELTY.test(n)) return 3;
+  return 4;
+}
+function loadVoices(){
+  if(!('speechSynthesis' in window)) return;
+  const all=window.speechSynthesis.getVoices();
+  zhVoices=all.filter(v=>/^zh/i.test(v.lang)||/Chinese|普通话|中文/i.test(v.name));
+  zhVoices.sort((a,b)=>rankVoice(a)-rankVoice(b)||a.name.localeCompare(b.name));
+  const sel=$('voiceSel');
+  if(!zhVoices.length){ sel.innerHTML='<option>(no Chinese voice found)</option>'; if(all.length) noVoiceFallback(); return; }
+  const saved=memGet(VOICE_KEY);
+  chosenVoice=zhVoices.find(v=>v.name===saved)||zhVoices[0];
+  sel.innerHTML=zhVoices.map(v=>{
+    const r=rankVoice(v), tag=r===0?' ⭐best':(r===1?' ✅works offline':'');
+    return '<option value="'+esc(v.name)+'">'+esc(v.name)+tag+'</option>';
+  }).join('');
+  sel.value=chosenVoice.name;
+}
+/* No Chinese voice: the listening questions would be unanswerable, so show the pinyin instead. */
+function noVoiceFallback(){
+  $('noVoice').classList.remove('hide');
+  document.querySelectorAll('#quiz .fb').forEach(e=>e.classList.remove('hide'));
+}
+$('voiceSel').addEventListener('change', e=>{
+  chosenVoice=zhVoices.find(v=>v.name===e.target.value)||chosenVoice;
+  memSet(VOICE_KEY, e.target.value); speak('夜里，月亮挂在天上，像一只小小的白船。');
+});
+function paintSlow(){ $('slowBtn').classList.toggle('on',slow); $('slowBtn').textContent = slow?'🐢 Slow: on':'🐢 Slow: off'; }
+$('slowBtn').addEventListener('click',()=>{ slow=!slow; memSet(SLOW_KEY,slow?'1':'0'); paintSlow(); speak('一阵风吹过来，云慢慢飘走。'); });
+paintSlow();
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN'; u.rate = slow?0.6:0.85;
+    if(chosenVoice) u.voice=chosenVoice;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ================= 1. character cards ================= */
+let ziState = {};
+try{ ziState = JSON.parse(memGet(ZI_KEY)||'{}') || {}; }catch(e){ ziState={}; }
+let onlyAgain=false, ziOrder = ZI.map((_,i)=>i);
+
+function drawZi(){
+  $('ziGrid').innerHTML = ziOrder.map(i=>{
+    const z = ZI[i], st = ziState[z.hz]||'';
+    return '<div class="zi '+(st==='y'?'know':st==='n'?'again':'')+'" data-i="'+i+'">'
+      + '<span class="mk">'+(st==='y'?'✓':st==='n'?'✗':'')+'</span>'
+      + '<div class="hz">'+z.hz+'</div>'
+      + '<div class="tapme">say it, then tap</div>'
+      + '<div class="py">'+z.py+'</div>'
+      + '<div class="en">'+esc(z.en)+'</div>'
+      + '<div class="ci zh">'+z.ci.join(' · ')+'</div>'
+      + '<div class="bits">'+esc(z.bits)+'</div>'
+      + '<div class="row"><button class="y" data-mk="y" data-i="'+i+'">✓ got it</button>'
+      +   '<button class="n" data-mk="n" data-i="'+i+'">✗ practise</button></div>'
+      + '</div>';
+  }).join('');
+  applyZiFilter(); paintZiTally();
+}
+function applyZiFilter(){
+  document.querySelectorAll('#ziGrid .zi').forEach(el=>{
+    el.classList.toggle('hide', onlyAgain && ziState[ZI[+el.dataset.i].hz]!=='n');
+  });
+  $('onlyAgain').classList.toggle('on', onlyAgain);
+}
+function paintZiTally(){
+  const y = ZI.filter(z=>ziState[z.hz]==='y').length, n = ZI.filter(z=>ziState[z.hz]==='n').length;
+  $('ziBar').style.width = (y/ZI.length*100)+'%';
+  $('ziTally').textContent = y===ZI.length ? '✨ All 17 are yours! On to the words.'
+    : '✓ '+y+' got it · ✗ '+n+' to practise · '+(ZI.length-y-n)+' not marked yet';
+  memSet(ZI_KEY, JSON.stringify(ziState));
+}
+$('ziGrid').addEventListener('click', ev=>{
+  const mk = ev.target.closest('[data-mk]');
+  if(mk){
+    const z = ZI[+mk.dataset.i];
+    ziState[z.hz] = ziState[z.hz]===mk.dataset.mk ? '' : mk.dataset.mk;
+    const card = mk.closest('.zi');
+    card.classList.toggle('know', ziState[z.hz]==='y'); card.classList.toggle('again', ziState[z.hz]==='n');
+    card.querySelector('.mk').textContent = ziState[z.hz]==='y'?'✓':ziState[z.hz]==='n'?'✗':'';
+    applyZiFilter(); paintZiTally(); return;
+  }
+  const card = ev.target.closest('.zi'); if(!card) return;
+  const z = ZI[+card.dataset.i];
+  card.classList.add('open');
+  speak(z.hz+'，'+z.ci[0]+'的'+z.hz);
+});
+$('onlyAgain').addEventListener('click',()=>{ onlyAgain=!onlyAgain; applyZiFilter(); });
+$('shuffleZi').addEventListener('click',()=>{ ziOrder = shuffled(ziOrder); drawZi(); });
+$('closeZi').addEventListener('click',()=>document.querySelectorAll('#ziGrid .zi').forEach(c=>c.classList.remove('open')));
+$('resetZi').addEventListener('click',()=>{ if(!confirm('Clear all your ✓ and ✗ marks?')) return; ziState={}; drawZi(); });
+drawZi();
+
+/* ================= 2. words ================= */
+let wState = {};
+try{ wState = JSON.parse(memGet(W_KEY)||'{}') || {}; }catch(e){ wState={}; }
+$('wCnt').textContent = '· '+WORDS.length+' words';
+function goldNew(w){ return w.split('').map(c=>NEWSET.indexOf(c)>=0?'<b>'+c+'</b>':c).join(''); }
+function drawWords(){
+  $('wordGrid').innerHTML = WORDS.map((w,i)=>
+    '<div class="wchip'+(wState[w[0]]?' read':'')+'" data-i="'+i+'">'
+    + '<div class="w">'+goldNew(w[0])+'</div><div class="p">'+w[1]+'</div><div class="e">'+esc(w[2])+'</div></div>').join('');
+  paintW();
+}
+function paintW(){
+  const n = WORDS.filter(w=>wState[w[0]]).length;
+  $('wTally').textContent = n===WORDS.length ? '🐜 All '+n+' words read!' : n+' / '+WORDS.length+' words tapped';
+  memSet(W_KEY, JSON.stringify(wState));
+}
+$('wordGrid').addEventListener('click', ev=>{
+  const c = ev.target.closest('.wchip'); if(!c) return;
+  const w = WORDS[+c.dataset.i];
+  c.classList.add('open','read'); wState[w[0]] = 1; paintW();
+  speak(w[0]);
+});
+$('closeW').addEventListener('click',()=>document.querySelectorAll('#wordGrid .wchip').forEach(c=>c.classList.remove('open')));
+drawWords();
+
+/* ================= 3. read the text ================= */
+function renderPara(p){
+  return p.split(/(\{[^}]+\}|\/)/).map(part=>{
+    if(part==='/') return '<br>';
+    const m = part.match(/^\{(!?)([^|}]+)\|([^}]+)\}$/);
+    if(m) return '<ruby'+(m[1]?' class="new"':'')+'>'+m[2]+'<rt>'+m[3]+'</rt></ruby>';
+    return part.split('').map(c=>NEWPY[c]?'<ruby class="new">'+c+'<rt>'+NEWPY[c]+'</rt></ruby>':c).join('');
+  }).join('');
+}
+function plain(p){ return p.replace(/\{!?([^|}]+)\|[^}]+\}/g,'$1').replace(/\//g,''); }
+
+let readState;
+try{ readState = JSON.parse(memGet(READ_KEY)||'null'); }catch(e){ readState=null; }
+if(!readState || !readState.r1 || readState.r1.length!==STORY.length)
+  readState = {r1:STORY.map(()=>false), r2:STORY.map(()=>false)};
+
+$('story').innerHTML = STORY.map((p,i)=>
+  '<div class="para"><div class="pact">'
+  + '<button class="sp" data-say="'+i+'">🔊 hear</button>'
+  + '<button class="tick" data-r="1" data-i="'+i+'">round 1</button>'
+  + '<button class="tick" data-r="2" data-i="'+i+'">round 2</button>'
+  + '</div><div class="pbody">'+(p.h?'<div class="rh">'+p.h+'</div>':'')+'<div class="ptxt">'+renderPara(p.cn)+'</div>'
+  + '<div class="ptr">'+esc(p.en)+'</div></div></div>').join('');
+
+/* the clean copy the kid reads from while recording: no pinyin, no taps */
+$('readCopy').innerHTML = STORY.map(p=>(p.h?'<span class="rh">'+p.h+'</span>':'')+'<p>'+plain(p.cn)+'</p>').join('');
+
+function paintRead(){
+  document.querySelectorAll('.tick').forEach(b=>b.classList.toggle('on', readState['r'+b.dataset.r][+b.dataset.i]));
+  const a=readState.r1.filter(Boolean).length, b=readState.r2.filter(Boolean).length;
+  $('r1n').textContent=a+' / '+STORY.length+' paragraphs';
+  $('r2n').textContent=b+' / '+STORY.length+' paragraphs';
+  $('r1').classList.toggle('done', a===STORY.length);
+  $('r2').classList.toggle('done', b===STORY.length);
+  $('doneNote').classList.toggle('show', a===STORY.length && b===STORY.length);
+  memSet(READ_KEY, JSON.stringify(readState));
+}
+$('story').addEventListener('click', ev=>{
+  const s=ev.target.closest('[data-say]');
+  if(s){ speak(plain(STORY[+s.dataset.say].cn)); return; }
+  const t=ev.target.closest('.tick');
+  if(t){ readState['r'+t.dataset.r][+t.dataset.i]=!readState['r'+t.dataset.r][+t.dataset.i]; paintRead(); return; }
+  const r=ev.target.closest('ruby');
+  if(r){ r.classList.toggle('peek'); if(r.classList.contains('peek')) speak(r.firstChild.textContent); }
+});
+$('resetRead').addEventListener('click',()=>{
+  if(!confirm('Clear all the read-aloud ticks?')) return;
+  readState={r1:STORY.map(()=>false), r2:STORY.map(()=>false)}; paintRead();
+});
+$('readAll').addEventListener('click',()=>speak(STORY.map(p=>plain(p.cn)).join('')));
+let showPy=false, showTr=true;
+$('pyToggle').addEventListener('click',()=>{
+  showPy=!showPy; document.body.classList.toggle('showpy', showPy);
+  $('pyToggle').classList.toggle('on', showPy);
+  $('pyToggle').textContent = showPy?'🔤 Pinyin: showing':'🔤 Pinyin: hidden';
+});
+$('trToggle').addEventListener('click',()=>{
+  showTr=!showTr; document.body.classList.toggle('notr', !showTr);
+  $('trToggle').classList.toggle('on', showTr);
+  $('trToggle').textContent = showTr?'🇬🇧 English: showing':'🇬🇧 English: hidden';
+});
+paintRead();
+
+/* ================= 4. the marked test ================= */
+/* options are shuffled on load, so position never gives the answer away */
+QUIZ.forEach(function(it){
+  var correct = it.options[it.answer];
+  for (var i = it.options.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = it.options[i]; it.options[i] = it.options[j]; it.options[j] = t;
+  }
+  it.answer = it.options.indexOf(correct);
+});
+
+var picks = QUIZ.map(function(){ return -1; });
+var locked = false;
+var PASS_PCT = 75, PASS_N = Math.ceil(QUIZ.length * PASS_PCT / 100);
+$('testCnt').textContent = '· '+QUIZ.length+' questions · pass mark '+PASS_PCT+'%';
+
+$('quiz').innerHTML = QUIZ.map(function(it,i){
+  var opts = it.options.map(function(o,j){
+    return '<div class="opt'+(it.zhopt?' zhopt':'')+'" id="o'+i+'_'+j+'" onclick="pick('+i+','+j+')">'+esc(o)+'</div>';
+  }).join('');
+  var head = it.say
+    ? '<button class="say" data-q="'+i+'">🔊 Listen</button><span class="fb zh hide">'+esc(it.fb)+'</span> '
+    : '';
+  return '<div class="qcard"><span class="n">Question '+(i+1)+'</span>'
+    + '<div class="qt">'+head+esc(it.q).replace(/([一-鿿]+)/g,'<span class="zh">$1</span>')+'</div>'
+    + '<div class="topts">'+opts+'</div><div class="why" id="w'+i+'"></div></div>';
+}).join('');
+$('quiz').addEventListener('click', function(ev){
+  var b = ev.target.closest('[data-q]'); if(b) speak(QUIZ[+b.dataset.q].say);
+});
+if('speechSynthesis' in window){ loadVoices(); window.speechSynthesis.onvoiceschanged=loadVoices; }
+else { noVoiceFallback(); }
+
+function pick(i,j){
+  if (locked) return;
+  picks[i] = j;
+  for (var k=0;k<QUIZ[i].options.length;k++){
+    document.getElementById('o'+i+'_'+k).classList.toggle('pick', k===j);
+  }
+}
+
+function finishQuiz(){
+  if (locked) return;
+  var blank = [];
+  picks.forEach(function(p,i){ if (p < 0) blank.push(i+1); });
+  if (blank.length){
+    alert('There are still ' + blank.length + ' question(s) with no answer: ' + blank.join(', ') +
+          '.\n\nEvery blank counts as wrong, so go back and pick something first.');
+    return;
+  }
+  locked = true;
+  var score = 0;
+  QUIZ.forEach(function(it,i){
+    for (var k=0;k<it.options.length;k++){
+      var el = document.getElementById('o'+i+'_'+k);
+      el.classList.remove('pick'); el.classList.add('locked');
+      if (k === it.answer) el.classList.add('right');
+      else if (k === picks[i]) el.classList.add('wrong');
+    }
+    var w = document.getElementById('w'+i);
+    w.classList.add('show');
+    if (picks[i] === it.answer){ score++; w.innerHTML = '<strong>✅ Correct.</strong> ' + it.why; }
+    else { w.innerHTML = '<strong>❌ The right answer is the green one.</strong> ' + it.why; }
+  });
+  var pct = Math.round(score / QUIZ.length * 100);
+  var pass = pct >= PASS_PCT;
+  var box = $('scorebox');
+  box.className = 'scorebox show' + (pass ? '' : ' fail');
+  box.innerHTML = '<div class="pct">' + pct + '%</div>'
+    + '<div class="sub2">' + score + ' right out of ' + QUIZ.length + ' · the pass mark is ' + PASS_PCT + '% (' + PASS_N + ' correct)</div>'
+    + '<div class="verdict">' + (pass ? '🎉 Passed!' : 'Not passed yet — ' + (PASS_N - score) + ' more needed') + '</div>'
+    + '<div class="sub2">' + (pass
+        ? 'Great reading. Now go down to the last step and record yourself reading both stories.'
+        : 'That is fine. Go back to the 17 character cards, mark the ones you missed with ✗, say them a few times, then press “Start the check again”.')
+    + '</div>';
+  $('resetBtn').style.display='block';
+  $('submitBtn').textContent = 'Check handed in';
+  box.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function resetQuiz(){
+  locked = false;
+  picks = QUIZ.map(function(){ return -1; });
+  QUIZ.forEach(function(it,i){
+    for (var k=0;k<it.options.length;k++){
+      document.getElementById('o'+i+'_'+k).className = 'opt'+(it.zhopt?' zhopt':'');
+    }
+    var w = document.getElementById('w'+i); w.className='why'; w.innerHTML='';
+  });
+  $('scorebox').className='scorebox';
+  $('resetBtn').style.display='none';
+  $('submitBtn').textContent='Hand in the check';
+  $('quiz').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+/* ================= sticky tabs ================= */
+$('tabs').addEventListener('click', ev=>{
+  const b=ev.target.closest('[data-go]'); if(!b) return;
+  document.getElementById(b.dataset.go).scrollIntoView({behavior:'smooth', block:'start'});
+});
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(!e.isIntersecting) return;
+    document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on', b.dataset.go===e.target.id));
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('section').forEach(s=>io.observe(s));
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+/* ================= 5. the recorder =================
+   Same contract as Quizzes/Chinese-Read-Aloud-Two-Stories.html (HOMEWORK-SYSTEM.md 2026-09-22):
+   recordings/{id} light row + recordingAudio/{id} base64, one batch, same id; counted per day;
+   this page shows TODAY's takes only. 家长台 groups by poemId and expects REC_TAKES_BY_POEM
+   ['cn-yinghuochong-yueliang'] = 2. Wrapped so none of its names collide with the lesson script above. */
+(function(){
+  const STORY_ID = 'cn-yinghuochong-yueliang', STORY_TITLE = '《萤火虫》和《月亮的小船》', STORY_EN = 'The Firefly & The Moon Boat';
+  /* two stories, ~370 characters — a slow reader can pass 2½ minutes, so 240 s at 16 kbps (as 《拔萝卜》):
+     240 × 16 kbps ≈ 480 KB → base64 ≈ 640 KB, under MAX_B64 */
+  const TAKES = 2, MAX_SECS = 240, BITRATE = 16000, MAX_B64 = 700000;
+
+  if(typeof firebase === 'undefined'){
+    $('who').textContent = 'The recorder could not load — check the Wi-Fi and reload the page.'; return;
+  }
+  const firebaseConfig = {
+    apiKey: 'AIzaSyDMKUeccjFtMbotXulnMhYcoykWpw4Y7ls',
+    authDomain: 'family-checklist-acc6b.firebaseapp.com',
+    projectId: 'family-checklist-acc6b',
+    appId: '1:127899043154:web:5a49cce9a1913fbc41e68b'
+  };
+  const app = firebase.apps.filter(a=>a.name==='kid')[0] || firebase.initializeApp(firebaseConfig, 'kid');
+  const auth = app.auth(), db = app.firestore();
+  const KIDS = {
+    grace:  { n:'Grace',  av:'👧', uid:'mbtSDgfFrOOS4xIT3eXr7pETEt33' },
+    warren: { n:'Warren', av:'👦', uid:'paACSAD0W0bBNknKrAf3GfpHy8x1' }
+  };
+  const two = n => String(n).padStart(2,'0');
+  const mmss = s => `${Math.floor(s/60)}:${two(Math.floor(s%60))}`;
+  const ymd = d => `${d.getFullYear()}-${two(d.getMonth()+1)}-${two(d.getDate())}`;
+  const hm  = t => new Date(t).toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit' });
+  const todayYmd = () => ymd(new Date());
+  const dayOf = r => r.day || (r.createdAt ? ymd(new Date(r.createdAt)) : '');
+
+  let ME = null, MINE = [], SLOT = [], RECORDING = 0;
+
+  function pickMime(){
+    const want = ['audio/webm;codecs=opus','audio/webm','audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/aac'];
+    if(!window.MediaRecorder) return null;
+    for(const m of want) if(MediaRecorder.isTypeSupported(m)) return m;
+    return '';
+  }
+  function freshSlots(){ SLOT = Array.from({ length:TAKES }, ()=>({ state:'empty', blob:null, url:'', secs:0, err:'' })); }
+  function savedCount(){ return SLOT.filter(s=>s && s.state==='saved').length; }
+
+  function paint(){
+    const done = savedCount();
+    $('rCount').textContent = `${done} / ${TAKES}`;
+    $('rFill').style.width = (done/TAKES*100) + '%';
+    $('allgood').hidden = done < TAKES;
+    $('takes').innerHTML = SLOT.map((s, i)=>{
+      const n = i + 1, live = RECORDING === n;
+      const cls = live ? ' rec' : s.state === 'saved' ? ' done' : '';
+      const stat = live ? '<span class="stat bad">● recording</span>'
+        : s.state === 'saved'    ? `<span class="stat ok">✓ saved${s.secs?` · ${mmss(s.secs)}`:''}</span>`
+        : s.state === 'saving'   ? '<span class="stat">saving…</span>'
+        : s.state === 'failed'   ? '<span class="stat bad">not saved</span>'
+        : s.state === 'recorded' ? `<span class="stat">${mmss(s.secs||0)} · not saved yet</span>`
+        : '<span class="stat">not recorded</span>';
+      let body = '';
+      if(live){
+        body = `<div class="rrow"><span class="clock" id="clock${n}">0:00</span>
+          <span class="meter"><i id="meter${n}"></i></span>
+          <button class="rbtn red" data-stop="${n}">⏹ Stop</button></div>
+          <div class="hist">Stops by itself after ${mmss(MAX_SECS)}.</div>`;
+      } else {
+        body = `<div class="rrow">
+          <button class="rbtn" data-rec="${n}"${RECORDING?' disabled':''}>${s.state==='empty' ? '⏺ Record take '+n : '⟳ Record again'}</button>
+          ${s.url ? `<button class="rbtn ghost" data-dl="${n}">⤓ Save to this device</button>` : ''}
+          ${s.state==='failed' ? `<button class="rbtn ghost" data-retry="${n}">↻ Try saving again</button>` : ''}
+        </div>`;
+        if(s.url) body += `<audio controls preload="metadata" src="${s.url}"></audio>`;
+        if(s.err) body += `<div class="hist" style="color:#c0392b">${esc(s.err)}</div>`;
+        const mine = MINE.filter(r=>r.take===n);
+        if(mine.length && !s.url){
+          body += `<div class="hist">${mine.length} saved today · newest ${esc(hm(mine[0].createdAt))}
+            <button data-play="${n}">listen</button></div>`;
+        }
+      }
+      return `<div class="take${cls}"><div class="top"><span class="tn">${n}</span>
+        <span class="lbl">Take ${n}</span>${stat}</div>${body}</div>`;
+    }).join('');
+    $('takes').querySelectorAll('[data-rec]').forEach(b=>b.addEventListener('click',()=>start(+b.dataset.rec)));
+    $('takes').querySelectorAll('[data-stop]').forEach(b=>b.addEventListener('click',()=>stop()));
+    $('takes').querySelectorAll('[data-dl]').forEach(b=>b.addEventListener('click',()=>download(+b.dataset.dl)));
+    $('takes').querySelectorAll('[data-retry]').forEach(b=>b.addEventListener('click',()=>save(+b.dataset.retry)));
+    $('takes').querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',()=>playSaved(+b.dataset.play)));
+  }
+
+  let mediaStream = null, rec = null, chunks = [], startedAt = 0, tick = null, audioCtx = null, rafId = 0;
+
+  async function start(n){
+    if(RECORDING) return;
+    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){}
+    if(!window.MediaRecorder || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      SLOT[n-1].err = 'This browser can’t record. Ask a parent to open this page in Safari or Chrome.'; paint(); return;
+    }
+    try {
+      mediaStream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true } });
+    } catch(e){
+      SLOT[n-1].err = e && e.name === 'NotAllowedError'
+        ? 'The microphone is blocked. Tap the little icon in the address bar and allow the microphone, then try again.'
+        : 'No microphone found. Check that one is plugged in, then try again.';
+      paint(); return;
+    }
+    const mime = pickMime();
+    try { rec = new MediaRecorder(mediaStream, Object.assign({ audioBitsPerSecond: BITRATE }, mime ? { mimeType:mime } : {})); }
+    catch(e){ rec = new MediaRecorder(mediaStream); }
+    chunks = [];
+    rec.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
+    rec.onstop = () => finish(n);
+    rec.start();
+    RECORDING = n; startedAt = Date.now();
+    SLOT[n-1] = { state:'empty', blob:null, url:SLOT[n-1].url, local:SLOT[n-1].local, secs:0, err:'' };
+    paint(); meter(n);
+    tick = setInterval(()=>{
+      const s = (Date.now()-startedAt)/1000;
+      const c = $('clock'+n); if(c) c.textContent = mmss(s);
+      if(s >= MAX_SECS) stop();
+    }, 200);
+  }
+  function meter(n){
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const an = audioCtx.createAnalyser(); an.fftSize = 512;
+      audioCtx.createMediaStreamSource(mediaStream).connect(an);
+      const buf = new Uint8Array(an.fftSize);
+      const draw = () => {
+        if(!RECORDING) return;
+        an.getByteTimeDomainData(buf);
+        let peak = 0;
+        for(let i=0;i<buf.length;i++) peak = Math.max(peak, Math.abs(buf[i]-128));
+        const el = $('meter'+n); if(el) el.style.width = Math.min(100, Math.round(peak/128*160)) + '%';
+        rafId = requestAnimationFrame(draw);
+      };
+      draw();
+    } catch(e){ /* the level meter is a nicety */ }
+  }
+  function stop(){
+    if(!RECORDING || !rec) return;
+    clearInterval(tick); tick = null; cancelAnimationFrame(rafId);
+    try { rec.stop(); } catch(e){}
+  }
+  function finish(n){
+    const secs = Math.round((Date.now()-startedAt)/1000);
+    const type = (rec && rec.mimeType) || (chunks[0] && chunks[0].type) || 'audio/webm';
+    const blob = new Blob(chunks, { type });
+    RECORDING = 0;
+    if(mediaStream){ mediaStream.getTracks().forEach(t=>t.stop()); mediaStream = null; }
+    if(audioCtx){ try{ audioCtx.close(); }catch(e){} audioCtx = null; }
+    const old = SLOT[n-1];
+    if(old.url && old.local) URL.revokeObjectURL(old.url);
+    SLOT[n-1] = { state:'recorded', blob, url:URL.createObjectURL(blob), local:true, secs, err:'' };
+    paint(); save(n);
+  }
+  function toB64(blob){
+    return new Promise((ok, no)=>{
+      const r = new FileReader();
+      r.onload = () => ok(String(r.result).split(',')[1] || '');
+      r.onerror = () => no(new Error('read failed'));
+      r.readAsDataURL(blob);
+    });
+  }
+  async function save(n){
+    const s = SLOT[n-1];
+    if(!s || !s.blob) return;
+    s.state = 'saving'; s.err = ''; paint();
+    try {
+      const audio = await toB64(s.blob);
+      if(audio.length > MAX_B64) throw new Error('too long');
+      const now = Date.now(), id = `${ME.key}_${STORY_ID}_t${n}_${now}`;
+      const row = { kidId: ME.uid, poemId: STORY_ID, poemTitle: STORY_TITLE, poemAuthor: STORY_EN,
+        take: n, mime: s.blob.type || 'audio/webm', secs: s.secs, bytes: s.blob.size, createdAt: now, day: ymd(new Date(now)) };
+      const batch = db.batch();
+      batch.set(db.collection('recordings').doc(id), row);
+      batch.set(db.collection('recordingAudio').doc(id), { kidId: ME.uid, audio });
+      await batch.commit();
+      s.state = 'saved';
+      MINE.unshift(Object.assign({ id }, row));
+    } catch(e){
+      console.error(e);
+      s.state = 'failed';
+      s.err = e && e.message === 'too long'
+        ? 'That take is too long to save. Read it again a little quicker, or ask a parent.'
+        : 'Couldn’t save it — check the Wi-Fi, then tap “Try saving again”. Your recording is still here, so don’t close the page.';
+    }
+    paint();
+  }
+  function download(n){
+    const s = SLOT[n-1]; if(!s || !s.url) return;
+    const ext = /mp4|aac/.test((s.blob && s.blob.type) || '') ? 'm4a' : 'webm';
+    const a = document.createElement('a');
+    a.href = s.url; a.download = `${STORY_ID}-take${n}.${ext}`;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  async function playSaved(n){
+    const r = MINE.find(x=>x.take===n); if(!r) return;
+    const s = SLOT[n-1]; s.err = ''; paint();
+    try {
+      const snap = await db.collection('recordingAudio').doc(r.id).get();
+      const d = snap.data() || {};
+      if(!d.audio) throw new Error('gone');
+      SLOT[n-1] = Object.assign({}, s, { state:'saved', url:`data:${r.mime || 'audio/webm'};base64,${d.audio}`, local:false, secs:r.secs||0 });
+    } catch(e){ console.error(e); SLOT[n-1].err = 'Couldn’t load that one.'; }
+    paint();
+  }
+  /* TODAY's rows only — yesterday's stay in Firestore for 家长台, so what's on screen was recorded today. */
+  async function loadMine(){
+    MINE = [];
+    try {
+      const td = todayYmd();
+      const snap = await db.collection('recordings').where('kidId','==',ME.uid).get();
+      MINE = snap.docs.map(d=>Object.assign({ id:d.id }, d.data()))
+        .filter(r=>r.poemId === STORY_ID && dayOf(r) === td)
+        .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    } catch(e){ console.warn('[recordings]', e.code||e); }
+    MINE.forEach(r=>{ const s = SLOT[r.take-1]; if(s && s.state==='empty'){ s.state='saved'; s.secs=r.secs||0; } });
+  }
+
+  auth.onAuthStateChanged(async user=>{
+    if(!user){ $('who').textContent = 'Nobody is signed in yet.'; $('recApp').hidden = true; $('signin').hidden = false; return; }
+    const key = Object.keys(KIDS).find(k=>KIDS[k].uid === user.uid);
+    if(!key){ $('who').textContent = 'This sign-in isn’t Grace’s or Warren’s.'; $('recApp').hidden = true; $('signin').hidden = false; return; }
+    ME = Object.assign({ key }, KIDS[key]);
+    $('who').innerHTML = `${ME.av} <b>${esc(ME.n)}</b> — this is your voice being saved. <a href="../homework.html">Not you?</a>`;
+    $('signin').hidden = true; $('recApp').hidden = false;
+    freshSlots(); paint();
+    await loadMine(); paint();
+  });
+
+  window.addEventListener('pagehide', ()=>{ if(RECORDING) stop(); });
+  window.addEventListener('beforeunload', e=>{
+    const unsaved = SLOT.some(s=>s && (s.state === 'failed' || s.state === 'recorded'));
+    if(RECORDING || unsaved){ e.preventDefault(); e.returnValue = ''; }
+  });
+})();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
