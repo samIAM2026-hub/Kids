@@ -856,13 +856,11 @@ function viewMistakes(){
     return html + `<div class="empty"><span class="e">📒</span>Nothing to fix right now!<br>Missed questions will collect here.</div>`;
   }
   bySubject(list).forEach(([subj, rows])=>{
-    html += `<h3 class="group">${esc(subj)} <span class="gn">${rows.length} to fix</span></h3>`;
-    rows.forEach(a=>{
-      html += `<div class="row" style="--sc:${subjCol(a.subj)}"><span class="d">${a.date.slice(5)}</span>
+    html += subjFold('miss', subj, `${rows.length} to fix`, rows.map(a=>
+      `<div class="row" style="--sc:${subjCol(a.subj)}"><span class="d">${a.date.slice(5)}</span>
         <div class="body"><div class="t">${esc(a.t)}</div>
           <div class="lead2" style="font-size:14.5px">${a.wrong.length} question${a.wrong.length>1?'s':''} to practise</div></div>
-        ${a.href?`<a class="go" href="${esc(pageUrl(a.href))}"${extAttr(a.href)}>Practise${isUrl(a.href)?' ↗':''}</a>`:''}</div>`;
-    });
+        ${a.href?`<a class="go" href="${esc(pageUrl(a.href))}"${extAttr(a.href)}>Practise${isUrl(a.href)?' ↗':''}</a>`:''}</div>`).join(''));
   });
   return html;
 }
@@ -1017,6 +1015,12 @@ async function setPick(id, on, btn){
     alert("Couldn't save that just now. Check the wifi and try again.");
   }
 }
+// A subject, folded (Sam 2026-10-25: 「每个科目都分类并且默认收起，这样看起来不占空间也不凌乱」). The line says the
+// subject and how many; tap to open. k names the list it's in: one opened stays open while the page is open,
+// so ✕, ＋ Today or ✓ I'm done (each re-draws the page) don't fold it back up. OPEN follows viewEl's toggles.
+const OPEN = new Set();
+const subjFold = (k, subj, n, cards, x = '') => `<details class="day" data-k="${esc(k+':'+subj)}"${x}${OPEN.has(k+':'+subj)?' open':''}>
+  <summary>${subjDot(subj)}${esc(subj)} <span class="gn">${n}</span></summary>${cards}</details>`;
 function viewToday(){
   const L = library();
   let html = reportCard() + markedCards();
@@ -1030,19 +1034,21 @@ function viewToday(){
   html += `<p class="lead2" style="font-size:14.5px;margin-top:6px">Only working time counts. Need more? <button class="link" data-tab="library">Pick from the Library →</button></p>`;
   const left = L.today.filter(it=>!it.a);
   html += `<h3 class="group">To do <span class="gn">${left.length} left</span></h3>`;
-  html += left.length ? left.map(it=>card(it, null, { unpick: it.mine && !ATT.some(a=>a.id===it.id && a.date===iso(today)) })).join('')
+  html += left.length ? bySubject(left).map(([subj, its])=>subjFold('todo', subj, `${its.length} left`,
+      its.map(it=>card(it, null, { unpick: it.mine && !ATT.some(a=>a.id===it.id && a.date===iso(today)) })).join(''))).join('')
     : `<div class="empty"><span class="e">${L.today.length?'🎉':'📚'}</span>${L.today.length?'All done for today\'s list!':'Nothing in Today yet.'}<br>
         <button class="go" data-tab="library" style="margin-top:12px">Pick from the Library →</button></div>`;
   // Done today: everything handed in today, whether it was in the list or not.
   const doneIds = new Set(), doneCards = [];
-  L.today.filter(it=>it.a).forEach(it=>{ doneIds.add(it.id); doneCards.push(card(it, it.a)); });
+  L.today.filter(it=>it.a).forEach(it=>{ doneIds.add(it.id); doneCards.push({ subj:it.subj, h:card(it, it.a) }); });
   ATT.filter(a=>a.date===iso(today) && counts(L.byId.get(a.id), a)).forEach(a=>{
     if(doneIds.has(a.id)) return; doneIds.add(a.id);
     const b = L.byId.get(a.id), it = b ? libItem(b) : { id:a.id, t:a.t, href:a.href, type:a.pct!=null?'quiz':'ref', subj:a.subj, book:'' };
     const best = ATT.filter(x=>x.id===a.id && x.date===a.date).sort((x,y)=>(y.pct??-1)-(x.pct??-1))[0];
-    doneCards.push(card(it, best));
+    doneCards.push({ subj:it.subj, h:card(it, best) });
   });
-  if(doneCards.length) html += `<h3 class="group">Done today <span class="gn">${doneCards.length}</span></h3>` + doneCards.join('');
+  if(doneCards.length) html += `<h3 class="group">Done today <span class="gn">${doneCards.length}</span></h3>`
+    + bySubject(doneCards).map(([subj, cs])=>subjFold('done', subj, `${cs.length} done`, cs.map(c=>c.h).join(''))).join('');
   return html + foot();
 }
 function viewLibrary(){
@@ -1056,8 +1062,8 @@ function viewLibrary(){
   if(!L.groups.length) return html + `<div class="empty"><span class="e">🎉</span>Nothing left in the Library!<br>Dad or Mom will add more soon.</div>`;
   L.groups.forEach(([subj, items])=>{
     const nNew = items.filter(it=>it.added && madeNew(it.added)).length;
-    html += `<details class="day" data-libgrp><summary>${subjDot(subj)}${esc(subj)} <span class="gn">${items.length}${nNew?` · 🆕 ${nNew} new`:''}${
-      subj==='Math'?' · in book order':''}</span></summary>${items.map(it=>lib(it)).join('')}</details>`;
+    html += subjFold('lib', subj, `${items.length}${nNew?` · 🆕 ${nNew} new`:''}${subj==='Math'?' · in book order':''}`,
+      items.map(it=>lib(it)).join(''), ' data-libgrp');
   });
   return html;
 }
@@ -1428,6 +1434,8 @@ function render(){
   const nm = mistakes().length;
   document.getElementById('nmiss').textContent = nm || '';
 }
+// 'toggle' doesn't bubble, so listen on the way down.
+viewEl.addEventListener('toggle', e=>{ const k = e.target.dataset && e.target.dataset.k; if(k) OPEN[e.target.open?'add':'delete'](k); }, true);
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on', x===t));
   V = t.dataset.v; render(); window.scrollTo({top:0});
@@ -1448,7 +1456,7 @@ skyNow(); setInterval(skyNow, 5*60*1000);
 
 function showPick(msg){
   ME = null; ITEMS = []; ATT = []; DAYS = []; MARKED = []; BANK = null; QUEUE = new Map(); PICKS = []; viewEl.innerHTML = '';
-  PET = undefined; SIB = undefined; GAME = null; petSkipped = false;
+  PET = undefined; SIB = undefined; GAME = null; petSkipped = false; OPEN.clear();
   closePop(); toastEl.hidden = true;
   document.body.className = '';
   appEl.hidden = true; signinEl.hidden = false;
