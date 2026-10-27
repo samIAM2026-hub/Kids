@@ -927,10 +927,9 @@
            排、撤、挪都在那里做了，所以这排只留家长台独有的：批作文、听录音、题库；作业队列和各种记录收进「更多」（2026-10-23 · 使用体验 4） -->
       <!-- 2026-10-27 Sam：「批改作业……已经忘记哪一个科目了」「朗读录音那个也删除掉」→ 选「去掉这两个按钮」：写作、朗读录音两页不再有入口
            （作文、录音都留在 Firestore，孩子那边照常；viewEssay / viewAudio 的代码留着，想加回来把两个按钮放回这里就行）。作文改在聊天里批。
-           孩子页签打开先到「完成记录」，它和「专注情况」露在外面。 -->
+           孩子页签打开先到「完成记录」。2026-10-27 Sam：「完成情况和专注情况都放在一个页面里」→ 专注情况并进完成记录，叫「完成和专注」。 -->
       <a class="stab assign" id="kidview" href="homework.html" target="_blank" rel="noopener">👀 孩子的界面</a>
-      <button class="stab" data-v="hist">完成记录</button>
-      <button class="stab" data-v="focus">专注情况</button>
+      <button class="stab" data-v="hist">完成和专注</button>
       <button class="stab assign" id="kidassign">📚 题库</button>
       <button class="stab more" id="stmore" aria-expanded="false">更多 ▸</button>
       <button class="stab extra" data-v="queue">作业队列</button>
@@ -1893,7 +1892,7 @@ function viewToday(){
     </div></div><div class="grid2">`;
   const guide = `<details class="hguide" data-guide="today"${guideOpen('today')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li><b>一张卡片看全这一天</b>：最上面一行 = 完成几份、第一遍达标几份、有效时间（页面开了多久）、有效占比；收着也看得到「⚠️ 需要留意」和「✍️ 待批改」。
-        展开是这天的总结、每份卷子每一遍的分数和用时、错了哪几题、切走几次。翻 ‹ › 就是看别的日子（原来「完成记录」「专注情况」的内容，现在收在孩子页的「更多」里）。</li>
+        展开是这天的总结、每份卷子每一遍的分数和用时、错了哪几题、切走几次。翻 ‹ › 就是看别的日子（更细的每一遍、每题停留、切走几次，在 Grace / Warren 页签的「完成和专注」里）。</li>
       <li>卡片右上角 <b>已派 N 份</b> = 这天派给孩子、没有撤回的份数。</li>
       <li>每份后面的状态：<span class="chipst st-open">未开始</span> = 这天还没交卷；
         <span class="chipst st-done">✓ 完成</span> = 不打分的页面做过、看过；绿色分数 = 答对 80% 及以上（闯关练习按「一次就对」算）；
@@ -2082,11 +2081,11 @@ function attnBox(k, day){
   const mine = attnOf(k, day);
   if(!mine.length) return '';
   const hit = mine.filter(x=>x.f.attention);
-  if(!hit.length) return `<div class="attnok">✓ 专注：这天交的 ${mine.length} 份都没有要特别留意的 <button class="mini" data-gofocus="${k}|${day}">专注情况 ›</button></div>`;
-  return `<div class="attnbox">${fold(k+'|attn', `⚠️ 需要留意 <span class="gs">${hit.length} 份</span>${qm('和「专注情况」里的「需要留意」是同一套标准：切走多、切走久、慢题多、答得很快又答错、中间很久没动。标签写的是它为什么被列进来；这是参考，不是判决。')}`,
+  if(!hit.length) return `<div class="attnok">✓ 专注：这天交的 ${mine.length} 份都没有要特别留意的 <button class="mini" data-gofocus="${k}|${day}">完成和专注 ›</button></div>`;
+  return `<div class="attnbox">${fold(k+'|attn', `⚠️ 需要留意 <span class="gs">${hit.length} 份</span>${qm('和「完成和专注」里的「需要留意」是同一套标准：切走多、切走久、慢题多、答得很快又答错、中间很久没动。标签写的是它为什么被列进来；这是参考，不是判决。')}`,
     hit.map(({a,f})=>`<div class="flagrow"><span class="when">${a.at?hm(a.at):''}</span>
       <span class="nm">${esc(a.t)}<div class="flags">${f.flags.map(x=>`<span>${esc(x)}</span>`).join('')}</div></span></div>`).join('')
-    + `<p style="margin:6px 0 2px"><button class="mini" data-gofocus="${k}|${day}">看专注情况 ›</button></p>`)}</div>`;
+    + `<p style="margin:6px 0 2px"><button class="mini" data-gofocus="${k}|${day}">看那天的完成和专注 ›</button></p>`)}</div>`;
 }
 
 // 「从 10-03 挪来」（手动改日期）/「延后两天 · 10-03 派的」（自动顺延；day = 它现在排在哪天，
@@ -3144,7 +3143,7 @@ function noteBlock(k, d){
 
 function viewHist(){
   const day = HD, rel = dayName(day, ''), isToday = day===iso(today);
-  let html = `<h2 class="sec">完成记录 · ${rel?rel+' · ':''}${day} 周${wdOf(day)}${qm('一天一页：这一天交的每一份卷子，加一段文字总结。用 ‹ › 或日期框换一天，每张卡片最下面也能点最近 7 天。')}</h2>
+  let html = `<h2 class="sec">完成和专注 · ${rel?rel+' · ':''}${day} 周${wdOf(day)}</h2>
     <div class="daynav">
       <button class="fchip" data-hday="${shiftDay(day,-1)}">‹ ${dayName(shiftDay(day,-1), '前一天')}</button>
       <input type="date" id="hdpick" value="${day}" max="${iso(today)}">
@@ -3162,7 +3161,13 @@ function viewHist(){
         <b>中间很久没动的那段也不算</b>：连续 ${STILL.after/60} 分钟没点屏幕、没打字、没滚动，只算前 ${STILL.keep/60} 分钟，其余扣掉，旁边写「已扣掉中间没动的 X 分钟」和原因
         （10-16 以前的记录按每道题停了多久推：一道题停了 ${STILL.oldAfter/60} 分钟以上只算 ${STILL.oldKeep/60} 分钟）。
         <b>页面开了</b> = 从打开卷子到交卷的全部时间，切走的也算在里面 —— 停在数字上能看到。
-        切走了几次、多久，看「专注情况」。这一页里所有时间都是量出来的<b>实际</b>，没有估的数。</li>
+        这一页里所有时间都是量出来的<b>实际</b>，没有估的数。</li>
+      <li><b>专注</b>（卡片下半截）：<b>专注度</b> = 有效时间 ÷ 页面开了，80% 及以上绿色，60–79% 黄色，更低红色。
+        <b>切走次数</b> = 这一页被切走的次数（切到别的 APP、别的标签页、锁屏、屏幕变暗都算，去查一次字典也算一次）。
+        网页只知道<b>有没有被切走</b>，不知道切去了哪个 APP —— 这是参考，不是判决。</li>
+      <li><b>需要留意</b>只列满足任一条的卷子：中间很久没动；切走 ≥ ${FOCUS.awayCount} 次；切走的时间占 ≥ ${Math.round(FOCUS.awayShare*100)}%；有一次切走 ≥ ${dur(FOCUS.longAway)}；
+        ≥ ${FOCUS.attnSlow} 道慢题；≥ ${FOCUS.attnGuess} 道答得很快又答错。
+        <b>慢题</b> = 这道题停了 ≥ ${dur(FOCUS.slowMin)}，而且是这份卷子一般题目（中位数）的 ${FOCUS.slowX} 倍以上；<b>答得很快又答错</b> = 不到 ${FOCUS.guessSecs} 秒就选了、选错了。</li>
       <li>日期按<b>交卷那一刻</b>算；「14:31 交」是交卷的钟点。点卷子标题可以打开看题（家长预览，不记成绩）。</li>
     </ul></details><div class="grid2">`;
 
@@ -3193,6 +3198,7 @@ function viewHist(){
       ${papers.map(histPaper).join('')}`;
     }
     if(U.length) html += `<div class="subhd">没交卷 · ${U.length} 份${qm(UNF_TIP)}</div>` + U.map(unfRow).join('');
+    html += focusBlock(k, day, day);
     // A week around the day shown (up to 3 days after it, never past today), one line a day.
     const end = shiftDay(day,3) < iso(today) ? shiftDay(day,3) : iso(today);
     // Folded by default — seven lines under every card is clutter. Opened, it stays open while you
@@ -3208,7 +3214,11 @@ function viewHist(){
     }
     html += `</details></details>`;
   });
-  return html + `</div>`;
+  return html + `</div>${!html.includes('class="qstrip"') ? '' : `
+    <div class="legend">每题小条：高度 = 这道题页面在最前面停留的时间（停在条上看这题的有效时间）
+      <br><i style="background:var(--blue)"></i>正常 <i style="background:#e59b98"></i>答错
+      <i style="background:var(--red)"></i>慢题 <i style="background:var(--amber)"></i>答得很快又答错（可能是蒙的）
+      · 条上方有小点 = 做这题时切走过</div>`}`;
 }
 
 /* ===================== SKILLS (知识点) ===================== */
@@ -3374,7 +3384,6 @@ function viewSkills(){
 /* ===================== FOCUS (专注情况) ===================== */
 // A web page sees the page leave the foreground (another app, another tab, screen locked),
 // never which app. HOMEWORK-SYSTEM.md §五.
-let FR = 1;   // days shown — 今天 first (Sam 2026-09-19); 7 / 21 are options
 const FOCUS = {
   awayCount: 3,     // flag a paper that left the page this many times
   awayShare: 0.2,   // … or spent this share of its time off the page
@@ -3437,89 +3446,47 @@ function readFocus(a){
   return { secs, active, awaySecs, awayCount:f.awayCount||0, maxAway:f.maxAwaySecs||0, qs, med, flags, attention, still:st ? st.secs : 0 };
 }
 
-function viewFocus(){
-  const since = new Date(today); since.setDate(since.getDate()-(FR-1));
-  const sinceIso = iso(since);
-  let html = `<h2 class="sec">专注情况${qm(`<p>做题时页面在不在最前面、有效时间多久、每道题停留多久。这一页全是<b>量出来的实际</b>，没有估的数。</p><p>
-      ⚠️ 网页只知道<b>这一页有没有被切走</b>（切到别的 APP、别的标签页或锁屏），<b>不知道切去了哪个 APP</b>。
-      切走可能是去查字典或被叫去吃饭，页面开着也不代表人在做题 —— 这是参考，不是判决书。
-      要限制 APP，用 iPad 的「屏幕使用时间」或「引导式访问」。</p>`)}</h2>
-    <div class="filters">${[[1,'今天'],[7,'近 7 天'],[21,'近 21 天']].map(([v,l])=>
-      `<button class="fchip${FR===v?' on':''}" data-fr="${v}">${l}</button>`).join('')}</div>
-    <details class="hguide" data-guide="focus"${guideOpen('focus')}><summary><b>这些数字怎么读</b><span class="tap">点开</span></summary><ul>
-      <li><b>有效时间</b> = 页面开在最前面的时间加起来（练习、参考也算）。「今天」和「完成记录」里的有效时间是同一个口径，对得上。
-        <b>没交卷的也算</b>：打开了作业、看讲解、读文章、做了一半就走的那段，同样按页面在最前面的时间记（2026-09-24 起才有）。</li>
-      <li><b>中间很久没动不算</b>：页面开着，却连续 ${STILL.after/60} 分钟没点屏幕、没打字、没滚动，只算前 ${STILL.keep/60} 分钟，其余从有效时间里扣掉，并列进「需要留意」
-        （10-16 以前的记录按每道题停了多久推：一道题停了 ${STILL.oldAfter/60} 分钟以上只算 ${STILL.oldKeep/60} 分钟）。</li>
-      <li><b>页面开了</b> = 从打开到交卷的全部时间，切走的也算 —— 它总比有效时间大，只当背景看。</li>
-      <li><b>有效占比</b> = 有效时间 ÷ 页面开了：80% 及以上绿色，60%–79% 黄色，更低红色。</li>
-      <li><b>切走次数</b> = 这一页被切走的次数。切到别的 APP、别的标签页、锁屏、屏幕变暗都算，去查一次字典也算一次。</li>
-      <li><b>需要留意</b>只列满足任一条的卷子（「今天」每个孩子的卡片里也列着这天的）：中间很久没动；切走 ≥ ${FOCUS.awayCount} 次；切走的时间占 ≥ ${Math.round(FOCUS.awayShare*100)}%；有一次切走 ≥ ${dur(FOCUS.longAway)}；
-        ≥ ${FOCUS.attnSlow} 道慢题；≥ ${FOCUS.attnGuess} 道答得很快又答错。</li>
-      <li><b>慢题</b> = 这道题页面在最前面停了 ≥ ${dur(FOCUS.slowMin)}，而且是这份卷子一般题目（中位数）的 ${FOCUS.slowX} 倍以上。
-        <b>答得很快又答错</b> = 不到 ${FOCUS.guessSecs} 秒就选了、选错了，可能是蒙的。</li>
-      <li><b>切走次数</b>、<b>需要留意</b>和每题小条只看交了卷的；没交卷的只记时间，列在最下面。</li>
-      <li>按交卷那天算，没交卷的按打开那天算。上面的「今天 / 近 7 天 / 近 21 天」换统计的天数。</li>
-    </ul></details>
-    <div class="grid2">`;
-
-  kidsShown().forEach(k=>{
-    const mine = ATT.filter(a=>a.kid===k && a.date>=sinceIso).map(a=>Object.assign({ f:readFocus(a) }, a));
-    const T = mine.reduce((s,a)=>({ secs:s.secs+a.f.secs, active:s.active+a.f.active, away:s.away+a.f.awaySecs,
-                                    n:s.n+a.f.awayCount, max:Math.max(s.max,a.f.maxAway), still:s.still+a.f.still }),
-                          { secs:0, active:0, away:0, n:0, max:0, still:0 });
-    // 没交卷的那段：时间加进总数，切走的秒数 = 页面开了 − 有效时间（次数只有交了卷的才有）
-    const U = unfOn(k, sinceIso, iso(today)), uS = unfSum(U);
-    T.active += uS; T.secs += U.reduce((s,u)=>s+u.secs,0); T.away += U.reduce((s,u)=>s+u.secs-u.active,0);
-    const any = mine.length || U.length;
-    const share = T.secs ? Math.round(100*T.active/T.secs) : null;
-    const shareCol = share==null ? 'var(--mute)' : share>=80 ? 'var(--green)' : share>=60 ? 'var(--amber)' : 'var(--red)';
-    html += kidCard('focus', k, `交卷 ${mine.length} 次${U.length?` · 没交卷 ${U.length} 份`:''}`,
-      any ? `有效时间 <b>${dur(T.active)}</b>${uS?`（含没交卷 ${dur(uS)}）`:''} · 有效占 <b style="color:${shareCol}">${
-          share==null?'—':share+'%'}</b> · 切走 ${T.n} 次`
-        : '这段时间没有做题记录') + `
-      <div class="hmet">
-        <div><div class="v">${tileUnit(dur(T.active))}</div><div class="k">有效时间${qm(`${mine.length} 次交卷${U.length?` + 没交卷的 ${U.length} 份`:''}，页面开在最前面的时间加起来（切走的不算）${uS?`。其中没交卷的 ${dur(uS)} —— ${UNF_TIP}`:''}`)}</div>
-            <div class="x">${uS?`含没交卷 ${dur(uS)} · `:''}页面开了 ${dur(T.secs)}</div></div>
-        <div><div class="v" style="color:${shareCol}">${share==null?'—':share+'%'}</div><div class="k">有效占比${qm(share==null?'这段时间没有记录':`有效时间 ${dur(T.active)} ÷ 页面开了 ${dur(T.secs)}`)}</div></div>
-        <div><div class="v" style="color:${T.n?'var(--amber)':'var(--cream)'}">${T.n}</div><div class="k">切走次数${qm(`交了卷的那几份被切走的次数（没交卷的只记了切走多久，没记次数）${T.away?`，一共切走 ${dur(T.away)}`:''}`)}</div></div>
-        <div><div class="v">${T.max?tileUnit(dur(T.max)):'—'}</div><div class="k">最长一次切走${qm('单独一次切走最久的时长')}</div></div>
-      </div>`;
-    if(!any){ html += `<p class="empty">这段时间没有做题记录。</p></details>`; return; }
-
-    html += `<div class="stack"><i class="on" style="width:${share}%"></i><i class="off" style="width:${100-share}%"></i></div>
-      <div class="stacklbl">有效 ${dur(T.active)} · 切走 ${dur(T.away)}${T.still?` · 页面开着但没动 ${dur(T.still)}（不算进有效时间）`:''}</div>`;
-
-    const flagged = mine.filter(a=>a.f.attention);
-    if(mine.length) html += `<div class="subhd">需要留意 · ${flagged.length} 份${qm('满足「这些数字怎么读」里「需要留意」任一条的卷子。标签写的是它为什么被列进来；这是参考，不是判决。')}</div>`;
-    if(mine.length) html += flagged.length ? flagged.map(a=>`<div class="flagrow"><span class="when">${a.date.slice(5)}</span>
-        <span class="nm">${esc(a.t)}<div class="flags">${a.f.flags.map(x=>`<span>${esc(x)}</span>`).join('')}</div></span></div>`).join('')
-      : `<p class="empty" style="padding:8px 0">都挺专心，没有要特别留意的。</p>`;
-
-    if(mine.length) html += `<div class="subhd">每份有效时间 · 每题停留${qm('右边大数字 = 这份的有效时间（页面开在最前面的时间）。下面一排小条，一根是一道题，越高停得越久；颜色的意思在页面最下面。')}</div>`;
-    mine.forEach(a=>{
-      const f = a.f, maxQ = Math.max(1, ...f.qs.map(q=>q.active));
-      const slowest = f.qs.reduce((m,q)=>!m||q.active>m.active?q:m, null);
-      html += `<div class="frow"><div class="ftop"><span class="when">${a.date.slice(5)}</span>
-          <span class="nm">${esc(a.t)}</span><span class="fnum" title="有效时间：页面开在最前面的时间">${dur(f.active)}</span></div>
-        <div class="fmeta">页面开了 ${dur(f.secs)} · 切走 ${f.awayCount} 次${f.awaySecs?`（共 ${dur(f.awaySecs)}）`:''}${
-          f.qs.length?` · 最慢第 ${slowest.q} 题 ${dur(slowest.active)}`:''}${a.still?`<br><span class="stillcut">${esc(stillWhy(a.still))}</span>`:''}</div>
-        ${f.qs.length ? `<div class="qstrip">${f.qs.map(q=>`<i class="${q.slow?'slow':q.guess?'guess':q.correct===false?'miss':''}${q.away?' away':''}"
-            style="height:${Math.max(8,Math.round(100*q.active/maxQ))}%"
-            title="第 ${q.q} 题 · ${dur(q.active)}${q.away?' · 中途切走 '+dur(q.away):''}${q.correct===false?' · 答错':''}"></i>`).join('')}</div>`
-          : `<div class="fmeta" style="opacity:.7">练习 / 参考类，没有逐题记录</div>`}
-      </div>`;
-    });
-    if(U.length) html += `<div class="subhd">没交卷 · ${U.length} 份 · ${dur(uS)}${qm(UNF_TIP)}</div>` + U.map(unfRow).join('');
-    html += `</details>`;
+// 一个孩子一段日子的专注：有效占比 · 切走几次 · 最长一次切走、有效 / 切走那一条、需要留意、每份每题停留。
+// 原来是单独的「专注情况」页签（今天 / 近 7 天 / 近 21 天），2026-10-27 并进「完成和专注」每张卡片，跟着那一天走
+// （Sam：「完成情况和专注情况都放在一个页面里，不要放到两个 tab 里」）。有效时间、没交卷的那几份上面已经列了，这里不重复。
+// 专注度和今天页、7 天表同一个口径（tStats）：只看交了卷的，家长试做（demo）不算。
+function focusBlock(k, from, to){
+  const mine = ATT.filter(a=>a.kid===k && !a.demo && a.date>=from && a.date<=to).map(a=>Object.assign({ f:readFocus(a) }, a));
+  const T = mine.reduce((s,a)=>({ secs:s.secs+a.f.secs, active:s.active+a.f.active, away:s.away+a.f.awaySecs,
+                                  n:s.n+a.f.awayCount, max:Math.max(s.max,a.f.maxAway), still:s.still+a.f.still }),
+                        { secs:0, active:0, away:0, n:0, max:0, still:0 });
+  if(!mine.length) return '';
+  const share = T.secs ? Math.min(100, Math.round(100*T.active/T.secs)) : null;
+  const shareCol = share==null ? 'var(--mute)' : share>=80 ? 'var(--green)' : share>=60 ? 'var(--amber)' : 'var(--red)';
+  let html = `<div class="subhd">专注</div>
+    <div class="hmet">
+      <div><div class="v" style="color:${shareCol}">${share==null?'—':share+'%'}</div><div class="k">专注度</div>
+        <div class="x">有效 ${dur(T.active)} ÷ 页面开了 ${dur(T.secs)}</div></div>
+      <div><div class="v" style="color:${T.n?'var(--amber)':'var(--cream)'}">${T.n}</div><div class="k">切走次数</div>
+        ${T.away?`<div class="x">一共切走 ${dur(T.away)}</div>`:''}</div>
+      <div><div class="v">${T.max?tileUnit(dur(T.max)):'—'}</div><div class="k">最长一次切走</div></div>
+    </div>`;
+  if(share!=null) html += `<div class="stack"><i class="on" style="width:${share}%"></i><i class="off" style="width:${100-share}%"></i></div>
+    <div class="stacklbl">有效 ${dur(T.active)} · 切走 ${dur(T.away)}${T.still?` · 页面开着但没动 ${dur(T.still)}（不算进有效时间）`:''}</div>`;
+  const flagged = mine.filter(a=>a.f.attention);
+  html += `<div class="subhd">需要留意 · ${flagged.length} 份</div>` + (flagged.length ? flagged.map(a=>`<div class="flagrow"><span class="when">${a.at?hm(a.at):''}</span>
+      <span class="nm">${esc(a.t)}<div class="flags">${a.f.flags.map(x=>`<span>${esc(x)}</span>`).join('')}</div></span></div>`).join('')
+    : `<p class="empty" style="padding:8px 0">都挺专心，没有要特别留意的。</p>`);
+  html += `<div class="subhd">每份每题停留</div>`;
+  mine.forEach(a=>{
+    const f = a.f, maxQ = Math.max(1, ...f.qs.map(q=>q.active));
+    const slowest = f.qs.reduce((m,q)=>!m||q.active>m.active?q:m, null);
+    html += `<div class="frow"><div class="ftop"><span class="when">${a.at?hm(a.at):''}</span>
+        <span class="nm">${esc(a.t)}</span><span class="fnum" title="有效时间：页面开在最前面的时间">${dur(f.active)}</span></div>
+      <div class="fmeta">页面开了 ${dur(f.secs)} · 切走 ${f.awayCount} 次${f.awaySecs?`（共 ${dur(f.awaySecs)}）`:''}${
+        f.qs.length?` · 最慢第 ${slowest.q} 题 ${dur(slowest.active)}`:''}${a.still?`<br><span class="stillcut">${esc(stillWhy(a.still))}</span>`:''}</div>
+      ${f.qs.length ? `<div class="qstrip">${f.qs.map(q=>`<i class="${q.slow?'slow':q.guess?'guess':q.correct===false?'miss':''}${q.away?' away':''}"
+          style="height:${Math.max(8,Math.round(100*q.active/maxQ))}%"
+          title="第 ${q.q} 题 · ${dur(q.active)}${q.away?' · 中途切走 '+dur(q.away):''}${q.correct===false?' · 答错':''}"></i>`).join('')}</div>`
+        : `<div class="fmeta" style="opacity:.7">练习 / 参考类，没有逐题记录</div>`}
+    </div>`;
   });
-
-  return html + `</div>
-    <div class="legend">每题小条：高度 = 这道题页面在最前面停留的时间（鼠标停在条上看这题的有效时间）
-      <br><i style="background:var(--blue)"></i>正常 <i style="background:#e59b98"></i>答错
-      <i style="background:var(--red)"></i>慢题（≥ ${dur(FOCUS.slowMin)}且 ≥ 本卷中位数 ${FOCUS.slowX} 倍）
-      <i style="background:var(--amber)"></i>答得很快又答错（可能是蒙的）
-      · 条上方有小白点 = 做这题时切走过</div>`;
+  return html;
 }
 
 /* ===================== READING CLUB (阅读写作) ===================== */
@@ -4464,7 +4431,7 @@ function render(){
   viewEl.innerHTML = V==='today'?viewToday() : V==='bank'?viewBank() : V==='hist'?viewHist() : V==='usage'?viewUsage()
                    : V==='dispatch'?viewDispatch() : V==='queue'?viewQueue()
                    : V==='skills'?viewSkills() : V==='reading'?viewReading() : V==='essay'?viewEssay()
-                   : V==='audio'?viewAudio() : viewFocus();
+                   : V==='audio'?viewAudio() : viewHist();
   // 收起 / 展开的组：记住开着的那几个
   viewEl.querySelectorAll('details[data-grp]').forEach(d=>d.addEventListener('toggle',()=>{
     d.open ? GRP_OPEN.add(d.dataset.grp) : GRP_OPEN.delete(d.dataset.grp); grpSave(); }));
@@ -4540,10 +4507,6 @@ function render(){
     viewEl.querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',()=>playRec(b.dataset.play)));
     viewEl.querySelectorAll('[data-delrec]').forEach(b=>b.addEventListener('click',()=>delRec(b.dataset.delrec)));
   }
-  if(V==='focus'){
-    viewEl.querySelectorAll('.fchip[data-fr]').forEach(c=>c.addEventListener('click',()=>{
-      FR = Number(c.dataset.fr); render(); }));
-  }
   if(V==='reading'){
     viewEl.querySelectorAll('.fchip[data-rd]').forEach(c=>c.addEventListener('click',()=>{
       RD.days = Number(c.dataset.rd); RD.data = null; RD.err = ''; render(); }));
@@ -4597,11 +4560,11 @@ function render(){
     }
   }));
   viewEl.querySelectorAll('[data-gotoday]').forEach(b=>b.addEventListener('click',()=>go('today')));
-  // 今天页「需要留意」→ 这个孩子的专注情况，天数放宽到能看到那一天
+  // 今天页「需要留意」→ 这个孩子那一天的「完成和专注」
   viewEl.querySelectorAll('[data-gofocus]').forEach(b=>b.addEventListener('click',()=>{
-    const [k, d] = b.dataset.gofocus.split('|'), back = Math.round((today - new Date(d+'T00:00:00'))/864e5);
-    FR = back < 1 ? 1 : back < 7 ? 7 : 21;
-    go('focus', k);
+    const [k, d] = b.dataset.gofocus.split('|');
+    HD = d > iso(today) ? iso(today) : d;
+    go('hist', k);
   }));
 
   if(V==='bank'){
@@ -4702,7 +4665,7 @@ document.querySelectorAll('[data-top]').forEach(t=>t.addEventListener('click',()
   top==='today' || top==='bank' ? go(top) : go(KSUB, top); }));
 document.querySelectorAll('.stab[data-v]').forEach(t=>t.addEventListener('click',()=>go(t.dataset.v, KV)));
 // 派题 from a kid's page: the bank opens on that kid's list, and 派给 is already set to them.
-// 「更多 ▸」：把完成记录 · 专注情况 · 派发记录 · 知识点 · 阅读写作 摊开 / 收起（正在看的那个一直露着）
+// 「更多 ▸」：把作业队列 · 知识点 · 阅读写作 · 派发记录 摊开 / 收起（正在看的那个一直露着）
 document.getElementById('stmore').addEventListener('click',()=>{
   const st = document.getElementById('subtabs'), on = st.classList.toggle('showmore'), m = document.getElementById('stmore');
   m.textContent = on ? '更多 ◂' : '更多 ▸'; m.setAttribute('aria-expanded', on);
@@ -4761,7 +4724,6 @@ function useKey(el){
   if(d.archgrp) return 'arch:group';
   if(d.arch) return V==='today' ? 'arch:today' : 'arch:row';
   if(d.edlink) return 'bank:editlink';
-  if(d.fr) return 'focus:range';
   if(d.rd) return 'reading:range';
   if(d.dp) return 'dispatch:range';
   if(d.dpmiss) return 'dispatch:missonly';
@@ -4792,8 +4754,8 @@ document.addEventListener('click', e=>{
 // 要看的那几样：从来没点过的也列出来（0 次），这才看得出哪个没人用
 const USE_WATCH = [
   ['top:today','顶部 · 今天'], ['top:bank','顶部 · 题库/派题'], ['top:grace','顶部 · Grace'], ['top:warren','顶部 · Warren'],
-  ['sub:hist','孩子页 · 完成记录'], ['sub:dispatch','孩子页 · 派发记录'],
-  ['sub:more','孩子页 · 更多 ▸'], ['sub:skills','孩子页 · 知识点'], ['sub:focus','孩子页 · 专注情况'], ['sub:reading','孩子页 · 阅读写作'],
+  ['sub:hist','孩子页 · 完成和专注'], ['sub:dispatch','孩子页 · 派发记录'],
+  ['sub:more','孩子页 · 更多 ▸'], ['sub:skills','孩子页 · 知识点'], ['sub:reading','孩子页 · 阅读写作'],
   ['kid:assign','孩子页 · ＋ 派题'],
   ['bank:search','题库 · 搜索'], ['key:/','题库 · 按 / 搜索'], ['bank:never','题库 · 只看没派过'], ['bank:hist','题库 · 点开派发历史'],
   ['bank:kid=warren','题库 · Warren'], ['bank:kid=grace','题库 · Grace'], ['bank:more','题库 · ⋯ 更多'], ['bank:done','题库 · 已派完 ▸'],
@@ -4807,7 +4769,7 @@ const USE_WATCH = [
   ['today:settings','今天 · ⚙ 排作业设置'], ['today:more','今天 · ⋯'],
   ['today:move','今天 · 改日期'], ['today:pull','今天 · 撤回'], ['today:day','今天 · 翻前一天/后一天'],
   ['dispatch:range','派发记录 · 换时间段'], ['dispatch:missonly','派发记录 · 只看没做的'],
-  ['focus:range','专注情况 · 换时间段'], ['reading:range','阅读写作 · 换时间段'],
+  ['reading:range','阅读写作 · 换时间段'],
   ['help','「?」说明'], ['guide','「这一页怎么看」']
 ];
 function viewUsage(){
