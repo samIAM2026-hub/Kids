@@ -897,7 +897,9 @@ function vocabDays(b){
   const mo = m ? MONTHS.indexOf(m[1]) : -1;
   if(mo<0) return null;
   let y = +String(b.added||iso(today)).slice(0,4);
-  if(`${y}-${String(mo+1).padStart(2,'0')}-${m[2].padStart(2,'0')}` < String(b.added||'')) y++;   // added in Dec for a Jan class
+  // Added in Dec for a Jan class → next year. Only when the class is months before the added day: a list added a
+  // few days after its class (Oct 23 class, added Oct 26) stays in the same year.
+  if(b.added && `${shiftIso(`${y}-${String(mo+1).padStart(2,'0')}-${m[2].padStart(2,'0')}`, 180)}` < String(b.added)) y++;
   const cls = `${y}-${String(mo+1).padStart(2,'0')}-${m[2].padStart(2,'0')}`;
   return /Week-Test/i.test(m[3]) ? { test:true, from:shiftIso(cls, 6) } : { from:shiftIso(cls, 2), to:shiftIso(cls, 5) };
 }
