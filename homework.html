@@ -187,6 +187,23 @@
   .note ul{padding-left:22px}
   .note li{font-size:16.5px;line-height:1.5;margin-top:4px}
   .row .sub{font-size:13.5px;color:var(--mute);margin-top:2px}
+  /* My week (2026-10-26): the parent page's 每天学习情况 table, in the kid page's look */
+  .wkt{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:6px 14px 8px;margin-top:12px}
+  .wrow{display:grid;grid-template-columns:minmax(84px,1.2fr) 1.1fr 1fr .8fr;gap:6px;align-items:baseline;padding:9px 2px;
+        font-size:16px;border-bottom:1px solid var(--line)}
+  .wrow>span:not(:first-child){text-align:right;font-family:'IBM Plex Mono',monospace;font-size:14px}
+  .wrow .x{display:block;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--mute);font-weight:400}
+  .wrow.whead,.wrow.whead>span:not(:first-child){font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--mute)}
+  .wrow.wsum{font-weight:600;background:var(--goldbg);margin:0 -14px;padding-left:16px;padding-right:16px}
+  .wrow.none{color:var(--mute)}
+  details.wday>summary{list-style:none;cursor:pointer}
+  details.wday>summary::-webkit-details-marker{display:none}
+  details.wday>summary>span:first-child::before{content:'▸ ';color:var(--acc)}
+  details.wday[open]>summary>span:first-child::before{content:'▾ '}
+  .wrow.wsub{font-size:14.5px;padding:6px 2px;border-bottom:1px dashed var(--line)}
+  .wrow.wsub>span:first-child{padding-left:16px}
+  .wrow.wsub i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px}
+  details.wday:last-child>summary.wrow,.wkt>.wrow:last-child{border-bottom:none}
 
   /* ---------- scores & mistakes ---------- */
   h2.sec{font-size:24px;margin:26px 0 4px}
@@ -503,6 +520,9 @@ let WITHDRAWN = new Set();
 let QUEUE = new Map();
 // Writing Lab pieces Dad or Mom marked that this kid hasn't opened yet (Writing-Lab.html stamps seenAt).
 let MARKED = [];
+// Time on pages opened and not handed in (progress/), the same as parent.html's UNF: [{ id, date, lab, active }].
+// Read only when My day is drawn (loadOpened), not on every load(). WK_LAB: item id → subject label (set in load()).
+let OPENED = [], OPENED_AT = 0, WK_LAB = () => '';
 // PET / SIB: my pet doc and the other kid's — null = not picked yet, undefined = couldn't read it.
 let PET, SIB, GAME = null, petSkipped = false;
 
@@ -556,6 +576,9 @@ async function load(){
     [...(x.withdrawn||[]), ...(x.items||[])].forEach(it=>{ if(it.subj) label.set(it.id, it.subj); }); });
   // Never assigned (picked from To do): the bank knows its subject.
   (BANK||[]).forEach(b=>{ if(b.subj && !label.has(b.docId)) label.set(b.docId, b.subj); });
+  // My week sorts by subject the parent page's way: the bank's subj first, then the assigned label.
+  const bankSubj = new Map((BANK||[]).map(b=>[b.docId, b.subj]));
+  WK_LAB = id => isReviewRead(id) ? 'Writing' : bankSubj.get(id) || label.get(id) || '';
   const day = days.docs.find(d=>d.id===iso(today));
   QUEUE = new Map();
   days.docs.filter(d=>d.id>iso(today)).sort((a,b)=>a.id.localeCompare(b.id))
@@ -576,7 +599,12 @@ async function load(){
              active: typeof a.activeSecs==='number' ? a.activeSecs : Math.max(0, (a.secs||0) - ((a.focus && a.focus.awaySecs)||0)),
              // Really handed in (not just opened for a look): a score, a practice round, a writing hand-in.
              // Same as parent.html's realTry — the two pages must agree on what carries over.
-             real: pct!=null || !!(a.practice && a.practice.firstTry!=null) || HANDIN_IDS.has(a.itemId) };
+             real: pct!=null || !!(a.practice && a.practice.firstTry!=null) || HANDIN_IDS.has(a.itemId),
+             // For My week (same sums as parent.html's study table): subject label, right / out of on this try
+             lab: WK_LAB(a.itemId), review: isReviewRead(a.itemId),
+             got: a.total ? [a.score||0, a.total]
+               : !HANDIN_IDS.has(a.itemId) && a.practice && typeof a.practice.firstTry==='number' && a.practice.items ? [a.practice.firstTry, a.practice.items] : null,
+             demo: a._demo===true };
   }).sort((a,b)=>(b.when||0)-(a.when||0));
   // Carry-over: what an earlier day left undone shows up today, marked "From Fri". Dad's page moves
   // it into today for real when it opens — this only makes sure the kid sees it before that happens.
@@ -604,6 +632,8 @@ async function load(){
 // A quiz only counts if it was really handed in; a Read or a link counts once it was opened.
 const CARRY_DAYS = 7;
 // Writing pages hand in a piece with no score yet (parent.html HANDIN_IDS — keep the list the same).
+// Reading a marked piece's feedback (parent.html REVIEW_PFX): counts as Writing time, not as a page done.
+const isReviewRead = id => String(id||'').startsWith('writing-review:');
 const HANDIN_IDS = new Set(['../Writing/Writing-Lab.html', '../Writing/Speech-Studio.html', '../Writing/Grace-Speech-Thanksgiving.html', '../Writing/Grace-Speech-Healthy-Eating.html'].map(encodeURIComponent));
 function carriedIn(days, todayDoc, carry){
   if(!carry || !carry.on) return [];
@@ -766,7 +796,7 @@ const summaryOf = d => { const x = DAYS.find(y=>y.date===d); return x && x.summa
 function reportCard(){
   const s = summaryOf(iso(today));
   if(!s) return '';
-  return `<button class="card marked" data-tab="report"><span class="ic">📝</span>
+  return `<button class="card marked" data-tab="report" data-jump="myday"><span class="ic">📝</span>
     <div class="body"><div class="t">${WHO[s.by]||'Dad'} wrote your report for today!</div>
       <div class="meta">${esc(String(s.headline||'').slice(0,80))}${String(s.headline||'').length>80?'…':''}</div></div>
     <span class="go">Read it →</span></button>`;
@@ -777,12 +807,85 @@ function noteHtml(s, d){
     ${s.headline?`<p class="head">${esc(s.headline)}</p>`:''}
     ${list('🌟 What went well', s.good)}${list('🎯 What to work on', s.work)}${list('➡️ Next time', s.next)}</div>`;
 }
+/* ---------- My week: time · right first try · focus, per day and per subject ----------
+   Sam 2026-10-26: 「这个面板也给孩子的界面发一份同步的，让他们看看自己的学习进度和关注度」. The same numbers as
+   parent.html's 每天学习情况 (tStats there — keep the two in step): time = working time handed in + opened and not
+   handed in + reading feedback; right first try = the first scored try of each page that day; focus = working
+   time ÷ time the page was open (handed-in pages). Subjects sorted the parent page's way (SSAT before Math). */
+const WK_SUBJ = [['SSAT', /SSAT/i], ['Math', /Math|Algebra/i], ['Chinese', /Chinese|中文/i], ['Writing', /Writing|写作/i],
+  ['Vocabulary', /Vocab/i], ['Reading', /Reading/i], ['Other', /./]];
+const wkSubj = lab => { const i = WK_SUBJ.findIndex(([n, re])=>n!=='Other' && re.test(lab||'')); return i<0 ? WK_SUBJ.length-1 : i; };
+function wkStats(from, to){
+  const S = WK_SUBJ.map(()=>({ secs:0, right:0, of:0, act:0, open:0, n:0 })), seen = new Set(), scored = new Set();
+  OPENED.forEach(u=>{ if(u.date>=from && u.date<=to) S[wkSubj(u.lab)].secs += u.active; });
+  for(let i = ATT.length-1; i >= 0; i--){   // ATT is newest first → walk it oldest first
+    const a = ATT[i];
+    if(a.demo || !a.date || a.date<from || a.date>to) continue;
+    const z = S[wkSubj(a.lab)], key = a.id+'|'+a.date;
+    z.secs += a.active; z.act += a.active; z.open += a.secs;
+    if(!seen.has(key) && !a.review){ seen.add(key); z.n++; }
+    if(a.got && !scored.has(key)){ scored.add(key); z.right += a.got[0]; z.of += a.got[1]; }
+  }
+  return S;
+}
+const wkSum = S => S.reduce((t, z)=>({ secs:t.secs+z.secs, right:t.right+z.right, of:t.of+z.of, act:t.act+z.act, open:t.open+z.open, n:t.n+z.n }),
+  { secs:0, right:0, of:0, act:0, open:0, n:0 });
+const WK_OPEN = {};   // date → opened / closed this visit (a re-draw keeps it)
+// The last 7 days of my progress docs, each day read fresh (no device copy: a day's doc can still grow after the
+// page last loaded). Two equality filters need no extra index (kidId == + day >= would; it doesn't exist).
+// At most once a minute; can't read them → handed-in time only, nothing else breaks.
+async function loadOpened(){
+  if(!ME || Date.now()-OPENED_AT < 60e3) return;
+  OPENED_AT = Date.now();
+  const who = ME.uid, days = [];
+  for(let i=0; i<7; i++) days.push(shiftIso(iso(today), -i));
+  try {
+    const snaps = await Promise.all(days.map(d=>db.collection('progress').where('kidId','==',who).where('day','==',d).get()));
+    if(!ME || ME.uid!==who) return;
+    OPENED = snaps.flatMap(sn=>sn.docs.map(d=>d.data())).filter(x=>typeof x.activeSecs==='number')
+      .map(x=>({ id:x.itemId, date:x.day, lab: WK_LAB(x.itemId), active:(x.earlierActive||0) + (x.done ? 0 : x.activeSecs) }))
+      .filter(u=>u.active >= 1);
+    if(V==='report') render();
+  } catch(e){ console.warn('[progress]', e.code||e); }
+}
+function wkCells(z, goal){
+  const m = Math.round(z.secs/60), acc = z.of ? Math.round(100*z.right/z.of) : null;
+  const foc = z.open ? Math.min(100, Math.round(100*z.act/z.open)) : null;
+  const col = v => v==null ? 'var(--mute)' : v>=80 ? 'var(--green)' : 'var(--rust)';
+  return `<span>${goal ? `<b style="color:${m>=goal?'var(--green)':'var(--ink)'}">${m}</b> / ${goal} min` : `${m} min`}${z.n?`<span class="x">${z.n} page${z.n>1?'s':''}</span>`:''}</span>
+    <span style="color:${col(acc)}">${acc==null?'—':acc+'%'}${z.of?`<span class="x">${Math.round(z.right)} of ${z.of}</span>`:''}</span>
+    <span style="color:${col(foc)}">${foc==null?'—':foc+'%'}</span>`;
+}
+function weekTable(){
+  const T0 = iso(today), days = [];
+  for(let i=0; i<7; i++) days.push(shiftIso(T0, -i));   // today on top
+  const dl = d => d===T0 ? 'Today' : new Date(d+'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'numeric', day:'numeric' });
+  const wk = wkSum(wkStats(days[6], T0));
+  const rows = days.map(d=>{ const S = wkStats(d, d), t = wkSum(S); return { d, S, t, did: t.secs >= 60 || t.n > 0 }; });
+  const did = rows.filter(r=>r.did).length;
+  return `<h2 class="sec">My week</h2>
+    <details class="rules"><summary>How much you worked each day, how many you got right, and how focused you were. <span class="more">How it works ›</span></summary>
+      <ul><li><b>Time</b> — minutes you were really working: the page in front, not sitting still. Pages you opened but didn't finish count too. The goal is ${DAY_MINS} a day.</li>
+        <li><b>Right first try</b> — the first time you did each quiz that day: how many questions you got right. Doing it again later doesn't change it.</li>
+        <li><b>Focus</b> — how much of the time the page was open you were really working. Leaving the page or sitting still brings it down.</li>
+        <li>Green means 80% or more. Tap a day to see each subject.</li></ul></details>
+    <div class="wkt">
+      <div class="wrow whead"><span>Day</span><span>Time</span><span>Right first try</span><span>Focus</span></div>
+      <div class="wrow wsum"><span>Last 7 days<span class="x">${did} day${did===1?'':'s'} · about ${Math.round(wk.secs/60/7)} min a day</span></span>${wkCells(wk)}</div>
+      ${rows.map(({ d, S, t, did })=>{
+        if(!did) return `<div class="wrow none"><span>${dl(d)}</span><span>—</span><span></span><span></span></div>`;
+        const open = d in WK_OPEN ? WK_OPEN[d] : d===T0;
+        return `<details class="wday" data-wday="${d}"${open?' open':''}><summary class="wrow"><span>${dl(d)}</span>${wkCells(t, DAY_MINS)}</summary>
+          ${S.map((z, j)=>z.secs>=30 || z.n ? `<div class="wrow wsub"><span><i style="background:${subjCol(WK_SUBJ[j][0])}"></i>${WK_SUBJ[j][0]}</span>${wkCells(z)}</div>` : '').join('')}</details>`;
+      }).join('')}
+    </div>`;
+}
 function viewReport(){
   const since = new Date(today); since.setDate(since.getDate()-14);
   const from = iso(since);
   const dates = [...new Set([...ATT.map(a=>a.date), ...DAYS.filter(x=>x.summary).map(x=>x.date)])]
     .filter(d=>d && d>=from).sort().reverse();
-  let html = `<h2 class="sec">My day</h2><p class="lead2">What you did each day, and the report Dad or Mom writes about it. The last two weeks.</p>`;
+  let html = weekTable() + `<h2 class="sec" id="myday">My day</h2><p class="lead2">What you did each day, and the report Dad or Mom writes about it. The last two weeks.</p>`;
   if(!dates.length) return html + `<div class="empty"><span class="e">📅</span>Your days will show up here<br>after you finish some homework.</div>`;
   dates.forEach((d, n)=>{
     const list = ATT.filter(a=>a.date===d).slice().reverse();         // oldest first
@@ -1427,6 +1530,7 @@ const viewEl = document.getElementById('view');
 function render(){
   viewEl.innerHTML = V==='today' ? viewToday() : V==='library' ? viewLibrary() : V==='done' ? viewDone() : V==='report' ? viewReport()
     : V==='scores' ? viewScores() : V==='pet' ? viewPet() : viewMistakes();
+  if(V==='report') loadOpened();
   const L = library();
   document.getElementById('ntoday').textContent = L && L.today.length ? `${L.today.filter(it=>it.a).length}/${L.today.length}` : '';
   const ls = document.getElementById('libsearch'); if(ls) ls.addEventListener('input', ()=>libFilter(ls.value));
@@ -1438,6 +1542,7 @@ function render(){
 }
 // 'toggle' doesn't bubble, so listen on the way down.
 viewEl.addEventListener('toggle', e=>{ const k = e.target.dataset && e.target.dataset.k; if(k) OPEN[e.target.open?'add':'delete'](k); }, true);
+viewEl.addEventListener('toggle', e=>{ const d = e.target.dataset && e.target.dataset.wday; if(d) WK_OPEN[d] = e.target.open; }, true);
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on', x===t));
   V = t.dataset.v; render(); window.scrollTo({top:0});
@@ -1458,7 +1563,7 @@ skyNow(); setInterval(skyNow, 5*60*1000);
 
 function showPick(msg){
   ME = null; ITEMS = []; ATT = []; DAYS = []; MARKED = []; BANK = null; QUEUE = new Map(); PICKS = []; viewEl.innerHTML = '';
-  PET = undefined; SIB = undefined; GAME = null; petSkipped = false; OPEN.clear();
+  PET = undefined; SIB = undefined; GAME = null; petSkipped = false; OPEN.clear(); OPENED = []; OPENED_AT = 0;
   closePop(); toastEl.hidden = true;
   document.body.className = '';
   appEl.hidden = true; signinEl.hidden = false;
@@ -1654,6 +1759,9 @@ viewEl.addEventListener('click', e=>{
   if(e.target.closest('[data-pickpet]')) showPicker();
   const tab = e.target.closest('[data-tab]');
   if(tab) document.querySelector(`.tab[data-v="${tab.dataset.tab}"]`).click();
+  // "Read it →" on Dad's report: My week sits above the report now, so go straight to it
+  const jump = tab && tab.dataset.jump && document.getElementById(tab.dataset.jump);
+  if(jump) jump.scrollIntoView();
 });
 
 ['pointerdown','keydown','scroll','touchstart'].forEach(ev=>
