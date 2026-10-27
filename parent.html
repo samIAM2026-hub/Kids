@@ -8,27 +8,28 @@
 <link rel="manifest" href="parent.webmanifest">
 <link rel="apple-touch-icon" href="icons/parent-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/parent-192.png">
-<meta name="theme-color" content="#14203a">
+<meta name="theme-color" content="#ebe3d4">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="家长">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
+  /* 暖色纸张（Sam 2026-10-27 选 B）：米色底、深棕字、赭红一种主色；绿 / 黄 / 红只表示好坏。
+     变量名沿用原来深色版的（--ink 是底色、--cream 是字色、--gold 是主色），各处不用改。 */
   :root{
-    --ink:#0d1626; --ink2:#14203a; --card:#1a2942; --line:#2a3b58;
-    --cream:#f3f0e7; --mute:#93a2bd; --gold:#c9a227; --gold2:#b0894e;
-    --green:#4bb67a; --red:#d9534f; --amber:#e0a33e; --blue:#5b8fc7;
+    --ink:#f3ede2; --ink2:#ebe3d4; --card:#fbf8f2; --line:#e2d8c6;
+    --cream:#2b2622; --mute:#7a6f63; --gold:#b4492a; --gold2:#c8673f;
+    --green:#3f7d4e; --red:#b03a2e; --amber:#a8631a; --blue:#3b6ea5;
+    --sans:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;
+    --serif:'Iowan Old Style',Georgia,'Songti SC',serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   [hidden]{display:none!important}
   body{background:var(--ink);color:var(--cream);
-       font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px;line-height:1.5;
+       font-family:var(--sans);font-size:14px;line-height:1.5;
        padding:0 0 60px;-webkit-font-smoothing:antialiased}
   .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
-  h1,h2,h3{font-family:'Playfair Display',Georgia,serif;font-weight:700;letter-spacing:.2px}
+  h1,h2,h3{font-family:var(--serif);font-weight:700;letter-spacing:.2px}
 
   /* ---------- sign-in gate ---------- */
   #gate{position:fixed;inset:0;background:var(--ink);z-index:200;
@@ -64,6 +65,7 @@
   .tab:hover{color:var(--cream)}
   .tab.on{color:var(--gold);border-bottom-color:var(--gold)}
   .tabs{align-items:flex-end}
+  .tab[data-top="bank"]{order:9;margin-left:auto}   /* 2026-10-27：不派题以后题库不常用，挪到最右边 */
   .tab{font-size:14px}
   .pill{background:var(--line);color:var(--cream);border-radius:999px;font-size:10.5px;padding:1px 7px;margin-left:6px}
   .pill.hot{background:var(--amber);color:var(--ink)}   /* only on things waiting for a parent */
@@ -89,35 +91,47 @@
 
   /* ---------- generic card ---------- */
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
-  /* 今天一眼（2026-10-23 · 使用体验）：每个孩子一行 —— 几分钟 / 还剩几份 / 待批 / 要留意 */
-  .glance{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-top:14px;display:grid;gap:6px}
-  .glance .gl{font-size:14px;color:var(--cream);line-height:1.6}
-  .glance .gl b{font-size:15px;margin-right:6px}
-  .glance .ok{color:var(--green)} .glance .low{color:var(--amber)}
-  .glance a,.glance button.lk{color:var(--gold);background:none;border:none;font:inherit;cursor:pointer;padding:0;text-decoration:underline}
+  /* 今天页一个孩子一张卡（2026-10-27 · Sam「看起来过于复杂」）：几分钟 / 目标、三个数、最近 7 天、要你处理的事；明细收在下面 */
+  .dcard{padding:16px 18px 6px}
+  .dhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .dhead h3{font-size:21px}
+  .dhead .dq{font-size:12px;color:var(--mute)}
+  .dhead .kv{margin-left:auto;font-size:13px;color:var(--gold);text-decoration:none}
+  .dhead .kv:hover{text-decoration:underline}
+  .dmin{font-size:32px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums;line-height:1.2}
+  .dmin small{font-size:15px;color:var(--mute);font-weight:400}
+  .dbar{height:8px;border-radius:4px;background:var(--line);margin:8px 0 14px;overflow:hidden}
+  .dbar i{display:block;height:100%;background:var(--gold);border-radius:4px}
+  .dbar.ok i{background:var(--green)}
+  .dstats{display:flex;gap:30px;margin-bottom:14px}
+  .dstats b{display:block;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+  .dstats span{font-size:12.5px;color:var(--mute)}
+  .stbl{margin:0 0 10px}
+  .srow.cur,details.sday[open]>summary.srow.cur{background:rgba(180,73,42,.08)}
+  details.dmore{border-top:1px solid var(--line);margin-top:6px}
+  details.dmore>summary{list-style:none;cursor:pointer;display:flex;gap:10px;padding:11px 0;font-size:13.5px;color:var(--cream)}
+  details.dmore>summary::-webkit-details-marker{display:none}
+  details.dmore>summary .go{margin-left:auto;color:var(--gold);white-space:nowrap}
+  details.dmore>summary .go::after{content:'明细 ›'}
+  details.dmore[open]>summary .go::after{content:'收起 ˄'}
+  .dfoot{color:var(--mute);font-size:12px;margin:10px 2px 0}
   /* 勾几份一起撤回 / 一起改日期 */
   .tsel{width:18px;height:18px;margin:0 8px 0 0;flex:0 0 auto;accent-color:var(--gold);cursor:pointer}
-  .bulkrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:rgba(201,162,39,.12);border:1px solid var(--gold2);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:13.5px;color:var(--cream)}
+  .bulkrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:rgba(180,73,42,.12);border:1px solid var(--gold2);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:13.5px;color:var(--cream)}
   .bulkrow input[type=date]{font:inherit;background:var(--ink2);color:var(--cream);border:1px solid var(--line);border-radius:6px;padding:3px 6px}
-  /* 每天学习情况（2026-10-26，替换原来的柱状图）：每个孩子一张表 —— 日期 · 时间 · 准确率 · 专注度，点开一天看各科 */
-  .tchart{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px 10px;margin-top:14px}
-  .tchart>summary{cursor:pointer;list-style:none;font-weight:700;color:var(--cream);font-size:15px}
-  .tchart>summary::-webkit-details-marker{display:none}
-  .tchart .tsub{color:var(--mute);font-size:12.5px;margin:4px 0 6px}
-  .tchart h4{margin:12px 0 4px;font-size:14px;color:var(--cream)}
-  .tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(400px,100%),1fr));gap:4px 22px}
+  /* 每天学习情况（2026-10-26 替换柱状图，10-27 放进今天页每个孩子的卡片）：日期 · 时间 · 准确率 · 专注度，点开一天看各科 */
   .srow{display:grid;grid-template-columns:minmax(92px,1.3fr) 1.2fr .9fr .9fr;gap:6px;align-items:baseline;padding:6px 4px;
         font-size:13.5px;color:var(--cream);border-bottom:1px solid var(--line)}
   .srow>span:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
   .srow .x{display:block;font-size:11px;color:var(--mute);font-weight:400}
   .srow.shead{font-size:11.5px;color:var(--mute);border-bottom-color:var(--mute)}
-  .srow.sweek{font-weight:700;background:rgba(201,162,39,.08)}
+  .srow.sweek{font-weight:700;background:rgba(120,95,60,.07)}
   .srow.none{color:var(--mute)}
   details.sday>summary{list-style:none;cursor:pointer}
   details.sday>summary::-webkit-details-marker{display:none}
   details.sday>summary>span:first-child::before{content:'▸ ';color:var(--mute)}
   details.sday[open]>summary>span:first-child::before{content:'▾ '}
-  details.sday[open]>summary{background:rgba(255,255,255,.04)}
+  details.sday[open]>summary{background:rgba(90,60,30,.048)}
   .srow.ssub{font-size:12.5px;padding:4px;border-bottom:1px dashed var(--line)}
   .srow.ssub>span:first-child{padding-left:14px}
   .srow.ssub i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
@@ -132,7 +146,7 @@
   .qm:hover,.qm.on{border-color:var(--gold2);color:var(--gold2)}
   h2.sec .qm{width:18px;height:18px;font-size:11px;vertical-align:3px}
   #qtip{position:fixed;z-index:60;max-width:min(300px,calc(100vw - 24px));padding:9px 12px;border-radius:9px;
-        background:var(--card);border:1px solid var(--gold2);box-shadow:0 6px 24px rgba(0,0,0,.45);
+        background:var(--card);border:1px solid var(--gold2);box-shadow:0 6px 24px rgba(60,40,20,.14);
         color:var(--cream);font-size:12.5px;font-weight:400;line-height:1.65;letter-spacing:0;text-transform:none}
   #qtip p+p{margin-top:6px}
 
@@ -152,7 +166,7 @@
   details.kc[open]>summary .kcsum{display:none}
   .metrics{display:flex;gap:18px;margin:12px 0 14px;padding:11px 0;
            border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-  .metric .v{font-size:21px;font-weight:600;font-family:'Playfair Display',serif}
+  .metric .v{font-size:21px;font-weight:600;font-family:var(--serif)}
   .metric .k{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);margin-top:1px}
   .task{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
   .task:last-child{border-bottom:none}
@@ -184,7 +198,7 @@
   .dp td.dsc{white-space:nowrap}
   .dp tr.miss td.dsc .chipst{background:rgba(217,83,79,.16);color:var(--red)}
   .dp .dflag{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:999px;
-             background:rgba(255,255,255,.07);color:var(--mute);margin-left:6px;white-space:nowrap}
+             background:rgba(90,60,30,.084);color:var(--mute);margin-left:6px;white-space:nowrap}
   @media (max-width:760px){
     .dp thead{display:none}
     .dp tr{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:10px;row-gap:3px;padding:9px 0;
@@ -203,9 +217,9 @@
   .rechd .meta,.recrow .meta{font-size:11.5px;color:var(--mute)}
   .recrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--line)}
   .recrow.old{opacity:.72}
-  .recrow .tk{font:600 12px 'IBM Plex Mono',monospace;color:var(--gold);min-width:52px}
+  .recrow .tk{font:600 12px var(--sans);color:var(--gold);min-width:52px}
   .recrow audio{height:32px;flex:1;min-width:210px}
-  .recrow .btn2{font:600 12px 'IBM Plex Mono',monospace;background:transparent;color:var(--cream);
+  .recrow .btn2{font:600 12px var(--sans);background:transparent;color:var(--cream);
                 border:1px solid var(--line);border-radius:7px;padding:5px 11px;cursor:pointer}
   .recrow .btn2:hover{border-color:var(--gold2)}
   .recrow .btn2[disabled]{opacity:.5;cursor:default}
@@ -215,7 +229,7 @@
   .recold summary{font-size:11.5px;color:var(--gold2);cursor:pointer}
   .recday{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin:12px 0 0;padding-top:9px;
           border-top:1px solid var(--line)}
-  .recday .d{font:600 12.5px 'IBM Plex Mono',monospace;color:var(--cream)}
+  .recday .d{font:600 12.5px var(--sans);color:var(--cream)}
   .recday .n{font-size:11.5px;color:var(--mute)}
   .recday .n.ok{color:var(--green)}
   .recday + .recrow{border-top:0}
@@ -271,17 +285,17 @@
   /* 题库第一层是人（Sam 2026-09-20：先按孩子分，再按科目）。共用的在两个孩子下面各出现一次。 */
   .kidtabs{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;
            margin:16px 0 0;border-bottom:1px solid var(--line)}
-  .kidtab{font-family:'Playfair Display',Georgia,serif;font-size:17px;font-weight:700;cursor:pointer;
+  .kidtab{font-family:var(--serif);font-size:17px;font-weight:700;cursor:pointer;
           background:none;border:none;border-bottom:2.5px solid transparent;color:var(--mute);padding:9px 14px}
   .kidtab .av{font-size:19px}
   .kidtab:hover{color:var(--cream)}
   .kidtab.on{color:var(--gold);border-bottom-color:var(--gold)}
-  .kidtab .pill{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;font-weight:500}
+  .kidtab .pill{font-family:var(--sans);font-size:10.5px;font-weight:500}
   .kidtab .sh{opacity:.7}
   .kidtab .zero{opacity:.5}
   /* 科目下面的第二层：书架按性质分段，「资料 · 答案 · 成绩单」自然沉到最后 */
   .kindband{display:flex;align-items:center;gap:10px;padding:9px 18px 4px;
-            border-top:1px solid var(--line);background:rgba(42,59,88,.22)}
+            border-top:1px solid var(--line);background:rgba(120,95,60,.099)}
   .kindlbl{font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold2)}
   .kindband+.shelf{border-top:none}
   .b-both{background:rgba(91,143,199,.14);color:var(--blue);border:1px solid rgba(91,143,199,.4);
@@ -289,12 +303,12 @@
   details.subj{background:var(--card);border:1px solid var(--line);border-radius:12px;
                margin-bottom:10px;overflow:hidden}
   details.subj>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;
-               padding:13px 18px;font-family:'Playfair Display',Georgia,serif;font-size:17px;font-weight:700}
+               padding:13px 18px;font-family:var(--serif);font-size:17px;font-weight:700}
   details.subj>summary::-webkit-details-marker{display:none}
   details.subj>summary::before{content:'▸';color:var(--gold2);font-size:13px;transition:transform .12s}
   details.subj[open]>summary::before{transform:rotate(90deg)}
-  details.subj>summary:hover{background:rgba(42,59,88,.35)}
-  .scount{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:500;color:var(--mute)}
+  details.subj>summary:hover{background:rgba(120,95,60,.158)}
+  .scount{font-family:var(--sans);font-size:11px;font-weight:500;color:var(--mute)}
   /* ⏱ 预计用时：题数下面那一行。实测过的（蓝）和纯估的（灰虚线）一眼分得开 */
   .est{display:inline-block;margin-top:3px;font-size:11px;line-height:1.4;white-space:nowrap;
        color:var(--mute);cursor:help;border-bottom:1px dashed rgba(147,162,189,.4)}
@@ -302,7 +316,7 @@
   /* 有效时间：不带 ⏱（表针只跟着「预计」走），实线下划线，和预计一眼分得开。Sam 2026-09-22 */
   .est.done{color:var(--cream);border-bottom:1px solid rgba(243,240,231,.35);cursor:default;font-weight:600}
   .est:hover{color:var(--cream)}
-  .ssel{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;font-weight:600;
+  .ssel{font-family:var(--sans);font-size:10.5px;font-weight:600;
         background:var(--gold2);color:var(--ink);border-radius:999px;padding:1px 8px}
   .shelf{border-top:1px solid var(--line);padding:2px 18px 6px}
   .shelfhead{display:flex;align-items:center;gap:12px;padding:11px 0 3px;
@@ -315,9 +329,9 @@
   .shelftog:hover{color:var(--cream)}
   .shelfname{padding:2px 0}   /* 科目底下唯一的书架：不折叠，只是个名字 */
   table{width:100%;border-collapse:collapse;font-size:13px}
-  tbody tr{border-bottom:1px solid rgba(42,59,88,.55)}
-  tbody tr:hover{background:rgba(42,59,88,.3)}
-  tbody tr.sel{background:rgba(201,162,39,.09)}
+  tbody tr{border-bottom:1px solid rgba(120,95,60,.248)}
+  tbody tr:hover{background:rgba(120,95,60,.135)}
+  tbody tr.sel{background:rgba(180,73,42,.09)}
   td{padding:9px}
   td.c{text-align:center}
   td .t{font-weight:600}
@@ -333,14 +347,14 @@
   .snew{font-size:11px;font-weight:700;color:var(--amber);margin-left:8px}
   .b-quiz{background:rgba(91,143,199,.18);color:var(--blue)}
   .b-ref{background:rgba(147,162,189,.15);color:var(--mute)}
-  .b-practice{background:rgba(201,162,39,.16);color:var(--gold)}
+  .b-practice{background:rgba(180,73,42,.16);color:var(--gold)}
   .b-link{background:rgba(75,182,122,.16);color:var(--green)}
   .lock{font-size:11px;color:var(--mute)}
   .b-assigned{background:rgba(75,182,122,.18);color:var(--green);border:1px solid rgba(75,182,122,.45);
               margin-left:4px;vertical-align:1px;cursor:help}
   tbody tr.assigned{background:rgba(75,182,122,.07);box-shadow:inset 3px 0 var(--green)}
-  tbody tr.assigned.sel{background:rgba(201,162,39,.09)}
-  .sasg{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;font-weight:600;
+  tbody tr.assigned.sel{background:rgba(180,73,42,.09)}
+  .sasg{font-family:var(--sans);font-size:10.5px;font-weight:600;
         background:rgba(75,182,122,.18);color:var(--green);border-radius:999px;padding:1px 8px}
   tbody tr.arch{opacity:.5}
   tbody tr.arch:hover{opacity:.85}
@@ -356,7 +370,7 @@
   /* ---------- 自定义链接: the little form at the top of 题库 ---------- */
   .linkform{background:var(--ink2);border:1px solid var(--gold2);border-radius:12px;
             padding:16px 18px;margin:0 0 16px}
-  .linkform h4{margin:0 0 4px;font-family:'Playfair Display',serif;font-size:17px;color:var(--gold)}
+  .linkform h4{margin:0 0 4px;font-family:var(--serif);font-size:17px;color:var(--gold)}
   .linkform .lfx{display:block;font-size:12px;color:var(--mute);line-height:1.55;margin-bottom:12px}
   .linkform .lfgrid{display:flex;flex-wrap:wrap;gap:10px 14px}
   .linkform label{display:flex;flex-direction:column;gap:4px;font-size:10.5px;letter-spacing:1.1px;
@@ -371,11 +385,11 @@
 
   /* ---------- assign bar ---------- */
   #assignbar{position:fixed;left:0;right:0;bottom:0;z-index:90;background:var(--ink2);
-             border-top:2px solid var(--gold2);box-shadow:0 -8px 26px rgba(0,0,0,.45)}
+             border-top:2px solid var(--gold2);box-shadow:0 -8px 26px rgba(60,40,20,.14)}
   #assignbar .inner{max-width:1180px;margin:0 auto;padding:13px 20px;
              display:flex;gap:12px;align-items:center;flex-wrap:wrap}
   #assignbar .n{font-size:14px;font-weight:600}
-  #assignbar .n b{color:var(--gold);font-size:19px;font-family:'Playfair Display',serif}
+  #assignbar .n b{color:var(--gold);font-size:19px;font-family:var(--serif)}
   #assignbar .n .mins{font-weight:500;color:var(--mute);cursor:help}
   #assignbar .n .mins b{color:var(--cream);font-size:14px;font-family:inherit}
   #assignbar .selwarn{margin-left:8px;font-size:12px;font-weight:600;color:var(--amber);cursor:help}
@@ -384,7 +398,7 @@
   /* 题库每行最右那格：派过没有、最近一次怎样；点开是这份的全部派发历史（Sam 2026-09-27） */
   .dst{font:inherit;background:none;border:1px solid transparent;border-radius:6px;padding:3px 4px;cursor:pointer;
        color:inherit;text-align:center;width:100%}
-  .dst:hover,.dst.open{border-color:var(--line);background:rgba(42,59,88,.35)}
+  .dst:hover,.dst.open{border-color:var(--line);background:rgba(120,95,60,.158)}
   div.dst:hover{border-color:transparent;background:none}
   .dst .n2{display:block}
   /* 派过 / 没派过 做成彩色小标签，一眼分得开（Sam 2026-09-27）：绿 = 派过，琥珀 = 没派过（可挑的新题），灰 = 派过又撤回 */
@@ -406,16 +420,16 @@
   .ddet .archline{margin-top:6px;justify-content:flex-start;text-align:left}
   .donebar{border-top:1px solid var(--line);padding:10px 18px 12px}
   .donetog{font:inherit;font-size:12.5px;font-weight:600;color:var(--green);background:none;border:1px dashed var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
-  .donetog:hover,.donetog.open{background:rgba(42,59,88,.35)}
+  .donetog:hover,.donetog.open{background:rgba(120,95,60,.158)}
   .morebar{margin-top:-4px}
-  tbody tr.dhist{background:rgba(12,20,36,.35)}
-  tbody tr.dhist:hover{background:rgba(12,20,36,.35)}
+  tbody tr.dhist{background:rgba(120,95,60,.07)}
+  tbody tr.dhist:hover{background:rgba(120,95,60,.07)}
   .dhist td{padding:4px 12px 10px 50px}
   .dhist ul{list-style:none;margin:0;padding:0;font-size:12px;line-height:1.9}
   .dhist li{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
-  .dhist li b{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11.5px;min-width:86px}
+  .dhist li b{font-family:var(--sans);font-size:11.5px;min-width:86px}
   .dhist li .crumb{font-size:10.5px}
-  .dasg{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;font-weight:500;color:var(--mute)}
+  .dasg{font-family:var(--sans);font-size:10.5px;font-weight:500;color:var(--mute)}
   .grpbtn{margin-left:auto}
   /* 题库搜索（2026-09-27 Sam 要回来的；09-20 那次删掉是因为没人用，这回配了 / 快捷键） */
   .bsearch{flex:1 1 220px;min-width:160px;max-width:340px;font-family:inherit;font-size:13px;background:var(--card);
@@ -426,7 +440,7 @@
   .foot{margin:40px 0 90px;text-align:center;font-size:11px;color:var(--mute)}
   .foot button{font:inherit;color:var(--mute);background:none;border:none;text-decoration:underline;cursor:pointer}
   .usage td{padding:6px 9px}
-  .usage td.num{font-family:'IBM Plex Mono',ui-monospace,monospace;text-align:right;width:70px}
+  .usage td.num{font-family:var(--sans);text-align:right;width:70px}
   .usage tr.zero td{color:var(--mute)}
   #assignbar label{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute)}
   #assignbar select,#assignbar input[type=date]{font-family:inherit;font-size:13px;background:var(--card);
@@ -481,7 +495,7 @@
   table.qt td.qe{width:92px;color:var(--cream);font-weight:600;white-space:nowrap}
   table.qt tr.slow td.qe{color:var(--red)}
   table.qt tr.guess td.qe{color:var(--amber)}
-  table.qt .qx{color:#e59b98} table.qt .qok{color:var(--green)} table.qt .qg{color:var(--amber)} table.qt .qs{color:var(--red)}
+  table.qt .qx{color:var(--red)} table.qt .qok{color:var(--green)} table.qt .qg{color:var(--amber)} table.qt .qs{color:var(--red)}
   .qth{font-size:11.5px;color:var(--gold);margin-top:6px}
   .tries b.eff{color:var(--cream)}
   details.grp{border-bottom:1px dashed var(--line)}
@@ -513,7 +527,7 @@
   .frow:last-child{border-bottom:none}
   .ftop{display:flex;gap:11px;align-items:baseline;font-size:12.5px}
   .ftop .nm{flex:1;min-width:0}
-  .fnum{font-family:'Playfair Display',serif;font-size:15px;font-weight:700}
+  .fnum{font-family:var(--serif);font-size:15px;font-weight:700}
   .fmeta{font-size:11px;color:var(--mute);margin:3px 0 0 55px}
   .qstrip{display:flex;align-items:flex-end;gap:1px;height:36px;margin:8px 0 0 55px;padding-top:6px}
   .qstrip i{flex:1 1 0;max-width:10px;min-width:2px;background:var(--blue);opacity:.8;
@@ -551,11 +565,11 @@
   .groupbar.slim .sep{color:var(--line);margin:0 2px}
   .fchip.icon svg{display:none}   /* 全部展开 / 收起: words on a computer, icons on a phone */
   .hnote{font-size:11px;color:var(--mute);margin:0 0 4px;line-height:1.6}
-  .dsum{background:rgba(201,162,39,.08);border-left:3px solid var(--gold2);border-radius:0 8px 8px 0;
+  .dsum{background:rgba(180,73,42,.08);border-left:3px solid var(--gold2);border-radius:0 8px 8px 0;
         padding:9px 12px;font-size:12.5px;line-height:1.8;margin:12px 0 4px}
   .dsum .lbl{display:block;font-size:10.5px;letter-spacing:1.2px;color:var(--gold2)}
   .dsum b{color:var(--cream);font-weight:600}
-  .dsum .srow{display:flex;gap:12px;padding:5px 0;border-bottom:1px dashed rgba(201,162,39,.18);line-height:1.6}
+  .dsum .srow{display:flex;gap:12px;padding:5px 0;border-bottom:1px dashed rgba(180,73,42,.18);line-height:1.6}
   .dsum .srow:last-child{border-bottom:none}
   .dsum .sk{flex:0 0 76px;font-size:11.5px;color:var(--gold2);padding-top:1px}
   .dsum .sv{flex:1;min-width:0}
@@ -574,7 +588,7 @@
   .dnote ul{padding-left:20px}
   .hmet{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px 16px;margin:12px 0 4px;
         padding:11px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-  .hmet .v{font-size:21px;font-weight:600;font-family:'Playfair Display',serif;line-height:1.3}
+  .hmet .v{font-size:21px;font-weight:600;font-family:var(--serif);line-height:1.3}
   /* 单位（小时/分钟/份）缩一号字，「2 小时 20 分钟」一行放得下；数字和它的单位绑成一组，
      万一格子真放不下（统计很多天的「有效时间」），也只在两组中间断，不会断出个孤零零的「钟」。Sam, 2026-09-21 */
   .hmet .v .g{white-space:nowrap}
@@ -584,7 +598,7 @@
   .prow{padding:11px 0;border-bottom:1px dashed var(--line)}
   .prow:last-child{border-bottom:none}
   /* 今天页：每份作业一个框（标题、每一遍、每题有效时间都在框里），框和框之间留空 */
-  .taskbox{border:1px solid var(--line);border-radius:10px;padding:2px 12px 4px;margin:8px 0;background:rgba(255,255,255,.025)}
+  .taskbox{border:1px solid var(--line);border-radius:10px;padding:2px 12px 4px;margin:8px 0;background:rgba(90,60,30,.030)}
   .taskbox .task{border-bottom:none}
   .taskbox .qtwrap{margin:-2px 0 4px 27px}
   .taskbox .moverow{margin:0 0 8px}
@@ -594,13 +608,13 @@
   .taskbox .effv{color:var(--cream)}
   .taskbox .dmeta{font-size:11.5px;color:var(--mute);margin:4px 0}
   .taskbox .tries{margin-top:2px}
-  details.grp .prow{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;background:rgba(255,255,255,.025)}
+  details.grp .prow{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;background:rgba(90,60,30,.030)}
   .ptop{display:flex;gap:10px;align-items:flex-start}
   .ptop .nm{flex:1;min-width:0;font-size:13px}
   .ptop .nm b{font-weight:600;display:block}
   .ptop .crumb{display:block;font-size:11px;color:var(--mute)}
   .pscore{flex:0 0 auto;text-align:right}
-  .pscore .sc{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;line-height:1.2}
+  .pscore .sc{font-family:var(--serif);font-size:18px;font-weight:700;line-height:1.2}
   .pscore .cap{font-size:10px;color:var(--mute)}
   .tries{font-size:11.5px;color:var(--mute);margin-top:6px;line-height:1.9}
   .tries .try{display:inline-block;margin-right:4px}
@@ -614,7 +628,7 @@
   @media (max-width:420px){ .hmet.h4{grid-template-columns:repeat(2,minmax(0,1fr))} }
   .pfoot{display:flex;gap:6px 10px;align-items:center;flex-wrap:wrap;margin-top:4px;font-size:11px;color:var(--mute)}
   .st-prac{background:rgba(91,143,199,.16);color:var(--blue)}
-  .st-skip{background:rgba(255,255,255,.06);color:var(--mute)}
+  .st-skip{background:rgba(90,60,30,.072);color:var(--mute)}
   details.wk7>summary{cursor:pointer;list-style:none;display:block}
   details.wk7>summary::-webkit-details-marker{display:none}
   details.wk7>summary::before{content:'▸ ';color:var(--gold2)}
@@ -622,8 +636,8 @@
   details.wk7>summary:hover{color:var(--cream)}
   .dayrow{display:flex;gap:10px;align-items:baseline;width:100%;font:inherit;font-size:12px;color:var(--cream);
           text-align:left;background:none;border:none;border-bottom:1px dashed var(--line);padding:7px 6px;cursor:pointer}
-  .dayrow:hover{background:rgba(42,59,88,.35)}
-  .dayrow.on{background:rgba(201,162,39,.12)}
+  .dayrow:hover{background:rgba(120,95,60,.158)}
+  .dayrow.on{background:rgba(180,73,42,.12)}
   .dayrow .d{width:78px;flex:0 0 auto;color:var(--mute);white-space:nowrap}
   .dayrow .s{flex:1;min-width:0}
   .dayrow.quiet .s{color:var(--mute)}
@@ -663,7 +677,7 @@
   .estext mark.wr-fix{background:#fbe3c8;border-bottom:2px solid #b4622f}
   .estext mark.wr-good{background:#dff0e3;border-bottom:2px solid #3f7d4e}
   .estext mark.wr-note{background:#e3eaf6;border-bottom:2px solid #5b7fb0}
-  .estext sup{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;color:#5b4636;margin:0 1px;cursor:pointer}
+  .estext sup{font-family:var(--sans);font-size:10px;font-weight:700;color:#5b4636;margin:0 1px;cursor:pointer}
   .esdiff del{color:#b03a2e;background:#fbeaea;text-decoration:line-through}
   .esdiff ins{color:#2f6a3e;background:#dff0e3;text-decoration:none}
   .esnote{border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:8px;padding:9px 12px;margin-top:8px;
@@ -702,8 +716,8 @@
   .scorepick{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
   .scorepick .eshint{margin:0 0 0 6px}
   .kaipbox{background:#f6f3ed;color:#1c1a17;border-radius:10px;padding:14px 16px;margin-top:10px}
-  .wradd{position:fixed;z-index:150;font:600 13px 'IBM Plex Mono',monospace;background:var(--gold);color:var(--ink);
-         border:none;border-radius:999px;padding:9px 15px;box-shadow:0 4px 14px rgba(0,0,0,.45);cursor:pointer}
+  .wradd{position:fixed;z-index:150;font:600 13px var(--sans);background:var(--gold);color:var(--ink);
+         border:none;border-radius:999px;padding:9px 15px;box-shadow:0 4px 14px rgba(60,40,20,.14);cursor:pointer}
   @media(max-width:700px){
     .esrow{padding:11px 12px;gap:9px}
     .esrow .st{display:none}
@@ -735,8 +749,8 @@
         border-bottom:1px solid var(--line)}
   /* Hairlines drawn by each tile, so a wrapped last row leaves no coloured gap behind it. */
   .kpi{padding:12px 18px;min-width:0;box-shadow:1px 0 0 var(--line),0 1px 0 var(--line)}
-  .kpi .v{font:700 19px 'Playfair Display',Georgia,serif;line-height:1.35}
-  .kpi .v small{font:500 11.5px 'IBM Plex Mono',monospace;color:var(--mute);margin-left:3px;white-space:nowrap;display:inline-block}
+  .kpi .v{font:700 19px var(--serif);line-height:1.35}
+  .kpi .v small{font:500 11.5px var(--sans);color:var(--mute);margin-left:3px;white-space:nowrap;display:inline-block}
   .kpi .k{font-size:10.5px;letter-spacing:1.2px;color:var(--mute);margin-top:1px}
 
   .rc .tablewrap{overflow-x:auto}
@@ -745,12 +759,12 @@
   .rc tbody tr:hover{background:none}
   .rc th{font-size:10.5px;letter-spacing:1.2px;color:var(--mute);font-weight:500;text-align:left;text-transform:none;
          padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;background:rgba(20,32,58,.5)}
-  .rc td{padding:9px 10px;border-bottom:1px solid rgba(42,59,88,.55);white-space:nowrap;vertical-align:middle}
+  .rc td{padding:9px 10px;border-bottom:1px solid rgba(120,95,60,.248);white-space:nowrap;vertical-align:middle}
   .rc th:first-child,.rc td:first-child{padding-left:18px}
   .rc th.r,.rc td.r{text-align:right}
   .rc tr.day{cursor:pointer}
-  .rc tr.day:hover td{background:rgba(42,59,88,.32)}
-  .rc tr.day.open td{background:rgba(42,59,88,.45);border-bottom-color:transparent}
+  .rc tr.day:hover td{background:rgba(120,95,60,.144)}
+  .rc tr.day.open td{background:rgba(120,95,60,.203);border-bottom-color:transparent}
   .rc tr.quiet td{color:var(--faint)}
   .rc .date b{font-weight:600}
   .rc .date span{color:var(--mute);font-size:11.5px;margin-left:7px}
@@ -774,7 +788,7 @@
   .rc .brow{display:grid;grid-template-columns:42px minmax(60px,1fr) 236px;gap:12px;align-items:center;font-size:12.5px;margin:6px 0}
   .rc .brow .lbl{color:var(--mute)}
   .rc .brow .val{text-align:right;white-space:nowrap}
-  .rbar{height:8px;background:rgba(42,59,88,.8);border-radius:99px;position:relative}
+  .rbar{height:8px;background:rgba(120,95,60,.360);border-radius:99px;position:relative}
   .rbar i{position:absolute;left:0;top:0;bottom:0;background:var(--blue);border-radius:99px}
   .rbar i.over{background:linear-gradient(90deg,var(--blue) 0,var(--blue) calc(100% - 10px),transparent 100%)}
   .rbar b{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--cream);opacity:.8;border-radius:2px}
@@ -854,8 +868,8 @@
     .rc thead{display:none}
     .rc table,.rc tbody{display:block}
     .rc tr.day{display:flex;flex-wrap:wrap;align-items:center;column-gap:10px;row-gap:5px;padding:10px 14px;
-               border-bottom:1px solid rgba(42,59,88,.55)}
-    .rc tr.day.open{background:rgba(42,59,88,.45)}
+               border-bottom:1px solid rgba(120,95,60,.248)}
+    .rc tr.day.open{background:rgba(120,95,60,.203)}
     .rc tr.day td,.rc tr.day.open td,.rc tr.day:hover td{display:block;padding:0;border:none;background:none;text-align:left}
     .rc tr.day td.nil{display:none}
     .rc tr.day td.cr{order:1}
@@ -1801,22 +1815,6 @@ function tSecs(k, from, to){
   unfOn(k, from, to).forEach(u=>{ v[tSubj((BANK_BY_ID[u.id]||{}).subj)] += u.active||0; });
   return v;
 }
-// 今天一眼（Sam 2026-10-23「今天一打开先看到要处理的事」）：每个孩子一行 —— 今天几分钟、还剩几份没做、几篇作文待批、几份要留意
-function todayGlance(){
-  const T0 = iso(today);
-  return `<div class="glance">${['grace','warren'].map(k=>{
-    const m = Math.round(tSecs(k, T0, T0).reduce((a, b)=>a+b, 0)/60);
-    const ids = [...new Set([...ASSIGN[k].map(it=>it.id), ...(KPICK[k]||[]).map(x=>x.id)])];
-    const left = ids.filter(id=>!dayResult(k, id, T0)).length;
-    const essays = ATT.filter(a=>a.kid===k && a.handin && ess(a).todo).length;
-    const att = attnOf(k, T0).filter(x=>x.f.attention).length;
-    return `<div class="gl"><b>${KID[k].av} ${KID[k].n}</b><span class="${m>=PLAN_MINS?'ok':'low'}">${m}/${PLAN_MINS} 分钟</span>
-      · ${ids.length ? (left ? `还有 ${left} 份没做` : `<span class="ok">今天的都做完了</span>`) : '今天的单子是空的（孩子自己从 Library 挑）'}
-      ${essays ? ` · <button class="lk" data-gokid="${k}" data-gov="essay">✍️ ${essays} 篇作文待批</button>` : ''}
-      ${att ? ` · ⚠️ ${att} 份要留意` : ''}
-      · <a href="homework.html?as=${k}" target="_blank" rel="noopener">👀 ${KID[k].n} 的界面</a></div>`;
-  }).join('')}</div>`;
-}
 // 一个孩子、一段日子：每科 { secs 有效时间, right/of 第一遍答对几题/共几题, act/open 交了卷的有效/页面开着, n 几份 }
 function tStats(k, from, to){
   const S = tSecs(k, from, to).map(secs=>({ secs, right:0, of:0, act:0, open:0, n:0 })), seen = new Set(), scored = new Set();
@@ -1847,42 +1845,53 @@ function studyCells(z, goal){
     <span style="color:${accCol}">${acc==null?'—':acc+'%'}${z.of?`<span class="x">${Math.round(z.right)}/${z.of} 题</span>`:''}</span>
     <span style="color:${focCol}">${foc==null?'—':foc+'%'}</span>`;
 }
-function studyTable(){
+// 一个孩子到 end 那天为止的 7 天，每天一行；点一天看各科。2026-10-27 起放在今天页每个孩子的卡片里
+// （Sam：「小柱子没有表好用」），看哪天就到哪天为止，那天默认点开。
+function studyRows(k, end){
   const T0 = iso(today), WD = ['日','一','二','三','四','五','六'];
-  const days = []; for(let i=0; i<STUDY_DAYS; i++) days.push(shiftDay(T0, -i));   // 今天在最上面
+  const days = []; for(let i=0; i<STUDY_DAYS; i++) days.push(shiftDay(end, -i));   // 最近的在最上面
   const dl = d => { const x = new Date(d+'T12:00:00'); return `${x.getMonth()+1}/${x.getDate()} 周${WD[x.getDay()]}${d===T0?' · 今天':''}`; };
-  const kidBlock = k => {
-    const wk = tSum(tStats(k, days[days.length-1], T0));
-    const rows = days.map(d=>{ const S = tStats(k, d, d), t = tSum(S); return { d, S, t, did: t.secs >= 60 || t.n > 0 }; });
-    const done = rows.filter(r=>r.did).length;
-    return `<div><h4>${KID[k].av} ${KID[k].n}</h4>
-      <div class="srow shead"><span>日期</span><span>时间</span><span>准确率${qm('这天每份卷子<b>第一遍</b>答对的题数 ÷ 题数。重做的那几遍不算（看过答案再做会把数抬高）；写作台 1–6 分的、没打分的参考 / 链接不算。80% 及以上绿色，60–79% 黄色，更低红色。')}</span><span>专注度${qm('有效占比 = 有效时间 ÷ 页面开着的时间（交了卷的那几份），和今天页卡片上的是同一个数。切走、锁屏、很久没动都会拉低它。80% 及以上绿色，60–79% 黄色，更低红色。')}</span></div>
-      <div class="srow sweek"><span>近 ${STUDY_DAYS} 天<span class="x">学了 ${done} 天 · 日均 ${Math.round(wk.secs/60/STUDY_DAYS)} 分</span></span>${studyCells(wk)}</div>
-      ${rows.map(({ d, S, t, did })=>{
-        const key = k+'|'+d;
-        if(!did) return `<div class="srow none"><span>${dl(d)}</span><span>没做</span><span></span><span></span></div>`;
-        const open = key in SDAY_OPEN ? SDAY_OPEN[key] : d===T0;
-        return `<details class="sday" data-sday="${key}"${open?' open':''}><summary class="srow"><span>${dl(d)}</span>${studyCells(t, PLAN_MINS)}</summary>
-          ${S.map((z, j)=>z.secs>=30 || z.n ? `<div class="srow ssub"><span><i style="background:${T_SUBJ[j][2]}"></i>${T_SUBJ[j][3]}</span>${studyCells(z)}</div>` : '').join('')}</details>`;
-      }).join('')}</div>`;
-  };
-  // 默认打开（Sam 要一眼看到）；收起记在这台设备上（parent.g2.* 开关，换了个键，原来柱状图「收着」的记录不沿用）
-  let open = true; try { open = localStorage.getItem('parent.g2.study')!=='0'; } catch(e){}
-  return `<details class="tchart" data-guide="study"${open?' open':''}><summary>📊 每天学习情况 · 最近 ${STUDY_DAYS} 天 <span style="color:var(--mute);font-weight:400">· 时间 · 准确率 · 专注度，点一天看各科 ▸</span></summary>
-    <div class="tsub">时间 = 有效时间（交了卷的 + 打开没交卷的那段 + 看批改），目标每天 ${PLAN_MINS} 分钟。</div>
-    <div class="tgrid">${['grace','warren'].map(kidBlock).join('')}</div></details>`;
+  const rows = days.map(d=>{ const S = tStats(k, d, d), t = tSum(S); return { d, S, t, did: t.secs >= 60 || t.n > 0 }; });
+  const wk = tSum(rows.map(r=>r.t));   // 第一遍按「份|日期」认，七天逐天加起来就是这 7 天的数
+  const done = rows.filter(r=>r.did).length;
+  return `<div class="srow shead"><span>日期</span><span>时间</span><span>准确率</span><span>专注度</span></div>
+    <div class="srow sweek"><span>这 ${STUDY_DAYS} 天<span class="x">学了 ${done} 天 · 日均 ${Math.round(wk.secs/60/STUDY_DAYS)} 分</span></span>${studyCells(wk)}</div>
+    ${rows.map(({ d, S, t, did })=>{
+      const key = k+'|'+d, cur = d===end ? ' cur' : '';
+      if(!did) return `<div class="srow none${cur}"><span>${dl(d)}</span><span>没做</span><span></span><span></span></div>`;
+      const open = key in SDAY_OPEN ? SDAY_OPEN[key] : d===end;
+      return `<details class="sday" data-sday="${key}"${open?' open':''}><summary class="srow${cur}"><span>${dl(d)}</span>${studyCells(t, PLAN_MINS)}</summary>
+        ${S.map((z, j)=>z.secs>=30 || z.n ? `<div class="srow ssub"><span><i style="background:${T_SUBJ[j][2]}"></i>${T_SUBJ[j][3]}</span>${studyCells(z)}</div>` : '').join('')}</details>`;
+    }).join('')}`;
+}
+// 今天页一个孩子一张卡（Sam 2026-10-27「看起来过于复杂」→ 只放四样：几分钟 / 目标、准确率 · 专注度 · 做了几份、最近 7 天、要你处理的事）。
+// 数和 7 天表同一个口径（tStats）。卡片在 viewToday 里接着放「明细」，由它关上 </div>。
+function dayCard(k, day, leftTxt, nTodo){
+  const t = tSum(tStats(k, day, day)), m = Math.round(t.secs/60);
+  const acc = t.of ? Math.round(100*t.right/t.of) : null, foc = t.open ? Math.min(100, Math.round(100*t.act/t.open)) : null;
+  const col = (v, ok) => v==null ? 'var(--mute)' : v>=ok ? 'var(--green)' : v>=60 ? 'var(--amber)' : 'var(--red)';
+  return `<div class="card dcard"><div class="dhead"><h3>${KID[k].n}</h3>${leftTxt?`<span class="dq">${leftTxt}</span>`:''}
+      <a class="kv" href="homework.html?as=${k}" target="_blank" rel="noopener" title="打开 ${KID[k].n} 看到的作业页（家长模式）">孩子的界面 ›</a></div>
+    <div class="dmin">${m}<small> / ${PLAN_MINS} 分钟</small></div>
+    <div class="dbar${m>=PLAN_MINS?' ok':''}"><i style="width:${Math.min(100, Math.round(100*m/PLAN_MINS))}%"></i></div>
+    <div class="dstats">
+      <div><b style="color:${col(acc, PASS)}">${acc==null?'—':acc+'%'}</b><span>准确率${t.of?` · ${Math.round(t.right)}/${t.of} 题`:''}</span></div>
+      <div><b style="color:${col(foc, 80)}">${foc==null?'—':foc+'%'}</b><span>专注度</span></div>
+      <div><b>${t.n}</b><span>份做了</span></div>
+    </div>
+    <div class="stbl">${studyRows(k, day)}</div>
+    ${attnLine(k, day)}${nTodo ? `<div class="attnline">✍️ ${nTodo} 篇作文等你批改 <button class="mini" data-gokid="${k}" data-gov="essay">去批改 ›</button></div>` : ''}`;
 }
 function viewToday(){
   const day = TD, isToday = day===iso(today);
-  let html = (isToday ? '' : todoStrip()) + `<h2 class="sec">${isToday?'今天':'作业'} · ${day} 周${wdOf(day)}${qm(`2026-10-22 起不用派题：孩子登录后在 <b>To do</b> 里看到题库里上架的全部，自己挑着做，每天目标 ${PLAN_MINS} 分钟。
-      这里还派得出（或自动排进来）的那几份，在孩子那边排在最前面、标 Picked for you。做过的成绩都会保留。`)}</h2>
+  const md = new Date(day+'T12:00:00');
+  let html = (isToday ? '' : todoStrip()) + `<h2 class="sec">${isToday?'今天 · ':''}${md.getMonth()+1} 月 ${md.getDate()} 日 周${wdOf(day)}</h2>
     <div class="daynav">
       <button class="fchip" data-day="${shiftDay(day,-1)}">‹ ${dayName(shiftDay(day,-1), '前一天')}</button>
       <input type="date" id="tdpick" value="${day}">
       <button class="fchip" data-day="${shiftDay(day,1)}">${dayName(shiftDay(day,1), '后一天')} ›</button>
       ${isToday?'':`<button class="fchip" data-day="${iso(today)}">回到今天</button>`}
       <button class="fchip settog${SETOPEN?' on':''}" data-settog="1" title="顺延、每天按时间自动排的开关和每天多少分钟">⚙ 排作业设置</button>
-      ${['grace','warren'].map(k=>`<a class="fchip" href="homework.html?as=${k}" target="_blank" rel="noopener" title="打开 ${KID[k].n} 看到的作业页（家长模式：金色 🔑 按钮放进今天 / 撤回 / 下架）">👀 ${KID[k].av} ${KID[k].n} 的界面</a>`).join('')}
     </div>
     <div class="setbox"${SETOPEN?'':' hidden'}>
     <div class="carryrow">没做完自动顺延到第二天${qm(`开着的话：前一天（最远倒推 ${CARRY_DAYS} 天）派的、到昨天都没交的，第二天自动挪到「今天」，标「延后一天」「延后两天」…（从最早派的那天算）。
@@ -1897,7 +1906,7 @@ function viewToday(){
       ${['grace','warren'].map(k=>{ const p = PLAN[k] || {}, on = !!p.on;
         return `<span class="planone"><button class="fchip${on?' on':''}" data-plan="${k}" data-on="${on?0:1}">${KID[k].av} ${KID[k].n} · ${on?'开':'关'}</button>${on?`
           <button class="fchip" data-planmins="${k}" title="点一下改每天多少分钟">${+p.mins||PLAN_MINS} 分钟/天</button>`:''}</span>`; }).join('')}
-    </div></div>${isToday ? todayGlance() : ''}${studyTable()}<div class="grid2">`;
+    </div></div><div class="grid2">`;
   const guide = `<details class="hguide" data-guide="today"${guideOpen('today')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li><b>一张卡片看全这一天</b>：最上面一行 = 完成几份、第一遍达标几份、有效时间（页面开了多久）、有效占比；收着也看得到「⚠️ 需要留意」和「✍️ 待批改」。
         展开是这天的总结、每份卷子每一遍的分数和用时、错了哪几题、切走几次。翻 ‹ › 就是看别的日子（原来「完成记录」「专注情况」的内容，现在收在孩子页的「更多」里）。</li>
@@ -1931,47 +1940,21 @@ function viewToday(){
     const list = ASSIGN[k];
     const doneOf = it => dayResult(k, it.id, day);
     const done = list.map(doneOf).filter(Boolean);
-    // 这天已经真坐了多久（估时由 estSumTxt 现算）：交了卷的 + 派的这几份里没交卷的那段。
-    const unf = unfOn(k, day, day).filter(u=>list.some(it=>it.id===u.id)), unfS = unfSum(unf);
+    // 派的这几份里没交卷的那段（每份后面写「没交卷，已用 X」）
+    const unf = unfOn(k, day, day).filter(u=>list.some(it=>it.id===u.id));
     // 看批改不用派，孩子自己打开的，也算进这天的有效时间（Sam 2026-09-26）
     const reads = reviewReads(k, day, day), readS = reads.reduce((s,g)=>s+g.active, 0);
-    // 队里还剩多少挂在名字右边：平时灰字，不到 3 天的量才变红（Sam 2026-10-11：开关收进「排作业设置」）
+    // 队里还剩多少：平时灰字，不到 3 天的量才变红（Sam 2026-10-11：开关收进「排作业设置」）
     const left = planOn(k) ? planLeft(k) : null;
-    const leftTxt = !left ? '' : ` · <span class="${left.days<3?'planlow':''}" title="${left.n ? `今天往后没做的 ${left.n} 份，约 ${dur(left.mins*60)}` : '队里没有作业了'}">${
+    const leftTxt = !left ? '' : `<span class="${left.days<3?'planlow':''}" title="${left.n ? `今天往后没做的 ${left.n} 份，约 ${dur(left.mins*60)}` : '队里没有作业了'}">${
       left.n ? `队里 ${left.n} 份 · 排到 ${ymd(left.last)}${left.days<3?' · 快排空了':''}` : '队里空了，记得加作业'}</span>`;
-    /* 一页看全（Sam 2026-10-16：邮件发不出去，只能看家长页；「专注度、做得好不好都整理到一个页面上，分到其他页面很难查看」）。
-       这天交的全部卷子（派的、没派的都算）→ 第一遍达标、专注；完成数只看派的。 */
-    // 看批改单独算（readS），不进份数、第一遍达标，也不在有效时间里算两遍
-    const papers = dayPapers(k, day).filter(p=>!isReviewRead(p.id)), S = dayStats(papers), sc = S.scored.length;
-    // 有效时间也按这一天全部算（和下面的总结同一个数）：交了卷的 + 没交卷的 + 看批改
-    const unfAll = U_ALL(k, day), daySpent = S.active + unfSum(unfAll) + readS;
-    const dayTxt = dur(daySpent) + (readS ? `（含看批改 ${dur(readS)}）` : '') + (S.still ? ' '+stillTag(S.still) : '');
-    const fo = ATT.filter(a=>a.kid===k && a.date===day).map(readFocus)
-      .reduce((t,f)=>({ secs:t.secs+f.secs, active:t.active+f.active, n:t.n+f.awayCount, max:Math.max(t.max,f.maxAway) }), { secs:0, active:0, n:0, max:0 });
-    const share = fo.secs ? Math.min(100, Math.round(100*fo.active/fo.secs)) : null;
-    const shareCol = share==null ? 'var(--mute)' : share>=80 ? 'var(--green)' : share>=60 ? 'var(--amber)' : 'var(--red)';
-    const fstCol = !sc ? 'var(--mute)' : S.firstOk.length===sc ? 'var(--green)' : S.firstOk.length ? 'var(--amber)' : 'var(--red)';
+    // 这天交的全部卷子（派的、没派的都算），看批改不算一份
+    const papers = dayPapers(k, day).filter(p=>!isReviewRead(p.id) && !p.tries.every(a=>a.demo)), S = dayStats(papers);
     const nTodo = ATT.filter(a=>a.kid===k && a.handin && ess(a).todo).length;
-    const line = [list.length ? `完成 <b>${done.length}/${list.length}</b>` : '',
-      sc ? `第一遍达标 <b style="color:${fstCol}">${S.firstOk.length}/${sc}</b>` : '',
-      daySpent ? `有效 <b>${dayTxt}</b>${fo.secs?`（开了 ${dur(fo.secs + unfAll.reduce((x,u)=>x+u.secs,0))}）`:''}` : list.length ? `预计 <b>${estSumTxt(list, k)}</b>` : '',
-      share!=null ? `有效占 <b style="color:${shareCol}">${share}%</b>${fo.n?` · 切走 ${fo.n} 次`:''}` : ''].filter(Boolean).join(' · ');
-    // 不派题以后（2026-10-22）卡片头看的是这天做了几份、离 PLAN_MINS 分钟还差多少；派了的照旧写「已派 N 份」
-    const goal = `做了 ${papers.length} 份 · ${Math.round(daySpent/60)}/${PLAN_MINS} 分钟${daySpent>=PLAN_MINS*60?' ✓':''}`;
-    html += kidCard('today', k, (list.length?'已派 '+list.length+' 份 · ':'') + goal + leftTxt,
-      (line || (readS ? `看批改 有效时间 <b>${dur(readS)}</b>` : `${isToday?'今天':'这天'}还没交卷 · 孩子从 To do 里自己挑`))
-      + attnLine(k, day)
-      + (nTodo ? `<div class="attnline">✍️ ${nTodo} 篇作文等你批改 <button class="mini" data-gokid="${k}" data-gov="essay">去批改 ›</button></div>` : '')) + `
-      <div class="hmet">
-        <div><div class="v">${done.length}/${list.length}</div><div class="k">完成${qm(`派的 ${list.length} 份里，这天交过卷的份数`)}</div>${
-            list.length && done.length<list.length ? `<div class="x">还剩约 ${estSumTxt(list.filter(it=>!doneOf(it)), k)}</div>` : ''}</div>
-        <div><div class="v" style="color:${fstCol}">${sc?`${S.firstOk.length}/${sc}`:'—'}</div><div class="k">第一遍达标${qm(sc?`这天打分的 ${sc} 份里，第一遍就答对 ≥ ${PASS}% 的份数（最能看出是不是真会）。最后达标 ${S.lastOk.length}/${sc}`:'这天还没有打分的成绩')}</div>${
-            sc && S.lastOk.length!==S.firstOk.length ? `<div class="x">重做后 ${S.lastOk.length}/${sc}</div>` : ''}</div>
-        <div><div class="v">${daySpent?tileUnit(dur(daySpent)):'—'}</div><div class="k">有效时间${qm(`${STILL_TIP}。派的没派的都算${readS?'，含看批改 '+dur(readS):''}。${list.length?'派的这几份预计 '+estSumTxt(list, k)+'。':''}`)}</div>${
-            `<div class="x">${fo.secs?`页面开了 ${dur(fo.secs + unfAll.reduce((x,u)=>x+u.secs,0))}`:''}${list.length?`${fo.secs?' · ':''}预计 ${estSumTxt(list, k)}`:''}</div>`}</div>
-        <div><div class="v" style="color:${shareCol}">${share==null?'—':share+'%'}</div><div class="k">有效占比${qm(share==null?'这天还没有交卷记录':`有效时间 ÷ 页面开着的时间（交了卷的那几份）。80% 以上绿色，60–79% 黄色，更低红色。切走 ${fo.n} 次${fo.max?`，最长一次 ${dur(fo.max)}`:''}`)}</div>${
-            share!=null?`<div class="x">切走 ${fo.n} 次${fo.max?` · 最长 ${dur(fo.max)}`:''}</div>`:''}</div>
-      </div>`.replace('<div class="hmet">','<div class="hmet h4">') + (papers.length || U_ALL(k, day).length ? fold(k+'|sum', `📋 ${dayName(day,'这天')}的总结 <span class="gs">做了 ${papers.length} 份 · 交卷 ${S.nAtt} 次</span>`,
+    html += dayCard(k, day, leftTxt, nTodo) + `<details class="dmore" data-kc="today2.${k}"${kidOpen('today2', k)}><summary>${
+        list.length ? (done.length<list.length ? `还没做 ${list.length-done.length} 份 · 约 ${estSumTxt(list.filter(it=>!doneOf(it)), k)}` : `派的 ${list.length} 份都做完了`)
+          : papers.length ? `做了 ${papers.length} 份` : '还没交卷 · 孩子从 To do 里自己挑'}<span class="go"></span></summary>`
+      + (papers.length || U_ALL(k, day).length ? fold(k+'|sum', `📋 ${dayName(day,'这天')}的总结 <span class="gs">做了 ${papers.length} 份 · 交卷 ${S.nAtt} 次</span>`,
           `<div class="dsum">${histSummary(k, papers, S, U_ALL(k, day), true)}</div>`) : '')
       + (NOTES[k+'|'+day] ? noteBlock(k, day).replace('<details class="dnote" open>', '<details class="dnote">') : '') + attnBox(k, day);
     if(!list.length){
@@ -2068,9 +2051,9 @@ function viewToday(){
       esc(p.t) + `（→ ${ymd(p.carriedTo)}）`).join('、')}</div>`;
     if(PULLED[k].length) html += `<div class="pulled">这天撤回了 ${PULLED[k].length} 份：${PULLED[k].map(p=>{
       const w = tsDate(p.withdrawnAt); return esc(p.t) + (w ? `（${stamp(w)}）` : ''); }).join('、')}</div>`;
-    html += `</details>`;
+    html += `</details></div>`;
   });
-  return html + `</div>` + guide;
+  return html + `</div><p class="dfoot">时间 = 页面开在最前面、真在做的时间，目标每天 ${PLAN_MINS} 分钟 · 准确率 = 每份第一遍答对的比例 · 专注度 = 页面开着的时间里真在做的比例 · 绿色 80% 以上，黄色 60–79%，红色更低</p>` + guide;
 }
 
 // 今天页每张卡片里的「需要留意」：这天交的卷子里，按「专注情况」同一套标准要留意的那几份（Sam 2026-10-16：
@@ -4597,11 +4580,11 @@ function render(){
     // Fetched lazily: Reading Club being down must never block the other four tabs.
     if(!RD.data && !RD.err && !RD.loading) loadReading();
   }
-  viewEl.querySelectorAll('details.hguide, details.tchart').forEach(d=>d.addEventListener('toggle',()=>{
+  viewEl.querySelectorAll('details.hguide').forEach(d=>d.addEventListener('toggle',()=>{
     try { localStorage.setItem('parent.g2.'+d.dataset.guide, d.open?'1':'0'); } catch(e){}
   }));
   viewEl.querySelectorAll('details.sday').forEach(d=>d.addEventListener('toggle',()=>{ SDAY_OPEN[d.dataset.sday] = d.open; }));
-  viewEl.querySelectorAll('details.kc').forEach(d=>d.addEventListener('toggle',()=>{
+  viewEl.querySelectorAll('details.kc, details.dmore').forEach(d=>d.addEventListener('toggle',()=>{
     try { localStorage.setItem('parent.kid.'+d.dataset.kc, d.open?'1':'0'); } catch(e){}
   }));
   document.getElementById('bankn').textContent = BANK.length;
