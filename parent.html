@@ -918,6 +918,8 @@
       <button class="tab" data-top="bank" title="全部卷子；上架的孩子在作业页 To do 里都看得到">📚 题库<span class="wide"> · 上架下架</span> <span class="pill" id="bankn"></span></button>
       <button class="tab" data-top="grace">👧 Grace</button>
       <button class="tab" data-top="warren">👦 Warren</button>
+      <!-- 2026-11-01 Sam：「把 reading club 单列出来一个 TAB」→ 从孩子页「更多」里拿出来，两个孩子上下排在一页 -->
+      <button class="tab" data-top="reading">📖 Reading<span class="wide"> Club</span></button>
     </nav>
     <!-- 2026-09-27 Sam: the ones he uses up front, the rest behind 「更多」 (2026-10-16: 专注情况 moved up front) (click counts decide
          later whether they stay — see USE below). An extra that is the current view stays visible. -->
@@ -934,7 +936,6 @@
       <button class="stab more" id="stmore" aria-expanded="false">更多 ▸</button>
       <button class="stab extra" data-v="queue">作业队列</button>
       <button class="stab extra" data-v="skills">知识点</button>
-      <button class="stab extra" data-v="reading">阅读写作</button>
       <button class="stab extra" data-v="dispatch">派发记录</button>
     </nav>
   </div>
@@ -3506,7 +3507,7 @@ const mmdd = ymd => ymd.slice(5).replace('-','/');
 
 function viewReading(){
   let html = `<div class="rc"><div class="sechead">
-      <h2>阅读写作 · Reading Club</h2>
+      <h2>📖 Reading Club · 阅读写作</h2>
       <span class="muted range">${RD.data?`${mmdd(RD.data.from)} – ${mmdd(RD.data.to)}`:''}</span>
       <div class="chips">${[[1,'今天'],[7,'近 7 天'],[21,'近 21 天']].map(([v,l])=>
         `<button class="fchip${RD.days===v?' on':''}" data-rd="${v}">${l}</button>`).join('')}</div>
@@ -3836,7 +3837,7 @@ function viewAudio(){
 
 function viewEssay(){
   if(WR.cur && WR.list) return viewEssayOne();
-  let html = `<h2 class="sec">写作${qm('孩子在各个写作页里写完交上来的：考试作文（Writing Lab）、BASA、演讲课。申请文书不在这里，在 arbutus。每篇前面的彩色小标签是哪门课，上面一排按钮只看一门。点一篇进去批改：在原文里选中一段写批注，最后打分、写总评，点「发给他」孩子才看得到。Reading Club 那边的作文在「阅读写作」。')}</h2>
+  let html = `<h2 class="sec">写作${qm('孩子在各个写作页里写完交上来的：考试作文（Writing Lab）、BASA、演讲课。申请文书不在这里，在 arbutus。每篇前面的彩色小标签是哪门课，上面一排按钮只看一门。点一篇进去批改：在原文里选中一段写批注，最后打分、写总评，点「发给他」孩子才看得到。Reading Club 那边的作文在顶部「📖 Reading Club」。')}</h2>
     <details class="hguide" data-guide="essay"${guideOpen('essay')}><summary><b>这一页怎么看</b><span class="tap">点开</span></summary><ul>
       <li><b>批改</b>：在原文里<b>选中一段 → 点「＋ 批注」</b>，选「要改 / 写得好 / 批注」，写「改成」和说明。孩子那边看到的是他自己的原文，被批的地方标颜色，点一下跳到批注。</li>
       <li><b>不用 API key 的办法</b>：在 Mac 上的 Claude 对话里说「<b>批改 Warren 的作文</b>」，Claude 批好会放到这里，那篇写着「Claude 批好了 · 等你发」，点开看一眼、点「发给」就行。</li>
@@ -4610,7 +4611,7 @@ function render(){
 function go(v, kid){
   wrFlush();   // an unsaved bit of marking in 作文 goes to its draft before the view changes
   if(RC.stale && V!==v){ RC.list = null; RC.stale = false; }
-  KV = v==='today' || v==='bank' || v==='usage' ? null : kid || KV || 'grace';
+  KV = v==='today' || v==='bank' || v==='usage' || v==='reading' ? null : kid || KV || 'grace';
   if(KV) KSUB = v;
   // An essay left open on one kid's page must not show up on the other kid's.
   const w = wrCur();
@@ -4620,7 +4621,7 @@ function go(v, kid){
   navSync(); render(); window.scrollTo({ top:0 });
 }
 function navSync(){
-  const top = KV || V;   // 'today' | 'bank' | a kid
+  const top = KV || V;   // 'today' | 'bank' | 'reading' | a kid
   document.querySelectorAll('[data-top]').forEach(x=>x.classList.toggle('on', x.dataset.top===top));
   document.getElementById('subtabs').hidden = !KV;
   document.querySelectorAll('.stab[data-v]').forEach(x=>x.classList.toggle('on', x.dataset.v===V));
@@ -4629,10 +4630,10 @@ function navSync(){
 }
 document.querySelectorAll('[data-top]').forEach(t=>t.addEventListener('click',()=>{
   const top = t.dataset.top;
-  top==='today' || top==='bank' ? go(top) : go(KSUB, top); }));
+  top==='today' || top==='bank' || top==='reading' ? go(top) : go(KSUB, top); }));
 document.querySelectorAll('.stab[data-v]').forEach(t=>t.addEventListener('click',()=>go(t.dataset.v, KV)));
 // 派题 from a kid's page: the bank opens on that kid's list, and 派给 is already set to them.
-// 「更多 ▸」：把作业队列 · 知识点 · 阅读写作 · 派发记录 摊开 / 收起（正在看的那个一直露着）
+// 「更多 ▸」：把作业队列 · 知识点 · 派发记录 摊开 / 收起（正在看的那个一直露着）
 document.getElementById('stmore').addEventListener('click',()=>{
   const st = document.getElementById('subtabs'), on = st.classList.toggle('showmore'), m = document.getElementById('stmore');
   m.textContent = on ? '更多 ◂' : '更多 ▸'; m.setAttribute('aria-expanded', on);
@@ -4720,9 +4721,9 @@ document.addEventListener('click', e=>{
 }, true);
 // 要看的那几样：从来没点过的也列出来（0 次），这才看得出哪个没人用
 const USE_WATCH = [
-  ['top:today','顶部 · 今天'], ['top:bank','顶部 · 题库/派题'], ['top:grace','顶部 · Grace'], ['top:warren','顶部 · Warren'],
+  ['top:today','顶部 · 今天'], ['top:bank','顶部 · 题库/派题'], ['top:grace','顶部 · Grace'], ['top:warren','顶部 · Warren'], ['top:reading','顶部 · Reading Club'],
   ['sub:hist','孩子页 · 完成和专注'], ['sub:dispatch','孩子页 · 派发记录'],
-  ['sub:more','孩子页 · 更多 ▸'], ['sub:skills','孩子页 · 知识点'], ['sub:reading','孩子页 · 阅读写作'],
+  ['sub:more','孩子页 · 更多 ▸'], ['sub:skills','孩子页 · 知识点'],
   ['kid:assign','孩子页 · ＋ 派题'],
   ['bank:search','题库 · 搜索'], ['key:/','题库 · 按 / 搜索'], ['bank:never','题库 · 只看没派过'], ['bank:hist','题库 · 点开派发历史'],
   ['bank:kid=warren','题库 · Warren'], ['bank:kid=grace','题库 · Grace'], ['bank:more','题库 · ⋯ 更多'], ['bank:done','题库 · 已派完 ▸'],
@@ -4736,7 +4737,7 @@ const USE_WATCH = [
   ['today:settings','今天 · ⚙ 排作业设置'], ['today:more','今天 · ⋯'],
   ['today:move','今天 · 改日期'], ['today:pull','今天 · 撤回'], ['today:day','今天 · 翻前一天/后一天'],
   ['dispatch:range','派发记录 · 换时间段'], ['dispatch:missonly','派发记录 · 只看没做的'],
-  ['reading:range','阅读写作 · 换时间段'],
+  ['reading:range','Reading Club · 换时间段'],
   ['help','「?」说明'], ['guide','「这一页怎么看」']
 ];
 function viewUsage(){
