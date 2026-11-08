@@ -106,10 +106,6 @@
           padding:1px 8px;margin-left:5px;color:var(--ink2)}
 
   /* ---------- today ---------- */
-  .progress{margin:26px 0 8px}
-  .progress .big{font-family:'Fraunces',serif;font-size:26px}
-  .meter{height:14px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:8px}
-  .meter i{display:block;height:100%;background:var(--green);border-radius:99px;transition:width .3s}
   .cheer{margin-top:16px;background:var(--greenbg);color:var(--green);border-radius:16px;padding:16px 18px;
          font-size:19px;font-weight:600;text-align:center}
   .card{display:flex;align-items:center;gap:16px;background:var(--paper);border:2px solid var(--line);
@@ -682,28 +678,6 @@ const lateTag = it => { const o = it.origin||it.movedFrom, n = Math.round((new D
 const madeDay = d => new Date(d+'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' });
 const madeNew = d => (today - new Date(d+'T00:00:00')) < 3*864e5;
 // One homework card; a = today's attempt at it, if any.
-// How Mom and Dad check homework (Sam 2026-10-16). Same rules as the parent page: first try ≥ PASS%, and only
-// real working time counts (away = not counted; still for 3+ min = not counted after minute 3, see quiz-report.js).
-function rulesBox(){
-  return `<details class="rules"><summary>📏 <b>How we check your homework:</b> we look at your <b>first try</b> and your <b>real working time</b>.
-    It meets the standard when you get <b>${PASS}% or more on your first try</b> and keep working the whole time.
-    <span class="more">How it works ▸</span></summary>
-    <h4>It does not meet the standard when…</h4>
-    <ul>
-      <li>your first try is under ${PASS}%. Redoing it is great practice, but your first try shows what you really know.</li>
-      <li>you answer very fast and get it wrong. That looks like guessing.</li>
-      <li>you leave the page a lot, or for a long time.</li>
-      <li>you stop and sit still for a long time in the middle.</li>
-    </ul>
-    <h4>How your time is counted</h4>
-    <ul>
-      <li>Only <b>working time</b> counts: the page is in front of you and you are reading, thinking, tapping or typing.</li>
-      <li>If you leave the page (another app, a video, the lock screen), that time does not count — not even a few seconds.</li>
-      <li>If you don't tap, type or scroll for <b>3 minutes</b>, the clock stops after those 3 minutes. Tap again and it starts again.</li>
-      <li>Writing is marked from 1 to 6 by Mom or Dad, not as a percent. 4 out of 6 is solid work.</li>
-    </ul>
-    <p style="margin:10px 0 2px">💡 Tip: take your time on the first try, read carefully, and finish in one go.</p></details>`;
-}
 // x.lib: a Library card — its button puts it into Today (or says it's there). x.unpick: one I put into Today
 // myself and haven't started — it gets a ✕ to take it off again.
 function card(it, a, x = {}){
@@ -1129,14 +1103,12 @@ const subjFold = (k, subj, n, cards, x = '') => `<details class="day" data-k="${
 function viewToday(){
   const L = library();
   let html = reportCard() + markedCards();
-  const foot = () => rulesBox() + petsRow();
+  const foot = () => petsRow();
   if(!L) return html + `<div class="empty"><span class="e">📡</span>Couldn't load your homework.<br>Check the Wi-Fi, then pull down to refresh.</div>` + foot();
   const m = Math.round(L.secs/60);
-  html += `<div class="progress"><div class="big">${m} of ${DAY_MINS} minutes today</div>
-    <div class="meter"><i style="width:${Math.min(100, Math.round(100*m/DAY_MINS))}%"></i></div></div>`;
   if(m >= DAY_MINS) html += `<div class="cheer">🌟 ${DAY_MINS} minutes done today, great work, ${esc(ME.n)}!
     <div style="margin-top:12px"><button class="out" data-signout>👋 I'm done · Sign out</button></div></div>`;
-  html += `<p class="lead2" style="font-size:14.5px;margin-top:6px">Only working time counts. Need more? <button class="link" data-tab="library">Pick from the Library →</button></p>`;
+  html += `<p class="lead2" style="font-size:14.5px;margin-top:6px">Need more? <button class="link" data-tab="library">Pick from the Library →</button></p>`;
   const left = L.today.filter(it=>!it.a);
   html += `<h3 class="group">To do <span class="gn">${left.length} left</span></h3>`;
   html += left.length ? bySubject(left).map(([subj, its])=>subjFold('todo', subj, `${its.length} left`,
