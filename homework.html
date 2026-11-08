@@ -308,13 +308,6 @@
   .bdg .bd{font-size:13px;color:var(--mute);line-height:1.25}
   .bdg.locked{background:transparent;border-style:dashed}
   .bdg.locked .bn{color:var(--mute)}
-  .ptiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
-  .ptile{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:12px 10px;
-         display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
-  .ptile.me{border-color:var(--accline)}
-  .ptile .e{font-size:40px;line-height:1}
-  .ptile .kn{font-family:'Fraunces',serif;font-size:19px;font-weight:600}
-  .ptile .pn{font-size:14px;color:var(--ink2);line-height:1.3}
   .sib{display:flex;align-items:center;gap:14px;margin-top:22px;background:var(--paper);border:2px solid var(--line);
        border-radius:16px;padding:10px 16px;font-size:16px;line-height:1.35}
   .sib .e{font-size:36px;line-height:1}
@@ -1103,8 +1096,7 @@ const subjFold = (k, subj, n, cards, x = '') => `<details class="day" data-k="${
 function viewToday(){
   const L = library();
   let html = reportCard() + markedCards();
-  const foot = () => petsRow();
-  if(!L) return html + `<div class="empty"><span class="e">📡</span>Couldn't load your homework.<br>Check the Wi-Fi, then pull down to refresh.</div>` + foot();
+  if(!L) return html + `<div class="empty"><span class="e">📡</span>Couldn't load your homework.<br>Check the Wi-Fi, then pull down to refresh.</div>`;
   const m = Math.round(L.secs/60);
   if(m >= DAY_MINS) html += `<div class="cheer">🌟 ${DAY_MINS} minutes done today, great work, ${esc(ME.n)}!
     <div style="margin-top:12px"><button class="out" data-signout>👋 I'm done · Sign out</button></div></div>`;
@@ -1126,7 +1118,7 @@ function viewToday(){
   });
   if(doneCards.length) html += `<h3 class="group">Done today <span class="gn">${doneCards.length}</span></h3>`
     + bySubject(doneCards).map(([subj, cs])=>subjFold('done', subj, `${cs.length} done`, cs.map(c=>c.h).join(''))).join('');
-  return html + foot();
+  return html;
 }
 function viewLibrary(){
   const L = library();
@@ -1212,24 +1204,6 @@ function sibCard(){
   const L = KidPets.level(SIB.xp);
   return `<div class="sib"><span class="e">${stageIc(SIB)}</span><span><b>${esc(KIDS[otherKey()].n)}'s pet: ${esc(SIB.name)}</b><br>
     <span class="xpcap">Lv ${L.lv} · ${SIB.streak ? `🔥 ${plural(SIB.streak, 'day')}` : 'no streak yet'} · ${plural((SIB.badges||[]).length, 'badge')}</span></span></div>`;
-}
-
-// One pet, side by side with the other kid's on Today. `g` carries xp/streak: your own comes
-// from this load (freshest there is), the other kid's from their pet doc as of their last visit.
-function petTile(who, p, g, mine){
-  const L = KidPets.level(g.xp||0), st = KidPets.stageOf(g.xp||0);
-  return `<div class="ptile${mine?' me':''}">
-    <span class="e">${petOf(p).stages[st][0]}</span>
-    <span class="kn">${esc(who)}</span>
-    <span class="pn">${esc(p.name)} · Lv ${L.lv}</span>
-    <span class="streak${g.streak?'':' off'}">${g.streak ? `🔥 ${plural(g.streak, 'day')}` : 'No streak yet'}</span>
-  </div>`;
-}
-// Both pets, so the two of them can see how they're doing next to each other.
-function petsRow(){
-  if(!petOf(PET) || !GAME) return sibCard();
-  const mine = petTile(ME.n, PET, GAME, true);
-  return `<div class="ptiles">${mine}${petOf(SIB) ? petTile(KIDS[otherKey()].n, SIB, SIB, false) : ''}</div>`;
 }
 
 // The pet inside a ring that fills up towards the next level.
