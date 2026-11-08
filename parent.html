@@ -3525,8 +3525,11 @@ function viewReading(){
     <p style="text-align:center"><button class="btn" data-rdretry>重试</button></p></div>`;
   const F = RD.data;
   if(!F) return html + `<p class="empty">正在从 Reading Club 取数据…</p></div>`;
-  if(!F.kids.length) return html + `<p class="empty">Reading Club 里这个账号名下没有孩子。</p></div>`;
-  const kids = F.kids.filter(kid=>!KV || String(kid.name).toLowerCase()===KID[KV].n.toLowerCase());
+  // 2026-11-08 Sam：「DAD 不用列在表里」— Reading Club also returns Dad's own reader; show only Grace and Warren.
+  const isKid = kid => Object.values(KID).some(k=>k.n.toLowerCase()===String(kid.name).toLowerCase());
+  const all = F.kids.filter(isKid);
+  if(!all.length) return html + `<p class="empty">Reading Club 里这个账号名下没有孩子。</p></div>`;
+  const kids = all.filter(kid=>!KV || String(kid.name).toLowerCase()===KID[KV].n.toLowerCase());
   if(!kids.length) return html + `<p class="empty">Reading Club 里没有 ${KID[KV].n} 的记录。</p></div>`;
   return html + kids.map(kid=>readingKid(kid, F)).join('') + `</div>`;
 }
