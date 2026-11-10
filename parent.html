@@ -508,10 +508,16 @@
   .qtab tr.sgrp td::before{content:'▸ ';color:var(--gold2)}
   .qtab tr.sgrp.on td::before{content:'▾ '}
   .attnline{margin-top:6px;color:var(--amber);font-size:12.5px;line-height:1.5}
-  /* 没到每天的目标（Sam 2026-11-10：「如果没有，你要在孩子的页面和家长的页面提醒我」） */
-  .shortline{margin:-6px 0 12px;padding:7px 10px;border-radius:8px;background:rgba(176,58,46,.09);color:var(--red);font-size:13px;font-weight:600;line-height:1.5}
-  .shortline span{display:block;font-weight:400}
-  .shortline.soft{background:rgba(168,99,26,.10);color:var(--amber)}   /* 今天还在进行中：黄；已经过完的日子没到：红 */
+  /* 每天的结论：60 分钟到没到 + 这段时间专不专心（Sam 2026-11-10：「家长页面每天要查看他们是否符合 60 分钟的学习时间
+     并且把关注度也分析一下」）。左边一条色：绿 = 达标且专心，黄 = 还在进行 / 有分心，红 = 过完了没达标 / 很不专心 */
+  .verdict{margin:-4px 0 14px;padding:9px 12px;border-radius:8px;border-left:4px solid var(--amber);background:rgba(168,99,26,.08);font-size:13px;line-height:1.6}
+  .verdict.ok{border-left-color:var(--green);background:rgba(63,125,78,.09)}
+  .verdict.bad{border-left-color:var(--red);background:rgba(176,58,46,.08)}
+  .verdict .vsum{font-weight:600;font-size:14px}
+  .verdict .vrow{display:flex;gap:8px;align-items:baseline}
+  .verdict .vrow>b{flex:none;width:3.2em;color:var(--mute);font-weight:500}
+  .verdict .vrow small{color:var(--mute);font-size:12px}
+  .verdict .g{color:var(--green);font-weight:600}.verdict .a{color:var(--amber);font-weight:600}.verdict .r{color:var(--red);font-weight:600}
   /* 按科目分组的小标题（今天页 / 作业队列） */
   .subhd.sgrp{color:var(--gold);letter-spacing:.6px;text-transform:none;font-size:12px;margin:14px 0 0}
   .qtab tr.sgrp td{color:var(--gold);font-size:12px;padding-top:10px}
@@ -1854,13 +1860,54 @@ function studyRows(k, end){
 }
 // 今天页一个孩子一张卡（Sam 2026-10-27「看起来过于复杂」→ 只放四样：几分钟 / 目标、准确率 · 专注度 · 做了几份、最近 7 天、要你处理的事）。
 // 数和 7 天表同一个口径（tStats）。卡片在 viewToday 里接着放「明细」，由它关上 </div>。
-// 没到每天的目标就提醒（看今天时顺带说昨天：今天的数要到晚上才算数，昨天的已经定了）。到了就什么都不出。
-function shortLine(k, day, m){
-  const isT = day===iso(today), y = shiftDay(day, -1);
-  const ym = isT ? Math.round(tSum(tStats(k, y, y)).secs/60) : PLAN_MINS;
-  const a = m >= PLAN_MINS ? '' : isT ? `⏰ 今天还没到 ${PLAN_MINS} 分钟，还差 ${PLAN_MINS - m} 分钟` : `⚠️ 这天没到 ${PLAN_MINS} 分钟，只学了 ${m} 分钟`;
-  const b = ym >= PLAN_MINS ? '' : `没到：${ym} / ${PLAN_MINS} 分钟`;
-  return a || b ? `<div class="shortline${isT && a && !b ? ' soft' : ''}">${a || '⚠️ 昨天' + b}${a && b ? `<span>昨天也${b}</span>` : ''}</div>` : '';
+// 每天的结论（Sam 2026-11-10）：① 时间到没到 PLAN_MINS ② 专注度 = 交了卷的那些份「真在做 ÷ 页面开着」，连同切走几次 / 多久、
+// 很久没动扣掉多少 ③ 一句话 ④ 看今天时带上昨天（今天的数要到晚上才定）⑤ 到这天为止 7 天里几天达标、平均专注度。
+// 时间和 7 天表同一个口径（tStats：交了卷的 + 打开没交卷的）；专注度只有交了卷的才有。
+function focusOf(k, day){
+  const T = { open:0, act:0, away:0, n:0, max:0, still:0, papers:0 };
+  ATT.forEach(a=>{
+    if(a.kid!==k || a.demo || a.date!==day) return;
+    const f = readFocus(a);
+    T.open += f.secs; T.act += f.active; T.away += f.awaySecs; T.n += f.awayCount; T.max = Math.max(T.max, f.maxAway); T.still += f.still; T.papers++;
+  });
+  T.pct = T.open ? Math.min(100, Math.round(100*T.act/T.open)) : null;
+  return T;
+}
+const focWord = p => p==null ? ['', '—'] : p>=80 ? ['g', '专心'] : p>=60 ? ['a', '有些分心'] : ['r', '很不专心'];
+function dayVerdict(k, day, m){
+  const isT = day===iso(today), F = focusOf(k, day), [fc, fw] = focWord(F.pct), hit = m >= PLAN_MINS;
+  const time = hit ? `<span class="g">达标</span> ${m} / ${PLAN_MINS} 分钟`
+    : isT ? `<span class="a">还没到</span> ${m} / ${PLAN_MINS} 分钟，还差 ${PLAN_MINS - m} 分钟`
+    : `<span class="r">没达标</span> ${m} / ${PLAN_MINS} 分钟，少了 ${PLAN_MINS - m} 分钟`;
+  const bits = F.pct==null ? [] : [`页面开着 ${dur(F.open)}，真在做 ${dur(F.act)}`,
+    F.n ? `切走 ${F.n} 次共 ${dur(F.away)}${F.max>=60 ? `，最长一次 ${dur(F.max)}` : ''}` : '没有切走',
+    F.still ? `很久没动扣掉 ${dur(F.still)}` : ''].filter(Boolean);
+  const foc = F.pct==null ? (m ? '这天没有交卷的作业，专注度算不出来' : '—')
+    : `<span class="${fc}">${F.pct}% · ${fw}</span> <small>${bits.join('；')}</small>`;
+  const sum = !m && !F.papers ? (isT ? '今天还没开始学习。' : '这天没有学习。')
+    : hit ? (F.pct==null || F.pct>=80 ? `${isT?'今天':'这天'}达标，而且专心。` : F.pct>=60 ? '时间够了，但中途有些分心。' : `时间够了，但很不专心，这 ${PLAN_MINS} 分钟要打折看。`)
+    : isT ? (F.pct!=null && F.pct<60 ? '还没到时间，而且做的时候很不专心。' : '今天还没学够，继续。')
+    : (F.pct!=null && F.pct<60 ? '时间不够，做的时候也很不专心。' : '时间不够。');
+  const cls = hit && (F.pct==null || F.pct>=80) ? ' ok' : (!hit && !isT) || (F.pct!=null && F.pct<60) ? ' bad' : '';
+  // 昨天：只在看今天时带一行
+  let yest = '';
+  if(isT){
+    const y = shiftDay(day, -1), ym = Math.round(tSum(tStats(k, y, y)).secs/60), YF = focusOf(k, y), [yc, yw] = focWord(YF.pct);
+    yest = `<div class="vrow"><b>昨天</b><span>${ym>=PLAN_MINS ? `<span class="g">达标</span>` : `<span class="r">没达标</span>`} ${ym} / ${PLAN_MINS} 分钟${
+      YF.pct==null ? '' : ` · 专注度 <span class="${yc}">${YF.pct}% ${yw}</span>`}</span></div>`;
+  }
+  // 到这天为止的 7 天
+  let nHit = 0, wo = 0, wa = 0;
+  for(let i=0; i<STUDY_DAYS; i++){
+    const d = shiftDay(day, -i), f = focusOf(k, d);
+    if(Math.round(tSum(tStats(k, d, d)).secs/60) >= PLAN_MINS) nHit++;
+    wo += f.open; wa += f.act;
+  }
+  const wp = wo ? Math.min(100, Math.round(100*wa/wo)) : null, [wc, ww] = focWord(wp);
+  return `<div class="verdict${cls}"><div class="vsum">${sum}</div>
+    <div class="vrow"><b>时间</b><span>${time}</span></div>
+    <div class="vrow"><b>专注度</b><span>${foc}</span></div>${yest}
+    <div class="vrow"><b>这 ${STUDY_DAYS} 天</b><span>${nHit} 天达标 / ${STUDY_DAYS} 天${wp==null ? '' : ` · 平均专注度 <span class="${wc}">${wp}% ${ww}</span>`}</span></div></div>`;
 }
 function dayCard(k, day, leftTxt, nTodo){
   const t = tSum(tStats(k, day, day)), m = Math.round(t.secs/60);
@@ -1870,7 +1917,7 @@ function dayCard(k, day, leftTxt, nTodo){
       <a class="kv" href="homework.html?as=${k}" target="_blank" rel="noopener" title="打开 ${KID[k].n} 看到的作业页（家长模式）">孩子的界面 ›</a></div>
     <div class="dmin">${m}<small> / ${PLAN_MINS} 分钟</small></div>
     <div class="dbar${m>=PLAN_MINS?' ok':''}"><i style="width:${Math.min(100, Math.round(100*m/PLAN_MINS))}%"></i></div>
-    ${shortLine(k, day, m)}
+    ${dayVerdict(k, day, m)}
     <div class="dstats">
       <div><b style="color:${col(acc, PASS)}">${acc==null?'—':acc+'%'}</b><span>准确率${t.of?` · ${Math.round(t.right)}/${t.of} 题`:''}</span></div>
       <div><b style="color:${col(foc, 80)}">${foc==null?'—':foc+'%'}</b><span>专注度</span></div>
@@ -2029,7 +2076,7 @@ function viewToday(){
       const w = tsDate(p.withdrawnAt); return esc(p.t) + (w ? `（${stamp(w)}）` : ''); }).join('、')}</div>`;
     html += `</details></div>`;
   });
-  return html + `</div><p class="dfoot">时间 = 页面开在最前面、真在做的时间，目标每天 ${PLAN_MINS} 分钟 · 准确率 = 每份第一遍答对的比例 · 专注度 = 页面开着的时间里真在做的比例 · 绿色 80% 以上，黄色 60–79%，红色更低</p>` + guide;
+  return html + `</div><p class="dfoot">时间 = 页面开在最前面、真在做的时间，目标每天 ${PLAN_MINS} 分钟 · 准确率 = 每份第一遍答对的比例 · 专注度 = 交了卷的作业里，页面开着的时间有多少是真在做（切走、很久没动都不算）· 绿色 80% 以上，黄色 60–79%，红色更低</p>` + guide;
 }
 
 // 今天页每张卡片里的「需要留意」：这天交的卷子里，按「专注情况」同一套标准要留意的那几份（Sam 2026-10-16：
