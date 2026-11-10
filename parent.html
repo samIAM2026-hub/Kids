@@ -1830,12 +1830,12 @@ const tSum = S => S.reduce((t, z)=>({ secs:t.secs+z.secs, right:t.right+z.right,
   { secs:0, right:0, of:0, act:0, open:0, n:0 });
 const STUDY_DAYS = 7, SDAY_OPEN = {};   // "kid|date" → 点开 / 收起（这次打开页面期间记着，重画不丢）
 // 三格：时间 · 准确率 · 专注度。goal：这一行是一整天 → 时间写「47 / 60 分钟」，够了变绿
-function studyCells(z, goal){
-  const m = Math.round(z.secs/60), acc = z.of ? Math.round(100*z.right/z.of) : null;
+function studyCells(z, goal, extra = 0){   // extra：这天 Reading Club 的分钟数，加进时间那一格
+  const m = Math.round(z.secs/60) + extra, acc = z.of ? Math.round(100*z.right/z.of) : null;
   const foc = z.open ? Math.min(100, Math.round(100*z.act/z.open)) : null;
   const accCol = acc==null ? 'var(--mute)' : acc>=PASS ? 'var(--green)' : acc>=60 ? 'var(--amber)' : 'var(--red)';
   const focCol = foc==null ? 'var(--mute)' : foc>=80 ? 'var(--green)' : foc>=60 ? 'var(--amber)' : 'var(--red)';
-  return `<span>${goal ? `<b style="color:${m>=goal?'var(--green)':'var(--cream)'}">${m}</b> / ${goal} 分钟` : `${m} 分钟`}${z.n?`<span class="x">${z.n} 份</span>`:''}</span>
+  return `<span>${goal ? `<b style="color:${m>=goal?'var(--green)':'var(--cream)'}">${m}</b> / ${goal} 分钟` : `${m} 分钟`}${z.n?`<span class="x">${z.n} 份</span>`:''}${extra?`<span class="x">含阅读 ${extra}</span>`:''}</span>
     <span style="color:${accCol}">${acc==null?'—':acc+'%'}${z.of?`<span class="x">${Math.round(z.right)}/${z.of} 题</span>`:''}</span>
     <span style="color:${focCol}">${foc==null?'—':foc+'%'}</span>`;
 }
@@ -1845,16 +1845,16 @@ function studyRows(k, end){
   const T0 = iso(today), WD = ['日','一','二','三','四','五','六'];
   const days = []; for(let i=0; i<STUDY_DAYS; i++) days.push(shiftDay(end, -i));   // 最近的在最上面
   const dl = d => { const x = new Date(d+'T12:00:00'); return `${x.getMonth()+1}/${x.getDate()} 周${WD[x.getDay()]}${d===T0?' · 今天':''}`; };
-  const rows = days.map(d=>{ const S = tStats(k, d, d), t = tSum(S); return { d, S, t, did: t.secs >= 60 || t.n > 0 }; });
-  const wk = tSum(rows.map(r=>r.t));   // 第一遍按「份|日期」认，七天逐天加起来就是这 7 天的数
+  const rows = days.map(d=>{ const S = tStats(k, d, d), t = tSum(S); return { d, S, t, rd: readAdd(k, d), did: t.secs >= 60 || t.n > 0 || readAdd(k, d) > 0 }; });
+  const wk = tSum(rows.map(r=>r.t)), wkRd = rows.reduce((x, r)=>x + r.rd, 0);   // 第一遍按「份|日期」认，七天逐天加起来就是这 7 天的数
   const done = rows.filter(r=>r.did).length;
   return `<div class="srow shead"><span>日期</span><span>时间</span><span>准确率</span><span>专注度</span></div>
-    <div class="srow sweek"><span>这 ${STUDY_DAYS} 天<span class="x">学了 ${done} 天 · 日均 ${Math.round(wk.secs/60/STUDY_DAYS)} 分</span></span>${studyCells(wk)}</div>
-    ${rows.map(({ d, S, t, did })=>{
+    <div class="srow sweek"><span>这 ${STUDY_DAYS} 天<span class="x">学了 ${done} 天 · 日均 ${Math.round((wk.secs/60 + wkRd)/STUDY_DAYS)} 分</span></span>${studyCells(wk, 0, wkRd)}</div>
+    ${rows.map(({ d, S, t, rd, did })=>{
       const key = k+'|'+d, cur = d===end ? ' cur' : '';
       if(!did) return `<div class="srow none${cur}"><span>${dl(d)}</span><span>没做</span><span></span><span></span></div>`;
       const open = key in SDAY_OPEN ? SDAY_OPEN[key] : d===end;
-      return `<details class="sday" data-sday="${key}"${open?' open':''}><summary class="srow${cur}"><span>${dl(d)}</span>${studyCells(t, PLAN_MINS)}</summary>
+      return `<details class="sday" data-sday="${key}"${open?' open':''}><summary class="srow${cur}"><span>${dl(d)}</span>${studyCells(t, PLAN_MINS, rd)}</summary>
         ${S.map((z, j)=>z.secs>=30 || z.n ? `<div class="srow ssub"><span><i style="background:${T_SUBJ[j][2]}"></i>${T_SUBJ[j][3]}</span>${studyCells(z)}</div>` : '').join('')}</details>`;
     }).join('')}`;
 }
@@ -1863,6 +1863,34 @@ function studyRows(k, end){
 // 每天的结论（Sam 2026-11-10）：① 时间到没到 PLAN_MINS ② 专注度 = 交了卷的那些份「真在做 ÷ 页面开着」，连同切走几次 / 多久、
 // 很久没动扣掉多少 ③ 一句话 ④ 看今天时带上昨天（今天的数要到晚上才定）⑤ 到这天为止 7 天里几天达标、平均专注度。
 // 时间和 7 天表同一个口径（tStats：交了卷的 + 打开没交卷的）；专注度只有交了卷的才有。
+// Reading Club 的在页时长也算进每天的 PLAN_MINS（Sam 2026-11-10：「算进去」）。那边是另一个网站，这里只在今天页
+// 取一次最近 21 天（那边标签里用过的最长一档；5 分钟内不重取），取到了重画。取不到（妈妈的账号、网络断了）→ readMin 返回 null，只算课件并写明。
+// 只加时长；那边没有专注度，「离开 N 次」单独写，不并进专注度（见 READING CLUB 那段的说明）。孩子页读不到那边，不含这部分。
+let RDM = { at:0, loading:false, ok:false, by:{} };   // by[kid][ymd] = { min, blur }
+async function loadReadMins(){
+  const user = auth.currentUser;
+  if(!user || RDM.loading || Date.now()-RDM.at < 5*60e3) return;
+  RDM.loading = true;
+  try {
+    const token = await user.getIdToken();
+    const res = await fetch(`${READING}/api/parent-feed?days=21`, { headers:{ Authorization:'Bearer '+token }, cache:'no-store' });
+    const body = await res.json().catch(()=>null);
+    if(res.ok && body && body.ok){
+      const by = {};
+      (body.kids||[]).forEach(kid=>{
+        const key = Object.keys(KID).find(k=>KID[k].n.toLowerCase()===String(kid.name).toLowerCase());
+        if(!key) return;
+        by[key] = {};
+        (kid.days||[]).forEach(d=>{ if(d.time) by[key][d.day] = { min:Math.round(d.time.activeMin||0), blur:d.time.blurCount||0 }; });
+      });
+      RDM.by = by; RDM.ok = true;
+    }
+  } catch(e){ console.warn('[reading mins]', e.message||e); }
+  RDM.at = Date.now(); RDM.loading = false;
+  if(V==='today') render();
+}
+const readMin = (k, d) => RDM.ok ? ((RDM.by[k]||{})[d] || { min:0, blur:0 }) : null;
+const readAdd = (k, d) => (readMin(k, d)||{}).min || 0;
 function focusOf(k, day){
   const T = { open:0, act:0, away:0, n:0, max:0, still:0, papers:0 };
   ATT.forEach(a=>{
@@ -1875,14 +1903,18 @@ function focusOf(k, day){
 }
 const focWord = p => p==null ? ['', '—'] : p>=80 ? ['g', '专心'] : p>=60 ? ['a', '有些分心'] : ['r', '很不专心'];
 function dayVerdict(k, day, m){
+  // m 进来是课件的分钟数；加上 Reading Club 的才是这天的总数
+  const R = readMin(k, day), hw = m; m = hw + (R ? R.min : 0);
   const isT = day===iso(today), F = focusOf(k, day), [fc, fw] = focWord(F.pct), hit = m >= PLAN_MINS;
-  const time = hit ? `<span class="g">达标</span> ${m} / ${PLAN_MINS} 分钟`
+  const split = R===null ? ` <small>${RDM.at ? '只算了课件，Reading Club 的时长没读到' : '正在读 Reading Club 的时长…'}</small>` : R.min ? ` <small>课件 ${hw} + Reading Club ${R.min}</small>` : '';
+  const time = (hit ? `<span class="g">达标</span> ${m} / ${PLAN_MINS} 分钟`
     : isT ? `<span class="a">还没到</span> ${m} / ${PLAN_MINS} 分钟，还差 ${PLAN_MINS - m} 分钟`
-    : `<span class="r">没达标</span> ${m} / ${PLAN_MINS} 分钟，少了 ${PLAN_MINS - m} 分钟`;
+    : `<span class="r">没达标</span> ${m} / ${PLAN_MINS} 分钟，少了 ${PLAN_MINS - m} 分钟`) + split;
+  const rnote = R && R.min ? `<div class="vrow"><b>阅读</b><span>Reading Club 在页 ${R.min} 分钟${R.blur ? `，离开 ${R.blur} 次` : '，没有离开'} <small>那边不算专注度</small></span></div>` : '';
   const bits = F.pct==null ? [] : [`页面开着 ${dur(F.open)}，真在做 ${dur(F.act)}`,
     F.n ? `切走 ${F.n} 次共 ${dur(F.away)}${F.max>=60 ? `，最长一次 ${dur(F.max)}` : ''}` : '没有切走',
     F.still ? `很久没动扣掉 ${dur(F.still)}` : ''].filter(Boolean);
-  const foc = F.pct==null ? (m ? '这天没有交卷的作业，专注度算不出来' : '—')
+  const foc = F.pct==null ? (hw ? '这天没有交卷的作业，专注度算不出来' : '—')
     : `<span class="${fc}">${F.pct}% · ${fw}</span> <small>${bits.join('；')}</small>`;
   const sum = !m && !F.papers ? (isT ? '今天还没开始学习。' : '这天没有学习。')
     : hit ? (F.pct==null || F.pct>=80 ? `${isT?'今天':'这天'}达标，而且专心。` : F.pct>=60 ? '时间够了，但中途有些分心。' : `时间够了，但很不专心，这 ${PLAN_MINS} 分钟要打折看。`)
@@ -1892,7 +1924,7 @@ function dayVerdict(k, day, m){
   // 昨天：只在看今天时带一行
   let yest = '';
   if(isT){
-    const y = shiftDay(day, -1), ym = Math.round(tSum(tStats(k, y, y)).secs/60), YF = focusOf(k, y), [yc, yw] = focWord(YF.pct);
+    const y = shiftDay(day, -1), ym = Math.round(tSum(tStats(k, y, y)).secs/60) + readAdd(k, y), YF = focusOf(k, y), [yc, yw] = focWord(YF.pct);
     yest = `<div class="vrow"><b>昨天</b><span>${ym>=PLAN_MINS ? `<span class="g">达标</span>` : `<span class="r">没达标</span>`} ${ym} / ${PLAN_MINS} 分钟${
       YF.pct==null ? '' : ` · 专注度 <span class="${yc}">${YF.pct}% ${yw}</span>`}</span></div>`;
   }
@@ -1900,23 +1932,23 @@ function dayVerdict(k, day, m){
   let nHit = 0, wo = 0, wa = 0;
   for(let i=0; i<STUDY_DAYS; i++){
     const d = shiftDay(day, -i), f = focusOf(k, d);
-    if(Math.round(tSum(tStats(k, d, d)).secs/60) >= PLAN_MINS) nHit++;
+    if(Math.round(tSum(tStats(k, d, d)).secs/60) + readAdd(k, d) >= PLAN_MINS) nHit++;
     wo += f.open; wa += f.act;
   }
   const wp = wo ? Math.min(100, Math.round(100*wa/wo)) : null, [wc, ww] = focWord(wp);
   return `<div class="verdict${cls}"><div class="vsum">${sum}</div>
     <div class="vrow"><b>时间</b><span>${time}</span></div>
-    <div class="vrow"><b>专注度</b><span>${foc}</span></div>${yest}
+    <div class="vrow"><b>专注度</b><span>${foc}</span></div>${rnote}${yest}
     <div class="vrow"><b>这 ${STUDY_DAYS} 天</b><span>${nHit} 天达标 / ${STUDY_DAYS} 天${wp==null ? '' : ` · 平均专注度 <span class="${wc}">${wp}% ${ww}</span>`}</span></div></div>`;
 }
 function dayCard(k, day, leftTxt, nTodo){
-  const t = tSum(tStats(k, day, day)), m = Math.round(t.secs/60);
+  const t = tSum(tStats(k, day, day)), m = Math.round(t.secs/60), rd = readAdd(k, day);
   const acc = t.of ? Math.round(100*t.right/t.of) : null, foc = t.open ? Math.min(100, Math.round(100*t.act/t.open)) : null;
   const col = (v, ok) => v==null ? 'var(--mute)' : v>=ok ? 'var(--green)' : v>=60 ? 'var(--amber)' : 'var(--red)';
   return `<div class="card dcard"><div class="dhead"><h3>${KID[k].n}</h3>${leftTxt?`<span class="dq">${leftTxt}</span>`:''}
       <a class="kv" href="homework.html?as=${k}" target="_blank" rel="noopener" title="打开 ${KID[k].n} 看到的作业页（家长模式）">孩子的界面 ›</a></div>
-    <div class="dmin">${m}<small> / ${PLAN_MINS} 分钟</small></div>
-    <div class="dbar${m>=PLAN_MINS?' ok':''}"><i style="width:${Math.min(100, Math.round(100*m/PLAN_MINS))}%"></i></div>
+    <div class="dmin">${m + rd}<small> / ${PLAN_MINS} 分钟${rd ? ` · 含 Reading Club ${rd}` : ''}</small></div>
+    <div class="dbar${m+rd>=PLAN_MINS?' ok':''}"><i style="width:${Math.min(100, Math.round(100*(m+rd)/PLAN_MINS))}%"></i></div>
     ${dayVerdict(k, day, m)}
     <div class="dstats">
       <div><b style="color:${col(acc, PASS)}">${acc==null?'—':acc+'%'}</b><span>准确率${t.of?` · ${Math.round(t.right)}/${t.of} 题`:''}</span></div>
@@ -2076,7 +2108,7 @@ function viewToday(){
       const w = tsDate(p.withdrawnAt); return esc(p.t) + (w ? `（${stamp(w)}）` : ''); }).join('、')}</div>`;
     html += `</details></div>`;
   });
-  return html + `</div><p class="dfoot">时间 = 页面开在最前面、真在做的时间，目标每天 ${PLAN_MINS} 分钟 · 准确率 = 每份第一遍答对的比例 · 专注度 = 交了卷的作业里，页面开着的时间有多少是真在做（切走、很久没动都不算）· 绿色 80% 以上，黄色 60–79%，红色更低</p>` + guide;
+  return html + `</div><p class="dfoot">时间 = 课件页面开在最前面、真在做的时间，加上 Reading Club 的在页时长，目标每天 ${PLAN_MINS} 分钟 · 准确率 = 每份第一遍答对的比例 · 专注度 = 交了卷的作业里，页面开着的时间有多少是真在做（切走、很久没动都不算）· 绿色 80% 以上，黄色 60–79%，红色更低</p>` + guide;
 }
 
 // 今天页每张卡片里的「需要留意」：这天交的卷子里，按「专注情况」同一套标准要留意的那几份（Sam 2026-10-16：
@@ -4468,6 +4500,7 @@ function render(){
                    : V==='dispatch'?viewDispatch() : V==='queue'?viewQueue()
                    : V==='skills'?viewSkills() : V==='reading'?viewReading() : V==='essay'?viewEssay()
                    : V==='audio'?viewAudio() : viewHist();
+  if(V==='today') loadReadMins();   // Reading Club 的时长（5 分钟内不重取；取到了它自己重画一次）
   // 收起 / 展开的组：记住开着的那几个
   viewEl.querySelectorAll('details[data-grp]').forEach(d=>d.addEventListener('toggle',()=>{
     d.open ? GRP_OPEN.add(d.dataset.grp) : GRP_OPEN.delete(d.dataset.grp); grpSave(); }));
