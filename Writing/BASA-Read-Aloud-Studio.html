@@ -23,6 +23,9 @@
     take 2 writes a new document, so the parent keeps the whole history.
   - Sign-in is the same named Firebase app ('kid') homework.html uses, so
     whoever is signed in there is signed in here.
+  - 2026-11-09: a piece can set its own takes / maxSecs / bitrate. Warren's two
+    long performance pieces are one run-through a day, up to 4 minutes at
+    16 kbps, and are also stopped by size (MAX_BYTES) so they always fit.
 ===================================================================== -->
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
@@ -112,7 +115,7 @@
   <header>
     <div class="crest">🎙️</div>
     <h1>Read It Out Loud</h1>
-    <p>Three takes. Record one, listen back, then do the next.</p>
+    <p id="hsub">Three takes. Record one, listen back, then do the next.</p>
     <div class="tag">BASA homework · recording studio</div>
   </header>
 
@@ -122,7 +125,7 @@
     <div class="picker" id="picker" hidden></div>
 
     <div class="sect">
-      <div class="eyebrow">Today's poem</div>
+      <div class="eyebrow" id="pkind">Today's poem</div>
       <h2 class="st" id="ptitle"></h2>
       <div class="byline" id="pauthor"></div>
       <p class="lead" id="pnote"></p>
@@ -137,19 +140,12 @@
 
     <div id="allgood" class="allgood" hidden>
       <span class="big">🌟</span>
-      That's all three readings for <b>today</b>. Your parents can listen to them on their page.
-      Come back tomorrow and read it three more times.
+      <span id="allgoodtxt"></span>
     </div>
 
     <div id="takes"></div>
 
-    <div class="notice" style="margin-top:16px">
-      <b>How it works.</b> Each take is saved on its own, right after you stop.
-      Read the <b>whole poem</b> every time — take 1, take 2 and take 3 are three separate readings,
-      not one long one. If a take goes wrong, just record it again; the new one is the one that counts.
-      The three counted here are <b>today's</b>: this is a read-it-every-day homework, so tomorrow it starts
-      at 0 / 3 again. Yesterday's takes are still saved — they move down to "earlier days".
-    </div>
+    <div class="notice" style="margin-top:16px" id="how"></div>
   </div>
 
   <div id="signin" class="notice" hidden>
@@ -181,7 +177,24 @@ const POEMS = [
     tips:['<b>Breathe at the punctuation</b>, not at every line break.',
           '<b>Short line, slow line</b> — give the two- and three-word lines air.',
           '<b>Start full-voiced, end almost whispering.</b>',
-          'Repeated stanza openings are a drumbeat — keep the beat steady.'] }
+          'Repeated stanza openings are a drumbeat — keep the beat steady.',
+          '<b>Follow the pencil marks.</b> Every slash on your sheet is a real stop; at the two arrows, carry straight on into the next line.'] },
+  /* Warren's two long performance pieces (2026-11-09). One whole run-through a day each, not three:
+     they take 3–4 minutes, so they get a longer clock at a lower bitrate (see limits below). */
+  { id:'my-powers', kid:'warren', what:'piece', takes:1, maxSecs:240, bitrate:16000,
+    title:'My Powers', author:'by Demetri Martin',
+    note:'Perform it from your marked sheet — or from memory, with the sheet face down. This page does not retype the piece; it just records you.',
+    tips:['<b>Never smile.</b> He believes every word. The straight face is the joke.',
+          '<b>Half a second of air before each flop</b> — the spot where the brag goes wrong.',
+          '<b>Do the four crosses for real</b> (XL, XR, XUS, XDS), even though this is only sound. Your voice changes when your feet move. Stay close enough to be heard from the back.',
+          '<b>The last four words:</b> quiet, slow, full stop. Then count two before you press Stop.'] },
+  { id:'zeus-kills-everyone', kid:'warren', what:'piece', takes:1, maxSecs:240, bitrate:16000,
+    title:'Zeus Kills Everyone', author:'from Percy Jackson’s Greek Gods, by Rick Riordan',
+    note:'Read it from your highlighted sheet. This page does not retype the story; it just records you telling it.',
+    tips:['<b>Six voices.</b> The narrator is your own; each highlighter colour gets a different one. A listener should know who is talking before you tell them.',
+          '<b>Capital letters are volume</b> — but stay a step back from the microphone when the giant shouts.',
+          '<b>The second battle cry has a question mark.</b> Let your voice go up at the end.',
+          '<b>The narrator’s side comments are jokes too.</b> Drop the story voice and say them like an aside to a friend.'] }
 ];
 
 /* ===== limits ===== */
@@ -189,6 +202,13 @@ const POEMS = [
    is ~450 KB of audio → ~600 KB of base64, comfortably inside. The poem takes
    about a minute to read, so nobody should ever meet these. */
 const TAKES = 3, MAX_SECS = 150, BITRATE = 24000, MAX_B64 = 720000;
+/* A piece may set its own takes / maxSecs / bitrate (the long ones do). Whatever the browser really
+   records at, a long piece is also stopped by SIZE: once the audio reaches MAX_BYTES it stops and
+   saves what it has, rather than recording a take that is too big to save. */
+const MAX_BYTES = 500000;   // + the last second flushed after stop → still under MAX_B64 (540,000 bytes)
+const takesOf = p => (p && p.takes) || TAKES;
+const maxSecsOf = p => (p && p.maxSecs) || MAX_SECS;
+const bitrateOf = p => (p && p.bitrate) || BITRATE;
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDMKUeccjFtMbotXulnMhYcoykWpw4Y7ls',
@@ -238,15 +258,35 @@ function paintPoem(){
   $('pauthor').textContent = POEM.author;
   $('pnote').textContent = POEM.note;
   $('ptips').innerHTML = '<b>Before you press record</b><ul>' + POEM.tips.map(t=>`<li>${t}</li>`).join('') + '</ul>';
+  const T = takesOf(POEM), thing = POEM.what || 'poem';
+  $('pkind').textContent = `Today's ${thing}`;
+  if(T === 1){
+    $('hsub').textContent = 'One whole run-through. Record it, then listen back.';
+    $('allgoodtxt').innerHTML = `That's <b>today's</b> run-through saved. Your parents can listen to it on their page.
+      Come back tomorrow and do it again.`;
+    $('how').innerHTML = `<b>How it works.</b> One recording is one run-through of the <b>whole ${thing}</b>, start to finish,
+      and it is saved right after you stop. If it goes wrong, just record it again; the new one is the one that counts.
+      The clock stops by itself at ${mmss(maxSecsOf(POEM))}. The one counted here is <b>today's</b>: tomorrow it starts
+      at 0 / 1 again, and yesterday's is still saved — it moves down to "earlier days".`;
+  } else {
+    $('hsub').textContent = 'Three takes. Record one, listen back, then do the next.';
+    $('allgoodtxt').innerHTML = `That's all three readings for <b>today</b>. Your parents can listen to them on their page.
+      Come back tomorrow and read it three more times.`;
+    $('how').innerHTML = `<b>How it works.</b> Each take is saved on its own, right after you stop.
+      Read the <b>whole ${thing}</b> every time — take 1, take 2 and take 3 are three separate readings,
+      not one long one. If a take goes wrong, just record it again; the new one is the one that counts.
+      The three counted here are <b>today's</b>: this is a read-it-every-day homework, so tomorrow it starts
+      at 0 / 3 again. Yesterday's takes are still saved — they move down to "earlier days".`;
+  }
 }
 
 function savedCount(){ return SLOT.filter(s=>s && s.state==='saved').length; }
 
 function paint(){
-  const done = savedCount();
-  $('count').textContent = `${done} / ${TAKES}`;
-  $('fill').style.width = (done/TAKES*100) + '%';
-  $('allgood').hidden = done < TAKES;
+  const done = savedCount(), T = takesOf(POEM);
+  $('count').textContent = `${done} / ${T}`;
+  $('fill').style.width = (done/T*100) + '%';
+  $('allgood').hidden = done < T;
 
   $('takes').innerHTML = SLOT.map((s, i)=>{
     const n = i + 1, live = RECORDING === n;
@@ -263,7 +303,7 @@ function paint(){
       body = `<div class="row"><span class="clock" id="clock${n}">0:00</span>
         <span class="meter"><i id="meter${n}"></i></span>
         <button class="btn red" data-stop="${n}">⏹ Stop</button></div>
-        <div class="hist">Reads itself out automatically after ${mmss(MAX_SECS)}.</div>`;
+        <div class="hist">Stops by itself after ${mmss(maxSecsOf(POEM))}.</div>`;
     } else {
       const canRec = !RECORDING;
       body = `<div class="row">
@@ -273,6 +313,7 @@ function paint(){
       </div>`;
       if(s.url) body += `<audio controls preload="metadata" src="${s.url}"></audio>`;
       if(s.err) body += `<div class="hist" style="color:#c0392b">${esc(s.err)}</div>`;
+      if(s.note && s.state !== 'failed') body += `<div class="hist">${esc(s.note)}</div>`;
       const td = todayYmd();
       const mine = MINE.filter(r=>r.take===n);
       const todays = mine.filter(r=>dayOf(r) === td), past = mine.filter(r=>dayOf(r) !== td);
@@ -297,6 +338,7 @@ function paint(){
 
 /* ---------- recording ---------- */
 let mediaStream = null, rec = null, chunks = [], startedAt = 0, tick = null, audioCtx = null, rafId = 0;
+let cutShort = false;   // the size limit (not the kid, not the clock) ended this recording
 
 async function start(n){
   if(RECORDING) return;
@@ -304,22 +346,37 @@ async function start(n){
     SLOT[n-1].err = 'This browser can’t record. Ask a parent to open this page in Safari or Chrome.';
     paint(); return;
   }
+  const poem = POEM;
+  let stream;
   try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true } });
+    stream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true } });
   } catch(e){
+    if(POEM !== poem) return;
     SLOT[n-1].err = e && e.name === 'NotAllowedError'
       ? 'The microphone is blocked. Tap the little icon in the address bar and allow the microphone, then try again.'
       : 'No microphone found. Check that one is plugged in, then try again.';
     paint(); return;
   }
+  // The microphone prompt can take a while: if another piece was picked, or a second tap already
+  // started recording, let this one go.
+  if(POEM !== poem || RECORDING){ stream.getTracks().forEach(t=>t.stop()); return; }
+  mediaStream = stream;
   const mime = pickMime();
-  try { rec = new MediaRecorder(mediaStream, Object.assign({ audioBitsPerSecond: BITRATE }, mime ? { mimeType:mime } : {})); }
+  try { rec = new MediaRecorder(mediaStream, Object.assign({ audioBitsPerSecond: bitrateOf(POEM) }, mime ? { mimeType:mime } : {})); }
   catch(e){ rec = new MediaRecorder(mediaStream); }
 
-  chunks = [];
-  rec.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
+  // A long piece hands its audio over a second at a time so the size can be watched as it grows;
+  // the short poems record in one piece exactly as before.
+  const long = maxSecsOf(POEM) > MAX_SECS, maxSecs = maxSecsOf(POEM);
+  let bytes = 0;
+  chunks = []; cutShort = false;
+  rec.ondataavailable = e => {
+    if(!e.data || !e.data.size) return;
+    chunks.push(e.data); bytes += e.data.size;
+    if(long && bytes >= MAX_BYTES && RECORDING){ cutShort = true; stop(); }
+  };
   rec.onstop = () => finish(n);
-  rec.start();
+  if(long) rec.start(1000); else rec.start();
   RECORDING = n; startedAt = Date.now();
   SLOT[n-1] = { state:'empty', blob:null, url:SLOT[n-1].url, secs:0, err:'' };
   paint();
@@ -327,7 +384,7 @@ async function start(n){
   tick = setInterval(()=>{
     const s = (Date.now()-startedAt)/1000;
     const c = $('clock'+n); if(c) c.textContent = mmss(s);
-    if(s >= MAX_SECS) stop();
+    if(s >= maxSecs) stop();
   }, 200);
 }
 
@@ -367,7 +424,8 @@ function finish(n){
   if(audioCtx){ try{ audioCtx.close(); }catch(e){} audioCtx = null; }
   const old = SLOT[n-1];
   if(old.url && old.local) URL.revokeObjectURL(old.url);
-  SLOT[n-1] = { state:'recorded', blob, url:URL.createObjectURL(blob), local:true, secs, err:'' };
+  SLOT[n-1] = { state:'recorded', blob, url:URL.createObjectURL(blob), local:true, secs, err:'',
+                note: cutShort ? 'That is as long as one recording can be, so it stopped itself here. What you recorded is saved.' : '' };
   paint();
   save(n);
 }
@@ -383,26 +441,28 @@ function toB64(blob){
 }
 
 async function save(n){
-  const s = SLOT[n-1];
+  const s = SLOT[n-1], poem = POEM;
   if(!s || !s.blob) return;
   s.state = 'saving'; s.err = ''; paint();
   try {
     const audio = await toB64(s.blob);
     if(audio.length > MAX_B64) throw new Error('too long');
-    const id = `${ME.key}_${POEM.id}_t${n}_${Date.now()}`;
+    const id = `${ME.key}_${poem.id}_t${n}_${Date.now()}`;
     // One batch: the row and its audio arrive together or not at all, so the
     // parent console never lists a take it can't play.
     const batch = db.batch();
     batch.set(db.collection('recordings').doc(id), {
-      kidId: ME.uid, poemId: POEM.id, poemTitle: POEM.title, poemAuthor: POEM.author,
+      kidId: ME.uid, poemId: poem.id, poemTitle: poem.title, poemAuthor: poem.author,
       take: n, mime: s.blob.type || 'audio/webm', secs: s.secs, bytes: s.blob.size,
       createdAt: Date.now(), day: ymd(new Date())
     });
     batch.set(db.collection('recordingAudio').doc(id), { kidId: ME.uid, audio });
     await batch.commit();
     s.state = 'saved';
-    MINE.unshift({ id, take:n, secs:s.secs, poemId:POEM.id, mime:s.blob.type || 'audio/webm',
-                   createdAt:Date.now(), day:ymd(new Date()) });
+    const row = { id, take:n, secs:s.secs, poemId:poem.id, mime:s.blob.type || 'audio/webm',
+                  createdAt:Date.now(), day:ymd(new Date()) };
+    if(ROWS) ROWS.push(row);
+    if(POEM === poem) MINE.unshift(row);
   } catch(e){
     console.error(e);
     s.state = 'failed';
@@ -429,32 +489,37 @@ async function playSaved(n){
   const td = todayYmd();
   const r = mine.find(x=>dayOf(x) === td) || mine[0];   // today's first, else the newest there is
   if(!r) return;
-  const s = SLOT[n-1];
+  const s = SLOT[n-1], poem = POEM;
   s.err = ''; s.state = 'saved'; paint();
   try {
     const snap = await db.collection('recordingAudio').doc(r.id).get();
+    if(POEM !== poem) return;
     const d = Object.assign({ mime:r.mime, secs:r.secs }, snap.data() || {});
     if(!d.audio) throw new Error('gone');
     if(s.url && s.local) URL.revokeObjectURL(s.url);
     SLOT[n-1] = Object.assign({}, s, { url:`data:${d.mime || 'audio/webm'};base64,${d.audio}`, local:false, secs:d.secs||0 });
-  } catch(e){ console.error(e); SLOT[n-1].err = 'Couldn’t load that one.'; }
+  } catch(e){ console.error(e); if(POEM !== poem) return; SLOT[n-1].err = 'Couldn’t load that one.'; }
   paint();
 }
 
 /* ---------- start-up ---------- */
 function freshSlots(){
-  SLOT = Array.from({ length:TAKES }, ()=>({ state:'empty', blob:null, url:'', secs:0, err:'' }));
+  SLOT = Array.from({ length:takesOf(POEM) }, ()=>({ state:'empty', blob:null, url:'', secs:0, err:'' }));
 }
 
+let ROWS = null;        // every recording row of this kid, read once per visit and shared by the pieces
 async function loadMine(){
+  const poem = POEM;
   MINE = [];
   try {
     // Rows only (no audio), and filtered on kidId — that's the field the rules check.
-    const snap = await db.collection('recordings').where('kidId','==',ME.uid).get();
-    MINE = snap.docs.map(d=>Object.assign({ id:d.id }, d.data()))
-      .filter(r=>r.poemId === POEM.id)
-      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    if(!ROWS){
+      const snap = await db.collection('recordings').where('kidId','==',ME.uid).get();
+      if(!ROWS) ROWS = snap.docs.map(d=>Object.assign({ id:d.id }, d.data()));
+    }
   } catch(e){ console.warn('[recordings]', e.code||e); }
+  if(POEM !== poem) return;   // another piece was picked while this was loading; its own load fills it in
+  MINE = (ROWS || []).filter(r=>r.poemId === POEM.id).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
   // Only a take saved TODAY fills in today's 3 — she can still record over it.
   // Earlier days stay in MINE so she (and the parent page) can still play them back.
   const td = todayYmd();
@@ -463,6 +528,10 @@ async function loadMine(){
 }
 
 function choosePoem(p){
+  // Three pieces now share this page for Warren: don't let a tap on another one throw away a take.
+  if(RECORDING || SLOT.some(s=>s && s.state === 'saving')) return;   // wait for the save to land
+  if(POEM && p !== POEM && SLOT.some(s=>s && (s.state === 'failed' || s.state === 'recorded'))
+     && !confirm('One recording here is not saved yet. Leave it and switch anyway?')) return;
   POEM = p;
   freshSlots(); paint(); paintPoem();
   $('picker').querySelectorAll('.pk').forEach(b=>b.classList.toggle('on', b.dataset.p === p.id));

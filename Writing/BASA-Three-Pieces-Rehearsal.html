@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Three Pieces, One Performer — BASA Rehearsal Coach</title>
+<!-- =====================================================================
+  BASA rehearsal coach for Warren's three performance pieces (sheets handed
+  in 2026-11-09, scan "BASA Warren.pdf"):
+    · My Powers — Demetri Martin (comic monologue, teacher's blocking marks)
+    · When Great Trees Fall — Maya Angelou (poem, pause / run-on marks)
+    · from "Zeus Kills Everyone" — Rick Riordan (prose, colour-coded voices)
+
+  Same rule as the other BASA pages: NONE of the three texts is retyped here.
+  They belong to their authors and live on the printed sheets. Everything on
+  this page is coaching written for it: what the marks mean, how to deliver
+  each beat, a build-your-own cue card, a daily routine and a quick check.
+  All state is localStorage on this device. No globals (one IIFE), so
+  quiz-report.js records the page as "viewed" (time + focus), not as a score.
+===================================================================== -->
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', 'Times New Roman', serif; background: linear-gradient(160deg, #e3e9df 0%, #efe8d6 55%, #dcd3bd 100%); min-height: 100vh; color: #1c1a17; padding: 20px 16px 60px; -webkit-text-size-adjust: 100%; }
+  .wrap { max-width: 800px; margin: 0 auto; }
+
+  header { background: #2f4a3a; border-radius: 18px; padding: 26px 24px; text-align: center; color: #f5ecd9; box-shadow: 0 8px 0 #1e3126; margin-bottom: 16px; }
+  header .crest { font-size: 46px; line-height: 1; }
+  header h1 { font-size: 25px; margin: 8px 0 6px; font-style: italic; }
+  header p { font-size: 15px; opacity: .93; line-height: 1.5; }
+  header .tag { display: inline-block; margin-top: 10px; background: rgba(255,255,255,.14); border-radius: 999px; padding: 5px 14px; font-size: 13px; letter-spacing: .4px; }
+
+  .notice { background: #fff6e0; border: 3px solid #c9973f; border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; font-size: 15px; line-height: 1.65; }
+  .notice b { color: #8a5f18; }
+
+  .sect { background: #fffdf7; border-radius: 16px; padding: 22px; box-shadow: 0 6px 0 #c9b890; margin-bottom: 18px; }
+  .num { display: inline-block; background: #2f4a3a; color: #f5ecd9; width: 30px; height: 30px; border-radius: 50%; text-align: center; line-height: 30px; font-weight: bold; font-size: 16px; }
+  .eyebrow { font-size: 12px; color: #8a6d3b; font-weight: bold; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
+  h2.st { font-size: 22px; color: #2f4a3a; margin: 6px 0 10px; line-height: 1.3; }
+  .lead { font-size: 16.5px; line-height: 1.7; color: #3b352c; }
+  .lead + .lead { margin-top: 10px; }
+  .lead em { color: #2f4a3a; font-style: italic; }
+  h3.mini { font-size: 13px; text-transform: uppercase; letter-spacing: .7px; color: #b8862f; margin: 20px 0 8px; }
+
+  /* the three pieces at a glance */
+  .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+  .trio div { border: 3px solid #e6dcc4; border-radius: 12px; padding: 12px; background: #fffef9; font-size: 14.5px; line-height: 1.5; color: #4a4339; }
+  .trio .ic { font-size: 26px; line-height: 1; }
+  .trio b { display: block; color: #2f4a3a; font-size: 16px; margin: 5px 0 2px; }
+  .trio i { color: #6b6156; }
+
+  /* marks decoder */
+  .marks { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 15.5px; line-height: 1.55; }
+  .marks td { padding: 10px 8px; border-top: 2px dashed #e6dcc4; vertical-align: top; color: #4a4339; }
+  .marks tr:first-child td { border-top: none; }
+  .marks td:first-child { width: 78px; font-family: ui-monospace, Menlo, monospace; font-weight: bold; font-size: 17px; color: #2f4a3a; white-space: nowrap; }
+  .marks b { color: #2f4a3a; }
+
+  .stage { margin: 14px auto 4px; max-width: 420px; }
+  .stage .floor { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; background: #2f4a3a; border-radius: 12px 12px 4px 4px; padding: 8px; }
+  .stage .floor span { background: #f7f3e6; border-radius: 7px; padding: 9px 4px; text-align: center; font-size: 12.5px; line-height: 1.35; color: #4a4339; }
+  .stage .floor span b { display: block; color: #2f4a3a; font-size: 13.5px; }
+  .stage .floor span.c { background: #fff6e0; }
+  .stage .aud { text-align: center; font-size: 13px; color: #6b6156; padding: 7px 0 0; letter-spacing: 1px; }
+
+  /* piece folds */
+  .stz { border: 3px solid #e6dcc4; border-radius: 12px; margin-bottom: 10px; overflow: hidden; background: #fffef9; }
+  .stz .head { width: 100%; text-align: left; background: #f7f3e6; border: none; font-family: inherit; font-size: 16.5px; color: #2f4a3a; padding: 13px 16px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+  .stz .head:hover { background: #f1ecdb; }
+  .stz .head .pill { background: #2f4a3a; color: #f5ecd9; font-size: 12px; font-weight: bold; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+  .stz .head .arrow { margin-left: auto; color: #8a6d3b; font-size: 13px; white-space: nowrap; }
+  .stz .body { display: none; padding: 14px 16px 16px; font-size: 15.5px; line-height: 1.7; color: #4a4339; border-top: 2px dashed #e6dcc4; }
+  .stz.open .body { display: block; }
+  .stz .body p + p { margin-top: 9px; }
+  .stz .body b { color: #2f4a3a; }
+  .say { margin-top: 10px; background: #fff6e0; border-radius: 10px; padding: 10px 14px; font-size: 15px; color: #6d5320; line-height: 1.6; }
+  .say b { color: #8a5f18 !important; }
+  .try { margin-top: 10px; background: #f1f6ef; border-left: 5px solid #3a7d44; border-radius: 0 10px 10px 0; padding: 10px 14px; font-size: 15px; line-height: 1.6; color: #2e4a33; }
+  .try b { color: #2b6132 !important; }
+
+  .beats { margin: 8px 0 0 0; list-style: none; counter-reset: bt; }
+  .beats li { counter-increment: bt; position: relative; padding: 7px 0 7px 38px; border-top: 1px solid #efe6cf; font-size: 15px; line-height: 1.55; }
+  .beats li:first-child { border-top: none; }
+  .beats li::before { content: counter(bt); position: absolute; left: 0; top: 8px; width: 26px; height: 26px; border-radius: 50%; background: #e6dcc4; color: #4a4339; text-align: center; line-height: 26px; font-size: 13px; font-weight: bold; }
+  .xl { list-style: none; margin-top: 8px; }
+  .xl li { padding: 7px 0; border-top: 1px solid #efe6cf; font-size: 15px; line-height: 1.55; }
+  .xl li:first-child { border-top: none; }
+  .x { display: inline-block; font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; font-weight: bold; background: #2f4a3a; color: #f5ecd9; border-radius: 6px; padding: 1px 7px; margin-right: 4px; }
+
+  .words { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-top: 6px; }
+  .words div { border: 2px solid #e6dcc4; border-radius: 10px; padding: 8px 11px; font-size: 14.5px; line-height: 1.5; background: #fffef9; }
+  .words b { color: #2f4a3a; }
+  .words i { color: #8a6d3b; font-style: normal; font-size: 13px; }
+
+  .cast { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 15px; line-height: 1.5; }
+  .cast td { padding: 9px 6px; border-top: 1px solid #efe6cf; vertical-align: top; }
+  .cast tr:first-child td { border-top: none; }
+  .sw { display: inline-block; width: 15px; height: 15px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; border: 1px solid rgba(0,0,0,.18); }
+  .cast input { margin-top: 5px; }
+
+  textarea, input[type=text] { width: 100%; font-family: inherit; font-size: 16px; color: #1c1a17; background: #fffef9; border: 3px solid #ddcaa3; border-radius: 12px; padding: 9px 12px; line-height: 1.5; }
+  textarea:focus, input[type=text]:focus { outline: none; border-color: #2f4a3a; background: #fff; }
+
+  /* cue cards */
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 12px; }
+  .tab { font-family: inherit; font-size: 14.5px; border: 3px solid #ddcaa3; background: #fffef9; color: #4a4339; border-radius: 999px; padding: 7px 15px; cursor: pointer; }
+  .tab.on { background: #2f4a3a; border-color: #2f4a3a; color: #f5ecd9; }
+  .modes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; font-size: 14px; color: #6b6156; }
+  .btn { font-family: inherit; font-size: 15px; border: none; border-radius: 11px; padding: 9px 16px; cursor: pointer; background: #2f4a3a; color: #f5ecd9; box-shadow: 0 4px 0 #1e3126; }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #1e3126; }
+  .btn.ghost { background: #f7f3e6; color: #4a4339; box-shadow: 0 4px 0 #ddcaa3; }
+  .cue { border: 3px solid #e6dcc4; border-radius: 12px; padding: 11px 13px; margin-bottom: 8px; background: #fffef9; display: grid; grid-template-columns: 30px 1fr; gap: 4px 10px; align-items: center; }
+  .cue .cn { width: 28px; height: 28px; border-radius: 50%; background: #2f4a3a; color: #f5ecd9; text-align: center; line-height: 28px; font-size: 13.5px; font-weight: bold; }
+  .cue .cl { font-size: 15px; color: #4a4339; line-height: 1.45; }
+  .cue .cw { grid-column: 2; }
+  .cue .big { grid-column: 2; font-size: 21px; color: #2f4a3a; font-weight: bold; line-height: 1.35; min-height: 28px; }
+  .cue .big.none { font-size: 14.5px; color: #a89a80; font-weight: normal; font-style: italic; }
+  .cue .mk { grid-column: 2; display: flex; gap: 7px; flex-wrap: wrap; }
+  .cue .mk button { font-family: inherit; font-size: 13.5px; border: 2px solid #ddcaa3; background: #fffef9; color: #4a4339; border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+  .cue.ok { background: #e8f5e6; border-color: #3a7d44; }
+  .cue.ok .mk .y { background: #3a7d44; border-color: #3a7d44; color: #fff; }
+  .cue.no { background: #fbeaea; border-color: #c0392b; }
+  .cue.no .mk .n { background: #c0392b; border-color: #c0392b; color: #fff; }
+  .tally { font-size: 15px; color: #3b352c; margin-top: 10px; line-height: 1.6; }
+  .tally b { color: #2b6132; }
+
+  /* daily routine */
+  .todo { border: 3px solid #e6dcc4; border-radius: 12px; padding: 12px 14px; margin-bottom: 9px; background: #fffef9; }
+  .todo label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+  .todo input[type=checkbox] { width: 21px; height: 21px; margin-top: 2px; accent-color: #3a7d44; flex: none; }
+  .todo .tl { font-size: 16.5px; color: #2f4a3a; font-weight: bold; line-height: 1.4; }
+  .todo .td { display: block; font-size: 15px; color: #4a4339; line-height: 1.6; margin-top: 3px; }
+  .todo.on { background: #e8f5e6; border-color: #3a7d44; }
+  .focus { background: #f1f6ef; border-left: 5px solid #3a7d44; border-radius: 0 10px 10px 0; padding: 11px 15px; font-size: 15.5px; line-height: 1.6; color: #2e4a33; margin: 12px 0; }
+  .focus b { color: #2b6132; }
+  .streak { font-size: 14px; color: #6b6156; margin-top: 8px; }
+
+  /* quick check */
+  .q { border: 3px solid #e6dcc4; border-radius: 12px; padding: 14px 15px; margin-bottom: 11px; background: #fffef9; }
+  .q .qt { font-size: 16.5px; line-height: 1.55; color: #1c1a17; margin-bottom: 9px; }
+  .q .qt span { color: #8a6d3b; font-weight: bold; }
+  .opt { display: block; width: 100%; text-align: left; font-family: inherit; font-size: 15.5px; line-height: 1.5; color: #3b352c; background: #f7f3e6; border: 2px solid #ddcaa3; border-radius: 10px; padding: 9px 13px; margin-top: 7px; cursor: pointer; }
+  .opt:hover { border-color: #c9973f; }
+  .opt.right { background: #e8f5e6; border-color: #3a7d44; color: #1f4a26; font-weight: bold; }
+  .opt.wrong { background: #fbeaea; border-color: #c0392b; color: #8c261c; }
+  .opt[disabled] { cursor: default; }
+  .why { display: none; margin-top: 9px; font-size: 15px; line-height: 1.6; color: #2e4a33; background: #f1f6ef; border-radius: 10px; padding: 9px 13px; }
+  .q.done .why { display: block; }
+  .scoreline { font-size: 16px; color: #2f4a3a; font-weight: bold; margin-top: 6px; }
+
+  .nextcard { background: #2f4a3a; color: #f5ecd9; border-radius: 16px; padding: 22px 24px; text-align: center; box-shadow: 0 8px 0 #1e3126; }
+  .nextcard h2 { font-size: 21px; font-style: italic; margin-bottom: 8px; }
+  .nextcard p { font-size: 15.5px; line-height: 1.6; opacity: .93; margin-bottom: 14px; }
+  .nextcard a { display: inline-block; background: #c9973f; color: #2b2109; text-decoration: none; font-weight: bold; font-size: 17px; border-radius: 12px; padding: 12px 24px; box-shadow: 0 5px 0 #8a5f18; }
+  .nextcard a:active { transform: translateY(3px); box-shadow: 0 2px 0 #8a5f18; }
+  a.inl { color: #8a5f18; }
+
+  .back { text-align: center; margin-top: 20px; }
+  .back a { color: #4a4339; font-size: 15px; text-decoration: none; border-bottom: 2px dotted #a89a80; }
+  @media (max-width: 620px) {
+    header h1 { font-size: 22px; } h2.st { font-size: 20px; }
+    .trio { grid-template-columns: 1fr; }
+    .sect { padding: 18px 15px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="crest">🎭</div>
+    <h1>Three Pieces, One Performer</h1>
+    <p>A funny one, a serious one, and one with six voices.</p>
+    <div class="tag">BASA · rehearsal coach</div>
+  </header>
+
+  <div class="notice">
+    <b>Keep your three marked sheets next to you.</b> This page doesn't retype them — the words belong to
+    their authors and they live on your paper, along with your teacher's pencil marks. This page is the coach:
+    it explains the marks, shows you how to deliver each part, and helps you get all three into your memory.
+  </div>
+
+  <div class="sect">
+    <div class="eyebrow"><span class="num">1</span> &nbsp;The job</div>
+    <h2 class="st">Three pieces that need three different performers</h2>
+    <p class="lead">Your three sheets were chosen to be as different from each other as possible. That is the
+    point: the skill being trained is <em>range</em> — changing your face, your speed and your voice so
+    completely that each piece feels like a different person is on stage.</p>
+    <div class="trio">
+      <div><span class="ic">🦸</span><b>My Powers</b><i>Demetri Martin</i><br>Comic monologue. One character, dead serious, completely ridiculous. You move around the stage.</div>
+      <div><span class="ic">🌳</span><b>When Great Trees Fall</b><i>Maya Angelou</i><br>A poem about losing someone great. Still body, slow voice, real silence.</div>
+      <div><span class="ic">⚡</span><b>Zeus Kills Everyone</b><i>Rick Riordan</i><br>Storytelling. A narrator plus five characters, and you are all of them.</div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="eyebrow"><span class="num">2</span> &nbsp;Decoder</div>
+    <h2 class="st">What the marks on your sheets mean</h2>
+    <p class="lead">Your teacher wrote in a code that actors and speakers use. Once you can read it, the sheet
+    tells you where to walk, where to breathe and whose voice to use.</p>
+
+    <table class="marks">
+      <tr><td>X</td><td><b>Cross</b> — walk to a new spot on the stage. The letters after the X say where.</td></tr>
+      <tr><td>XL · XR</td><td><b>Cross left · cross right.</b> Stage left and stage right are <b>your</b> left and right as you face the audience — not theirs.</td></tr>
+      <tr><td>XUS</td><td><b>Cross upstage</b> — walk toward the back, away from the audience.</td></tr>
+      <tr><td>XDS</td><td><b>Cross downstage</b> — walk toward the front, closer to the audience.</td></tr>
+      <tr><td>/</td><td><b>Pause.</b> A thought ends here. Stop, breathe, let it land, then go on.</td></tr>
+      <tr><td>→</td><td><b>Keep going.</b> The line ends on the paper but the thought doesn't. Carry your voice straight into the next line with no stop.</td></tr>
+      <tr><td>colours</td><td><b>Who is talking.</b> On the Zeus sheet each highlighter colour is one character. No colour = the narrator.</td></tr>
+    </table>
+
+    <div class="stage" aria-label="Stage map">
+      <div class="floor">
+        <span><b>Up right</b>back</span><span><b>Upstage</b>back, away from them</span><span><b>Up left</b>back</span>
+        <span><b>Stage right</b>your right</span><span class="c"><b>Centre</b>start here</span><span><b>Stage left</b>your left</span>
+        <span><b>Down right</b>front</span><span><b>Downstage</b>front, close to them</span><span><b>Down left</b>front</span>
+      </div>
+      <div class="aud">▲ &nbsp; A U D I E N C E &nbsp; ▲</div>
+    </div>
+    <p class="lead" style="font-size:15px;margin-top:8px">The map is drawn the way the <em>audience</em> sees you, so
+    "stage left" is on the right of the picture. Stand up, face an imaginary audience and point: your left hand is
+    stage left.</p>
+    <div class="try"><b>Why "up" and "down"?</b> Old theatre stages were built on a slope, higher at the back so
+    everyone could see. Walking away from the audience really was walking uphill.</div>
+  </div>
+
+  <div class="sect">
+    <div class="eyebrow"><span class="num">3</span> &nbsp;Piece by piece</div>
+    <h2 class="st">How to deliver each one</h2>
+    <p class="lead">Tap a piece to open it. The numbered beats follow your sheet from top to bottom — one beat
+    is one paragraph (or one stanza).</p>
+
+    <div style="margin-top:14px">
+
+      <!-- ============ MY POWERS ============ -->
+      <div class="stz"><button class="head" type="button"><span class="pill">🦸 Piece 1</span> My Powers<span class="arrow">tap ▾</span></button>
+        <div class="body">
+          <p><b>What it is.</b> A man warns you about his super powers. He believes every word. The joke is
+          that almost every "power" falls apart halfway through the sentence — it turns out to be useless,
+          ordinary, or actually a weakness.</p>
+          <p><b>The engine: brag, then flop.</b> Nearly every paragraph is built the same way. First half: a
+          big superhero boast. Second half: the boast collapses. Your whole job is to make the first half sound
+          100% impressive so the collapse is a surprise.</p>
+
+          <h3 class="mini">Three rules of deadpan</h3>
+          <p><b>1. Never smile.</b> "Deadpan" means a completely serious face while saying something silly.
+          The character has no idea he is funny. The second you grin, you are telling the audience "this is a
+          joke" — and it stops being one.</p>
+          <p><b>2. Tiny pause before the flop.</b> Find the turn in each paragraph — the word where the brag
+          starts to go wrong — and put a half-second of air right before it. That gap is where the laugh loads.</p>
+          <p><b>3. Wait for the laugh.</b> If people laugh, stand still and let them. Start the next line as
+          the laugh is dying down, not on top of it. If nobody laughs, carry on just as proud as before.</p>
+
+          <h3 class="mini">Your four crosses, and why they are there</h3>
+          <p>A good cross isn't decoration — it does something for the line. Look at what each of yours does:</p>
+          <ul class="xl">
+            <li><span class="x">XL</span> at the three dots in the "secret" line. The walk <em>is</em> the pause. You are making them wait for a secret you will never tell.</li>
+            <li><span class="x">XR</span> as the "versatile" paragraph starts. New spot, new topic — and a versatile hero should look like he can pop up anywhere.</li>
+            <li><span class="x">XUS</span> on the running paragraph. You walk to the back, so when he tells them how far away he is now, it is actually true. The move is the punchline.</li>
+            <li><span class="x">XDS</span> on the last paragraph. Come all the way down to the audience for the final warning. Closest you have been all piece — then hold still on the last four words.</li>
+          </ul>
+          <div class="try"><b>Walk first or talk first?</b> Try each cross both ways — moving in silence and then
+          speaking, or speaking as you go. For the XL, silence is funnier. For the XUS, try walking while he brags,
+          and arrive just in time for the "over here" line.</div>
+
+          <h3 class="mini">Beat map — 18 paragraphs</h3>
+          <ol class="beats">
+            <li><b>The warning.</b> Calm, low, a little dangerous. You are doing them a favour by telling them.</li>
+            <li><b>Seeing the future.</b> First flop of the piece. Say the ending as if it were the impressive part.</li>
+            <li><b>Breath, then hands.</b> Two jokes back to back. Look at your own hands with respect.</li>
+            <li><b>Strength (the ice cream).</b> Longest sentence so far — take your time and enjoy the patience at the end.</li>
+            <li><b>Fire.</b> One quick line. Proud of something that is obviously bad news.</li>
+            <li><b>Lasers.</b> The flop is boring on purpose. Sound mildly inconvenienced.</li>
+            <li><span class="x">XL</span><b>The secret.</b> Cross on the dots. Smug.</li>
+            <li><b>Wind, rain and sulking.</b> Builds in three steps. The last step should sound like a mighty threat.</li>
+            <li><b>Board games.</b> "Fierce" is the key word. Then the flop: he is just a bad sport.</li>
+            <li><b>The doctor.</b> Speed up a little, like someone who really has asked the same thing five ways.</li>
+            <li><b>The yo-yo.</b> Short and dark. Toss it away casually.</li>
+            <li><span class="x">XR</span><b>Versatile, sidekicks, broccoli.</b> The broccoli is pure nonsense — say it with total confidence, then look straight at them for the little question that ends the paragraph.</li>
+            <li><b>Weaknesses.</b> He can't even list a weakness without bragging. Slow down for the lava.</li>
+            <li><b>Helpful and honest.</b> Sweetest voice of the piece… then the flop, flat.</li>
+            <li><span class="x">XUS</span><b>Running.</b> Cross upstage. Lift your volume from back there — he tells them to.</li>
+            <li><b>Poison.</b> A flop with a comeback attached. Proud again by the end.</li>
+            <li><b>Swimming and chips.</b> Two quick ones. The quoted words are someone else's opinion — say them as a compliment.</li>
+            <li><span class="x">XDS</span><b>The bleeder.</b> Cross down. Quiet and threatening. The last four words: a full stop after them, hold the stare, count two, <em>then</em> relax.</li>
+          </ol>
+
+          <h3 class="mini">Words to be sure of</h3>
+          <div class="words">
+            <div><b>lethal</b> — deadly; able to kill.</div>
+            <div><b>lest</b> — "for fear that"; so that something bad doesn't happen. Old-fashioned, which is why it sounds grand.</div>
+            <div><b>flammable</b> — catches fire easily.</div>
+            <div><b>sulk</b> — to be silent and grumpy because you are annoyed.</div>
+            <div><b>fierce</b> — intense, aggressive.</div>
+            <div><b>versatile</b> <i>VER-suh-tile / VER-suh-tl</i> — able to do many different things.</div>
+            <div><b>sidekick</b> — a hero's helper (Robin to Batman).</div>
+            <div><b>immune</b> — can't be harmed by something.</div>
+            <div><b>ingest</b> — to swallow; take into your body.</div>
+          </div>
+          <div class="say"><b>One thing to notice:</b> "immune" and "ingest" are fancy science words, and he uses
+          them to say "poison only hurts me if I swallow it" — which is true of everybody. Fancy word + obvious
+          fact is one of the piece's favourite tricks. Say the fancy words slowly and clearly.</div>
+        </div></div>
+
+      <!-- ============ WHEN GREAT TREES FALL ============ -->
+      <div class="stz"><button class="head" type="button"><span class="pill">🌳 Piece 2</span> When Great Trees Fall<span class="arrow">tap ▾</span></button>
+        <div class="body">
+          <p><b>What it is.</b> A poem about what happens to the people left behind when someone great dies.
+          It starts with huge animals and falling trees, moves to people, goes down into a dark place, and
+          climbs out at the end.</p>
+          <p>You have already worked on this poem — the stanza-by-stanza walk-through is on
+          <a class="inl" href="BASA-Poetry-Read-Aloud.html">Reading a Poem Out Loud</a>. What is new on this sheet
+          is your teacher's marks.</p>
+
+          <h3 class="mini">Reading the slashes and arrows</h3>
+          <p><b>Every slash is a real stop.</b> Count them on your sheet — they sit at the end of each complete
+          thought, not at the end of each line. Between two slashes, the words are one thought and get one
+          breath. This is the "breathe at the punctuation" move, now marked for you.</p>
+          <p><b>Two arrows.</b> One sits after the lions' line in the first stanza, and one in the fourth
+          stanza after the words about our reality. At both, the line breaks in the middle of a phrase. If you
+          stop there, the sentence makes no sense for a second. Lean on the last word and roll straight on.</p>
+          <p><b>Two slashes in the middle of a line.</b> In the last stanza, a slash cuts one line in half, and
+          another does it again in the final line. Stop exactly there, even though your eye wants to finish
+          the line. The second one sets up the very last sentence of the poem — give it room.</p>
+          <div class="try"><b>Try:</b> read the poem tapping the table once at every slash and sliding your
+          finger along at every arrow. Taps = silence. Slide = no silence. When that feels easy, do it without
+          your hands.</div>
+
+          <h3 class="mini">The opposite of Piece 1</h3>
+          <p>In <i>My Powers</i> you walk, you stare people down, you play a character. Here you do none of
+          that. <b>Plant your feet.</b> No crosses, no acting the animals. Your face is calm and your eyes go
+          out over the audience. All the movement is in your voice: full at the start, sinking through the
+          middle, nearly a whisper in the caves, then warmer and steadier as peace comes back.</p>
+          <div class="say"><b>The ending.</b> The last few sentences are very short and they repeat. Say each one
+          as its own sentence with a full stop after it. After the final word, stay still and silent for three
+          seconds before you move. That silence belongs to the poem.</div>
+
+          <h3 class="mini">Words to be sure of</h3>
+          <div class="words">
+            <div><b>hunker down</b> — crouch low and stay put.</div>
+            <div><b>lumber</b> — (verb) to move in a slow, heavy way.</div>
+            <div><b>recoil</b> — to pull back suddenly in fear.</div>
+            <div><b>eroded</b> — worn away bit by bit.</div>
+            <div><b>sterile</b> — empty of life; nothing growing.</div>
+            <div><b>gnaws</b> <i>NAWZ, silent g</i> — chews at something again and again.</div>
+            <div><b>wizened</b> <i>WIZ-und</i> — shrivelled or wrinkled with age. Your teacher wrote this one on the sheet.</div>
+            <div><b>radiance</b> — bright, glowing light.</div>
+            <div><b>unutterable</b> <i>un-UTT-er-uh-bl</i> — too great or too terrible to put into words.</div>
+          </div>
+        </div></div>
+
+      <!-- ============ ZEUS ============ -->
+      <div class="stz"><button class="head" type="button"><span class="pill">⚡ Piece 3</span> Zeus Kills Everyone<span class="arrow">tap ▾</span></button>
+        <div class="body">
+          <p><b>What it is.</b> A storm giant from the pit leaves home to destroy the gods. The gods take one
+          look at him and panic. Zeus is left alone — and gets insulted into fighting.</p>
+          <p><b>The engine: giant monsters, ordinary talk.</b> The events are enormous (smashed cities, boiling
+          seas) but everyone speaks like a regular family on a regular day. A world-ending monster talks to his
+          wife like a dad leaving for work. The king of the gods is scared and trying not to show it. Play the
+          ordinary talk as <em>really</em> ordinary, and the contrast does the comedy for you.</p>
+
+          <h3 class="mini">Your cast — one voice each</h3>
+          <p>The colours below are how the highlighting looks on the scan of your sheet. Check them against the
+          paper, then write a three-word voice plan for each character: <b>pitch</b> (high / low),
+          <b>speed</b> (fast / slow), <b>attitude</b>. The grey text is only a starting idea.</p>
+          <table class="cast">
+            <tr><td><span class="sw" style="background:#fffdf7"></span><b>Narrator</b> — no highlight. Your own voice, talking straight to the audience. Dry and amused, like you know how silly this all is.
+              <input type="text" id="v_narr" placeholder="e.g. normal pitch · relaxed · amused"></td></tr>
+            <tr><td><span class="sw" style="background:#7fd0ee"></span><b>Typhoeus</b> — blue. The storm giant.
+              <input type="text" id="v_typh" placeholder="e.g. very low · slow · booming, enjoying himself"></td></tr>
+            <tr><td><span class="sw" style="background:#b9a7e6"></span><b>Echidna</b> — purple. His wife. One speech, and it is a complaint.
+              <input type="text" id="v_echi" placeholder="e.g. higher · fast · fed up"></td></tr>
+            <tr><td><span class="sw" style="background:#bfe9ee"></span><b>Poseidon</b> — pale blue. Two tiny lines.
+              <input type="text" id="v_pose" placeholder="e.g. middle · hesitant · gulping"></td></tr>
+            <tr><td><span class="sw" style="background:#f06aa8"></span><b>Athena</b> — pink. The clever one.
+              <input type="text" id="v_athe" placeholder="e.g. crisp · quick · coolly worried"></td></tr>
+            <tr><td><span class="sw" style="background:#f7b45c"></span><b>Zeus</b> — orange. Loud on the outside, shaking on the inside.
+              <input type="text" id="v_zeus" placeholder="e.g. loud · pushing · fake-brave"></td></tr>
+          </table>
+          <div class="try"><b>Make the voices far apart.</b> The test: someone listening with their eyes closed
+          should know who is speaking before the narrator tells them. If two characters sound alike, change one
+          thing about one of them — usually speed is the easiest.</div>
+
+          <h3 class="mini">Three storyteller tricks</h3>
+          <p><b>1. Give each character a place to look.</b> Narrator: straight at the audience. Typhoeus looks
+          down (everyone is smaller than him). The gods look up. Zeus looks sideways at the other gods when he
+          is rallying them, and up when he yells at the giant. A small turn of the head is enough — snap to
+          the spot, speak, snap back to the audience for the narrator.</p>
+          <p><b>2. Read the punctuation out loud.</b> Capital letters mean volume. Italics mean lean on that
+          word. And when the gods shout their battle cry the second time, the sheet prints it with a question
+          mark — so your voice has to go <em>up</em> at the end, like you are not sure this is a good idea.</p>
+          <p><b>3. The narrator's side comments are jokes too.</b> A few times the narrator stops the action to
+          point something out — whether a threat is logical, or why Zeus cares about ants. Drop the story voice
+          for those, lean in a little, and say them like a quick aside to a friend.</p>
+
+          <h3 class="mini">Beat map — 12 beats</h3>
+          <ol class="beats">
+            <li><b>Restless in the pit.</b> Narrator. Start casual — this is how you would tell it at lunch.</li>
+            <li><b>Leaving for work.</b> Typhoeus, then Echidna, then Typhoeus. He is cheerful; she has had this argument before.</li>
+            <li><b>Smashing the upper world.</b> Narrator. Let the list of destruction build, but keep it light — for him this is easy.</li>
+            <li><b>The challenge.</b> Typhoeus, shouting into the distance. Bored and disappointed.</li>
+            <li><b>The gods see him.</b> Narrator, then Poseidon, then Athena. Pause before the narrator's "until". Poseidon gulps; Athena stays precise.</li>
+            <li><b>Zeus's pep talk.</b> Zeus, all confidence. Then the narrator quietly tells the truth about how he really feels.</li>
+            <li><b>The charge.</b> Zeus gives the order. The gods follow — and their battle cry comes out as a question.</li>
+            <li><b>The giant's battle cry.</b> Typhoeus at full volume, then the narrator's aside about why the threat doesn't quite make sense.</li>
+            <li><b>Full height.</b> Narrator. The one truly scary paragraph. Slow down and let it be big — the comedy needs one real threat.</li>
+            <li><b>The gods run.</b> Three panicked cries, each smaller and sillier than the last. Then one flat narrator line.</li>
+            <li><b>Zeus alone.</b> Zeus is furious at the others. Typhoeus laughs and mocks him — slow, huge, delighted.</li>
+            <li><b>The ant.</b> Narrator's aside, completely reasonable tone. Then Zeus's last shout, and the final sentence quick and clean. Stop. Don't trail off.</li>
+          </ol>
+
+          <h3 class="mini">Names — say them right</h3>
+          <div class="words">
+            <div><b>Typhoeus</b> <i>ty-FEE-us</i></div>
+            <div><b>Echidna</b> <i>eh-KID-nuh</i></div>
+            <div><b>Poseidon</b> <i>puh-SY-dun</i></div>
+            <div><b>Athena</b> <i>uh-THEE-nuh</i></div>
+            <div><b>Hydra</b> <i>HY-druh</i> · <b>Sphinx</b> <i>SFINKS</i></div>
+            <div><b>Olympus</b> <i>oh-LIM-pus</i></div>
+          </div>
+          <h3 class="mini">Words to be sure of</h3>
+          <div class="words">
+            <div><b>restless</b> — unable to stay still; wanting a change.</div>
+            <div><b>eternal damnation</b> — being punished forever.</div>
+            <div><b>summoned</b> — called up; ordered to appear.</div>
+            <div><b>pathetically</b> — so (easy) it is almost sad.</div>
+            <div><b>assembling</b> — gathering together.</div>
+            <div><b>odds</b> — the chances of winning.</div>
+            <div><b>hoisting</b> — lifting something heavy up high.</div>
+            <div><b>bellowed</b> — shouted in a deep, loud roar.</div>
+            <div><b>abyss</b> <i>uh-BISS</i> — a bottomless pit.</div>
+            <div><b>spewed · belched</b> — threw out in a rush · burped out.</div>
+            <div><b>reptilian</b> — like a reptile; scaly.</div>
+            <div><b>woo</b> — to try to win someone's love.</div>
+          </div>
+        </div></div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="eyebrow"><span class="num">4</span> &nbsp;Memory</div>
+    <h2 class="st">Build your own cue card</h2>
+    <p class="lead">You don't memorise a piece word by word from the top. You memorise the <em>order of the
+    beats</em>, and hang the words on that. For each beat, look at your sheet and type <b>one to three
+    words</b> that will bring the whole beat back to you — the first words, or the funniest word. Your own cue
+    works much better than one somebody hands you.</p>
+    <p class="lead">Then press <b>Test me</b>: the descriptions disappear and only your cues are left. Turn
+    your sheet face down and perform from the cue card.</p>
+
+    <div class="tabs" id="cuetabs"></div>
+    <div class="modes">
+      <button class="btn" id="modebtn" type="button">🙈 Test me</button>
+      <button class="btn ghost" id="clearmarks" type="button">Start today's test again</button>
+    </div>
+    <div id="cues"></div>
+    <div class="tally" id="tally"></div>
+
+    <div class="try" style="margin-top:14px"><b>The ladder.</b> Step 1: perform with the sheet in your hand.
+    Step 2: sheet face down, cue card showing. Step 3: cue card hidden too — close this page and go. Climb one
+    step only when the step below is easy. If one beat keeps falling out, perform just that beat and the one
+    before it, five times, joined together.</div>
+  </div>
+
+  <div class="sect">
+    <div class="eyebrow"><span class="num">5</span> &nbsp;Every day</div>
+    <h2 class="st">Fifteen minutes, on your feet</h2>
+    <p class="lead">Rehearse standing up, out loud, at full performance volume — your memory stores the
+    piece together with the movement and the voice, so mumbling it in a chair is practising a different
+    piece. The boxes clear themselves each morning.</p>
+
+    <div class="focus" id="focus"></div>
+    <div id="todos"></div>
+    <div class="streak" id="streak"></div>
+  </div>
+
+  <div class="sect">
+    <div class="eyebrow"><span class="num">6</span> &nbsp;Quick check</div>
+    <h2 class="st">Do you speak the code?</h2>
+    <p class="lead">Twelve questions about the marks, the words and the delivery. This isn't graded — it is
+    just so you know. Tap an answer to see why.</p>
+    <div id="quiz" style="margin-top:14px"></div>
+    <div class="scoreline" id="scoreline"></div>
+  </div>
+
+  <div class="nextcard">
+    <h2>Now let someone hear it</h2>
+    <p>The studio has all three of your pieces. Record one run-through, then listen back with your sheet
+    and a pencil — you will hear things you can't hear while you are performing.</p>
+    <a href="BASA-Read-Aloud-Studio.html">🎙️ Go to the Recording Studio →</a>
+  </div>
+
+  <div class="back"><a href="../homework.html">← Back to my homework</a></div>
+</div>
+
+<script>
+(function () {
+  var STORAGE_KEY = 'warren_basa_three_pieces_v1';
+  var state = { fields: {}, cues: {}, marks: {}, marksDay: '', todos: {}, todosDay: '', daysDone: [], quiz: {} };
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) { var d = JSON.parse(raw); if (d && typeof d === 'object') { for (var k in state) if (d[k] != null) state[k] = d[k]; } }
+  } catch (e) {}
+  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
+  function two(n) { return String(n).padStart(2, '0'); }
+  function today() { var d = new Date(); return d.getFullYear() + '-' + two(d.getMonth() + 1) + '-' + two(d.getDate()); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- folds ---------- */
+  document.querySelectorAll('.stz .head').forEach(function (h) {
+    h.addEventListener('click', function () {
+      var box = h.parentNode, open = box.classList.contains('open');
+      box.classList.toggle('open', !open);
+      h.querySelector('.arrow').textContent = open ? 'tap ▾' : 'close ▴';
+    });
+  });
+
+  /* ---------- voice-plan fields ---------- */
+  document.querySelectorAll('.cast input[type=text]').forEach(function (f) {
+    if (state.fields[f.id]) f.value = state.fields[f.id];
+    f.addEventListener('input', function () { state.fields[f.id] = f.value; save(); });
+  });
+
+  /* ---------- cue cards ---------- */
+  /* Labels are this page's own names for the beats (same order as the beat maps above);
+     the cue words are whatever Warren types from his sheet. */
+  var PIECES = [
+    { id: 'powers', name: '🦸 My Powers', beats: ['The warning', 'Seeing the future', 'Breath, then hands', 'Strength (ice cream)', 'Fire', 'Lasers', 'The secret · XL', 'Wind, rain, sulking', 'Board games', 'The doctor', 'The yo-yo', 'Versatile, sidekicks, broccoli · XR', 'Weaknesses', 'Helpful and honest', 'Running · XUS', 'Poison', 'Swimming and chips', 'The bleeder · XDS'] },
+    { id: 'trees', name: '🌳 Great Trees', beats: ['Stanza 1 — the big animals', 'Stanza 2 — the small things', 'Stanza 3 — from trees to people; memory', 'Stanza 4 — what is left of us', 'Stanza 5 — the dark caves', 'Stanza 6 — peace comes back; the ending'] },
+    { id: 'zeus', name: '⚡ Zeus', beats: ['Restless in the pit', 'Leaving for work', 'Smashing the upper world', 'The challenge', 'The gods see him', 'Zeus\'s pep talk', 'The charge', 'The giant\'s battle cry', 'Full height', 'The gods run', 'Zeus alone', 'The ant'] }
+  ];
+  var cur = PIECES[0], testing = false;
+  if (state.marksDay !== today()) { state.marks = {}; state.marksDay = today(); save(); }
+
+  $('cuetabs').innerHTML = PIECES.map(function (p) { return '<button class="tab" type="button" data-p="' + p.id + '">' + p.name + '</button>'; }).join('');
+  $('cuetabs').querySelectorAll('.tab').forEach(function (b) {
+    b.addEventListener('click', function () { cur = PIECES.filter(function (p) { return p.id === b.dataset.p; })[0]; paintCues(); });
+  });
+  $('modebtn').addEventListener('click', function () { testing = !testing; paintCues(); });
+  $('clearmarks').addEventListener('click', function () {
+    cur.beats.forEach(function (_, i) { delete state.marks[cur.id + ':' + i]; });
+    save(); paintCues();
+  });
+
+  function paintCues() {
+    $('cuetabs').querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('on', b.dataset.p === cur.id); });
+    $('modebtn').textContent = testing ? '✏️ Back to editing my cues' : '🙈 Test me';
+    $('clearmarks').style.display = testing ? '' : 'none';
+    $('cues').innerHTML = cur.beats.map(function (label, i) {
+      var key = cur.id + ':' + i, cue = state.cues[key] || '', m = state.marks[key];
+      if (!testing) {
+        return '<div class="cue"><span class="cn">' + (i + 1) + '</span><span class="cl">' + esc(label) + '</span>' +
+          '<span class="cw"><input type="text" data-cue="' + key + '" value="' + esc(cue) + '" maxlength="40" placeholder="my cue — 1 to 3 words"></span></div>';
+      }
+      return '<div class="cue' + (m === 'y' ? ' ok' : m === 'n' ? ' no' : '') + '"><span class="cn">' + (i + 1) + '</span>' +
+        '<span class="big' + (cue ? '' : ' none') + '">' + (cue ? esc(cue) : 'no cue yet — you are on your own for this one') + '</span>' +
+        '<span class="mk"><button type="button" class="y" data-mark="' + key + '" data-v="y">✓ From memory</button>' +
+        '<button type="button" class="n" data-mark="' + key + '" data-v="n">Peeked at the sheet</button></span></div>';
+    }).join('');
+    $('cues').querySelectorAll('[data-cue]').forEach(function (f) {
+      f.addEventListener('input', function () { state.cues[f.dataset.cue] = f.value; save(); paintTally(); });
+    });
+    $('cues').querySelectorAll('[data-mark]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var k = b.dataset.mark;
+        if (state.marks[k] === b.dataset.v) delete state.marks[k]; else state.marks[k] = b.dataset.v;
+        save(); paintCues();
+      });
+    });
+    paintTally();
+  }
+  function paintTally() {
+    var n = cur.beats.length, cues = 0, ok = 0, no = 0;
+    cur.beats.forEach(function (_, i) {
+      var key = cur.id + ':' + i;
+      if ((state.cues[key] || '').trim()) cues++;
+      if (state.marks[key] === 'y') ok++; else if (state.marks[key] === 'n') no++;
+    });
+    if (!testing) { $('tally').innerHTML = 'Cues written: <b>' + cues + ' / ' + n + '</b>'; return; }
+    var msg = 'Today: <b>' + ok + ' / ' + n + '</b> beats from memory';
+    if (ok + no === n) msg += ok === n ? ' — the whole piece. That one is yours now. 🌟'
+      : '. Run the ' + no + ' red ' + (no === 1 ? 'beat' : 'beats') + ' again, each joined to the beat before it.';
+    $('tally').innerHTML = msg;
+  }
+  paintCues();
+
+  /* ---------- daily routine ---------- */
+  var FOCUS = [
+    'the <b>whole show</b> — all three in order, as if people were watching. Then rest your voice.',
+    '<b>🦸 My Powers</b>. Work the four crosses until your feet know them without your sheet.',
+    '<b>🌳 When Great Trees Fall</b>. Every slash a real silence; both arrows with no stop.',
+    '<b>⚡ Zeus Kills Everyone</b>. Six voices — make each one different from the one before it.',
+    '<b>your weakest piece</b> — the one with the most red beats on your cue card.',
+    'the <b>whole show</b> — all three in order, no stopping, no restarting. If you slip, keep going like a pro.',
+    'the <b>whole show for a real audience</b>. Ask someone at home to sit down and watch all three.'
+  ];
+  var TODOS = [
+    ['Warm up — 1 minute', 'Shake out your arms, roll your shoulders. Three slow breaths, in through the nose. Then say "the tip of the tongue, the teeth, the lips" five times, getting faster but staying clear.'],
+    ['Today\'s focus piece — twice', 'First time with the sheet, checking every mark. Second time with the sheet face down.'],
+    ['The other two — once each', 'A quick run to keep them warm. On your feet, full voice.'],
+    ['Cue-card test on the focus piece', 'Section 4, "Test me". Be honest about peeking.'],
+    ['Record one run-through', 'In the Recording Studio. Listen back once and pick one thing to fix tomorrow.']
+  ];
+  if (state.todosDay !== today()) { state.todos = {}; state.todosDay = today(); save(); }
+  $('focus').innerHTML = '<b>Today\'s focus:</b> ' + FOCUS[new Date().getDay()];
+  function paintTodos() {
+    $('todos').innerHTML = TODOS.map(function (t, i) {
+      return '<div class="todo' + (state.todos[i] ? ' on' : '') + '"><label><input type="checkbox" data-todo="' + i + '"' + (state.todos[i] ? ' checked' : '') + '>' +
+        '<span><span class="tl">' + t[0] + '</span><span class="td">' + t[1] + '</span></span></label></div>';
+    }).join('');
+    $('todos').querySelectorAll('[data-todo]').forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        state.todos[cb.dataset.todo] = cb.checked;
+        var all = TODOS.every(function (_, i) { return state.todos[i]; }), at = state.daysDone.indexOf(today());
+        if (all && at < 0) state.daysDone.push(today());
+        if (!all && at > -1) state.daysDone.splice(at, 1);
+        save(); paintTodos();
+      });
+    });
+    var n = state.daysDone.length;
+    $('streak').textContent = n ? 'Full rehearsals so far: ' + n + (n === 1 ? ' day' : ' days') + '.' : 'Tick all five to count today as a full rehearsal.';
+  }
+  paintTodos();
+
+  /* ---------- quick check ---------- */
+  var QUIZ = [
+    { q: "Your sheet says XDS. Where do you go?", options: ["To the back of the stage, away from the audience", "To the front, closer to the audience", "Off the stage on your left-hand side", "Nowhere — you drop your voice instead"], answer: 1, why: "X is a cross and DS is downstage — the front. Upstage is the back." },
+    { q: "You are facing the audience and the mark says XL. Which way do you walk?", options: ["Toward your own left hand", "Toward the audience's left", "Straight back to the wall", "Forward to the front edge"], answer: 0, why: "Stage directions are always from the performer's side. Stage left is your left — which is the audience's right." },
+    { q: "In the poem, what does a slash ( / ) after a word tell you?", options: ["Say that word louder than the rest", "Skip ahead to the next stanza", "Read the next part faster", "Stop there and take a breath"], answer: 3, why: "The slashes mark the ends of complete thoughts. Each one is a real silence." },
+    { q: "In the poem, what does an arrow ( → ) at the end of a line tell you?", options: ["Take a long pause before the next line", "Turn and face the other side", "Carry straight on into the next line", "Repeat the line one more time"], answer: 2, why: "The phrase isn't finished when the line ends, so your voice mustn't stop there." },
+    { q: "In My Powers, the hands are kept tied \"lest\" something happens. What does \"lest\" mean?", options: ["Because it has already happened", "So that it won't happen", "As soon as it happens", "Even though it happens"], answer: 1, why: "\"Lest\" means \"for fear that\" — you do one thing to stop another thing from happening." },
+    { q: "Your teacher wrote the meaning of \"wizened\" on the poem. What is it?", options: ["Wise and full of deep knowledge", "Frozen stiff and unable to move", "Shrivelled or wrinkled with age", "Hidden away in a dark, cold place"], answer: 2, why: "It looks like \"wise\", but it has nothing to do with wisdom. The souls in the poem shrink and dry up." },
+    { q: "In the poem, the elephants \"lumber\". What are they doing?", options: ["Moving in a slow, heavy way", "Knocking down trees", "Running off as fast as they can", "Lying down flat in the grass"], answer: 0, why: "As a verb, lumber means to move heavily and clumsily. (As a noun it means cut wood — not here.)" },
+    { q: "The speaker in My Powers calls himself \"versatile\". What does that word mean?", options: ["Very hard to beat in a fight, even alone", "Able to do many different things", "Popular with most people he meets", "Quick to change his mind about things"], answer: 1, why: "Versatile = good at many different things. He proves it by working with, without, and against a sidekick." },
+    { q: "Why should you keep a straight face all the way through My Powers?", options: ["Smiling makes it harder to remember lines", "The audience can't hear you if you smile", "The character means what he says", "The piece is actually meant to be sad"], answer: 2, why: "That is deadpan. He believes he is amazing; the audience sees he isn't. If you grin, you give the joke away." },
+    { q: "On the Zeus sheet, a sentence has no highlighter on it at all. Who says it?", options: ["Zeus, the king of the gods", "Whoever spoke just before it", "The gods, speaking as a group", "The narrator, in your own voice"], answer: 3, why: "Each colour is one character. Everything left plain is the narrator, said straight to the audience." },
+    { q: "The second time the gods shout their battle cry, it is printed with a question mark. How should it sound?", options: ["Deeper and angrier than the first time", "Rising at the end, like a question", "Exactly the same as Zeus said it", "Whispered so the giant can't hear"], answer: 1, why: "A question mark makes the voice go up. They are saying the brave word, but they don't mean it." },
+    { q: "Why is the XUS in My Powers such a good piece of blocking?", options: ["It hides your face while you remember the next line", "It lets the audience rest their eyes for a moment", "It moves you far away, which makes the next joke true", "It shows that the character has become frightened"], answer: 2, why: "He brags about running, and then tells them how far away he is. Because you really did move to the back, the line lands." }
+  ];
+  function paintQuiz() {
+    $('quiz').innerHTML = QUIZ.map(function (it, i) {
+      var picked = state.quiz[i], done = picked != null;
+      return '<div class="q' + (done ? ' done' : '') + '"><div class="qt"><span>' + (i + 1) + '.</span> ' + esc(it.q) + '</div>' +
+        it.options.map(function (o, j) {
+          var cls = !done ? '' : j === it.answer ? ' right' : j === picked ? ' wrong' : '';
+          return '<button type="button" class="opt' + cls + '" data-q="' + i + '" data-o="' + j + '"' + (done ? ' disabled' : '') + '>' + esc(o) + '</button>';
+        }).join('') +
+        '<div class="why">' + (done ? (picked === it.answer ? '✓ ' : 'Not quite. ') : '') + esc(it.why) + '</div></div>';
+    }).join('');
+    $('quiz').querySelectorAll('.opt').forEach(function (b) {
+      b.addEventListener('click', function () { state.quiz[b.dataset.q] = +b.dataset.o; save(); paintQuiz(); });
+    });
+    var answered = 0, right = 0;
+    QUIZ.forEach(function (it, i) { if (state.quiz[i] != null) { answered++; if (state.quiz[i] === it.answer) right++; } });
+    $('scoreline').innerHTML = answered < QUIZ.length ? (answered ? answered + ' of ' + QUIZ.length + ' answered' : '')
+      : right + ' / ' + QUIZ.length + (right === QUIZ.length ? ' — you speak the code. 🌟' : ' — read the green notes on the ones you missed.') +
+        ' <button class="btn ghost" id="again" type="button" style="margin-left:8px">Try again</button>';
+    var again = $('again');
+    if (again) again.addEventListener('click', function () { state.quiz = {}; save(); paintQuiz(); });
+  }
+  paintQuiz();
+})();
+</script>
+<script src="../JS/quiz-report.js"></script>
+</body>
+</html>
