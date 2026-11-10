@@ -406,7 +406,6 @@
         <button class="tab" data-v="report">My day <span class="n" id="nrep"></span></button>
         <button class="tab" data-v="scores">My scores</button>
         <button class="tab" data-v="mistakes">Mistakes <span class="n" id="nmiss"></span></button>
-        <button class="tab" data-v="pet">My pet <span class="n" id="npet"></span></button>
       </nav>
     </div>
   </header>
@@ -519,6 +518,10 @@ let MARKED = [];
 let OPENED = [], OPENED_AT = 0, WK_LAB = () => '';
 // PET / SIB: my pet doc and the other kid's — null = not picked yet, undefined = couldn't read it.
 let PET, SIB, GAME = null, petSkipped = false;
+// Sam 2026-11-10: 「去掉宠物的机制」. Off = no My pet tab, no picker, no XP / streak / badge pop-ups or toasts, no pet on the
+// sign-in cards, and pets/{uid} + petCards/{uid} are neither read nor written (what's saved there stays as it is).
+// The code below is left in place; true brings it all back (and put the My pet tab button back in the nav).
+const PETS_ON = false;
 
 /* ---------- shared device: idle sign-out ---------- */
 const ACTIVE_KEY = 'kid.lastActive.v1', IDLE_MS = 30*60*1000;
@@ -644,6 +647,7 @@ function carriedIn(days, todayDoc, carry){
 }
 // A pet doc; null if this kid hasn't picked one, undefined if it can't be read right now.
 function getPet(uid){
+  if(!PETS_ON) return Promise.resolve(null);
   return db.doc(`pets/${uid}`).get()
     .then(d=>{ const p = d.exists ? d.data() : null; return p && !KidPets.PETS[p.kind] ? undefined : p; })
     .catch(e=>{ console.warn('[pets] read failed:', e.code||e); return undefined; });
@@ -1230,6 +1234,7 @@ function toast(msg){
 // summary and celebrate what changed: a level, a stage, a badge or the streak gets the big
 // card; XP alone gets a small toast.
 async function afterLoad(from){
+  if(!PETS_ON) return;
   if(PARENT) return;   // the pet is the kid's: never saved from the parent's look at the page
   const me = ME;
   if(PET===undefined) return;                 // couldn't read it — try again next time
@@ -1455,7 +1460,7 @@ function render(){
   const ls = document.getElementById('libsearch'); if(ls) ls.addEventListener('input', ()=>libFilter(ls.value));
   document.getElementById('ndone').textContent = L ? new Set(ATT.filter(a=>a.date===iso(today) && counts(L.byId.get(a.id), a)).map(a=>a.id)).size || '' : '';
   document.getElementById('nrep').textContent = summaryOf(iso(today)) ? '📝' : '';
-  document.getElementById('npet').textContent = petOf(PET) && GAME ? stageIc({ ...PET, xp:GAME.xp }) : '';
+  const np = document.getElementById('npet'); if(np) np.textContent = petOf(PET) && GAME ? stageIc({ ...PET, xp:GAME.xp }) : '';
   const nm = mistakes().length;
   document.getElementById('nmiss').textContent = nm || '';
 }
@@ -1502,6 +1507,7 @@ const pickCards = document.getElementById('pickcards');
 // as long as the network takes — say nothing rather than something wrong.
 let CARDS = null;
 function loadCards(){
+  if(!PETS_ON) return Promise.resolve();   // CARDS stays null → plain name cards, 'Sign in →'
   return Promise.all(Object.entries(KIDS).map(([key, k])=>
     db.doc(`petCards/${k.uid}`).get()
       .then(d=>[key, d.exists ? d.data() : null])
