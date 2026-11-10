@@ -915,10 +915,13 @@ function viewScores(){
 const GRADED = a => a.kind === 'scored' || a.kind === 'fixup';
 function mistakes(){
   const seen = new Set(), out = [];
+  // Pages Dad has taken off the shelf don't show here (Sam 2026-11-10: 「隐藏旧错题」) — the records stay, and putting a
+  // page back on the shelf brings its mistakes back. Not in the bank at all, or the bank couldn't be read → still shown.
+  const off = new Set((BANK||[]).filter(b=>b.archived).map(b=>b.docId));
   ATT.filter(GRADED).forEach(a=>{
     if(seen.has(a.id)) return;
     seen.add(a.id);                       // newest graded attempt per page decides
-    if(a.wrong.length) out.push(a);
+    if(a.wrong.length && !off.has(a.id)) out.push(a);
   });
   return out;
 }
