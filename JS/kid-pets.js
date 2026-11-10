@@ -92,9 +92,9 @@
               secs (working seconds), done (counts as doing the page), daily (a page done every day), subj }]
      days: [{ date, items:[{id, t, subj}], withdrawn:[…same] }]   subj = English subject name
      today: 'YYYY-MM-DD'
-     opt : { cut: 'YYYY-MM-DD', dayMins } — the 90-minute rule from cut on (see top); leave out for the old rule only */
+     opt : { cut: 'YYYY-MM-DD', dayMins } — the minutes-a-day rule (60 since 2026-11-10, was 90) from cut on (see top); leave out for the old rule only */
   function compute(att, days, today, opt) {
-    const cut = (opt && opt.cut) || '9999-12-31', dayMins = (opt && opt.dayMins) || 90;
+    const cut = (opt && opt.cut) || '9999-12-31', dayMins = (opt && opt.dayMins) || 60;
     att = att.filter(a => a.id).slice().sort((a, b) => (a.at || 0) - (b.at || 0));
     const byItem = new Map();
     att.forEach(a => { if (!byItem.has(a.id)) byItem.set(a.id, []); byItem.get(a.id).push(a); });
@@ -173,7 +173,7 @@
     // `broke` keeps the last homework day that wasn't finished and what was left on it, so the
     // page can tell the kid why a streak ended instead of the fire just disappearing on him.
     // From cut on, every day up to today is a homework day and counts at dayMins working minutes;
-    // `missed` / todayLeft then say the minutes ("only 40 of 90 minutes", "50 more minutes") and broke.mins has the number.
+    // `missed` / todayLeft then say the minutes ("only 40 of 60 minutes", "20 more minutes") and broke.mins has the number.
     let run = 0, best = 0, todayDone = false, from = null, broke = null, todayLeft = null, leftMins = null;
     const secsOn = {}; att.forEach(a => { if (a.date >= cut) secsOn[a.date] = (secsOn[a.date] || 0) + (a.secs || 0); });
     const hwDays = days.filter(d => d.date <= today && d.date < cut && (d.items || []).length).map(d => ({ ...d }));

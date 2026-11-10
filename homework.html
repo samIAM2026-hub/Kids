@@ -108,6 +108,10 @@
   /* ---------- today ---------- */
   .cheer{margin-top:16px;background:var(--greenbg);color:var(--green);border-radius:16px;padding:16px 18px;
          font-size:19px;font-weight:600;text-align:center}
+  /* not at the day's goal yet (Sam 2026-11-10: 「如果没有，你要在孩子的页面和家长的页面提醒我」) */
+  .remind{margin-top:16px;background:var(--goldbg);border:2px solid var(--goldline);color:var(--ink);border-radius:16px;
+          padding:14px 18px;font-size:17px;font-weight:600;text-align:center}
+  .remind small{display:block;margin-top:4px;font-size:14px;font-weight:400;color:var(--ink2)}
   .card{display:flex;align-items:center;gap:16px;background:var(--paper);border:2px solid var(--line);
         border-radius:18px;padding:16px 18px;margin-top:14px}
   .card.done{border-color:#b9d7c0}
@@ -941,12 +945,12 @@ function viewMistakes(){
    · Every-weekday shelves (BASA, same list as plan-day.mjs DAILY_BOOKS) and the class-vocab Parts are per day:
      on their days they come into Today by themselves and never move to Done for good.
    Nothing is locked: any page can go into Today. */
-const DAY_MINS = 90;
+const DAY_MINS = 60;   // Sam 2026-11-10: 「每天孩子学习的目标是 1 个小时」 (was 90)
 // Subject colours — the same fixed order as the parent page's time chart, so a colour means one subject everywhere.
 const SUBJ_COL = { SSAT:'#2a78d6', Math:'#eb6834', Chinese:'#1baf7a', Writing:'#eda100', Vocabulary:'#e87ba4', Reading:'#008300' };
 const subjCol = sj => SUBJ_COL[sj] || '#6250d6';
 const subjDot = sj => `<span class="sdot" style="background:${subjCol(sj)}"></span>`;
-// The day the pet's streak and XP switched to these rules (Sam 2026-10-22: 「宠物连胜改成看当天满 90 分钟」).
+// The day the pet's streak and XP switched to these rules (Sam 2026-10-22: 「宠物连胜改成看当天满 90 分钟」; 60 since 2026-11-10, see DAY_MINS).
 const PET_CUT = '2026-10-23';
 const minsDay = d => d >= PET_CUT;
 const DAILY_BOOKS = ['🖊️ BASA'];
@@ -1056,6 +1060,8 @@ function viewToday(){
   const m = Math.round(L.secs/60);
   if(m >= DAY_MINS) html += `<div class="cheer">🌟 ${DAY_MINS} minutes done today, great work, ${esc(ME.n)}!
     <div style="margin-top:12px"><button class="out" data-signout>👋 I'm done · Sign out</button></div></div>`;
+  else html += `<div class="remind">⏰ ${m} of ${DAY_MINS} minutes today
+    <small>${m ? `${DAY_MINS - m} more ${DAY_MINS - m === 1 ? 'minute' : 'minutes'} to reach today's goal.` : `Today's goal is ${DAY_MINS} minutes. You haven't started yet.`}</small></div>`;
   html += `<p class="lead2" style="font-size:14.5px;margin-top:6px">Need more? <button class="link" data-tab="library">Pick from the Library →</button></p>`;
   const left = L.today.filter(it=>!it.a);
   html += `<h3 class="group">To do <span class="gn">${left.length} left</span></h3>`;
@@ -1188,7 +1194,7 @@ function habitat(p, extra){
 function petDoc(pet, g){
   return { kind:pet.kind, name:pet.name, chosenAt:pet.chosenAt,
     xp:g.xp, lv:g.lv, streak:g.streak, best:g.best, pages:g.pages, badges:g.badges.map(b=>b.id),
-    // left = pages still to do today; on the 90-minute days (minsDay) it is minutes still to do instead
+    // left = pages still to do today; on the minutes-a-day days (minsDay) it is minutes still to do instead
     todayDone:g.todayDone, left:g.leftMins!=null ? Math.max(0, g.leftMins) : (g.todayLeft||[]).length, day:iso(today), updatedAt:Date.now() };
 }
 

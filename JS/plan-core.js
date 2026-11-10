@@ -1,4 +1,4 @@
-/* plan-core.js —— 「每天按时间自动排」的排法（HOMEWORK-SYSTEM.md 2026-10-06，Sam 定：每人每天 90 分钟、按顺序排）。
+/* plan-core.js —— 「每天按时间自动排」的排法（HOMEWORK-SYSTEM.md 2026-10-06，Sam 定：每人每天 90 分钟，2026-11-10 起 60 分钟、按顺序排）。
    parent.html（每次打开家长台）和 homework-system/plan-day.mjs（每天早上 Mac 上自动跑）共用这一份，
    改这里两边一起变。都是纯函数：不碰 Firestore，读写由调用的一方做。
 

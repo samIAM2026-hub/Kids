@@ -508,6 +508,10 @@
   .qtab tr.sgrp td::before{content:'▸ ';color:var(--gold2)}
   .qtab tr.sgrp.on td::before{content:'▾ '}
   .attnline{margin-top:6px;color:var(--amber);font-size:12.5px;line-height:1.5}
+  /* 没到每天的目标（Sam 2026-11-10：「如果没有，你要在孩子的页面和家长的页面提醒我」） */
+  .shortline{margin:-6px 0 12px;padding:7px 10px;border-radius:8px;background:rgba(176,58,46,.09);color:var(--red);font-size:13px;font-weight:600;line-height:1.5}
+  .shortline span{display:block;font-weight:400}
+  .shortline.soft{background:rgba(168,99,26,.10);color:var(--amber)}   /* 今天还在进行中：黄；已经过完的日子没到：红 */
   /* 按科目分组的小标题（今天页 / 作业队列） */
   .subhd.sgrp{color:var(--gold);letter-spacing:.6px;text-transform:none;font-size:12px;margin:14px 0 0}
   .qtab tr.sgrp td{color:var(--gold);font-size:12px;padding-top:10px}
@@ -1341,7 +1345,7 @@ async function carryNow(){
      一份比半天还大的，当天还没过半就让它单独放进去，不然它永远排不上；
    · 孩子提前做了后面的（孩子页「Want more?」），挪到今天、标 ahead —— 记录在今天，以后不再排。
    没顺延过的条目重排时去掉 movedFrom（不再写「挪来」）；顺延过的保留，照样标「延后 N 天」。 */
-const PLAN_MINS = 90;
+const PLAN_MINS = 60;   // Sam 2026-11-10：每天的目标是 1 个小时（原来 90）。plan-day.mjs 里同一个数
 let PLAN = { grace:null, warren:null };
 const planPinned = PlanCore.planPinned, planDays = PlanCore.planDays;   // 排法本身在 JS/plan-core.js（和 plan-day.mjs 共用）
 // 真排：每个孩子一个 transaction。返回有没有改动。
@@ -1819,7 +1823,7 @@ function tStats(k, from, to){
 const tSum = S => S.reduce((t, z)=>({ secs:t.secs+z.secs, right:t.right+z.right, of:t.of+z.of, act:t.act+z.act, open:t.open+z.open, n:t.n+z.n }),
   { secs:0, right:0, of:0, act:0, open:0, n:0 });
 const STUDY_DAYS = 7, SDAY_OPEN = {};   // "kid|date" → 点开 / 收起（这次打开页面期间记着，重画不丢）
-// 三格：时间 · 准确率 · 专注度。goal：这一行是一整天 → 时间写「47 / 90 分钟」，够了变绿
+// 三格：时间 · 准确率 · 专注度。goal：这一行是一整天 → 时间写「47 / 60 分钟」，够了变绿
 function studyCells(z, goal){
   const m = Math.round(z.secs/60), acc = z.of ? Math.round(100*z.right/z.of) : null;
   const foc = z.open ? Math.min(100, Math.round(100*z.act/z.open)) : null;
@@ -1850,6 +1854,14 @@ function studyRows(k, end){
 }
 // 今天页一个孩子一张卡（Sam 2026-10-27「看起来过于复杂」→ 只放四样：几分钟 / 目标、准确率 · 专注度 · 做了几份、最近 7 天、要你处理的事）。
 // 数和 7 天表同一个口径（tStats）。卡片在 viewToday 里接着放「明细」，由它关上 </div>。
+// 没到每天的目标就提醒（看今天时顺带说昨天：今天的数要到晚上才算数，昨天的已经定了）。到了就什么都不出。
+function shortLine(k, day, m){
+  const isT = day===iso(today), y = shiftDay(day, -1);
+  const ym = isT ? Math.round(tSum(tStats(k, y, y)).secs/60) : PLAN_MINS;
+  const a = m >= PLAN_MINS ? '' : isT ? `⏰ 今天还没到 ${PLAN_MINS} 分钟，还差 ${PLAN_MINS - m} 分钟` : `⚠️ 这天没到 ${PLAN_MINS} 分钟，只学了 ${m} 分钟`;
+  const b = ym >= PLAN_MINS ? '' : `没到：${ym} / ${PLAN_MINS} 分钟`;
+  return a || b ? `<div class="shortline${isT && a && !b ? ' soft' : ''}">${a || '⚠️ 昨天' + b}${a && b ? `<span>昨天也${b}</span>` : ''}</div>` : '';
+}
 function dayCard(k, day, leftTxt, nTodo){
   const t = tSum(tStats(k, day, day)), m = Math.round(t.secs/60);
   const acc = t.of ? Math.round(100*t.right/t.of) : null, foc = t.open ? Math.min(100, Math.round(100*t.act/t.open)) : null;
@@ -1858,6 +1870,7 @@ function dayCard(k, day, leftTxt, nTodo){
       <a class="kv" href="homework.html?as=${k}" target="_blank" rel="noopener" title="打开 ${KID[k].n} 看到的作业页（家长模式）">孩子的界面 ›</a></div>
     <div class="dmin">${m}<small> / ${PLAN_MINS} 分钟</small></div>
     <div class="dbar${m>=PLAN_MINS?' ok':''}"><i style="width:${Math.min(100, Math.round(100*m/PLAN_MINS))}%"></i></div>
+    ${shortLine(k, day, m)}
     <div class="dstats">
       <div><b style="color:${col(acc, PASS)}">${acc==null?'—':acc+'%'}</b><span>准确率${t.of?` · ${Math.round(t.right)}/${t.of} 题`:''}</span></div>
       <div><b style="color:${col(foc, 80)}">${foc==null?'—':foc+'%'}</b><span>专注度</span></div>
