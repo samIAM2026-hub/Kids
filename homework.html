@@ -855,7 +855,8 @@ async function loadOpened(){
     OPENED = snaps.flatMap(sn=>sn.docs.map(d=>d.data())).filter(x=>typeof x.activeSecs==='number')
       .map(x=>({ id:x.itemId, date:x.day, lab: WK_LAB(x.itemId), active:(x.earlierActive||0) + (x.done ? 0 : x.activeSecs) }))
       .filter(u=>u.active >= 1);
-    if(V==='report') render();
+    // Today only needs a re-draw when today has time on a page not handed in yet (its minutes line changes)
+    if(V==='report' || (V==='today' && OPENED.some(u=>u.date===iso(today)))) render();
   } catch(e){ console.warn('[progress]', e.code||e); }
 }
 const pctOf = (a, b) => b ? Math.min(100, Math.round(100*a/b)) : null;
@@ -1138,7 +1139,9 @@ function viewToday(){
   const L = library();
   let html = reportCard() + markedCards();
   if(!L) return html + `<div class="empty"><span class="e">📡</span>Couldn't load your homework.<br>Check the Wi-Fi, then pull down to refresh.</div>`;
-  const m = Math.round(L.secs/60);
+  // The same minutes as My day's big card (wkStats: handed in + opened and not handed in), so the two tabs never
+  // show different numbers (Sam 2026-11-12: 「改成一致」). L.secs (handed in only) was the old count here.
+  const m = Math.round(wkSum(wkStats(iso(today), iso(today))).secs/60);
   if(m >= DAY_MINS) html += `<div class="cheer">🌟 ${DAY_MINS} minutes done today, great work, ${esc(ME.n)}!
     <div style="margin-top:12px"><button class="out" data-signout>👋 I'm done · Sign out</button></div></div>`;
   else html += `<div class="remind">⏰ ${m} of ${DAY_MINS} minutes today
@@ -1531,7 +1534,7 @@ const viewEl = document.getElementById('view');
 function render(){
   viewEl.innerHTML = V==='today' ? viewToday() : V==='library' ? viewLibrary() : V==='done' ? viewDone() : V==='report' ? viewReport()
     : V==='scores' ? viewScores() : V==='pet' ? viewPet() : viewMistakes();
-  if(V==='report') loadOpened();
+  if(V==='report' || V==='today') loadOpened();
   const L = library();
   document.getElementById('ntoday').textContent = L && L.today.length ? `${L.today.filter(it=>it.a).length}/${L.today.length}` : '';
   const ls = document.getElementById('libsearch'); if(ls) ls.addEventListener('input', ()=>libFilter(ls.value));
