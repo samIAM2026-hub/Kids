@@ -1007,7 +1007,7 @@
 <script src="JS/ai-key.js"></script>
 <script src="JS/writing-review.js"></script>
 <script src="JS/writing-kinds.js"></script>
-<script src="JS/plan-core.js?v=1019"></script>
+<script src="JS/plan-core.js?v=1112"></script>
 <script src="JS/fs-cache.js"></script>
 <script>
 /* =====================================================================
@@ -2673,10 +2673,32 @@ async function autoArchivePassed(){
   toast(`做完且过关的自动归档 ${todo.length} 份：${names.slice(0,3).join('、')}${names.length>3?' 等':''} —— 在「只看归档」里，点「放回」能拿回来`);
   return todo.length;
 }
-// 写不成也只是没收起来，页面照常用
+/* ===================== 上传超过 2 周 → 自动下架（Sam 2026-11-12：「不需要等着我下架…题太多会越来越乱」） =====================
+   规则在 JS/plan-core.js 的 shelfExpired（plan-day.mjs 每天 5:30 也跑同一条，所以这里多半没东西可收）：
+   所有类型都算，从上传那天起；重新上架过的从上架那天重新算；📌 keep 的不碰。不看做没做、过没过。 */
+async function autoArchiveOld(){
+  const t = iso(today), todo = BANK.filter(b => PlanCore.shelfExpired(b, t));
+  if(!todo.length) return 0;
+  const WHY = PlanCore.SHELF_WHY;
+  for(let i=0; i<todo.length; i+=400){
+    const batch = db.batch();
+    todo.slice(i, i+400).forEach(b => batch.set(db.collection('bank').doc(b.docId),
+      Object.assign({ archived:true, archivedOn:t, archivedWhy:WHY }, doneDate(b) ? { doneOn: doneDate(b) } : {}), { merge:true }));
+    await batch.commit();
+  }
+  FsCache.bumpBank(db);
+  todo.forEach(b => { const d = doneDate(b); Object.assign(b, { archived:true, archivedOn:t, archivedWhy:WHY }, d ? { doneOn:d } : {}); });
+  toast(`上传超过 2 周的自动下架 ${todo.length} 份：${todo.slice(0,3).map(b=>b.t).join('、')}${todo.length>3?' 等':''} —— 在题库「⋯ 更多 → 下架的」里点「上架」能拿回来`);
+  return todo.length;
+}
+// 写不成也只是没收起来，页面照常用。两条规则各跑各的：一条没写成不耽误另一条，也不把已经收了的说成「没变」
 async function autoArchiveSafe(){
-  try { return await autoArchivePassed(); }
-  catch(e){ console.error(e); toast('自动归档没写成：' + (e.code||e.message) + '，题库没变', true); return -1; }
+  let n = 0, failed = false;
+  for(const rule of [autoArchivePassed, autoArchiveOld]){
+    try { n += await rule(); }
+    catch(e){ failed = true; console.error(e); toast('自动下架有一步没写成：' + (e.code||e.message), true); }
+  }
+  return n || (failed ? -1 : 0);
 }
 
 
@@ -2956,8 +2978,9 @@ function viewBank(){
       外站那边判不了分，所以孩子在作业页上自己点「✓ I'm done」，这边显示「✓ 完成」。</p>
       <p>归档 = 从默认列表里收起来，<b>没有删</b>。归档的照样能勾选派作业（比如让孩子回头复习一本读完的书）。
       每行类型下面有 <b>归档</b> 按钮，点一下就收起来；要一次收一批，就勾选后用底部那条的 <b>归档</b>。归档过的按 <b>放回</b> 回到在用列表。</p>
-      <p><b>自动归档</b>（Sam 2026-10-16）：一本书（没书的散页算一份）里每一份都派过、做完、而且都过了 <b>80%</b>，打开 / 刷新家长台时整组自己收起来；有一份没过就整组留着。自定义链接、参考资料、📌 和以后还排着的不碰。别的照旧手点。归档那行写着 <b>归档 X 月 X 日</b>，鼠标停上去能看到是手点的还是自动的。
-      点 <b>放回</b> 就拿回在用列表。</p>`)}</h2>
+      <p><b>自动归档</b>（Sam 2026-10-16）：一本书（没书的散页算一份）里每一份都派过、做完、而且都过了 <b>80%</b>，打开 / 刷新家长台时整组自己收起来；有一份没过就整组留着。这一条不碰自定义链接、参考资料、📌 和以后还排着的。归档那行写着 <b>归档 X 月 X 日</b>，鼠标停上去能看到是手点的还是自动的。
+      点 <b>放回</b> 就拿回在用列表。</p>
+      <p><b>超过 2 周自动下架</b>（Sam 2026-11-12）：上传满 2 周的，不管做没做完，每天早上自己下架（打开 / 刷新家长台时也会查一遍）。这一条所有类型都算（链接、参考资料也算），只有 📌 的不碰。重新 <b>上架</b>（= 放回）的那份从上架那天起再留 2 周。</p>`)}</h2>
     ${kidTabs()}
     <div class="seclead groupbar slim"><input type="search" class="bsearch" id="bsearch" placeholder="搜标题、书名（按 / ）" value="${esc(F.q)}" autocomplete="off">
       <span class="crumb">${rows.length} 份${F.q.trim()?' · 上架、下架一起搜':F.arch==='archived'?' · 下架的':''}</span>
@@ -4882,6 +4905,8 @@ function viewUsage(){
 function toast(msg, bad){
 
   const t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : '');
+  const up = [...document.querySelectorAll('.toast')].reduce((h, x) => h + x.offsetHeight + 8, 0);   // 同时有几条就往上摞，不互相盖住
+  if(up) t.style.transform = `translate(-50%, ${-up}px)`;
   t.textContent = msg; document.body.appendChild(t); setTimeout(()=>t.remove(), bad ? 5000 : 2600);
 }
 

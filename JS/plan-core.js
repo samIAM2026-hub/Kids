@@ -81,6 +81,16 @@
     return out;
   }
 
-  const api = { iso, shiftDay, planPinned, noCarry, planDays, qTail, qFront, qSeq };
+  // 上传超过 SHELF_DAYS 天的自动下架（Sam 2026-11-12：「超过 2 个星期就可以自动下架了，不需要等着我下架…题太多会越来越乱」）。
+  // 从上传那天算；家长手动重新上架过的，从上架那天重新算两周（不然今天上架、明天又被收走）。📌 keep 的不碰。
+  // parent.html（打开 / 刷新时）和 plan-day.mjs（每天 5:30）用的是同一条。
+  const SHELF_DAYS = 14, SHELF_WHY = '上传超过 2 周，自动下架';
+  const shelfExpired = (b, today) => {
+    if(!b || b.archived || b.keep) return false;
+    const from = (b.reopenedOn || '') > (b.added || '') ? b.reopenedOn : (b.added || '');
+    return !!from && from < shiftDay(today, -SHELF_DAYS);
+  };
+
+  const api = { iso, shiftDay, planPinned, noCarry, planDays, qTail, qFront, qSeq, SHELF_DAYS, SHELF_WHY, shelfExpired };
   if(typeof module !== 'undefined' && module.exports) module.exports = api; else root.PlanCore = api;
 })(this);
