@@ -4473,8 +4473,11 @@ async function wrSend(how){
     console.error(e); toast('没发出去：' + (e.code||e.message) + '，批改还在草稿里', true); return;
   }
   // The attempt carries the score for 完成记录 / 今日作业. If that fails the marking is still sent.
-  if(w.attemptId) db.doc('attempts/'+w.attemptId).update({ 'practice.firstTry': ed.score, 'practice.reviewed': true,
-      'practice.skipped': firebase.firestore.FieldValue.delete() })
+  // 阅读课（Holes 每章一段）的 attempt 是一份正常打分的测验：给它加 practice 会让下面「真做完了」那几处把
+  // 没过关的测验也算成做完，所以分数另放一格（writing-review.mjs 的 send 同一个写法）。
+  if(w.attemptId) db.doc('attempts/'+w.attemptId).update(WritingKinds.of(w).drafts === 'one'
+      ? { essayReview: { score: ed.score, reviewed: true } }
+      : { 'practice.firstTry': ed.score, 'practice.reviewed': true, 'practice.skipped': firebase.firestore.FieldValue.delete() })
     .catch(e=>console.warn('[作文] attempt not updated:', e.code||e));
   Object.assign(w, { status:'reviewed', review: Object.assign({}, review, { at: firebase.firestore.Timestamp.now() }) });
   delete w.seenAt; delete w.skipped;

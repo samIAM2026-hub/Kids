@@ -7,11 +7,14 @@
    homework-system/writing-review.mjs (which loads this file with a fake window).
 
    A new course: add a row (key, 中文名, English name for the kid's pages, colour, its pages).
-   A new page for an existing course: add it to that row's pages.
+   A new page for an existing course: add it to that row's pages. A course made of a whole run of pages
+   (one per chapter of a book) gives a `match` pattern instead of listing them.
 
    How many drafts: mark once, rewrite once, then it's final (2026-09-24 批一次改一次就定稿).
    A course row with drafts: 'many' instead goes round as many times as it takes, and a parent's send is
    either "rewrite it" or "final" (review.final). No course uses that since 文书 moved out (below).
+   A course row with drafts: 'one' is final as soon as it is marked — no rewrite (reading: one short
+   paragraph per chapter, fifty chapters; 2026-11-15).
 
    Application essays (文书) are NOT here: since 2026-09-25 they are written and marked in the school-
    application site arbutus (~/Projects/arbutus), not in the homework system (Sam). */
@@ -25,7 +28,11 @@
       pages: ['Writing/BASA-Invention-Poem-Workshop.html', 'Writing/BASA-Poetry-Read-Aloud.html',
               'Writing/BASA-Read-Aloud-Studio.html'] },
     { key: 'speech', zh: '演讲课',      en: 'Speech',            color: '#e08a2e',
-      pages: ['Writing/Speech-Studio.html', 'Writing/Grace-Speech-Thanksgiving.html', 'Writing/Grace-Speech-Healthy-Eating.html'] }
+      pages: ['Writing/Speech-Studio.html', 'Writing/Grace-Speech-Thanksgiving.html', 'Writing/Grace-Speech-Healthy-Eating.html'] },
+    // Novel study: the paragraph at the end of each chapter page (Quizzes/Holes-Ch1.html, -Ch2, …).
+    // A page in Quizzes/ has a bare file name as its item ID (bank hrefs are relative to Quizzes/).
+    { key: 'reading', zh: '阅读',       en: 'Reading',           color: '#b9562b', drafts: 'one',
+      pages: [], match: /^Holes-Ch\d+[a-z]?\.html$/ }
   ];
   var BY_KEY = {};
   LIST.forEach(function (k) { BY_KEY[k.key] = k; });
@@ -40,7 +47,7 @@
   function ofPage(id) {
     var p = pagePath(id);
     if (!p) return null;
-    for (var i = 0; i < LIST.length; i++) if (LIST[i].pages.indexOf(p) >= 0) return LIST[i];
+    for (var i = 0; i < LIST.length; i++) if (LIST[i].pages.indexOf(p) >= 0 || (LIST[i].match && LIST[i].match.test(p))) return LIST[i];
     return null;
   }
   // The course of a handed-in piece. The pid is looked at first: speech-lesson pids only come from that page.
@@ -56,6 +63,7 @@
   // No more drafts after this one. drafts:'many': only when a parent pressed 定稿 (review.final).
   function isFinal(w) {
     if (w.status !== 'reviewed') return false;
+    if (of(w).drafts === 'one') return true;
     return many(w) ? !!(w.review && w.review.final) : isRedraft(w);
   }
 
@@ -77,7 +85,21 @@
       + 'room of listeners. What counts: would the opening make someone look up; is the intention one clear sentence; '
       + 'are the three points genuinely separate, about the same thing, and roughly the same size; does each point have '
       + 'something real behind it; does the ending leave them with one thing. Short sentences and plain words are a '
-      + 'virtue here, not a weakness. Spelling and grammar get a light pass only.'
+      + 'virtue here, not a weakness. Spelling and grammar get a light pass only.',
+    reading: 'Novel study for a strong 12-year-old reader (Grade 7, has finished SSAT prep). After each chapter of the '
+      + 'book he writes ONE paragraph of about 80-120 words, untimed, choosing between an ANALYSIS prompt (a claim '
+      + 'about how the author creates an effect) and an IMITATION prompt (his own writing in the author\'s manner); '
+      + 'the PROMPT line says which. For ANALYSIS mark, in this order: is there one clear claim; does he use specific '
+      + 'details from the chapter as evidence (a paraphrase is fine, vague gestures are not); does he explain HOW each '
+      + 'detail produces the effect instead of just listing it; does he name a technique correctly (tone, irony, '
+      + 'euphemism, word choice, what is withheld, characterization). For IMITATION mark: does it use the techniques '
+      + 'the prompt asked for, is the voice controlled, does it show rather than state. Check any claim about the '
+      + 'book against the chapter itself before calling it right or wrong. Language: point out at most two things, '
+      + 'the ones that most get in the way; this is not a grammar exercise. The writing ends with two extra lines, '
+      + '"My prediction: …" and "Watching: …": his prediction about what will matter later in the book. Comment on '
+      + 'the prediction in one "note" (is it reasoned from the text?) and NEVER reveal whether it comes true or '
+      + 'anything from later chapters. There is no rewrite: this marking is final, so "next_time" must be things he '
+      + 'can do in the next chapter\'s paragraph.'
   };
 
   root.WritingKinds = { list: LIST, byKey: BY_KEY, pagePath: pagePath, ofPage: ofPage, of: of,

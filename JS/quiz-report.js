@@ -251,6 +251,8 @@
     },
     {
       // All questions on one page: pick(i, j) … finishQuiz(). Globals QUIZ[], picks[], locked. (Math.)
+      // A page may also set REPORT_WRITING around finishQuiz() (the Holes chapter pages: a paragraph to be
+      // marked); it goes to writings/{same ID as the attempt}, like the Writing Lab's.
       name: 'picks',
       match: function () {
         return isFn('finishQuiz') && isFn('pick') && Array.isArray(peek('QUIZ')) && Array.isArray(peek('picks'));
@@ -269,7 +271,9 @@
             if (ok) score++;
             (session.q[i + 1] || (session.q[i + 1] = { q: i + 1, secs: 0, awaySecs: 0 })).correct = ok;
           });
-          submit({ score: score, total: quiz.length, wrong: wrongList() });
+          var writing = peek('REPORT_WRITING');
+          submit({ score: score, total: quiz.length, wrong: wrongList(),
+                   writing: writing && typeof writing === 'object' ? writing : null });
         });
       }
     },
