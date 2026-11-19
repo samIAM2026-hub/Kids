@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Holes · The whole book · 50 questions</title>
+<style>
+  :root{
+    --paper:#fbf5ea; --card:#fffdf7; --ink:#2b2118; --soft:#6f5d4c; --line:#e6d9c3;
+    --sand:#e9d3a8; --clay:#b9562b; --clay-dark:#8f3f1d; --sky:#f3e2c0;
+    --good:#3a7d44; --good-bg:#e7f3e8; --bad:#c0392b; --bad-bg:#fbeaea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,"Times New Roman",serif;font-size:18px;line-height:1.55}
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px 60px}
+  header{padding:22px 0 10px}
+  .eyebrow{font:700 12px/1 -apple-system,Helvetica,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--clay)}
+  h1{font-size:34px;line-height:1.15;margin:8px 0 4px}
+  .sub{color:var(--soft);font-size:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:0 0 16px}
+  h2{font-size:24px;margin:0 0 8px}
+  ul.rules{margin:6px 0 0;padding-left:22px}
+  ul.rules li{margin:4px 0}
+  .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:4px 0 14px}
+  .bar i{display:block;height:100%;background:var(--clay);width:0;transition:width .25s}
+  .n{font:700 12px/1 -apple-system,Helvetica,sans-serif;color:var(--clay);letter-spacing:.08em;text-transform:uppercase}
+  p.t{margin:8px 0 14px;font-weight:700}
+  .btn{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:#fff;border:1.5px solid var(--line);
+    border-radius:10px;padding:10px 14px;margin:0 0 8px;cursor:pointer}
+  .btn:hover{border-color:var(--clay)}
+  .btn.on{background:#fbe9dc;border-color:var(--clay);font-weight:700}
+  .btn.right{background:var(--good-bg);border-color:var(--good);color:#1f4d27;font-weight:700}
+  .btn.wrong{background:var(--bad-bg);border-color:var(--bad);color:#7d231a}
+  .btn[disabled]{cursor:default}
+  .btn[disabled]:hover{border-color:var(--line)}
+  .btn.right[disabled]:hover{border-color:var(--good)} .btn.wrong[disabled]:hover{border-color:var(--bad)}
+  .tag{font:600 12px/1 -apple-system,Helvetica,sans-serif;margin-left:6px;white-space:nowrap}
+  .why{background:#f6efe0;border-left:4px solid var(--clay);border-radius:0 10px 10px 0;padding:10px 14px;margin:2px 0 4px;font-size:16px}
+  .nav{display:flex;justify-content:space-between;gap:10px;margin-top:10px}
+  .go{font:700 17px Georgia,serif;border:0;border-radius:11px;padding:12px 22px;cursor:pointer;background:var(--clay);color:#fff}
+  .go.back{background:transparent;color:var(--soft);border:1.5px solid var(--line)}
+  .go[disabled]{opacity:.4;cursor:default}
+  .grid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-top:6px}
+  .grid button{font:600 13px/1 -apple-system,Helvetica,sans-serif;border:1.5px solid var(--line);background:#fff;color:var(--soft);
+    border-radius:7px;padding:7px 0;cursor:pointer}
+  .grid button.done{background:var(--sand);border-color:#d6b77f;color:var(--ink)}
+  .grid button.here{border-color:var(--clay);box-shadow:0 0 0 2px var(--clay) inset}
+  .grid button.right{background:var(--good-bg);border-color:#9fcaa6;color:var(--good)}
+  .grid button.wrong{background:var(--bad-bg);border-color:#e5a39c;color:var(--bad)}
+  .small{font-size:15px;color:var(--soft)}
+  .score{display:flex;gap:12px;margin:6px 0 14px}
+  .score div{flex:1;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+  .score b{display:block;font-size:30px;line-height:1.1}
+  .score span{font:600 12px/1.2 -apple-system,Helvetica,sans-serif;color:var(--soft);text-transform:uppercase;letter-spacing:.06em}
+  .note{font-size:15px;color:var(--soft);margin:10px 0 0;padding:9px 12px;border-radius:10px;background:#f6efe0}
+  .note.ok{background:var(--good-bg);color:#1f4d27}
+  .note.warn{background:var(--bad-bg);color:#7d231a}
+  .note a{color:inherit;font-weight:700}
+  .rev{border-top:1px solid var(--line);padding:16px 0 8px}
+  .rev:first-child{border-top:0;padding-top:0}
+  .filters{display:flex;gap:8px;margin:0 0 12px}
+  .chip{font:inherit;font-size:15px;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;cursor:pointer;color:inherit}
+  .chip.on{background:var(--clay);border-color:var(--clay);color:#fff}
+  .confirm{background:var(--sky);border-radius:12px;padding:14px 16px;margin-top:12px}
+  .confirm .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+  @media (max-width:560px){ h1{font-size:28px} .grid{grid-template-columns:repeat(10,1fr);gap:3px} .grid button{font-size:11px;padding:6px 0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Holes · Louis Sachar · The whole book</div>
+    <h1>Fifty chapters, fifty questions</h1>
+    <div class="sub">One question for every chapter. None of them ask you to just remember what happened &mdash; they ask why, and how the pieces fit together.</div>
+  </header>
+  <div id="app"></div>
+</div>
+
+<script>
+/* Holes whole-book quiz — 2026-11-19. Sam: one question per chapter, no vocab, not too easy, scored,
+   ONE attempt only (refreshing must not give a fresh start).
+   - Answers save on this device as he goes; he can change them until he hands in. No right/wrong is
+     shown before hand-in, so nothing can be learnt from a first try.
+   - Hand-in → quiz-report.js (picks adapter) records the score to attempts/. After that this device
+     shows the result for good (localStorage), and any other device finds the attempt in Firestore and
+     shows the result too. To let him redo it, delete that attempt (parent side) AND clear this page's
+     local save on his device.
+   - ?preview=1 (parent links): everything works, nothing is recorded, its own save key. */
+var DATA = [
+{
+"ch": 1,
+"q": "Chapter 1 answers its own questions with one-word paragraphs: \"Usually.\" \"Always.\" What effect does this have?",
+"options": [
+"It makes the dangers sound like rumours the boys tell to scare new campers",
+"It states danger flatly and calmly, so it feels certain and chilling",
+"It shows the narrator is unsure what really happens at the camp",
+"It slows the story down so the reader can relax before the action"
+],
+"answer": 1,
+"why": "The flat, calm tone treats deadly danger as a plain fact — that's what makes it creepy."
+},
+{
+"ch": 2,
+"q": "Stanley's family is poor and he has never been to summer camp. What is ironic about Camp Green Lake?",
+"options": [
+"Stanley picks the camp because he heard it is fun, and it turns out to be hard",
+"The judge believes the camp is a harsher punishment than any jail could be",
+"His first \"camp\" comes as a punishment, and it is nothing like a real summer camp",
+"The camp was built for rich children and the poor boys are sent there by mistake"
+],
+"answer": 2,
+"why": "Irony: the word 'camp' promises fun, but for Stanley it means a prison in the desert."
+},
+{
+"ch": 3,
+"q": "How does the author present the family curse in Chapter 3?",
+"options": [
+"As a running joke they blame, leaving the reader unsure if it is real",
+"As a proven fact that the narrator explains with clear evidence from history",
+"As a story Stanley keeps secret because he is ashamed of his great-grandfather",
+"As a tale his father made up to explain why his inventions keep failing"
+],
+"answer": 0,
+"why": "The family laughs about it and blames it, but the narrator never says it is real."
+},
+{
+"ch": 4,
+"q": "Mr. Sir explains why the camp needs no fence. What does this reveal about how the camp keeps control?",
+"options": [
+"The guards trust the boys because each one signed a promise not to run",
+"The boys are watched day and night by guards with rifles at the camp's edge",
+"The fence was removed years ago because the boys kept climbing over it",
+"The camp has the only water for 100 miles, so the desert holds them"
+],
+"answer": 3,
+"why": "Whoever controls the water controls everyone — a theme that runs through the book."
+},
+{
+"ch": 5,
+"q": "Mr. Pendanski likes to seem friendly (the boys call him Mom). What does his joke about why Zero is called Zero suggest?",
+"options": [
+"He is trying to make Zero feel included by giving him a funny nickname",
+"Beneath his warm manner he looks down on the boy he thinks is worthless",
+"He is repeating what X-Ray said so the older boys will like him more",
+"He knows Zero is clever and is teasing him the way friends tease each other"
+],
+"answer": 1,
+"why": "'There's nothing inside his head' — said with a smile. His kindness is only on the surface."
+},
+{
+"ch": 6,
+"q": "Why does it hurt Stanley so much that Clyde Livingston believes he is a thief?",
+"options": [
+"Clyde could have paid for a lawyer if he had believed Stanley's story",
+"Clyde's testimony was the main reason Stanley was sent to the camp",
+"Clyde was his hero, and now the man he looked up to believes he stole",
+"Clyde was a friend of his father and the two families stopped speaking"
+],
+"answer": 2,
+"why": "Being judged by a stranger is bad; being judged by your hero is crushing."
+},
+{
+"ch": 7,
+"q": "Chapter 7 switches between Stanley's first hole and Elya's story in Latvia. What links the two stories most closely?",
+"options": [
+"Both show hard, repeated work slowly making someone stronger",
+"Both take place in a dry desert where water is hard to find",
+"Both end with a promise that is kept exactly as it was made",
+"Both are about a boy trying to win the love of a girl"
+],
+"answer": 0,
+"why": "Elya carries the pig uphill every day; Stanley digs every day. Both grow stronger."
+},
+{
+"ch": 8,
+"q": "Chapter 8 is only about the yellow-spotted lizard. Thinking about the whole book, why does the author give it its own chapter?",
+"options": [
+"To give readers a short rest between two long and serious chapters",
+"To teach real science about animals that live in the Texas desert",
+"To plant a danger that returns with Kate and again at the climax",
+"To explain why Mr. Sir eats sunflower seeds instead of smoking"
+],
+"answer": 2,
+"why": "Kate dies from a lizard bite (Ch 28) and the boys sit among lizards (Ch 45). Planted early, paid off later."
+},
+{
+"ch": 9,
+"q": "The boys call the rec room the \"Wreck Room.\" What does this pun suggest?",
+"options": [
+"The boys are proud of the room because it is the one place they control",
+"The room has been damaged by a storm and the camp has no money to repair it",
+"The boys use the room for fights, which the counselors secretly encourage",
+"A place meant for rest is broken down, like the camp's care for the boys"
+],
+"answer": 3,
+"why": "Everything in it is broken. It shows how little the camp really cares about the boys."
+},
+{
+"ch": 10,
+"q": "Stanley finds a fish fossil, but the Warden shows no interest. Looking back, what does her reaction tell you?",
+"options": [
+"She is searching for one particular thing, not for anything unusual",
+"She believes Stanley bought the fossil in town and is trying to trick her",
+"She has seen so many fossils that they no longer seem special to her",
+"She wants the boys to stop wasting time and finish their holes faster"
+],
+"answer": 0,
+"why": "Later we learn she is hunting Kate Barlow's treasure. A fossil is worthless to her."
+},
+{
+"ch": 11,
+"q": "Stanley agrees to give X-Ray anything he finds. Which best describes this choice?",
+"options": [
+"A mistake that shows Stanley is too weak to stand up for himself",
+"A survival move: he trades a small reward for safety in the group",
+"A trick to get X-Ray in trouble with the Warden later on",
+"A sign that Stanley secretly wants to become the leader himself"
+],
+"answer": 1,
+"why": "He decides it matters more that X-Ray thinks he is 'a good guy' than getting one day off."
+},
+{
+"ch": 12,
+"q": "In Chapter 12 Zero says, \"I like to dig holes.\" In Chapter 30 he says, \"I hate digging holes.\" What does the change show?",
+"options": [
+"The holes grew much harder to dig once the weather turned hot",
+"Zero was lying the first time because Mr. Pendanski was listening",
+"Zero wants Stanley to take over his digging for the rest of the summer",
+"Zero has begun to see himself as more than someone who digs"
+],
+"answer": 3,
+"why": "Once he learns to read, he refuses to be told digging is all he's good for."
+},
+{
+"ch": 13,
+"q": "After Stanley gives X-Ray the gold tube, X-Ray moves him up one place in the water line. What does this show?",
+"options": [
+"The line is ordered by who has been at the camp the longest",
+"Mr. Sir rewards boys who find objects by letting them drink sooner",
+"Stanley's standing in the group rose because he helped the leader",
+"Zero offered to give up his place because he likes Stanley"
+],
+"answer": 2,
+"why": "The line is a map of power in Tent D. Helping X-Ray raised Stanley's rank."
+},
+{
+"ch": 14,
+"q": "The Warden never shouts. She just says \"Excuse me\" softly. How does the author make her frightening?",
+"options": [
+"By showing that everyone around her obeys her soft words at once",
+"By describing her as much taller and stronger than any man at the camp",
+"By letting us hear her thoughts, which are full of cruel and angry plans",
+"By having her carry a gun that she points at the boys while she talks"
+],
+"answer": 0,
+"why": "Mr. Pendanski falls silent the moment she speaks. Quiet power can be the scariest kind."
+},
+{
+"ch": 15,
+"q": "Which detail from Chapter 15 best shows the boys are not digging just to \"build character\"?",
+"options": [
+"The Warden lets the boys rest in the shade when the sun gets too hot",
+"Mr. Pendanski asks the boys to talk about their feelings while they dig",
+"The boys each dig their own hole far away from the others' holes",
+"The Warden has the dirt dug twice and checked so nothing is missed"
+],
+"answer": 3,
+"why": "'We don't want to miss anything.' You don't sift dirt twice unless you're hunting for something."
+},
+{
+"ch": 16,
+"q": "Zero has never heard of the nursery rhyme or Sesame Street. What does this hint about him?",
+"options": [
+"He grew up without a stable home or an ordinary childhood",
+"He comes from another country where those shows were not on TV",
+"He is pretending not to know so the others will leave him alone",
+"He was home-schooled by parents who did not allow television"
+],
+"answer": 0,
+"why": "Later (Ch 41, 43) we learn he was homeless. This is one of the first clues."
+},
+{
+"ch": 17,
+"q": "Zigzag hits Stanley with a shovel, then tells him to dig out \"his\" dirt. What does this scene show about the camp?",
+"options": [
+"Zigzag has been planning revenge since the day Stanley arrived",
+"Under the Warden's pressure, the boys start turning on each other",
+"The boys secretly enjoy the extra work because it passes the time",
+"The counselors want the boys to settle their own fights fairly"
+],
+"answer": 1,
+"why": "The Warden's impatience makes everyone tense — and the boys take it out on each other."
+},
+{
+"ch": 18,
+"q": "\"His heart had hardened as well.\" Stanley refuses to teach Zero to read. Why would the author include this unlikable moment?",
+"options": [
+"To show that Stanley was guilty of the crime after all",
+"To prove that reading is too hard to teach in a camp",
+"To show the camp changing him, so his later kindness means more",
+"To explain why Zero dislikes Stanley for the rest of the book"
+],
+"answer": 2,
+"why": "A character who changes needs a low point. This is Stanley's."
+},
+{
+"ch": 19,
+"q": "Stanley takes the blame for the stolen sunflower seeds even though Magnet stole them. Why?",
+"options": [
+"He hopes the Warden will reward him for being honest",
+"He believes he won't be punished as harshly because he is new",
+"He would rather stay loyal to the group than avoid trouble",
+"He is afraid that Magnet will tell everyone his real name"
+],
+"answer": 2,
+"why": "Keeping the group's trust matters to him more than escaping punishment."
+},
+{
+"ch": 20,
+"q": "The Warden says Mr. Sir won't die: \"Unfortunately for you.\" What does she mean?",
+"options": [
+"Stanley will have to look after Mr. Sir until he recovers",
+"Stanley will be blamed by the other boys for what happened",
+"Mr. Sir will live, and he will take his pain out on Stanley",
+"Mr. Sir will report Stanley to the police for the stolen seeds"
+],
+"answer": 2,
+"why": "A short, quiet line with a threat inside it — and Ch 24 proves her right."
+},
+{
+"ch": 21,
+"q": "Stanley thinks the rattlesnake would be more dangerous without its rattle. Which character could this idea best describe?",
+"options": [
+"The Warden, who gives no warning before she strikes",
+"Mr. Sir, who warns the boys loudly every single day",
+"X-Ray, who acts tough but is small and has bad eyesight",
+"Zigzag, who seems strange but means the boys no harm"
+],
+"answer": 0,
+"why": "Mr. Sir yells (a rattle). The Warden is soft-spoken and strikes with no warning."
+},
+{
+"ch": 22,
+"q": "Zero can't read, yet he does hard sums in his head and learns letters fast. What point is the author making?",
+"options": [
+"Math is a more useful skill than reading in the real world",
+"Being unable to read is not the same as being unintelligent",
+"Zero has been secretly going to school without telling anyone",
+"Stanley is a better teacher than the teachers at his own school"
+],
+"answer": 1,
+"why": "The adults call Zero stupid. The book shows they're wrong."
+},
+{
+"ch": 23,
+"q": "Chapter 23 describes Green Lake 110 years ago, full of water and peach trees. Why place this picture after we know the dry camp so well?",
+"options": [
+"To show the camp's owners are planning to refill the lake",
+"To prove that the boys are digging in the wrong part of Texas",
+"To make readers wonder what turned it into a dry wasteland",
+"To give a break from the main story that has no link to the plot"
+],
+"answer": 2,
+"why": "The contrast with Chapter 1 creates a mystery that Chapters 25–26 answer."
+},
+{
+"ch": 24,
+"q": "Mr. Sir pours Stanley's water on the ground, and Stanley still says \"Thank you, Mr. Sir.\" What does this show?",
+"options": [
+"Stanley respects Mr. Sir more than he respects the Warden",
+"Stanley is being sarcastic to make the other boys laugh",
+"Stanley has learned that the water there is unsafe to drink",
+"Fear keeps him polite to someone who is treating him unfairly"
+],
+"answer": 3,
+"why": "Power passes down: the Warden hurts Mr. Sir, Mr. Sir hurts Stanley, and Stanley can't push back."
+},
+{
+"ch": 25,
+"q": "Sam says \"I can fix that\" several times. The last time, Katherine says her heart is breaking. Why does this final one hit hardest?",
+"options": [
+"It shows Sam had been joking with Katherine from the start",
+"It turns a simple handyman's phrase into a quiet promise of love",
+"It proves Katherine had been breaking things on purpose",
+"It is the first time Sam is paid in money rather than peaches"
+],
+"answer": 1,
+"why": "The repetition builds; the last one moves from fixing desks to fixing a heart."
+},
+{
+"ch": 26,
+"q": "The narrator lists \"the facts\" and then asks: \"Whom did God punish?\" Why ask instead of telling us?",
+"options": [
+"The author does not know the answer and wants readers to guess",
+"The evidence — no rain for a century — lets readers judge",
+"The question is a trick, because the story says the town was innocent",
+"The narrator wants to blame Katherine without saying it directly"
+],
+"answer": 1,
+"why": "Not a drop of rain fell on the town that killed Sam. The author lets us reach the conclusion."
+},
+{
+"ch": 27,
+"q": "Zero tells Stanley his real name is Hector Zeroni. What does the reader realise that Stanley does not?",
+"options": [
+"He comes from the family Elya broke his promise to",
+"Zero has been using a fake name to hide from the police",
+"Zero is related to the Warden through his mother's family",
+"Zero is the boy who stole Clyde Livingston's sneakers"
+],
+"answer": 0,
+"why": "This is dramatic irony: we know about Madame Zeroni from Chapter 7; Stanley doesn't connect it."
+},
+{
+"ch": 28,
+"q": "Kate Barlow dies laughing after telling Trout to \"start digging.\" Why does she laugh?",
+"options": [
+"The lizard bite does not hurt, so she knows she will survive",
+"Trout has finally said sorry for what happened to Sam",
+"She has told Trout exactly where the treasure is buried",
+"She knows Trout's family will dig for years and never find it"
+],
+"answer": 3,
+"why": "Her revenge outlives her — and the Warden, Trout's descendant, is still digging."
+},
+{
+"ch": 29,
+"q": "In the lightning, Stanley sees a peak shaped like a fist with a thumb up. Why does this matter?",
+"options": [
+"It matches the words his great-grandfather said about finding refuge",
+"It warns him that the storm is about to flood the dry lakebed",
+"It shows the Warden's treasure is buried at the foot of the mountain",
+"It proves Stanley is seeing things because he has not had enough water"
+],
+"answer": 0,
+"why": "A clue from Chapter 3/21 becomes a real place — and later saves both boys."
+},
+{
+"ch": 30,
+"q": "Why does Zero finally hit Mr. Pendanski with the shovel?",
+"options": [
+"He wants to escape and needs the counselor out of his way first",
+"He thinks Mr. Pendanski was the one who stole Stanley's food",
+"He's mocked for learning, then told digging is all he's good for",
+"He is protecting Stanley, who is about to be hit again by Zigzag"
+],
+"answer": 2,
+"why": "'It's all you'll ever be good for.' After weeks of learning, that insult is too much."
+},
+{
+"ch": 31,
+"q": "The adults erase Zero's records because \"no one cares about Hector Zeroni.\" What does this show?",
+"options": [
+"The camp wants to protect Zero's privacy after he ran away",
+"The adults are sure Zero will come back once he is thirsty",
+"The computer system at the camp is old and keeps losing files",
+"Adults are able to erase a powerless child, sure no one will look"
+],
+"answer": 3,
+"why": "It's one of the darkest moments — and Chapter 48 turns it upside down."
+},
+{
+"ch": 32,
+"q": "After crashing the truck, Stanley says he can't blame his great-great-grandfather this time. Why is that important?",
+"options": [
+"He has decided the curse was never real and his family was wrong",
+"He takes responsibility for his own choices for the first time",
+"He wants the counselors to know he acted alone, not with Zero",
+"He realises the truck was broken before he even climbed in"
+],
+"answer": 1,
+"why": "'This time it was his own fault, one hundred percent.' A turning point in how he sees himself."
+},
+{
+"ch": 33,
+"q": "Walking across the lake, Stanley sees holes spread out with no pattern. What does this suggest?",
+"options": [
+"The boys have been digging wherever they like for years",
+"The camp has stopped checking whether holes are the right size",
+"Someone has searched blindly over a huge area for many years",
+"The lizards dug most of the holes while looking for food"
+],
+"answer": 2,
+"why": "The Warden's family has been digging without knowing where — for generations."
+},
+{
+"ch": 34,
+"q": "Stanley finds an overturned boat named Mary Lou. What does the reader know that Stanley doesn't?",
+"options": [
+"The boat belonged to the Warden's grandfather, Trout Walker",
+"The boat was Sam's, from the days when Green Lake had water",
+"The boat was left there by the camp as a test for the boys",
+"The boat sank in a storm during the year the lake dried up"
+],
+"answer": 1,
+"why": "Mary Lou was Sam's donkey and his boat. The two timelines touch here."
+},
+{
+"ch": 35,
+"q": "Zero survives on jars of \"sploosh\" under the boat. What is sploosh, really?",
+"options": [
+"Water that collected in jars during the last rainstorm",
+"Food the Warden hid there in case the boys ever ran away",
+"Katherine's spiced peaches, still safe to eat after a century",
+"Onion juice that Sam stored to sell as medicine in town"
+],
+"answer": 2,
+"why": "In Chapter 23 her peaches were famous. The past keeps reaching into the present."
+},
+{
+"ch": 36,
+"q": "Zero says, \"When you spend your whole life living in a hole, the only way you can go is up.\" What does he mean?",
+"options": [
+"His life has been so hard that from here, it is bound to get better",
+"He wants to climb the mountain because he is tired of the camp",
+"He is joking because the climb is the only way to get water",
+"He thinks the holes at camp have taught him how to climb well"
+],
+"answer": 0,
+"why": "A double meaning: a real climb up the mountain, and hope for a better life."
+},
+{
+"ch": 37,
+"q": "How does Stanley work out that there must be water on the mountain?",
+"options": [
+"He hears running water somewhere behind the rocks ahead",
+"He remembers his great-grandfather's map of the mountain",
+"Zero tells him he saw water there before he ran away",
+"There are more weeds and bugs the higher they climb"
+],
+"answer": 3,
+"why": "Living things need water. Stanley reasons from clues instead of luck."
+},
+{
+"ch": 38,
+"q": "Stanley carries Zero up the mountain. Why is this moment important for the whole book?",
+"options": [
+"It shows Stanley is now strong enough to escape alone",
+"It is the first time Stanley has done physical work willingly",
+"A Yelnats takes a Zeroni uphill, as Elya once promised",
+"It proves to the Warden that Stanley is no longer a thief"
+],
+"answer": 2,
+"why": "Elya broke this promise 150 years ago. Stanley keeps it — without even knowing."
+},
+{
+"ch": 39,
+"q": "As Zero falls asleep on the mountain, Stanley sings him the family song. Which old promise is this connected to?",
+"options": [
+"Elya's promise to carry Madame Zeroni up and sing to her",
+"Stanley's promise to write his mother cheerful letters",
+"Sam's promise to Katherine that he would fix her school",
+"Zero's promise to dig part of Stanley's hole each day"
+],
+"answer": 0,
+"why": "Carry her up the mountain, let her drink, sing the song. Now all three have happened."
+},
+{
+"ch": 40,
+"q": "The author interrupts the boys' story to show Mrs. Tennyson thanking Sam for his onion tonic. Why put it here?",
+"options": [
+"To show that Mrs. Tennyson later became the boys' lawyer",
+"To prove that Hattie Parker was right about Sam all along",
+"To explain why the town finally decided to forgive Sam",
+"To link Sam's healing onions to how the boys survive"
+],
+"answer": 3,
+"why": "The boys are living on onions on the mountain. The past explains the present."
+},
+{
+"ch": 41,
+"q": "Zero took the sneakers from the shelter. How did not being able to read shape both boys' lives?",
+"options": [
+"He couldn't read the sign, so he took famous shoes without knowing",
+"He couldn't read the rules, so he didn't know stealing was wrong",
+"He couldn't read the address, so he left the shoes at Stanley's house",
+"He couldn't read the news, so he didn't know Stanley was arrested"
+],
+"answer": 0,
+"why": "He left them on a parked car; they fell from the overpass onto Stanley. One sign changed two lives."
+},
+{
+"ch": 42,
+"q": "On the mountain, Stanley is glad the shoes fell on his head. Why?",
+"options": [
+"He hopes the story will make him famous back at his school",
+"He knows the lawyer has already proved he is innocent",
+"Bad luck led him to a friend, to strength and to liking himself",
+"He thinks the curse has finally moved to the Walker family"
+],
+"answer": 2,
+"why": "'He liked himself now.' What looked like bad luck in Ch 6 now feels like destiny."
+},
+{
+"ch": 43,
+"q": "Zero remembers his mother singing a song very like Stanley's family song. What does this suggest?",
+"options": [
+"Zero heard Stanley singing it at night and mixed up his memories",
+"Zero's family passed the song down too, linking the families",
+"The song is a famous tune that every family in America knows",
+"Zero is making it up so Stanley will feel closer to him"
+],
+"answer": 1,
+"why": "Madame Zeroni gave Elya the song. Both families kept it for 150 years."
+},
+{
+"ch": 44,
+"q": "When they pull out the suitcase, Zero says \"You did it\" and Stanley answers \"We did it.\" Why does \"we\" matter?",
+"options": [
+"It shows Stanley wants to share the treasure to avoid trouble",
+"It shows that Stanley is too tired to take credit for himself",
+"It shows they now see themselves as a team and as equals",
+"It shows Stanley thinks Zero should carry the suitcase now"
+],
+"answer": 2,
+"why": "Compare Chapter 18, when 'Zero was nobody.' Now they are partners."
+},
+{
+"ch": 45,
+"q": "The Warden says she dug holes with her parents as a child, even on Christmas. How does this change how you see her?",
+"options": [
+"It explains her obsession but does not excuse her cruelty",
+"It proves she is kind underneath and is pretending to be cruel",
+"It shows that her parents forced her to run the camp for them",
+"It means she does not believe there is treasure in the lake"
+],
+"answer": 0,
+"why": "Understanding why someone acts badly is not the same as forgiving it."
+},
+{
+"ch": 46,
+"q": "Surrounded by lizards, Stanley thinks of rolling down a snowy hill with his mother. Why?",
+"options": [
+"He believes the cold memory will make the lizards fall asleep",
+"He is planning to escape to his home as soon as he can move",
+"He wants to remember her face in case he never sees her again",
+"He is too confused by the heat to tell memories from real life"
+],
+"answer": 2,
+"why": "He doesn't want his last thoughts to be of the Warden. He chooses a happy memory."
+},
+{
+"ch": 47,
+"q": "Zero reads the name STANLEY YELNATS on the suitcase. Why is his reading so important here?",
+"options": [
+"It shows the lawyer that Zero should be released from the camp",
+"It proves the case belongs to Stanley, not to the Warden",
+"It shows that the Warden had taught Zero to read in secret",
+"It means Zero can now read the Warden's files on Stanley"
+],
+"answer": 1,
+"why": "The skill the adults mocked in Chapter 30 is the one that beats the Warden's lie."
+},
+{
+"ch": 48,
+"q": "The camp erased Zero's records to hide him. How does this backfire on them?",
+"options": [
+"Without records, the camp can't prove any right to keep him",
+"Without records, the police think he is another boy",
+"Without records, the Warden can't prove that Stanley took the suitcase",
+"Without records, Zero can't be sent home to his mother's address"
+],
+"answer": 0,
+"why": "Irony: the cruel trick to make him disappear is what sets him free."
+},
+{
+"ch": 49,
+"q": "We only learn that \"lizards don't like onion blood\" in Chapter 49. Why does the author wait so long?",
+"options": [
+"The author forgot about the lizards and added this at the end",
+"It solves a mystery from the climax for readers who wondered",
+"It shows that Sam's tonic was only a story the town told",
+"It warns the reader that the lizards will return in Part Three"
+],
+"answer": 1,
+"why": "Holding back the answer keeps the tension — then rewards careful readers."
+},
+{
+"ch": 50,
+"q": "In the last scene, a woman strokes Hector's hair and sings. The author says, \"You will have to fill in the holes yourself.\" Who is she, and how do we know?",
+"options": [
+"Ms. Morengo, because she promised to look after Zero",
+"Stanley's mother, because she has adopted Hector as her son",
+"Madame Zeroni's ghost, because the curse has finally been lifted",
+"Zero's mother, because she sings the song Zero remembered"
+],
+"answer": 3,
+"why": "Zero remembered his mother singing it (Ch 43). The author trusts you to connect it."
+}
+];
+
+var PREVIEW = /(?:^|&)preview=1(?:&|$)/.test(location.search.slice(1));
+var KEY = 'holes.book.v1' + (PREVIEW ? '.preview' : '');
+var S = load() || fresh();
+if (!S.order || S.order.length !== DATA.length ||
+    S.order.some(function (o, i) { return !o || o.length !== DATA[i].options.length; })) S = fresh();
+
+/* Globals the picks adapter in quiz-report.js looks for. */
+var QUIZ = DATA.map(function (d, i) {
+  return { q: d.q, ch: d.ch, why: d.why,
+           options: S.order[i].map(function (k) { return d.options[k]; }),
+           answer: S.order[i].indexOf(d.answer) };
+});
+var picks = S.picks;
+function rebuild() {
+  QUIZ.forEach(function (q, i) { var d = DATA[i]; q.options = S.order[i].map(function (k) { return d.options[k]; }); q.answer = S.order[i].indexOf(d.answer); });
+}
+// quiz-report.js records a score whenever finishQuiz() leaves locked === true. A quiz already handed in
+// (earlier visit, or another device) is 'final' instead: closed, but a stray finishQuiz() sends nothing.
+var locked = S.done ? 'final' : false;
+
+var ME = null, AUTH_KNOWN = false, CHECKED = false, CHECK_FAIL = false, VIEW = 'all', ASK = false;
+
+function fresh() {
+  return { order: DATA.map(function (d) { return shuffle(d.options.map(function (_, k) { return k; })); }),
+           picks: DATA.map(function () { return null; }), at: 0, started: false, done: null };
+}
+function shuffle(a) {
+  for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+function load() { try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return null; } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function answeredCount() { return picks.filter(function (p) { return p != null; }).length; }
+function scoreOf() { return QUIZ.filter(function (q, i) { return picks[i] === q.answer; }).length; }
+function partOf(ch) { return ch <= 28 ? 'Part One' : ch <= 49 ? 'Part Two' : 'Part Three'; }
+
+/* ---------- actions (pick / finishQuiz are wrapped by quiz-report.js) ---------- */
+function pick(i, j) {
+  if (locked || S.done) return;
+  picks[i] = j; save(); draw();
+}
+function finishQuiz() {
+  if (S.done || answeredCount() < QUIZ.length) return;
+  locked = true;                                    // quiz-report.js grades and records right after this
+  S.done = { score: scoreOf(), total: QUIZ.length, at: Date.now(), here: true };
+  ASK = false; save(); draw();
+}
+function go(i) { S.at = Math.max(0, Math.min(QUIZ.length - 1, i)); ASK = false; save(); draw(); window.scrollTo(0, 0); }
+function askHandIn() { S.at = QUIZ.length - 1; save(); ASK = true; draw(); }
+function begin() { S.started = true; save(); draw(); }
+
+/* Can he hand in from here? Signed in, reporter loaded, and we have checked he hasn't done it elsewhere. */
+function blocked() {
+  if (PREVIEW) return '';
+  if (!window.QuizReport) return 'The scoring script did not load, so your answers could not be recorded. Reload the page and try again.';
+  if (!AUTH_KNOWN) return 'Checking who is signed in…';
+  if (!ME) return 'You are not signed in. <a href="../homework.html">Sign in on your homework page</a>, then come back &mdash; your answers are saved.';
+  if (CHECK_FAIL) return 'Could not reach the server to check your record. Check the internet, then reload the page &mdash; your answers are saved.';
+  if (!CHECKED) return 'Checking your record…';
+  return '';
+}
+
+/* ---------- drawing ---------- */
+function draw() {
+  var app = $('app');
+  if (S.done) { app.innerHTML = result(); return; }
+  if (!S.started) { app.innerHTML = intro(); return; }
+  app.innerHTML = question();
+}
+
+function intro() {
+  var stop = blocked();
+  return '<div class="card"><h2>Before you start</h2><ul class="rules">' +
+    '<li><b>50 questions</b>, one for each chapter, in order. About 45&ndash;60 minutes.</li>' +
+    '<li>You get <b>one try</b>. When you hand in, your score is final and goes to Dad. Reloading the page will not start it over.</li>' +
+    '<li>Your answers save as you go, so you can stop and come back later &mdash; <b>on this same device</b>.</li>' +
+    '<li>You can change an answer any time before you hand in. You will see which ones you got right only after handing in, with a short explanation for every question.</li>' +
+    '<li>Have the book nearby if you like. Every question is about <i>why</i> or <i>how</i>, so think before you pick.</li>' +
+    '</ul>' +
+    (PREVIEW ? '<div class="note">Preview: nothing will be recorded.</div>' : stop ? '<div class="note' + (ME === null && AUTH_KNOWN ? ' warn' : '') + '">' + stop + '</div>' : '') +
+    '<div class="nav"><span></span><button class="go" onclick="begin()">Start</button></div></div>';
+}
+
+function question() {
+  var i = S.at, q = QUIZ[i], n = answeredCount();
+  var h = '<div class="card"><div class="n">Chapter ' + q.ch + ' · ' + partOf(q.ch) + ' · Question ' + (i + 1) + ' of ' + QUIZ.length + '</div>' +
+    '<div class="bar"><i style="width:' + (100 * n / QUIZ.length) + '%"></i></div>' +
+    '<p class="t">' + esc(q.q) + '</p>';
+  q.options.forEach(function (o, j) {
+    h += '<button class="btn' + (picks[i] === j ? ' on' : '') + '" onclick="pick(' + i + ',' + j + ')">' + 'ABCD'[j] + '. ' + esc(o) + '</button>';
+  });
+  h += '<div class="nav"><button class="go back" onclick="go(' + (i - 1) + ')"' + (i === 0 ? ' disabled' : '') + '>&larr; Back</button>' +
+    (i < QUIZ.length - 1 ? '<button class="go" onclick="go(' + (i + 1) + ')">Next &rarr;</button>'
+                         : '<button class="go" onclick="askHandIn()">Hand in</button>') + '</div>';
+  if (!PREVIEW && AUTH_KNOWN && !ME) h += '<div class="note warn">You are signed out, so you will not be able to hand in. <a href="../homework.html">Sign in on My Homework</a>, then come back &mdash; your answers are saved.</div>';
+  if (ASK) h += handInBox();
+  h += '</div>';
+  h += '<div class="card"><div class="small">' + n + ' of ' + QUIZ.length + ' answered. Tap a number to jump.</div><div class="grid">';
+  QUIZ.forEach(function (_, k) {
+    h += '<button class="' + (picks[k] != null ? 'done' : '') + (k === i ? ' here' : '') + '" onclick="go(' + k + ')">' + (k + 1) + '</button>';
+  });
+  h += '</div>' + (i < QUIZ.length - 1 ? '<div class="nav"><span></span><button class="go back" onclick="askHandIn()">Hand in…</button></div>' : '') + '</div>';
+  return h;
+}
+
+function handInBox() {
+  var left = [];
+  picks.forEach(function (p, k) { if (p == null) left.push(k + 1); });
+  if (left.length) return '<div class="confirm">You still have <b>' + left.length + '</b> unanswered: ' + left.join(', ') +
+    '. Answer every question before handing in.</div>';
+  var stop = blocked();
+  if (stop) return '<div class="confirm"><div class="note warn">' + stop + '</div></div>';
+  return '<div class="confirm"><b>Ready to hand in?</b> This is your one try &mdash; after this you cannot change any answer.' +
+    '<div class="row"><button class="go" onclick="finishQuiz()">Yes, hand in</button><button class="go back" onclick="ASK=false;draw()">Not yet, let me check</button></div></div>';
+}
+
+function result() {
+  var d = S.done, pct = Math.round(100 * d.score / d.total);
+  var known = !!d.here;                         // handed in on this device: we know every answer he picked
+  var wrongSet = {};
+  if (!known) (d.wrong || []).forEach(function (q) { wrongSet[q] = true; });
+  function ok(i) { return known ? picks[i] === QUIZ[i].answer : !wrongSet[i + 1]; }
+  var h = '<div class="card"><h2>Handed in</h2><div class="score">' +
+    '<div><b>' + d.score + '/' + d.total + '</b><span>Correct</span></div>' +
+    '<div><b>' + pct + '%</b><span>Score</span></div>' +
+    '<div><b>' + (d.total - d.score) + '</b><span>To look at again</span></div></div>' +
+    (PREVIEW ? '<div class="note">Preview: nothing was recorded.</div>' : '<div class="note ok">Your score has gone to Dad. This quiz was one try only, so it stays as it is.</div>') +
+    (known ? '' : '<div class="note">You handed this in on another device, so this one shows which questions were right and the correct answers, but not the letter you picked.</div>') +
+    '<div class="grid" style="margin-top:12px">';
+  QUIZ.forEach(function (_, k) { h += '<button class="' + (ok(k) ? 'right' : 'wrong') + '" onclick="document.getElementById(\'r' + k + '\').scrollIntoView({behavior:\'smooth\'})">' + (k + 1) + '</button>'; });
+  h += '</div></div><div class="card"><div class="filters">' +
+    '<button class="chip' + (VIEW === 'wrong' ? ' on' : '') + '" onclick="VIEW=\'wrong\';draw()">Ones I missed</button>' +
+    '<button class="chip' + (VIEW === 'all' ? ' on' : '') + '" onclick="VIEW=\'all\';draw()">All 50</button></div>';
+  QUIZ.forEach(function (q, i) {
+    var good = ok(i);
+    if (VIEW === 'wrong' && good) return;
+    h += '<div class="rev" id="r' + i + '"><div class="n">Chapter ' + q.ch + ' · ' + (good ? '✓ right' : '✗ missed') + '</div><p class="t">' + esc(q.q) + '</p>';
+    q.options.forEach(function (o, j) {
+      var cls = j === q.answer ? ' right' : (known && picks[i] === j ? ' wrong' : '');
+      var tag = j === q.answer ? '<span class="tag">correct</span>' : (known && picks[i] === j ? '<span class="tag">your pick</span>' : '');
+      if (j === q.answer && known && picks[i] === j) tag = '<span class="tag">your pick ✓</span>';
+      h += '<button class="btn' + cls + '" disabled>' + 'ABCD'[j] + '. ' + esc(o) + tag + '</button>';
+    });
+    h += '<div class="why">' + esc(q.why) + '</div></div>';
+  });
+  if (VIEW === 'wrong' && Object.keys(QUIZ).every(function (k) { return ok(+k); })) h += '<p>You missed none. Excellent reading.</p>';
+  h += '<div class="nav"><span></span><a class="go" style="text-decoration:none" href="../homework.html">Back to My Homework</a></div>';
+  return h + '</div>';
+}
+
+/* ---------- sign-in and "already handed in somewhere else?" ---------- */
+function watchSignIn() {
+  if (PREVIEW) { AUTH_KNOWN = CHECKED = true; return; }
+  if (!window.QuizReport || !QuizReport.ready) { draw(); return; }
+  QuizReport.ready.then(function (fb) {
+    fb.auth.onAuthStateChanged(function (u) {
+      ME = u && !u.isAnonymous ? u : null; AUTH_KNOWN = true; CHECKED = false; CHECK_FAIL = false;
+      // The save on this device belongs to one kid: someone else signing in here starts clean.
+      if (ME && S.uid && S.uid !== ME.uid) { S = fresh(); picks = S.picks; locked = false; rebuild(); }
+      if (ME && !S.uid) { S.uid = ME.uid; save(); }
+      if (!ME || S.done || !fb.db) { CHECKED = !!S.done; draw(); return; }
+      fb.db.collection('attempts').where('kidId', '==', ME.uid).where('itemId', '==', QuizReport.itemId).limit(1).get()
+        .then(function (snap) {
+          CHECKED = true;
+          if (!snap.empty && !S.done) {
+            var a = snap.docs[0].data();
+            locked = 'final';
+            S.done = { score: a.score || 0, total: a.total || QUIZ.length, at: a.submittedAtMs || Date.now(), here: false,
+                       wrong: (a.wrong || []).map(function (w) { return w.q; }) };
+            save();
+          }
+          draw();
+        }).catch(function () { CHECKED = false; CHECK_FAIL = true; draw(); });   // could not check: keep hand-in blocked
+    });
+  }).catch(function () { draw(); });
+}
+
+draw();
+</script>
+<script src="../JS/quiz-report.js"></script>
+<script>watchSignIn();</script>
+</body>
+</html>
