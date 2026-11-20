@@ -741,14 +741,19 @@ function card(it, a, x = {}){
       + `<button class="pmini" data-punstock="${esc(it.id)}">🔑 下架</button>`;
     else if(!a) btn = `<a class="go" href="${esc(pageUrl(it.href))}"${extAttr(it.href)}>Start →</a><button class="pmini" data-ppull="${esc(it.id)}">🔑 撤回</button>`;
   }
-  const size = it.n ? `${it.book?' · ':''}${it.n} ${it.type==='quiz'?'questions':'steps'}` : '';
+  // Reading: the title starts with the book (Sam 2026-11-20: 「每个 homework reading 要有书的标题」), so the meta line
+  // no longer repeats it. Bank titles stay short ("Lesson 1 · …"); a title that already names the book is left alone.
+  const bookName = (it.book||'').replace(/^[^A-Za-z0-9\u4e00-\u9fff]+/,'').trim();
+  const bookFirst = /Reading/i.test(it.subj||'') && !!bookName && !String(it.t||'').toLowerCase().includes(bookName.toLowerCase());
+  const shownBook = bookFirst ? '' : it.book;
+  const size = it.n ? `${shownBook?' · ':''}${it.n} ${it.type==='quiz'?'questions':'steps'}` : '';
   // When Dad made the page (bank `added`; Sam 2026-10-22: 「不知道是哪天做的」) — the last 3 days also get 🆕 New.
   const made = it.added ? ` · Made ${madeDay(it.added)}${madeNew(it.added)?'<span class="carry">🆕 New</span>':''}` : '';
   return `<div class="card${a?' done':''}" style="--sc:${subjCol(it.subj)}" data-hay="${esc([it.t, it.book, it.subj].join(' ').toLowerCase())}">
     <span class="ic">${esc(it.ic)||'📄'}</span>
     <div class="body">
-      <div class="t">${esc(it.t)}</div>
-      <div class="meta">${it.subj?`<span class="sjt"><i></i>${esc(it.subj)}</span>`:''}<span class="kind">${KIND[it.type]||'Task'}</span>${esc(it.book)}${size}${made}${it.carried?`<span class="carry">${lateTag(it)}</span>`:''}${
+      <div class="t">${bookFirst ? `${esc(bookName)} · ` : ''}${esc(it.t)}</div>
+      <div class="meta">${it.subj?`<span class="sjt"><i></i>${esc(it.subj)}</span>`:''}<span class="kind">${KIND[it.type]||'Task'}</span>${esc(shownBook)}${size}${made}${it.carried?`<span class="carry">${lateTag(it)}</span>`:''}${
         it.retry!=null?`<span class="carry">↻ Try again · best ${it.retry}%</span>`:''}${it.fixed?`<span class="carry">📅 ${it.daily?'Every weekday':'Today'}</span>`:''}${
         it.picked && !it.carried?`<span class="carry">⭐ Picked for you</span>`:''}${it.mine?`<span class="carry mine">🙋 I picked</span>`:''}</div>
       ${status}
