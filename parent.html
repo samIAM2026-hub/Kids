@@ -2035,7 +2035,8 @@ function viewToday(){
     const reads = reviewReads(k, day, day), readS = reads.reduce((s,g)=>s+g.active, 0);
     // 队里还剩多少：平时灰字，不到 3 天的量才变红（Sam 2026-10-11：开关收进「排作业设置」）
     const left = planOn(k) ? planLeft(k) : null;
-    const leftTxt = !left ? '' : `<span class="${left.days<3?'planlow':''}" title="${left.n ? `今天往后没做的 ${left.n} 份，约 ${dur(left.mins*60)}` : '队里没有作业了'}">${
+    // 队里空了就什么都不写（Sam 2026-11-20：「以后不用提醒这个」「容易误解」——今天派了作业，队里只算明天起，看着像没派）
+    const leftTxt = !left || !left.n ? '' : `<span class="${left.days<3?'planlow':''}" title="${left.n ? `今天往后没做的 ${left.n} 份，约 ${dur(left.mins*60)}` : '队里没有作业了'}">${
       left.n ? `队里 ${left.n} 份 · 排到 ${ymd(left.last)}${left.days<3?' · 快排空了':''}` : '队里空了，记得加作业'}</span>`;
     // 这天交的全部卷子（派的、没派的都算），看批改不算一份
     const papers = dayPapers(k, day).filter(p=>!isReviewRead(p.id) && !p.tries.every(a=>a.demo)), S = dayStats(papers);
