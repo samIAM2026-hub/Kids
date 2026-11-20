@@ -1121,6 +1121,12 @@ const today = new Date(); today.setHours(0,0,0,0);
 // Local date, not toISOString(): that's UTC, which turns into "tomorrow" on a Pacific evening.
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// 阅读作业的标题前面加书名（Sam 2026-11-20：「每个 homework reading 要有书的标题」「家长页也改」），和孩子页一样：
+// 科目是 Reading、有 book、标题里还没有书名 → 「Scythe · Lesson 1 · …」。题库里的 t 不改。
+const bookTitle = (t, subj, book) => {
+  const name = String(book||'').replace(/^[^A-Za-z0-9\u4e00-\u9fff]+/,'').trim(), s = String(t==null?'':t);
+  return /Reading/i.test(subj||'') && name && !s.toLowerCase().includes(name.toLowerCase()) ? name + ' · ' + s : s;
+};
 // 「?」 button: the explanation is HTML (our own text), stored escaped and shown in #qtip on click.
 const qm = html => `<button type="button" class="qm" aria-label="说明" data-tip="${esc(html)}">?</button>`;
 const pctColor = p => p==null || p>=80 ? 'var(--green)' : 'var(--red)';
@@ -1555,7 +1561,7 @@ function viewQueue(){
               + `<button class="mini" data-qop="${key}|down"${fi < 0 || fi >= same.length-1 ? ' disabled' : ''} title="在这一科里往后挪一位">↓</button>`)
             + `<button class="mini" data-qop="${key}|today">今天就做</button>`;
         html += `<tr data-qin="${esc(gk)}"${gon?'':' hidden'}><td class="qn">${d.date === T ? '' : num[d.date+'|'+it.id]}</td>
-          <td class="dt"><b>${openLink(it.href, esc(it.t))}</b>${tags}<div class="qsub">${esc(it.subj||'')}${it.book ? ' · '+esc(it.book) : ''} · ${estChip(it, k)}</div></td>
+          <td class="dt"><b>${openLink(it.href, esc(bookTitle(it.t, it.subj, it.book)))}</b>${tags}<div class="qsub">${esc(it.subj||'')}${it.book && bookTitle(it.t, it.subj, it.book) === String(it.t||'') ? ' · '+esc(it.book) : ''} · ${estChip(it, k)}</div></td>
           <td class="qacts">${acts}<button class="mini bad" data-qpull="${key}|${d.date}">撤回</button></td></tr>`;
       });
       });
@@ -2097,7 +2103,7 @@ function viewToday(){
           : `<button class="mini" data-qop="${esc(key)}|up" title="在这一科里往前挪一位">↑</button><button class="mini" data-qop="${esc(key)}|down" title="在这一科里往后挪一位">↓</button><button class="mini" data-qop="${esc(key)}|today">今天就做</button>`);
         // 每份作业一个框，它的「每题有效时间」和改日期都在框里（Sam 2026-10-16：分不清是上面还是下面那份的）
         html += `<div class="taskbox${r?' done':''}"><div class="task">${r ? '' : `<input type="checkbox" class="tsel" data-tsel="${esc(key)}"${TSEL.has(key)?' checked':''} title="勾上，和别的一起撤回或改日期">`}<span class="ic">${esc(it.ic)||'📄'}</span><span class="nm">
-          <b>${openLink(it.href, esc(it.t))}${it.carried && it.movedFrom ? `<span class="late">${moveTxt(it, TD)}</span>` : ''}${it.ahead ? `<span class="late ahead">提前做的</span>` : ''}</b>
+          <b>${openLink(it.href, esc(bookTitle(it.t, it.subj, it.book)))}${it.carried && it.movedFrom ? `<span class="late">${moveTxt(it, TD)}</span>` : ''}${it.ahead ? `<span class="late ahead">提前做的</span>` : ''}</b>
           <span class="tm">${tmEst}</span>
           </span><span class="acts">${st}${more ? `<span class="moreb" hidden>${more}</span><button class="mini moretog" data-more="1" title="归档、挪日子、调顺序">⋯</button>` : ''}
             <button class="mini bad" data-pull="${esc(key)}">撤回</button></span></div>` + (detail ? `<div class="qtwrap">${detail}</div>` : '');
@@ -2131,9 +2137,9 @@ function viewToday(){
         <span class="acts"><span class="chipst st-done">✓ 看过${g.last?' · '+hm(g.last):''}</span></span></div>`;
     }).join(''));
     if(CARRIED[k].length) html += `<div class="pulled">这天没做完，顺延了 ${CARRIED[k].length} 份：${CARRIED[k].map(p=>
-      esc(p.t) + `（→ ${ymd(p.carriedTo)}）`).join('、')}</div>`;
+      esc(bookTitle(p.t, p.subj, p.book)) + `（→ ${ymd(p.carriedTo)}）`).join('、')}</div>`;
     if(PULLED[k].length) html += `<div class="pulled">这天撤回了 ${PULLED[k].length} 份：${PULLED[k].map(p=>{
-      const w = tsDate(p.withdrawnAt); return esc(p.t) + (w ? `（${stamp(w)}）` : ''); }).join('、')}</div>`;
+      const w = tsDate(p.withdrawnAt); return esc(bookTitle(p.t, p.subj, p.book)) + (w ? `（${stamp(w)}）` : ''); }).join('、')}</div>`;
     html += `</details></div>`;
   });
   return html + `</div><p class="dfoot">时间 = 课件页面开在最前面、真在做的时间，加上 Reading Club 的在页时长，目标每天 ${PLAN_MINS} 分钟 · 准确率 = 每份第一遍答对的比例 · 专注度 = 交了卷的作业里，页面开着的时间有多少是真在做（切走、很久没动都不算）· 绿色 80% 以上，黄色 60–79%，红色更低</p>` + guide;
@@ -2166,7 +2172,7 @@ function slimPaper(k, p){
      ${wq.length ? `<div class="dmeta" style="color:var(--red)">${n>1?'最后一遍':''}错第 ${wq.map(x=>x.q).join('、')} 题</div>` : ''}
      ${qTable(p, '', true)}`);
   return `<div class="taskbox done"><div class="task"><span class="ic">📄</span><span class="nm">
-      <b>${openLink(b.href, esc(p.t))}</b><span class="tm">${line}</span></span><span class="acts">${chip}</span></div>
+      <b>${openLink(b.href, esc(bookTitle(p.t, p.subj, p.book)))}</b><span class="tm">${line}</span></span><span class="acts">${chip}</span></div>
     <div class="qtwrap">${detail}</div></div>`;
 }
 const U_ALL = (k, day) => unfOn(k, day, day);
@@ -2791,7 +2797,7 @@ function bankRow(b, withPlace){
   const tail = OPEN_HIST.has(b.docId) ? histRow(b, 3) : '';
   return `<tr class="${SEL.has(b.docId)?'sel':''}${b.archived?' arch':''}${assignedTo(b.docId).length?' assigned':''}">
     <td class="c" style="width:34px"><input type="checkbox" class="pick" ${SEL.has(b.docId)?'checked':''} data-id="${esc(b.docId)}"></td>
-    <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(b.t)}`)} ${newBadge(b)}${wkTag(WritingKinds.ofPage(b.docId))}${bothBadge(b)}${assignedBadge(b.docId)}</div>
+    <td><div class="t">${openLink(b.href, `${esc(b.ic)} ${esc(bookTitle(b.t, b.subj, b.book))}`)} ${newBadge(b)}${wkTag(WritingKinds.ofPage(b.docId))}${bothBadge(b)}${assignedBadge(b.docId)}</div>
       ${withPlace?`<div class="crumb">${esc(b.subj)}${b.book?' · '+esc(b.book):''}</div>`:''}</td>
     <td class="c" style="width:150px">${histCell(b)}</td></tr>${tail}`;
 }
@@ -3196,13 +3202,13 @@ function histPaper(p){
     : p.first.pct>=PASS ? `<span class="chipst st-done">第一遍就达标</span>`
     : fin>=PASS ? `<span class="chipst st-open">第一遍没过 · 重做后达标</span>`
     : `<span class="chipst st-low">还没达标</span>`;
-  const meta = [p.subj, p.book, LABEL[b.type]||'', b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '',
+  const meta = [p.subj, bookTitle(p.t, p.subj, p.book) === String(p.t||'') ? p.book : '', LABEL[b.type]||'', b.n ? b.n+(b.type==='quiz'?' 题':' 项') : '',
                 p.before ? `这天之前做过 ${p.before} 次` : ''].filter(Boolean).map(esc).join(' · ');
   const tries = triesHtml(p);
   const wq = wrongQs(p.last.wrong);
   const wrong = p.scored && fin<100 && wq.length ? `${many?'最后一遍':''}错的是第 ${wq.map(x=>x.q).join('、')} 题` : '';
   return `<div class="prow"><div class="ptop">
-      <div class="nm"><b>${openLink(b.href, esc(p.t))}</b><span class="crumb">${meta}</span></div>
+      <div class="nm"><b>${openLink(b.href, esc(bookTitle(p.t, p.subj, p.book)))}</b><span class="crumb">${meta}</span></div>
       <div class="pscore"><div class="sc" style="color:${le?ess(le).col:pctColor(fin)}">${le?ess(le).txt:pctText(fin)}</div>
         <div class="cap">${le?(ess(le).todo?'等你批改':many?'最后一篇':'批改'):!p.scored?'做完了':p.prac?'一次就对':many?'最后一遍':'得分'}</div></div></div>
     <div class="bar"><i style="width:${le&&le.essay!=null?Math.round(100*le.essay/6):fin==null?100:fin}%;background:${le?ess(le).col:pctColor(fin)}"></i></div>
