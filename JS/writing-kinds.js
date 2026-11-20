@@ -29,10 +29,11 @@
               'Writing/BASA-Read-Aloud-Studio.html'] },
     { key: 'speech', zh: '演讲课',      en: 'Speech',            color: '#e08a2e',
       pages: ['Writing/Speech-Studio.html', 'Writing/Grace-Speech-Thanksgiving.html', 'Writing/Grace-Speech-Healthy-Eating.html'] },
-    // Novel study: the paragraph at the end of each chapter page (Quizzes/Holes-Ch1.html, -Ch2, …).
+    // Novel study: the paragraph at the end of each chapter page (Quizzes/Holes-Ch1.html, -Ch2, …) and of
+    // each Scythe lesson page (Quizzes/Scythe-L1.html … -L23, 2026-11-19).
     // A page in Quizzes/ has a bare file name as its item ID (bank hrefs are relative to Quizzes/).
     { key: 'reading', zh: '阅读',       en: 'Reading',           color: '#b9562b', drafts: 'one',
-      pages: [], match: /^Holes-Ch\d+[a-z]?\.html$/ }
+      pages: [], match: /^(Holes-Ch\d+[a-z]?|Scythe-L\d+)\.html$/ }
   ];
   var BY_KEY = {};
   LIST.forEach(function (k) { BY_KEY[k.key] = k; });
