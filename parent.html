@@ -92,6 +92,15 @@
   .dhead .dq{font-size:12px;color:var(--mute)}
   .dhead .kv{margin-left:auto;font-size:13px;color:var(--gold);text-decoration:none}
   .dhead .kv:hover{text-decoration:underline}
+  /* 卡片上直接列出这天派的作业（Sam 2026-11-20：「在家长控制台直接看到孩子的作业分配情况」） */
+  .dlist{margin:12px 0 4px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.45)}
+  .dlist .dlh{font-size:12px;color:var(--mute);margin-bottom:6px}
+  .dlist .dli{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:14px}
+  .dlist .dli+.dli{border-top:1px dashed var(--line)}
+  .dlist .dli .nm{flex:1;min-width:0}
+  .dlist .dli .nm a{color:inherit;text-decoration:none}
+  .dlist .dli .nm a:hover{text-decoration:underline}
+  .dlist .dln{font-size:13px;color:var(--mute)}
   .dmin{font-size:32px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums;line-height:1.2}
   .dmin small{font-size:15px;color:var(--mute);font-weight:400}
   .dbar{height:8px;border-radius:4px;background:var(--line);margin:8px 0 14px;overflow:hidden}
@@ -1979,7 +1988,7 @@ function dayVerdict(k, day, m){
   return { chip, html:`<div class="verdict${cls}"><div class="vsum">${sum}</div>
     <div class="vrow"><b>专注度</b><span>${foc}</span></div>${rnote}</div>` };
 }
-function dayCard(k, day, leftTxt, nTodo){
+function dayCard(k, day, leftTxt, nTodo, assignedHtml){
   const W = weekData(k, day), cur = W[W.length-1], m = Math.round(cur.t.secs/60), rd = cur.rd, vd = dayVerdict(k, day, m);
   const rdNote = rd ? ` · 含 Reading Club ${rd}` : readMin(k, day)===null ? ` · ${RDM.at ? 'Reading Club 的时长没读到，只算了课件' : '正在读 Reading Club 的时长…'}` : '';
   return `<div class="card dcard"><div class="dhead"><h3>${KID[k].n}</h3>${vd.chip}${leftTxt?`<span class="dq">${leftTxt}</span>`:''}
@@ -1987,6 +1996,7 @@ function dayCard(k, day, leftTxt, nTodo){
     <div class="dmin">${m + rd}<small> / ${PLAN_MINS} 分钟${rdNote}</small></div>
     <div class="dbar${m+rd>=PLAN_MINS?' ok':''}"><i style="width:${Math.min(100, Math.round(100*(m+rd)/PLAN_MINS))}%"></i></div>
     ${vd.html}
+    ${assignedHtml||''}
     ${weekStrip(W, day)}
     ${weekTiles(W)}
     <div class="stbl">${studyRows(k, day, W)}</div>
@@ -2041,7 +2051,14 @@ function viewToday(){
     // 这天交的全部卷子（派的、没派的都算），看批改不算一份
     const papers = dayPapers(k, day).filter(p=>!isReviewRead(p.id) && !p.tries.every(a=>a.demo)), S = dayStats(papers);
     const nTodo = ATT.filter(a=>a.kid===k && a.handin && ess(a).todo).length;
-    html += dayCard(k, day, leftTxt, nTodo) + `<details class="dmore" data-kc="today2.${k}"${kidOpen('today2', k)}><summary>${
+    // 这天派了哪几份、做没做：直接摆在卡片上，不用点「明细」也不用开孩子的界面
+    const assignedHtml = `<div class="dlist"><div class="dlh">${isToday?'今天':dayName(day,'这天')}派的作业${list.length?` · ${list.length} 份`:''}</div>${
+      list.length ? list.map(it=>{ const r = doneOf(it);
+        const chip = !r ? '<span class="chipst st-open">还没做</span>'
+          : r.scored ? `<span class="chipst ${r.last.pct>=PASS?'st-done':'st-low'}">${r.last.pct}%</span>` : '<span class="chipst st-done">✓ 做完</span>';
+        return `<div class="dli"><span>${esc(it.ic||'📄')}</span><span class="nm">${openLink(it.href, esc(bookTitle(it.t, it.subj, it.book)))}</span>${chip}</div>`; }).join('')
+      : `<div class="dln">没有派作业${isToday?'，孩子从 To do 里自己挑':''}</div>`}</div>`;
+    html += dayCard(k, day, leftTxt, nTodo, assignedHtml) + `<details class="dmore" data-kc="today2.${k}"${kidOpen('today2', k)}><summary>${
         list.length ? (done.length<list.length ? `还没做 ${list.length-done.length} 份 · 约 ${estSumTxt(list.filter(it=>!doneOf(it)), k)}` : `派的 ${list.length} 份都做完了`)
           : papers.length ? `做了 ${papers.length} 份` : '还没交卷 · 孩子从 To do 里自己挑'}<span class="go"></span></summary>`
       + (papers.length || U_ALL(k, day).length ? fold(k+'|sum', `📋 ${dayName(day,'这天')}的总结 <span class="gs">做了 ${papers.length} 份 · 交卷 ${S.nAtt} 次</span>`,
