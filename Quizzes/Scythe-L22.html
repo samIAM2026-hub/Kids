@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scythe · Lesson 22 · The cost of the ring</title>
+<style>
+  :root{
+    --paper:#fbf5ea; --card:#fffdf7; --ink:#2b2118; --soft:#6f5d4c; --line:#e6d9c3;
+    --sand:#e9d3a8; --clay:#b9562b; --clay-dark:#8f3f1d; --sky:#f3e2c0;
+    --good:#3a7d44; --good-bg:#e7f3e8; --bad:#c0392b; --bad-bg:#fbeaea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,"Times New Roman",serif;font-size:18px;line-height:1.55}
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px 60px}
+  header{padding:22px 0 6px}
+  .eyebrow{font:700 12px/1 -apple-system,Helvetica,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--clay)}
+  h1{font-size:34px;line-height:1.15;margin:8px 0 4px}
+  .sub{color:var(--soft);font-size:16px}
+  .scene{display:block;width:100%;height:auto;border-radius:14px;margin:14px 0 4px;border:1px solid var(--line)}
+  .steps{display:flex;gap:6px;margin:18px 0 6px;flex-wrap:wrap}
+  .steps button{flex:1 1 0;min-width:74px;border:1px solid var(--line);background:var(--card);color:var(--soft);
+    font:600 12px/1.2 -apple-system,Helvetica,sans-serif;padding:8px 4px;border-radius:9px;cursor:pointer}
+  .steps button b{display:block;font-size:15px;color:var(--ink)}
+  .steps button.on{background:var(--clay);border-color:var(--clay);color:#fff}
+  .steps button.on b{color:#fff}
+  .steps button.done{background:var(--good-bg);border-color:#bfdcc3;color:var(--good)}
+  .steps button.done b{color:var(--good)}
+  .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:18px}
+  .bar i{display:block;height:100%;background:var(--clay);width:0;transition:width .25s}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:0 0 16px}
+  h2{font-size:24px;margin:0 0 4px}
+  .lead{color:var(--soft);margin:0 0 14px}
+  .mins{font:600 12px/1 -apple-system,Helvetica,sans-serif;color:var(--clay);letter-spacing:.06em;text-transform:uppercase}
+  textarea,input[type=text]{width:100%;font:inherit;color:inherit;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+  textarea{min-height:110px;resize:vertical}
+  textarea:focus,input:focus{outline:none;border-color:var(--clay)}
+  .three{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .read{background:var(--sky);border:1px dashed #c9a868;border-radius:12px;padding:14px 16px;margin-top:16px}
+  .read label{display:flex;gap:10px;align-items:center;font-weight:700;margin-top:8px;cursor:pointer}
+  .read input{width:20px;height:20px;accent-color:var(--clay)}
+  .word{border-top:1px solid var(--line);padding:14px 0}
+  .word:first-of-type{border-top:0;padding-top:4px}
+  .word h3{margin:0;font-size:22px;color:var(--clay-dark)}
+  .word .pos{font:italic 14px Georgia,serif;color:var(--soft);margin-left:6px}
+  .word p{margin:4px 0 0}
+  .word .eg{color:var(--soft);font-style:italic}
+  .q{border-top:1px solid var(--line);padding:16px 0 6px}
+  .q:first-of-type{border-top:0;padding-top:2px}
+  .q .n{font:700 12px/1 -apple-system,Helvetica,sans-serif;color:var(--clay);letter-spacing:.08em;text-transform:uppercase}
+  .q p.t{margin:6px 0 10px;font-weight:700}
+  .btn{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:#fff;border:1.5px solid var(--line);
+    border-radius:10px;padding:10px 14px;margin:0 0 8px;cursor:pointer}
+  .btn:hover{border-color:var(--clay)}
+  .btn.right{background:var(--good-bg);border-color:var(--good);color:#1f4d27;font-weight:700}
+  .btn.wrong{background:var(--bad-bg);border-color:var(--bad);color:#7d231a}
+  .btn[disabled]{cursor:default}
+  .why{display:none;background:#f6efe0;border-left:4px solid var(--clay);border-radius:0 10px 10px 0;padding:10px 14px;margin:2px 0 10px;font-size:16px}
+  .why.show{display:block}
+  .craft{background:#f6efe0;border-radius:12px;padding:12px 16px;margin:0 0 14px;font-size:16px}
+  .craft b{color:var(--clay-dark)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
+  .chip{font:inherit;font-size:16px;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;cursor:pointer;color:inherit}
+  .chip.on{background:var(--clay);border-color:var(--clay);color:#fff}
+  .book{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px}
+  .book h4{margin:0 0 6px;font:700 12px/1 -apple-system,Helvetica,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+  .book ul{margin:0;padding-left:20px}
+  .count{font:600 13px/1 -apple-system,Helvetica,sans-serif;color:var(--soft);margin-top:6px}
+  .count.ok{color:var(--good)}
+  .nav{display:flex;justify-content:space-between;gap:10px;margin-top:6px}
+  .go{font:700 17px Georgia,serif;border:0;border-radius:11px;padding:12px 22px;cursor:pointer;background:var(--clay);color:#fff}
+  .go.back{background:transparent;color:var(--soft);border:1.5px solid var(--line)}
+  .go[disabled]{opacity:.4;cursor:default}
+  .hint{font-size:15px;color:var(--soft);margin:8px 0 0;text-align:right}
+  .score{display:flex;gap:12px;margin:6px 0 16px}
+  .score div{flex:1;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+  .score b{display:block;font-size:30px;line-height:1.1}
+  .score span{font:600 12px/1.2 -apple-system,Helvetica,sans-serif;color:var(--soft);text-transform:uppercase;letter-spacing:.06em}
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .vs div{border-radius:12px;padding:12px 14px;border:1.5px solid var(--line);background:#fff}
+  .vs h4{margin:0 0 6px;font:700 12px/1 -apple-system,Helvetica,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+  .vs ul{margin:0;padding-left:20px}
+  .next{background:var(--sky);border-radius:12px;padding:12px 16px;margin-top:14px}
+  .note{font-size:15px;color:var(--soft);margin:10px 0 0;padding:9px 12px;border-radius:10px;background:#f6efe0}
+  .note.ok{background:var(--good-bg);color:#1f4d27}
+  .note.warn{background:var(--bad-bg);color:#7d231a}
+  .note a{color:inherit;font-weight:700}
+  a.go{text-decoration:none;display:inline-block}
+  .link{font:inherit;font-size:15px;background:none;border:0;color:var(--soft);text-decoration:underline;cursor:pointer;padding:0}
+  .steps button[disabled]{opacity:.5;cursor:default}
+  textarea[disabled],.chip[disabled]{opacity:.75;cursor:default}
+  @media (max-width:560px){ h1{font-size:28px} .three,.vs{grid-template-columns:1fr} .steps button{min-width:30%} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Scythe · Part Five · Lesson 22 · Chapters 37–38</div>
+    <h1>The cost of the ring</h1>
+    <div class="sub">A quiet bargain in a dead man&#x27;s mansion, then the one test every scythe in history has had to take. About 38 minutes: 18 to read, 20 for this page.</div>
+    <svg class="scene" viewBox="0 0 760 120" role="img" aria-label="An ivory scythe robe and a ring with a dark stone">
+      <rect width="760" height="120" fill="#ebe2cf"/><rect x="0" y="92" width="760" height="28" fill="#d9c7a8"/>
+      <g transform="translate(110 10)"><path d="M28 14 q-24 10 -26 82 h52 q-2 -72 -26 -82z" fill="#f4eedf" stroke="#cbbd9f"/><circle cx="28" cy="16" r="12" fill="#f4eedf" stroke="#cbbd9f"/></g>
+      <text x="380" y="62" text-anchor="middle" font-family="Georgia,serif" font-size="26" fill="#6f5d4c">Chapters 37–38</text>
+      <g transform="translate(640 62)"><circle r="22" fill="none" stroke="#b49a5e" stroke-width="6"/><path d="M0 -44 l15 16 l-15 16 l-15 -16z" fill="#eef2f4" stroke="#9aa5ab" stroke-width="2"/><path d="M0 -35 l6 7 l-6 7 l-6 -7z" fill="#2b2118"/></g>
+    </svg>
+  </header>
+
+  <div class="steps" id="steps"></div>
+  <div class="bar"><i id="bar"></i></div>
+  <main id="main"></main>
+</div>
+
+<script>
+/* Scythe, Lesson 22 = Chapters 37–38 (Warren). Built by homework-system/scythe-build/build.py from lessons/L22.json:
+   edit the JSON and rebuild, not this file. The book is not printed here; only short phrases are quoted. */
+var C = {
+ "lesson": 22,
+ "chapters": "Chapters 37–38",
+ "before": "Every scythe since the Scythedom began has taken the same final test, and Scythe Curie refuses to tell Citra what it is. Name three things a test might demand of someone before trusting them with the power to glean.",
+ "readHead": "Now read the journal entries and Chapters 37–38 in your book.",
+ "readNote": "About 3,510 words, roughly 18 minutes. In Chapter 37, listen for what Rowan and the High Blade never say out loud; in Chapter 38, watch how Citra spends the minutes before she acts.",
+ "readCheck": "I have read the journal entries and Chapters 37–38",
+ "wordsLead": "Fourteen words from today's reading, each shown in the book's own phrase. Find them on the page as you go. They come back in the Part Five word review.",
+ "predictQ": "What will happen at Winter Conclave, and which words in Chapters 37–38 make you think so?",
+ "realityHead": "What Chapters 37–38 showed",
+ "finishNoteHtml": "Rowan got through his test in Chapter 37 by saying almost nothing; Citra faced hers in Chapter 38 by refusing to stop being kind. Prometheus wanted every scythe to remember <b>the cost of the ring<\/b>, and neither of them will ever forget this night.",
+ "nextHtml": "<b>Next: Lesson 23 · Chapters 39–40 and the closing journal.<\/b> Winter Conclave opens, one ring is waiting, and the edict still says the winner must glean the loser."
+};
+var WORDS = [
+ {
+  "w": "grandiose",
+  "pos": "adjective",
+  "m": "Very large and showy, meant to impress.",
+  "eg": "“a plush sofa in the grandiose mansion”"
+ },
+ {
+  "w": "nullify",
+  "pos": "verb",
+  "m": "To cancel something so it no longer counts.",
+  "eg": "“I suppose this nullifies my apprenticeship.”"
+ },
+ {
+  "w": "succumb",
+  "pos": "verb",
+  "m": "To give in to, or die from, something too strong.",
+  "eg": "“his associates had succumbed to fire”"
+ },
+ {
+  "w": "scoff",
+  "pos": "verb",
+  "m": "To mock something as foolish or worthless.",
+  "eg": "“The irritable scythe scoffed, the short one shrugged.”"
+ },
+ {
+  "w": "warrant",
+  "pos": "verb",
+  "m": "To deserve or justify something.",
+  "eg": "“Perhaps Rowan warranted more attention”"
+ },
+ {
+  "w": "aspersion",
+  "pos": "noun",
+  "m": "A damaging remark or hint against someone's good name.",
+  "eg": "“might cast aspersions on their legacy”"
+ },
+ {
+  "w": "blithely",
+  "pos": "adverb",
+  "m": "In a carefree way, without thinking of the results.",
+  "eg": "“cannot be handed out blithely”"
+ },
+ {
+  "w": "untainted",
+  "pos": "adjective",
+  "m": "Not stained or spoiled; kept clean and pure.",
+  "eg": "“Let their memory be untainted by clumsy forensics”"
+ },
+ {
+  "w": "sacrament",
+  "pos": "noun",
+  "m": "A sacred ceremony or ritual.",
+  "eg": "“it must forever remain a secret sacrament”"
+ },
+ {
+  "w": "unscrupulous",
+  "pos": "adjective",
+  "m": "Having no moral principles; willing to cheat.",
+  "eg": "“not even the unscrupulous among us would dare break”"
+ },
+ {
+  "w": "coerce",
+  "pos": "verb",
+  "m": "To force someone to act by pressure or threats.",
+  "eg": "“You may not be coerced into doing this.”"
+ },
+ {
+  "w": "differentiate",
+  "pos": "verb",
+  "m": "To tell the difference between two things.",
+  "eg": "“A person’s subconscious mind can’t differentiate”"
+ },
+ {
+  "w": "barrage",
+  "pos": "noun",
+  "m": "A flood of many things coming all at once.",
+  "eg": "“a bruising barrage of comments”"
+ },
+ {
+  "w": "banter",
+  "pos": "noun",
+  "m": "Light, friendly back-and-forth talk.",
+  "eg": "“all that unnecessary banter”"
+ }
+];
+var QUIZ = {
+  words: [
+    { q:"When Scythe Meir says Citra's “Why?” is a fair question, “The irritable scythe scoffed.” To scoff is to…", options:["mock something with scorn", "refuse something politely", "hide something from a child", "admit something with shame"], answer:0,
+      why:"To scoff is to sneer at something as foolish. The irritable judge treats Citra's question as weakness, but Scythe Meir calls it “a legitimate question,” and Mandela gives her a real answer." },
+    { q:"Curie says that not even “the unscrupulous among us” would break certain traditions. Which word is closest in meaning to unscrupulous?", options:["unqualified", "unprincipled", "unfortunate", "unconvinced"], answer:1,
+      why:"Unscrupulous people have no moral rules holding them back, and unprincipled means the same. Curie's point is sharp: the test is so serious that even scythes who cut corners everywhere else keep this one secret." },
+    { q:"Prometheus writes that the power of life and death “cannot be handed out blithely” by anyone. Which word is most nearly OPPOSITE to blithely?", options:["carelessly", "breezily", "casually", "solemnly"], answer:3,
+      why:"Blithely means in a carefree way, without thinking about what follows; carelessly, breezily and casually are all close to it. Solemnly is the opposite, and it matches the “weighty reserve” Prometheus asks for instead." },
+    { q:"Complete the analogy. Coerce is to persuade as shove is to ___.", options:["slam", "crash", "nudge", "topple"], answer:2,
+      why:"The bridge is a forceful act and its gentler version. To coerce is to force; to persuade is to win someone over. A shove forces; a nudge gently urges. The committee's rules insist Citra “may not be coerced,” so the choice has to be hers." },
+    { q:"Choose the word that fits. The judge ruled that the missing signature ___ the whole contract.", options:["nullified", "warranted", "coerced", "scoffed"], answer:0,
+      why:"To nullify is to cancel, to make something stop counting. Rowan uses the word when he wonders whether losing a second mentor “nullifies my apprenticeship.” Xenocrates says it does not." },
+    { q:"Citra walks back to the committee and meets “a bruising barrage of comments.” A barrage is…", options:["a slow, careful report in writing", "a single quiet word of praise", "a polite request for some silence", "a flood of many things at once"], answer:3,
+      why:"A barrage was first a burst of gunfire; now it means anything that hits you in a rapid flood. The five judges fire opinions at her one after another, and “bruising” tells you how it feels." }
+  ],
+  check: [
+    { q:"Rowan calls Esme into the room and suggests that Xenocrates take her home, adding “Some more than others” with a wink. What is Rowan really telling him?", options:["That Esme would be much safer living with a scythe", "That he knows Esme's secret and could choose to share it", "That Xenocrates ought to take Esme on as his apprentice", "That he expects the High Blade to reward him for loyalty"], answer:1,
+      why:"Esme is the daughter Xenocrates “could never publicly or even privately acknowledge” as his own. Rowan never says so; the wink says it for him. Knowing a powerful man's secret gives Rowan a hold over him at the very moment he needs one." },
+    { q:"Xenocrates offers to call off the investigation “Out of respect for our fallen comrades.” What is his real reason?", options:["He has come to believe the fire truly was an accident", "He is afraid that Rowan might try to glean him next", "He wants Rowan to keep his own secret in return", "He thinks Goddard's remains are too damaged to find"], answer:2,
+      why:"The narrator names the trade: “an unspoken agreement was reached.” Xenocrates stops shaking the tree, and Rowan stays quiet about Esme. The noble reason is a cover for a bargain." },
+    { q:"Before she acts, Citra cuts Ben loose, lets him hold the knife, and answers each of his questions truthfully. What do these choices show?", options:["She is stalling in the hope that the committee gives up", "She is trying to prove to Ben how brave she has become", "She hopes Ben will beg to leave so she can walk out too", "She wants Ben to feel safe and respected, even here"], answer:3,
+      why:"She tells him the truth twice when a lie would be easier: yes, she will hurt him, and yes, it will hurt. “He trusted her,” and she handles that trust with care. One judge calls it “all that unnecessary banter”; the book seems to call it compassion." },
+    { q:"After the test, one judge says “We’re called upon to be efficient,” and another replies “Efficiency must be in service to compassion!” What does this argument reveal?", options:["Scythes disagree about what a good gleaning even is", "The committee had planned to fail Citra from the start", "The judges care more about weapons than about people", "Citra's test was scored from a secret list of points"], answer:0,
+      why:"Five experienced scythes watch the same act and reach opposite verdicts, then simply agree to disagree. The Scythedom has no settled answer to its most basic question, and that split between efficiency and compassion has run through the whole book." },
+    { q:"All Citra learns about Rowan's test is that “He pulled the trigger even before they finished reading him the instructions.” Why might a careful reader hold back from judging him yet?", options:["Curie admits she has never trusted Rowan at all", "Rowan was handed a weapon he had never trained with", "It is one secondhand sentence, with no reasons given", "The guards had already told Citra it was only a test"], answer:2,
+      why:"Citra decides something has turned him “so cold,” but she heard one line from Curie, who “wouldn’t look at her” as she said it. We know what Rowan did, not why. Keep the question open until you can hear his side." }
+  ],
+  craft: [
+    { q:"Chapter 37 opens with Volta's journal, where he expects to keep gleaning “well into my thousands.” Why is it powerful to read this entry now?", options:["It shows Volta had been planning his own ending", "We know how his story ended, so his confidence hurts", "It explains how the scythes' remains were identified", "It proves Volta kept his journal hidden from Goddard"], answer:1,
+      why:"This is dramatic irony: we know something the writer could not. Volta refused to imagine his own end and counted on thousands of years, and we have already seen how his story ended. Even his friends' game of picking grand endings reads very differently now." },
+    { q:"Rowan answers “Makes sense” three times while Xenocrates describes the remains, then switches to “That’s weird” at the final detail. What does the repetition do?", options:["It shows Rowan is too tired to follow the conversation", "It proves to the reader that Rowan is telling the truth", "It shows Rowan copying the High Blade's polite manners", "It builds tension as each clue creeps closer to him"], answer:3,
+      why:"Each “Makes sense” follows a sharper piece of evidence, so the same calm reply sounds bolder every time. When the clue about the missing skull points straight at what happened, Rowan finally changes his line. The repetition turns a polite chat into a duel." },
+    { q:"Prometheus, the first World Supreme Blade, admits the test “might seem unthinkably cruel” to outsiders. How does his entry frame Chapter 38?", options:["It tells us the test is easy for anyone who is brave", "It hints that the test is a legend nobody has taken", "It warns how harsh it will look and why it stays hidden", "It shows the founders regretted creating the test later"], answer:2,
+      why:"The founder says the test should “cut one’s soul to the very core” and remain “a secret sacrament,” which is exactly why Curie will not tell Citra. By mentioning how outsiders would see it, he also turns you, the reader, into one of those outsiders." },
+    { q:"Ben never finishes his sentence: “I want a hot fudge sundae, three scoops, with chocolate chip—” What does the unfinished line do?", options:["It stops the reader as suddenly as Ben is stopped", "It shows that Ben has changed his mind about dessert", "It suggests that the medics interrupted the test early", "It hints that Citra could not go through with the act"], answer:0,
+      why:"The dash cuts the sentence where the moment cuts Ben off, so the author never needs to describe the act itself. Citra chose a happy thought to be in his mind, which makes the gap even harder to read." },
+    { q:"Back in Chapter 34, Curie said gleaning Rowan would be only the second most painful thing Citra would ever do. How does Chapter 38 pay that off?", options:["It suggests the most painful thing is leaving home", "It reveals the most painful thing is the final test", "It proves Curie was mistaken about the final test", "It shows that losing Faraday hurt her most of all"], answer:1,
+      why:"Curie knew the test and could not say it, so she hinted. Mandela confirms it: “the most difficult thing you’ll ever have to do . . . has already been done.” A hint planted four chapters ago lands here." }
+  ]
+};
+var TERMS = [
+ [
+  "dramatic irony",
+  "when the reader knows something a character does not"
+ ],
+ [
+  "repetition",
+  "using the same words again to build an effect"
+ ],
+ [
+  "foreshadowing",
+  "an early hint that pays off later"
+ ],
+ [
+  "frame",
+  "a passage set before a story that shapes how you read it"
+ ]
+];
+var PROMPTS = {
+ "A": {
+  "name": "Analysis",
+  "q": "How does the author show Rowan and Xenocrates striking a bargain that neither of them ever says out loud?",
+  "how": "① State your claim in one sentence. ② Give two specific details from Chapter 37. ③ Name the technique behind at least one of them (repetition, subtext, word choice, a gesture, what is left unsaid). ④ Explain how each detail lets the reader understand the deal.",
+  "ph": "The author shows the bargain without stating it by …",
+  "kind": "analysis"
+ },
+ "B": {
+  "name": "Argument",
+  "q": "The judges argue: “We’re called upon to be efficient.” “Efficiency must be in service to compassion!” Which should come first for a scythe, efficiency or compassion?",
+  "how": "① Choose a side in your first sentence. ② Give two details from Chapter 38 or the journal entries. ③ Answer the other side in one sentence (“Someone might say…”). ④ Explain why your side is stronger.",
+  "ph": "For a scythe, … should come first, because …",
+  "kind": "argument"
+ }
+};
+var CLUES = [
+ "the skeleton with no skull",
+ "Esme’s hand in the High Blade’s",
+ "“my door is always open for you”",
+ "the citrines and the rubies",
+ "“Was that a gunshot?”",
+ "the hot fudge sundae"
+];
+var REALITY = [
+ "It asks you to harm someone you love, and to choose to do it yourself.",
+ "It is the same for every apprentice, and it is kept secret on purpose.",
+ "It judges how you act, not only whether you act at all."
+];
+var STEPS = [
+  { id:'before', n:'1', label:'Before' },
+  { id:'words',  n:'2', label:'Words' },
+  { id:'check',  n:'3', label:'Read between' },
+  { id:'craft',  n:'4', label:'Craft' },
+  { id:'clues',  n:'5', label:'Predict' },
+  { id:'write',  n:'6', label:'Write' },
+  { id:'done',   n:'★', label:'Finish' }
+];
+
+/* ---------- the shape quiz-report.js looks for (its 'picks' adapter) ----------
+   QUIZ[] flat, picks[], locked, pick(i, j), finishQuiz(), resetQuiz(). REPORT_WRITING is set just around
+   finishQuiz() the first time, so the paragraph goes to `writings` with the same ID as the attempt. */
+var BYSET = QUIZ, SETS = ['words', 'check', 'craft'], OFF = {};
+QUIZ = [];
+SETS.forEach(function (s) { OFF[s] = QUIZ.length; BYSET[s].forEach(function (q) { QUIZ.push(q); }); });
+var picks = QUIZ.map(function () { return null; });
+var locked = false;
+var REPORT_WRITING = null;
+var HAS_WRITE = STEPS.some(function (s) { return s.id === 'write'; });
+// The step whose Next button hands everything in: the paragraph step, or (word reviews) the step before Finish.
+function handStep(i) { return HAS_WRITE ? STEPS[i].id === 'write' : !!STEPS[i + 1] && STEPS[i + 1].id === 'done'; }
+
+/* ---------- state (this device) ---------- */
+// A parent's preview (?preview=1, the same test quiz-report.js uses) records nothing, so it keeps its own
+// state: it must never leave the kid's page looking finished and handed in.
+var PREVIEW = /(?:^|&)preview=1(?:&|$)/.test(location.search.slice(1));
+var LESSON = C.lesson, CHAPTERS = C.chapters, KEY = 'scythe.l' + LESSON + '.v1' + (PREVIEW ? '.preview' : ''), NB_KEY = 'scythe.notebook.v1' + (PREVIEW ? '.preview' : '');
+var S = { step: 0, guess: ['', '', ''], read: false, picks: null, clues: [], clueWhy: '', essay: '', prompt: 'A',
+          pasted: 0, writeSecs: 0, sent: false, done: false, finished: false, lastPicks: null, elsewhere: false };
+// Nobody signed in: quiz-report.js would drop the record, so the paragraph is not handed in (it stays on this device).
+function noOne() { return !PREVIEW && AUTH_KNOWN && !ME && !S.sent; }
+// quiz-report.js did not load (the network dropped): nothing would be recorded at all.
+function noReporter() { return !PREVIEW && !window.QuizReport; }
+function blocked() { return noOne() || noReporter(); }
+function lsGet(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+(function () {
+  var saved = lsGet(KEY);
+  if (!saved || typeof saved !== 'object') return;
+  Object.keys(S).forEach(function (k) { if (saved[k] !== undefined && saved[k] !== null) S[k] = saved[k]; });
+  if (!Array.isArray(S.guess)) S.guess = ['', '', ''];
+  if (!Array.isArray(S.clues)) S.clues = [];
+  if (Array.isArray(S.picks) && S.picks.length === QUIZ.length) picks = S.picks.map(function (p) { return typeof p === 'number' ? p : null; });
+  S.step = Math.max(0, Math.min(STEPS.length - 1, +S.step || 0));
+  // A retry left half done does not hide a chapter that was finished: go back to the finished answers.
+  if (S.finished && !S.done && Array.isArray(S.lastPicks) && S.lastPicks.length === QUIZ.length) { picks = S.lastPicks.slice(); S.done = true; }
+  if (S.done) { locked = true; S.step = STEPS.length - 1; }
+})();
+function save() { S.picks = picks; lsSet(KEY, S); }
+// The notebook is shared by every Scythe lesson page on this device.
+function saveNotebook() {
+  var nb = lsGet(NB_KEY); if (!nb || typeof nb !== 'object') nb = {};
+  nb['l' + LESSON] = { clues: S.clues.slice(), prediction: S.clueWhy.trim() };
+  lsSet(NB_KEY, nb);
+}
+
+/* ---------- who is signed in (the paragraph only reaches Dad when the kid is) ---------- */
+var ME = null, AUTH_KNOWN = false;
+function softDraw() {              // not while he is typing: a redraw would take the box out from under him
+  var a = document.activeElement;
+  if (a && (a.id === 'essay' || a.id === 'clueWhy')) refreshNext(); else draw();
+}
+function watchSignIn() {
+  if (handStep(S.step)) softDraw();              // the first draw ran before quiz-report.js loaded
+  if (PREVIEW || !window.QuizReport || !QuizReport.ready) return;
+  QuizReport.ready.then(function (fb) {
+    fb.auth.onAuthStateChanged(function (u) {
+      ME = u && !u.isAnonymous ? u : null; AUTH_KNOWN = true;
+      if (handStep(S.step)) softDraw();
+      // Handed in from another device already? Then this one must not send a second paragraph.
+      if (!ME || S.sent || !fb.db) return;
+      fb.db.collection('writings').where('kidId', '==', ME.uid).where('itemId', '==', QuizReport.itemId).limit(1).get()
+        .then(function (q) {
+          if (q.empty || S.sent) return;
+          S.sent = true; S.elsewhere = true; save();
+          if (STEPS[S.step].id === 'write' || STEPS[S.step].id === 'clues') draw();
+        }).catch(function () {});
+    });
+  }).catch(function () {});
+}
+
+/* ---------- helpers ---------- */
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function words(s) { var m = String(s || '').trim().match(/[A-Za-z0-9'’\-]+/g); return m ? m.length : 0; }
+function setDone(set) { return BYSET[set].every(function (q, i) { return picks[OFF[set] + i] != null; }); }
+function score() { return QUIZ.filter(function (q, i) { return picks[i] === q.answer; }).length; }
+var MIN_WORDS = 80, MIN_PREDICT = 12;
+function stepReady(i) {
+  var id = STEPS[i].id;
+  if (id === 'before') return S.read && (C.noGuess || S.guess.some(function (g) { return String(g).trim(); }));
+  if (id === 'words' || id === 'check' || id === 'craft') return setDone(id);
+  // Once the paragraph is handed in (here, or on another device) these two are fixed and no longer hold him up.
+  if (id === 'clues') return S.sent || (S.clues.length > 0 && words(S.clueWhy) >= MIN_PREDICT);
+  if (id === 'write') return S.sent || words(S.essay) >= MIN_WORDS;
+  return true;
+}
+function firstNotReady() { for (var i = 0; i < STEPS.length - 1; i++) if (!stepReady(i)) return i; return -1; }
+
+/* ---------- answering ---------- */
+function pick(i, j) {
+  if (locked || picks[i] != null) return;
+  picks[i] = j; save(); draw();
+}
+function finishQuiz() {            // quiz-report.js grades after this, and only if locked turned true
+  if (picks.every(function (p) { return p != null; })) locked = true;
+}
+function resetQuiz() {             // "try the questions again": the paragraph stays, it is not sent twice
+  picks = QUIZ.map(function () { return null; });
+  locked = false; S.done = false; S.step = 1; save(); draw(); window.scrollTo(0, 0);
+}
+function handIn() {
+  var gap = firstNotReady();
+  if (gap >= 0) { go(gap); return; }
+  if (blocked()) { draw(); return; }
+  tickWrite();
+  if (HAS_WRITE) saveNotebook();
+  if (HAS_WRITE && !S.sent && !PREVIEW) {
+    var P = PROMPTS[S.prompt] || PROMPTS.A, essay = S.essay.trim();
+    var text = essay + '\n\nMy prediction: ' + S.clueWhy.trim() + '\nWatching: ' + S.clues.join(', ');
+    REPORT_WRITING = { pid: 'scythe-l' + LESSON + '-' + (S.prompt === 'B' ? 'B' : 'A'), prompt: 'Scythe, Lesson ' + LESSON + ' (' + CHAPTERS + ') · ' + P.name + ': ' + P.q,
+      promptKind: (PROMPTS[S.prompt === 'B' ? 'B' : 'A'].kind || (S.prompt === 'B' ? 'argument' : 'analysis')), text: text.slice(0, 20000), words: words(essay),
+      secs: Math.round(S.writeSecs), pasted: S.pasted || 0, status: 'submitted', draftNo: 1, reportVersion: 2 };
+  }
+  finishQuiz();                    // records the attempt, then the paragraph
+  REPORT_WRITING = null;
+  if (!locked) return;
+  S.sent = true; S.done = true; S.finished = true; S.lastPicks = picks.slice();
+  S.step = STEPS.length - 1; save(); draw(); window.scrollTo(0, 0);
+}
+
+/* time spent on the writing step (told to whoever marks it) */
+var writeFrom = 0;
+function tickWrite() { if (writeFrom) { S.writeSecs += (Date.now() - writeFrom) / 1000; writeFrom = 0; } }
+function startWrite() { if (!writeFrom && !S.sent) writeFrom = Date.now(); }
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) { tickWrite(); save(); } else if (STEPS[S.step].id === 'write') startWrite();
+});
+
+/* ---------- screens ---------- */
+function quizHtml(set) {
+  return BYSET[set].map(function (q, i) {
+    var at = OFF[set] + i, p = picks[at], answered = p != null;
+    return '<div class="q"><div class="n">Question ' + (i + 1) + ' of ' + BYSET[set].length + '</div><p class="t">' + esc(q.q) + '</p>' +
+      q.options.map(function (o, j) {
+        var cls = 'btn' + (answered && j === q.answer ? ' right' : '') + (answered && j === p && j !== q.answer ? ' wrong' : '');
+        return '<button class="' + cls + '" onclick="pick(' + at + ',' + j + ')"' + (answered || locked ? ' disabled' : '') + '>' + esc(o) + '</button>';
+      }).join('') +
+      '<div class="why' + (answered ? ' show' : '') + '"><b>' + (answered && p === q.answer ? 'Yes. ' : 'Not quite. ') + '</b>' + esc(q.why) + '</div></div>';
+  }).join('');
+}
+function nbHtml() {
+  var nb = lsGet(NB_KEY), out = [];
+  if (nb && typeof nb === 'object') for (var k = 1; k < LESSON; k++) {
+    var e = nb['l' + k]; if (!e) continue;
+    (e.clues || []).forEach(function (c) { out.push('<li style="color:#8a7866"><b>L' + k + '</b> · watching: ' + esc(c) + '</li>'); });
+    if (e.prediction) out.push('<li style="color:#8a7866"><b>L' + k + '</b> · “' + esc(e.prediction) + '”</li>');
+  }
+  out = out.concat(S.clues.map(function (c) { return '<li><b>L' + LESSON + '</b> · watching: ' + esc(c) + '</li>'; }));
+  if (S.clueWhy.trim()) out.push('<li><b>L' + LESSON + '</b> · “' + esc(S.clueWhy.trim()) + '”</li>');
+  return out.length ? out.join('') : '<li style="color:#9a8a78">Nothing yet. Pick a clue above.</li>';
+}
+var VIEW = {
+  before: function () {
+    return '<div class="card"><div class="mins">Step 1 · 2 minutes</div><h2>Before you open the book</h2>' +
+      '<p class="lead">' + esc(C.before) + '</p>' +
+      '<div class="three">' + [0, 1, 2].map(function (i) { return '<input type="text" data-guess="' + i + '" placeholder="Maybe…" maxlength="60" value="' + esc(S.guess[i] || '') + '">'; }).join('') + '</div>' +
+      '<div class="read"><b>' + esc(C.readHead) + '</b> ' + esc(C.readNote) +
+      '<label><input type="checkbox" id="read"' + (S.read ? ' checked' : '') + '> ' + esc(C.readCheck) + '</label></div></div>';
+  },
+  words: function () {
+    return '<div class="card"><div class="mins">Step 2 · 6 minutes</div><h2>Words from the book</h2>' +
+      '<p class="lead">' + esc(C.wordsLead) + '</p>' +
+      WORDS.map(function (w) { return '<div class="word"><h3>' + w.w + '<span class="pos">' + w.pos + '</span></h3><p>' + esc(w.m) + '</p><p class="eg">' + esc(w.eg) + '</p></div>'; }).join('') + '</div>' +
+      '<div class="card">' + quizHtml('words') + '</div>';
+  },
+  check: function () {
+    return '<div class="card"><div class="mins">Step 3 · 5 minutes</div><h2>Read between the lines</h2>' +
+      '<p class="lead">None of these answers is printed in the chapter. Each one has to be worked out from what is there, and from what is left unsaid. Keep the book open.</p>' + quizHtml('check') + '</div>';
+  },
+  craft: function () {
+    return '<div class="card"><div class="mins">Step 4 · 4 minutes</div><h2>Craft: how the effect is built</h2>' +
+      '<div class="craft"><b>Terms for today.</b> ' + TERMS.map(function (t) { return '<b>' + t[0] + '</b>: ' + t[1]; }).join(' · ') + '.</div>' +
+      quizHtml('craft') + '</div>';
+  },
+  clues: function () {
+    var n = words(S.clueWhy), ro = S.sent ? ' disabled' : '';
+    return '<div class="card"><div class="mins">Step 5 · 2 minutes</div><h2>Detective notebook</h2>' +
+      '<p class="lead">Small things in this chapter come back later. Your notebook follows you through all 23 lessons, and your predictions get checked when the book answers them.</p>' +
+      '<p><b>Which of these will matter later?</b> Pick the ones you would bet on.</p>' +
+      '<div class="chips">' + CLUES.map(function (c) { return '<button class="chip' + (S.clues.indexOf(c) >= 0 ? ' on' : '') + '" data-clue="' + esc(c) + '"' + ro + '>' + esc(c) + '</button>'; }).join('') + '</div>' +
+      '<p><b>Make one prediction and give your evidence.</b> ' + esc(C.predictQ) + '</p>' +
+      '<textarea id="clueWhy" style="min-height:80px" maxlength="600" placeholder="I predict … because the chapter …"' + ro + '>' + esc(S.clueWhy) + '</textarea>' +
+      '<div class="count' + (n >= MIN_PREDICT ? ' ok' : '') + '" id="pcount">' + n + ' words · at least ' + MIN_PREDICT + '</div>' +
+      '<div class="book"><h4>My notebook so far</h4><ul id="nb">' + nbHtml() + '</ul></div></div>';
+  },
+  write: function () {
+    var n = words(S.essay), P = PROMPTS[S.prompt] || PROMPTS.A, ro = S.sent ? ' disabled' : '';
+    return '<div class="card"><div class="mins">Step 6 · 8 minutes</div><h2>Write one paragraph</h2>' +
+      '<p class="lead">Choose one. Your paragraph is read and marked by Dad, not by this page.</p>' +
+      '<div class="chips">' + ['A', 'B'].map(function (k) { return '<button class="chip' + (S.prompt === k ? ' on' : '') + '" data-prompt="' + k + '"' + ro + '>' + k + ' · ' + PROMPTS[k].name + '</button>'; }).join('') + '</div>' +
+      '<p><b>' + esc(P.q) + '</b></p>' +
+      '<div class="craft"><b>What a strong answer does:</b> ' + esc(P.how) + '</div>' +
+      '<textarea id="essay" style="min-height:210px" maxlength="6000" placeholder="' + (PROMPTS[S.prompt === 'B' ? 'B' : 'A'].ph || '') + '"' + ro + '>' + esc(S.essay) + '</textarea>' +
+      '<div class="count' + (n >= MIN_WORDS ? ' ok' : '') + '" id="count">' + n + ' words · aim for 80 to 120</div>' +
+      (S.sent ? '<p class="note ok">' + (S.elsewhere ? 'You already handed in a paragraph for this lesson on another device, so this one will not be sent.' : 'You already handed this paragraph in. It cannot be changed here.') + '</p>'
+        : PREVIEW ? '<p class="note">Preview: nothing on this page is recorded or handed in.</p>'
+        : noReporter() ? '<p class="note warn">This page could not connect to the homework system, so nothing can be handed in right now. Your work is saved on this device. Reload the page, then hand it in.</p>'
+        : noOne() ? '<p class="note warn">You are not signed in, so your paragraph cannot reach Dad. It is saved on this device. <a href="../homework.html">Sign in on My Homework</a>, then come back and hand it in.</p>'
+        : '<p class="note">When you press the button, your answers and your paragraph are handed in. You cannot change the paragraph afterwards, so read it through once.</p>') +
+      '</div>';
+  },
+  done: function () {
+    var got = score(), all = QUIZ.length, pct = Math.round(got / all * 100);
+    var mine = S.guess.filter(function (g) { return String(g).trim(); });
+    return '<div class="card"><div class="mins">Lesson ' + LESSON + ' complete</div><h2>' + (pct >= 80 ? 'Sharp reading.' : 'Go back and read the explanations for the ones you missed.') + '</h2>' +
+      '<div class="score"><div><b>' + got + ' / ' + all + '</b><span>questions right</span></div><div><b>' + pct + '%</b><span>' + (pct >= 80 ? 'passed' : '80% to pass') + '</span></div><div><b>' + words(S.essay) + '</b><span>words written</span></div></div>' +
+      (PREVIEW ? '<p class="note">Preview: nothing was recorded or handed in.</p>'
+        : '<p class="note ok">' + (navigator.onLine === false ? 'You are offline, so it is saved on this device and will be sent when the internet is back. ' : '') +
+          '📬 Your paragraph and your prediction are handed in. Dad will read and mark the paragraph, and it will show up on <b>My Homework</b>.</p>') +
+      '<p><b>Remember your three guesses?</b></p>' +
+      '<div class="vs"><div><h4>What you guessed</h4><ul>' + (mine.length ? mine.map(function (g) { return '<li>' + esc(g) + '</li>'; }).join('') : '<li>(nothing typed)</li>') + '</ul></div>' +
+      '<div><h4>' + esc(C.realityHead) + '</h4><ul>' + REALITY.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul></div></div>' +
+      '<p style="margin-top:14px">' + C.finishNoteHtml + '</p>' +
+      '<div class="book"><h4>My notebook so far</h4><ul>' + nbHtml() + '</ul></div>' +
+      '<div class="next">' + C.nextHtml + '</div></div>';
+  }
+};
+
+/* ---------- drawing ---------- */
+function draw() {
+  var id = STEPS[S.step].id, last = S.step === STEPS.length - 1, ready = stepReady(S.step);
+  $('steps').innerHTML = STEPS.map(function (s, i) {
+    var reach = S.done || i < STEPS.length - 1;
+    var cls = i === S.step ? 'on' : (i < STEPS.length - 1 && stepReady(i) && (S.done || i < S.step) ? 'done' : '');
+    return '<button class="' + cls + '" data-step="' + i + '"' + (reach ? '' : ' disabled') + '><b>' + s.n + '</b>' + s.label + '</button>';
+  }).join('');
+  $('bar').style.width = Math.round(S.step / (STEPS.length - 1) * 100) + '%';
+  var right;
+  if (last) right = '<a class="go" href="../homework.html">Back to My Homework</a>';
+  else if (handStep(S.step) && !S.done) right = '<button class="go" id="next"' + (ready && !blocked() ? '' : ' disabled') + '>' + (S.sent ? 'Finish →' : 'Hand in and finish →') + '</button>';
+  else right = '<button class="go" id="next"' + (ready ? '' : ' disabled') + '>Next →</button>';
+  $('main').innerHTML = VIEW[id]() +
+    '<div class="nav"><button class="go back" id="back"' + (S.step === 0 ? ' disabled' : '') + '>← Back</button>' + right + '</div>' +
+    (last ? '<p class="hint"><button class="link" id="again">Try the questions again</button></p>'
+          : '<p class="hint" id="hint"' + (ready ? ' style="display:none"' : '') + '>Finish this step to go on.</p>');
+  if (id === 'write') startWrite(); else tickWrite();
+}
+function refreshNext() {
+  var b = $('next'); if (!b) return;
+  var ready = stepReady(S.step); b.disabled = !ready || (STEPS[S.step].id === 'write' && !S.done && blocked());
+  var h = $('hint'); if (h) h.style.display = ready ? 'none' : '';
+}
+function go(i) {
+  i = Math.max(0, Math.min(STEPS.length - 1, i));
+  if (i === STEPS.length - 1 && !S.done) return;            // the finish page only after handing in
+  S.step = i; save(); draw(); window.scrollTo(0, 0);
+}
+
+document.addEventListener('click', function (e) {
+  var t = e.target.closest('button'); if (!t || t.disabled) return;
+  if (t.dataset.step != null) return go(+t.dataset.step);
+  if (t.id === 'back') return go(S.step - 1);
+  if (t.id === 'again') return resetQuiz();
+  if (t.id === 'next') {
+    if (!stepReady(S.step)) return;
+    if (handStep(S.step) && !S.done) return handIn();
+    return go(S.step + 1);
+  }
+  if (S.sent) return;                                       // handed in: the notebook and the paragraph are fixed
+  if (t.dataset.prompt) { S.prompt = t.dataset.prompt; save(); draw(); return; }
+  if (t.dataset.clue) {
+    var c = t.dataset.clue, at = S.clues.indexOf(c);
+    if (at >= 0) S.clues.splice(at, 1); else S.clues.push(c);
+    save(); t.classList.toggle('on'); $('nb').innerHTML = nbHtml(); refreshNext();
+  }
+});
+document.addEventListener('input', function (e) {
+  var t = e.target, n, c;
+  if (t.dataset.guess != null) S.guess[+t.dataset.guess] = t.value;
+  else if (t.id === 'read') S.read = t.checked;
+  else if (t.id === 'clueWhy') { S.clueWhy = t.value; $('nb').innerHTML = nbHtml(); n = words(t.value); c = $('pcount');
+    c.textContent = n + ' words · at least ' + MIN_PREDICT; c.className = 'count' + (n >= MIN_PREDICT ? ' ok' : ''); }
+  else if (t.id === 'essay') { S.essay = t.value; n = words(t.value); c = $('count');
+    c.textContent = n + ' words · aim for 80 to 120'; c.className = 'count' + (n >= MIN_WORDS ? ' ok' : ''); }
+  else return;
+  save(); refreshNext();
+});
+document.addEventListener('paste', function (e) {
+  if (e.target && e.target.id === 'essay') { try { S.pasted += ((e.clipboardData || window.clipboardData).getData('text') || '').length; save(); } catch (err) {} }
+});
+window.addEventListener('pagehide', function () { tickWrite(); save(); });
+if (typeof VIEW_EXTRA === 'object') Object.keys(VIEW_EXTRA).forEach(function (k) { VIEW[k] = VIEW_EXTRA[k]; });
+draw();
+</script>
+<script src="../JS/quiz-report.js"></script>
+<script>watchSignIn();</script>
+</body>
+</html>

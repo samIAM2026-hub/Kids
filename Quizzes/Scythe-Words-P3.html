@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scythe · Part Three word review</title>
+<style>
+  :root{
+    --paper:#fbf5ea; --card:#fffdf7; --ink:#2b2118; --soft:#6f5d4c; --line:#e6d9c3;
+    --sand:#e9d3a8; --clay:#b9562b; --clay-dark:#8f3f1d; --sky:#f3e2c0;
+    --good:#3a7d44; --good-bg:#e7f3e8; --bad:#c0392b; --bad-bg:#fbeaea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,"Times New Roman",serif;font-size:18px;line-height:1.55}
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px 60px}
+  header{padding:22px 0 6px}
+  .eyebrow{font:700 12px/1 -apple-system,Helvetica,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--clay)}
+  h1{font-size:34px;line-height:1.15;margin:8px 0 4px}
+  .sub{color:var(--soft);font-size:16px}
+  .scene{display:block;width:100%;height:auto;border-radius:14px;margin:14px 0 4px;border:1px solid var(--line)}
+  .steps{display:flex;gap:6px;margin:18px 0 6px;flex-wrap:wrap}
+  .steps button{flex:1 1 0;min-width:74px;border:1px solid var(--line);background:var(--card);color:var(--soft);
+    font:600 12px/1.2 -apple-system,Helvetica,sans-serif;padding:8px 4px;border-radius:9px;cursor:pointer}
+  .steps button b{display:block;font-size:15px;color:var(--ink)}
+  .steps button.on{background:var(--clay);border-color:var(--clay);color:#fff}
+  .steps button.on b{color:#fff}
+  .steps button.done{background:var(--good-bg);border-color:#bfdcc3;color:var(--good)}
+  .steps button.done b{color:var(--good)}
+  .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:18px}
+  .bar i{display:block;height:100%;background:var(--clay);width:0;transition:width .25s}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:0 0 16px}
+  h2{font-size:24px;margin:0 0 4px}
+  .lead{color:var(--soft);margin:0 0 14px}
+  .mins{font:600 12px/1 -apple-system,Helvetica,sans-serif;color:var(--clay);letter-spacing:.06em;text-transform:uppercase}
+  textarea,input[type=text]{width:100%;font:inherit;color:inherit;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+  textarea{min-height:110px;resize:vertical}
+  textarea:focus,input:focus{outline:none;border-color:var(--clay)}
+  .three{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .read{background:var(--sky);border:1px dashed #c9a868;border-radius:12px;padding:14px 16px;margin-top:16px}
+  .read label{display:flex;gap:10px;align-items:center;font-weight:700;margin-top:8px;cursor:pointer}
+  .read input{width:20px;height:20px;accent-color:var(--clay)}
+  .word{border-top:1px solid var(--line);padding:14px 0}
+  .word:first-of-type{border-top:0;padding-top:4px}
+  .word h3{margin:0;font-size:22px;color:var(--clay-dark)}
+  .word .pos{font:italic 14px Georgia,serif;color:var(--soft);margin-left:6px}
+  .word p{margin:4px 0 0}
+  .word .eg{color:var(--soft);font-style:italic}
+  .q{border-top:1px solid var(--line);padding:16px 0 6px}
+  .q:first-of-type{border-top:0;padding-top:2px}
+  .q .n{font:700 12px/1 -apple-system,Helvetica,sans-serif;color:var(--clay);letter-spacing:.08em;text-transform:uppercase}
+  .q p.t{margin:6px 0 10px;font-weight:700}
+  .btn{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:#fff;border:1.5px solid var(--line);
+    border-radius:10px;padding:10px 14px;margin:0 0 8px;cursor:pointer}
+  .btn:hover{border-color:var(--clay)}
+  .btn.right{background:var(--good-bg);border-color:var(--good);color:#1f4d27;font-weight:700}
+  .btn.wrong{background:var(--bad-bg);border-color:var(--bad);color:#7d231a}
+  .btn[disabled]{cursor:default}
+  .why{display:none;background:#f6efe0;border-left:4px solid var(--clay);border-radius:0 10px 10px 0;padding:10px 14px;margin:2px 0 10px;font-size:16px}
+  .why.show{display:block}
+  .craft{background:#f6efe0;border-radius:12px;padding:12px 16px;margin:0 0 14px;font-size:16px}
+  .craft b{color:var(--clay-dark)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
+  .chip{font:inherit;font-size:16px;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;cursor:pointer;color:inherit}
+  .chip.on{background:var(--clay);border-color:var(--clay);color:#fff}
+  .book{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px}
+  .book h4{margin:0 0 6px;font:700 12px/1 -apple-system,Helvetica,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+  .book ul{margin:0;padding-left:20px}
+  .count{font:600 13px/1 -apple-system,Helvetica,sans-serif;color:var(--soft);margin-top:6px}
+  .count.ok{color:var(--good)}
+  .nav{display:flex;justify-content:space-between;gap:10px;margin-top:6px}
+  .go{font:700 17px Georgia,serif;border:0;border-radius:11px;padding:12px 22px;cursor:pointer;background:var(--clay);color:#fff}
+  .go.back{background:transparent;color:var(--soft);border:1.5px solid var(--line)}
+  .go[disabled]{opacity:.4;cursor:default}
+  .hint{font-size:15px;color:var(--soft);margin:8px 0 0;text-align:right}
+  .score{display:flex;gap:12px;margin:6px 0 16px}
+  .score div{flex:1;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+  .score b{display:block;font-size:30px;line-height:1.1}
+  .score span{font:600 12px/1.2 -apple-system,Helvetica,sans-serif;color:var(--soft);text-transform:uppercase;letter-spacing:.06em}
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .vs div{border-radius:12px;padding:12px 14px;border:1.5px solid var(--line);background:#fff}
+  .vs h4{margin:0 0 6px;font:700 12px/1 -apple-system,Helvetica,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+  .vs ul{margin:0;padding-left:20px}
+  .next{background:var(--sky);border-radius:12px;padding:12px 16px;margin-top:14px}
+  .note{font-size:15px;color:var(--soft);margin:10px 0 0;padding:9px 12px;border-radius:10px;background:#f6efe0}
+  .note.ok{background:var(--good-bg);color:#1f4d27}
+  .note.warn{background:var(--bad-bg);color:#7d231a}
+  .note a{color:inherit;font-weight:700}
+  a.go{text-decoration:none;display:inline-block}
+  .link{font:inherit;font-size:15px;background:none;border:0;color:var(--soft);text-decoration:underline;cursor:pointer;padding:0}
+  .steps button[disabled]{opacity:.5;cursor:default}
+  textarea[disabled],.chip[disabled]{opacity:.75;cursor:default}
+  @media (max-width:560px){ h1{font-size:28px} .three,.vs{grid-template-columns:1fr} .steps button{min-width:30%} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Scythe · Part Three · Word review · Lessons 11–18</div>
+    <h1>Part Three words</h1>
+    <div class="sub">Twenty words from Lessons 11 to 18, one more time before Part Four begins. About 20 minutes.</div>
+    <svg class="scene" viewBox="0 0 760 120" role="img" aria-label="An ivory scythe robe and a ring with a dark stone">
+      <rect width="760" height="120" fill="#e9dfd8"/><rect x="0" y="92" width="760" height="28" fill="#d9c7a8"/>
+      <g transform="translate(110 10)"><path d="M28 14 q-24 10 -26 82 h52 q-2 -72 -26 -82z" fill="#f4eedf" stroke="#cbbd9f"/><circle cx="28" cy="16" r="12" fill="#f4eedf" stroke="#cbbd9f"/></g>
+      <text x="380" y="62" text-anchor="middle" font-family="Georgia,serif" font-size="26" fill="#6f5d4c">Part Three words</text>
+      <g transform="translate(640 62)"><circle r="22" fill="none" stroke="#b49a5e" stroke-width="6"/><path d="M0 -44 l15 16 l-15 16 l-15 -16z" fill="#eef2f4" stroke="#9aa5ab" stroke-width="2"/><path d="M0 -35 l6 7 l-6 7 l-6 -7z" fill="#2b2118"/></g>
+    </svg>
+  </header>
+
+  <div class="steps" id="steps"></div>
+  <div class="bar"><i id="bar"></i></div>
+  <main id="main"></main>
+</div>
+
+<script>
+/* Scythe, Part Three word review (Warren). Built by homework-system/scythe-build/build.py from reviews/P3.json. */
+var C = {
+ "lesson": "w3",
+ "chapters": "Lessons 11–18",
+ "part": "Part Three",
+ "noGuess": true,
+ "before": "Reread all twenty words below and say each meaning aloud in your own words. Then read the book phrase and picture where it came in the story.",
+ "readCheck": "I have gone through all 20 words",
+ "h": {
+  "words": "What does it mean?",
+  "check": "Same and opposite",
+  "craft": "Analogies and best fit"
+ },
+ "l": {
+  "words": "Each sentence is new, not from the book. Choose the meaning the word has in that sentence.",
+  "check": "Pick the word or phrase closest in meaning, or the OPPOSITE when the question asks for it.",
+  "craft": "Work out how the first pair is linked, or which word fits the sentence, then choose."
+ },
+ "readHead": "",
+ "readNote": "",
+ "wordsLead": "",
+ "predictQ": "",
+ "realityHead": "",
+ "finishNoteHtml": "",
+ "nextHtml": "<b>Next: Lesson 19 · Chapters 30–31.<\/b> Part Four begins. Keep an eye on which promises and threats from Part Three still hold."
+};
+var WORDS = [
+ {
+  "w": "inscrutable",
+  "pos": "adjective",
+  "m": "Impossible to read or figure out.",
+  "eg": "“those cold, inscrutable gray eyes”",
+  "lesson": 11
+ },
+ {
+  "w": "solace",
+  "pos": "noun",
+  "m": "Comfort in a time of sadness or loss.",
+  "eg": "“True solace can be worth its weight in gold.”",
+  "lesson": 11
+ },
+ {
+  "w": "retribution",
+  "pos": "noun",
+  "m": "Punishment given as payback for a wrong.",
+  "eg": "“I promise there will be no retribution.”",
+  "lesson": 11
+ },
+ {
+  "w": "hypocrisy",
+  "pos": "noun",
+  "m": "Claiming to believe one thing while doing the opposite.",
+  "eg": "“the stupidity and hypocrisy of the mortal age”",
+  "lesson": 12
+ },
+ {
+  "w": "charisma",
+  "pos": "noun",
+  "m": "A powerful charm that draws people to you.",
+  "eg": "“secreting charisma instead of sweat”",
+  "lesson": 12
+ },
+ {
+  "w": "emulate",
+  "pos": "verb",
+  "m": "To copy someone you admire, hoping to match them.",
+  "eg": "“groups who would emulate and imitate us”",
+  "lesson": 13
+ },
+ {
+  "w": "trepidation",
+  "pos": "noun",
+  "m": "Nervous fear about what might happen.",
+  "eg": "“that trumped any trepidation”",
+  "lesson": 13
+ },
+ {
+  "w": "vilify",
+  "pos": "verb",
+  "m": "To speak of someone as if they were evil.",
+  "eg": "“People use that to vilify us.”",
+  "lesson": 13
+ },
+ {
+  "w": "thwart",
+  "pos": "verb",
+  "m": "To stop someone from succeeding.",
+  "eg": "“seemed designed to thwart her efforts”",
+  "lesson": 14
+ },
+ {
+  "w": "scrutiny",
+  "pos": "noun",
+  "m": "Close, critical examination.",
+  "eg": "“have been brought under scrutiny”",
+  "lesson": 14
+ },
+ {
+  "w": "judicious",
+  "pos": "adjective",
+  "m": "Showing good sense and careful judgment.",
+  "eg": "“the most judicious course of action”",
+  "lesson": 15
+ },
+ {
+  "w": "precarious",
+  "pos": "adjective",
+  "m": "Unsafe; likely to fall or fail at any moment.",
+  "eg": "“shimmy to its precarious end”",
+  "lesson": 15
+ },
+ {
+  "w": "oblivious",
+  "pos": "adjective",
+  "m": "Not aware of what is happening around you.",
+  "eg": "“entirely oblivious to the things that weighed so heavily on Rowan”",
+  "lesson": 15
+ },
+ {
+  "w": "corrosive",
+  "pos": "adjective",
+  "m": "Slowly eating away or destroying what it touches.",
+  "eg": "“Goddard is as corrosive as acid…”",
+  "lesson": 16
+ },
+ {
+  "w": "refute",
+  "pos": "verb",
+  "m": "To prove that a statement is wrong.",
+  "eg": "“Citra opened her mouth to refute it”",
+  "lesson": 16
+ },
+ {
+  "w": "flagrant",
+  "pos": "adjective",
+  "m": "Shockingly obvious; done out in the open.",
+  "eg": "“a flagrant violation of that trust”",
+  "lesson": 16
+ },
+ {
+  "w": "odious",
+  "pos": "adjective",
+  "m": "Extremely unpleasant; deserving hatred.",
+  "eg": "“that odious campaign to glean only those who were born mortal”",
+  "lesson": 17
+ },
+ {
+  "w": "audacity",
+  "pos": "noun",
+  "m": "Shocking boldness that ignores the usual limits.",
+  "eg": "“so they could toast Rowan’s audacity”",
+  "lesson": 17
+ },
+ {
+  "w": "shrewd",
+  "pos": "adjective",
+  "m": "Sharp and clever at judging situations.",
+  "eg": "“She’s shrewd, determined, calculating”",
+  "lesson": 18
+ },
+ {
+  "w": "impede",
+  "pos": "verb",
+  "m": "To get in the way of; to slow down.",
+  "eg": "“nothing to impede his view of his domain”",
+  "lesson": 18
+ }
+];
+var QUIZ = {
+  words: [
+    { q:"The poker player kept an inscrutable face, so nobody could tell whether her cards were good. Here, inscrutable means…", options:["bright and cheerful", "red with anger", "impossible to read", "tired and bored"], answer:2,
+      why:"An inscrutable face gives nothing away. The other players could not read what she was thinking.", word:"inscrutable" },
+    { q:"After his dog died, Leo found solace in long Sunday walks with his grandfather. Solace means…", options:["comfort in sadness", "a reason for anger", "a feeling of guilt", "a sudden surprise"], answer:0,
+      why:"Solace is comfort when you are sad. The walks did not fix the loss, but they eased it.", word:"solace" },
+    { q:"The team feared retribution from the coach after they skipped practice to go to the beach. Retribution means…", options:["praise for very hard work", "punishment as payback", "a long explanation", "a sudden change of plans"], answer:1,
+      why:"Retribution is punishment given back for a wrong. The team knew the coach would make them pay for skipping.", word:"retribution" },
+    { q:"The new class president won easily; her charisma made people want to follow her anywhere. Charisma means…", options:["a large amount of spare money", "a talent for drawing", "a habit of being late", "a charm that draws people"], answer:3,
+      why:"Charisma is a powerful personal charm. People are pulled toward someone who has it.", word:"charisma" },
+    { q:"With some trepidation, Sam stepped onto the frozen pond and listened for cracks. Trepidation means…", options:["great joy", "nervous fear", "calm patience", "sharp anger"], answer:1,
+      why:"Trepidation is nervous fear about what might happen. Listening for cracks shows he was not sure the ice would hold.", word:"trepidation" },
+    { q:"The tower of books on the very edge of the desk looked precarious. Precarious means…", options:["neat and tidy", "heavy and old", "freshly printed", "ready to topple"], answer:3,
+      why:"Something precarious is unsafe and could topple at any moment, like books balanced on an edge.", word:"precarious" },
+    { q:"Pushing in front of the whole line was a flagrant breach of the rules. Flagrant means…", options:["shockingly obvious", "hidden and secret", "small and harmless", "purely accidental"], answer:0,
+      why:"A flagrant breach is done right out in the open, so everyone can see it.", word:"flagrant" },
+    { q:"She had the audacity to correct the famous scientist in front of a packed lecture hall. Audacity means…", options:["quiet sadness", "careful planning", "shocking boldness", "polite, quiet respect"], answer:2,
+      why:"Audacity is boldness that ignores the usual limits. Few people would dare to correct a famous expert in public.", word:"audacity" }
+  ],
+  check: [
+    { q:"Which word is closest in meaning to judicious?", options:["prudent", "reckless", "greedy", "noisy"], answer:0,
+      why:"Judicious means showing good sense, and so does prudent. Reckless is close to the opposite.", word:"judicious" },
+    { q:"Which word is most nearly OPPOSITE to oblivious?", options:["unaware", "heedless", "observant", "absent-minded"], answer:2,
+      why:"Oblivious means not noticing, like unaware, heedless and absent-minded. Observant means noticing a lot.", word:"oblivious" },
+    { q:"Which word is most nearly OPPOSITE to vilify?", options:["slander", "denounce", "malign", "glorify"], answer:3,
+      why:"To vilify is to speak of someone as evil, the same as slander, denounce and malign. To glorify is to praise them highly.", word:"vilify" },
+    { q:"Which word is closest in meaning to thwart?", options:["help", "foil", "admire", "praise"], answer:1,
+      why:"To thwart a plan is to stop it from succeeding. Foil means the same thing.", word:"thwart" },
+    { q:"Which word is closest in meaning to shrewd?", options:["naive", "gentle", "clumsy", "astute"], answer:3,
+      why:"Shrewd and astute both mean sharp at judging people and situations. Naive is the opposite.", word:"shrewd" },
+    { q:"Which word is most nearly OPPOSITE to odious?", options:["hateful", "delightful", "vile", "detestable"], answer:1,
+      why:"Odious means hateful, like vile and repulsive. Delightful is the opposite.", word:"odious" },
+    { q:"Which word is most nearly OPPOSITE to refute?", options:["disprove", "rebut", "confirm", "contradict"], answer:2,
+      why:"To refute is to prove wrong, like disprove, rebut and contradict. To confirm is to show that something is true.", word:"refute" },
+    { q:"Which phrase is closest in meaning to scrutiny?", options:["close inspection", "a quick glance at it", "a loud protest", "gentle praise"], answer:0,
+      why:"Scrutiny is close, careful examination, the opposite of a quick glance.", word:"scrutiny" }
+  ],
+  craft: [
+    { q:"Young players often ___ their heroes, copying how they move and even how they celebrate a goal.", options:["vilify", "thwart", "emulate", "scrutinize"], answer:2,
+      why:"To emulate is to copy someone you admire, hoping to be like them.", word:"emulate" },
+    { q:"The coach who yelled at us for being late, then arrived twenty minutes late himself, was guilty of plain ___.", options:["hypocrisy", "retribution", "charisma", "solace"], answer:0,
+      why:"Hypocrisy is demanding one thing while doing the opposite, just as the coach did.", word:"hypocrisy" },
+    { q:"Soothing is to calm as corrosive is to ___.", options:["shine up", "eat away", "hold together", "cool down"], answer:1,
+      why:"Something soothing calms; something corrosive eats away at whatever it touches.", word:"corrosive" },
+    { q:"Assist is to help as impede is to ___.", options:["hurry", "inform", "decide", "hinder"], answer:3,
+      why:"The pairs are synonyms. To assist is to help; to impede is to hinder.", word:"impede" },
+    { q:"Delight is to good news as trepidation is to ___.", options:["a happy ending", "a coming danger", "a solved puzzle", "an old memory"], answer:1,
+      why:"Good news brings delight; a danger that is on its way brings trepidation, a nervous fear.", word:"trepidation" },
+    { q:"Praise is to hero as vilify is to ___.", options:["friend", "teacher", "winner", "villain"], answer:3,
+      why:"People praise a hero and vilify someone they see as a villain.", word:"vilify" },
+    { q:"With only ten dollars left, Mia made a ___ choice and bought the cheaper notebook that would last all year.", options:["judicious", "flagrant", "reckless", "frivolous"], answer:0,
+      why:"A judicious choice shows good sense. Mia thought ahead about what she really needed.", word:"judicious" },
+    { q:"Nobody could believe the ___ of the new student, who walked into the principal's office and asked for her job.", options:["solace", "scrutiny", "audacity", "trepidation"], answer:2,
+      why:"Audacity is shocking boldness. Asking for the principal's job on your first day is about as bold as it gets.", word:"audacity" }
+  ]
+};
+var TERMS = [], PROMPTS = { A: {}, B: {} }, CLUES = [], REALITY = [];
+var STEPS = [
+  { id:'before', n:'1', label:'Study' },
+  { id:'words',  n:'2', label:'Meaning' },
+  { id:'check',  n:'3', label:'Same & opposite' },
+  { id:'craft',  n:'4', label:'Analogies' },
+  { id:'done',   n:'★', label:'Finish' }
+];
+var VIEW_EXTRA = {
+  before: function () {
+    return '<div class="card"><div class="mins">Step 1 · 5 minutes</div><h2>Study the words</h2>' +
+      '<p class="lead">' + esc(C.before) + '</p>' +
+      WORDS.map(function (w) { return '<div class="word"><h3>' + w.w + '<span class="pos">' + w.pos + ' · L' + w.lesson + '</span></h3><p>' + esc(w.m) + '</p><p class="eg">' + esc(w.eg) + '</p></div>'; }).join('') +
+      '<div class="read"><label><input type="checkbox" id="read"' + (S.read ? ' checked' : '') + '> ' + esc(C.readCheck) + '</label></div></div>';
+  },
+  words: function () { return '<div class="card"><div class="mins">Step 2 · 5 minutes</div><h2>' + esc(C.h.words) + '</h2><p class="lead">' + esc(C.l.words) + '</p>' + quizHtml('words') + '</div>'; },
+  check: function () { return '<div class="card"><div class="mins">Step 3 · 5 minutes</div><h2>' + esc(C.h.check) + '</h2><p class="lead">' + esc(C.l.check) + '</p>' + quizHtml('check') + '</div>'; },
+  craft: function () { return '<div class="card"><div class="mins">Step 4 · 5 minutes</div><h2>' + esc(C.h.craft) + '</h2><p class="lead">' + esc(C.l.craft) + '</p>' + quizHtml('craft') +
+      (S.done ? '' : PREVIEW ? '<p class="note">Preview: nothing on this page is recorded.</p>'
+        : noReporter() ? '<p class="note warn">This page could not connect to the homework system, so nothing can be handed in right now. Reload the page, then hand it in.</p>'
+        : noOne() ? '<p class="note warn">You are not signed in, so your score cannot reach Dad. <a href="../homework.html">Sign in on My Homework</a>, then come back.</p>' : '') + '</div>'; },
+  done: function () {
+    var got = score(), all = QUIZ.length, pct = Math.round(got / all * 100);
+    var missed = {}; QUIZ.forEach(function (q, i) { if (picks[i] !== q.answer && q.word) missed[q.word] = true; });
+    var again = WORDS.filter(function (w) { return missed[w.w]; });
+    return '<div class="card"><div class="mins">' + esc(C.part) + ' word review complete</div><h2>' + (pct >= 80 ? 'These words are yours now.' : 'Go back over the explanations, then try again.') + '</h2>' +
+      '<div class="score"><div><b>' + got + ' / ' + all + '</b><span>questions right</span></div><div><b>' + pct + '%</b><span>' + (pct >= 80 ? 'passed' : '80% to pass') + '</span></div><div><b>' + WORDS.length + '</b><span>words reviewed</span></div></div>' +
+      (PREVIEW ? '<p class="note">Preview: nothing was recorded.</p>' : '<p class="note ok">📬 Your score is handed in.</p>') +
+      (again.length ? '<div class="book"><h4>Words to look at once more</h4><ul>' + again.map(function (w) { return '<li><b>' + esc(w.w) + '</b>: ' + esc(w.m) + '</li>'; }).join('') + '</ul></div>' : '<p>You got every word right. 🌾</p>') +
+      '<div class="next">' + C.nextHtml + '</div></div>';
+  }
+};
+
+/* ---------- the shape quiz-report.js looks for (its 'picks' adapter) ----------
+   QUIZ[] flat, picks[], locked, pick(i, j), finishQuiz(), resetQuiz(). REPORT_WRITING is set just around
+   finishQuiz() the first time, so the paragraph goes to `writings` with the same ID as the attempt. */
+var BYSET = QUIZ, SETS = ['words', 'check', 'craft'], OFF = {};
+QUIZ = [];
+SETS.forEach(function (s) { OFF[s] = QUIZ.length; BYSET[s].forEach(function (q) { QUIZ.push(q); }); });
+var picks = QUIZ.map(function () { return null; });
+var locked = false;
+var REPORT_WRITING = null;
+var HAS_WRITE = STEPS.some(function (s) { return s.id === 'write'; });
+// The step whose Next button hands everything in: the paragraph step, or (word reviews) the step before Finish.
+function handStep(i) { return HAS_WRITE ? STEPS[i].id === 'write' : !!STEPS[i + 1] && STEPS[i + 1].id === 'done'; }
+
+/* ---------- state (this device) ---------- */
+// A parent's preview (?preview=1, the same test quiz-report.js uses) records nothing, so it keeps its own
+// state: it must never leave the kid's page looking finished and handed in.
+var PREVIEW = /(?:^|&)preview=1(?:&|$)/.test(location.search.slice(1));
+var LESSON = C.lesson, CHAPTERS = C.chapters, KEY = 'scythe.l' + LESSON + '.v1' + (PREVIEW ? '.preview' : ''), NB_KEY = 'scythe.notebook.v1' + (PREVIEW ? '.preview' : '');
+var S = { step: 0, guess: ['', '', ''], read: false, picks: null, clues: [], clueWhy: '', essay: '', prompt: 'A',
+          pasted: 0, writeSecs: 0, sent: false, done: false, finished: false, lastPicks: null, elsewhere: false };
+// Nobody signed in: quiz-report.js would drop the record, so the paragraph is not handed in (it stays on this device).
+function noOne() { return !PREVIEW && AUTH_KNOWN && !ME && !S.sent; }
+// quiz-report.js did not load (the network dropped): nothing would be recorded at all.
+function noReporter() { return !PREVIEW && !window.QuizReport; }
+function blocked() { return noOne() || noReporter(); }
+function lsGet(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+(function () {
+  var saved = lsGet(KEY);
+  if (!saved || typeof saved !== 'object') return;
+  Object.keys(S).forEach(function (k) { if (saved[k] !== undefined && saved[k] !== null) S[k] = saved[k]; });
+  if (!Array.isArray(S.guess)) S.guess = ['', '', ''];
+  if (!Array.isArray(S.clues)) S.clues = [];
+  if (Array.isArray(S.picks) && S.picks.length === QUIZ.length) picks = S.picks.map(function (p) { return typeof p === 'number' ? p : null; });
+  S.step = Math.max(0, Math.min(STEPS.length - 1, +S.step || 0));
+  // A retry left half done does not hide a chapter that was finished: go back to the finished answers.
+  if (S.finished && !S.done && Array.isArray(S.lastPicks) && S.lastPicks.length === QUIZ.length) { picks = S.lastPicks.slice(); S.done = true; }
+  if (S.done) { locked = true; S.step = STEPS.length - 1; }
+})();
+function save() { S.picks = picks; lsSet(KEY, S); }
+// The notebook is shared by every Scythe lesson page on this device.
+function saveNotebook() {
+  var nb = lsGet(NB_KEY); if (!nb || typeof nb !== 'object') nb = {};
+  nb['l' + LESSON] = { clues: S.clues.slice(), prediction: S.clueWhy.trim() };
+  lsSet(NB_KEY, nb);
+}
+
+/* ---------- who is signed in (the paragraph only reaches Dad when the kid is) ---------- */
+var ME = null, AUTH_KNOWN = false;
+function softDraw() {              // not while he is typing: a redraw would take the box out from under him
+  var a = document.activeElement;
+  if (a && (a.id === 'essay' || a.id === 'clueWhy')) refreshNext(); else draw();
+}
+function watchSignIn() {
+  if (handStep(S.step)) softDraw();              // the first draw ran before quiz-report.js loaded
+  if (PREVIEW || !window.QuizReport || !QuizReport.ready) return;
+  QuizReport.ready.then(function (fb) {
+    fb.auth.onAuthStateChanged(function (u) {
+      ME = u && !u.isAnonymous ? u : null; AUTH_KNOWN = true;
+      if (handStep(S.step)) softDraw();
+      // Handed in from another device already? Then this one must not send a second paragraph.
+      if (!ME || S.sent || !fb.db) return;
+      fb.db.collection('writings').where('kidId', '==', ME.uid).where('itemId', '==', QuizReport.itemId).limit(1).get()
+        .then(function (q) {
+          if (q.empty || S.sent) return;
+          S.sent = true; S.elsewhere = true; save();
+          if (STEPS[S.step].id === 'write' || STEPS[S.step].id === 'clues') draw();
+        }).catch(function () {});
+    });
+  }).catch(function () {});
+}
+
+/* ---------- helpers ---------- */
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function words(s) { var m = String(s || '').trim().match(/[A-Za-z0-9'’\-]+/g); return m ? m.length : 0; }
+function setDone(set) { return BYSET[set].every(function (q, i) { return picks[OFF[set] + i] != null; }); }
+function score() { return QUIZ.filter(function (q, i) { return picks[i] === q.answer; }).length; }
+var MIN_WORDS = 80, MIN_PREDICT = 12;
+function stepReady(i) {
+  var id = STEPS[i].id;
+  if (id === 'before') return S.read && (C.noGuess || S.guess.some(function (g) { return String(g).trim(); }));
+  if (id === 'words' || id === 'check' || id === 'craft') return setDone(id);
+  // Once the paragraph is handed in (here, or on another device) these two are fixed and no longer hold him up.
+  if (id === 'clues') return S.sent || (S.clues.length > 0 && words(S.clueWhy) >= MIN_PREDICT);
+  if (id === 'write') return S.sent || words(S.essay) >= MIN_WORDS;
+  return true;
+}
+function firstNotReady() { for (var i = 0; i < STEPS.length - 1; i++) if (!stepReady(i)) return i; return -1; }
+
+/* ---------- answering ---------- */
+function pick(i, j) {
+  if (locked || picks[i] != null) return;
+  picks[i] = j; save(); draw();
+}
+function finishQuiz() {            // quiz-report.js grades after this, and only if locked turned true
+  if (picks.every(function (p) { return p != null; })) locked = true;
+}
+function resetQuiz() {             // "try the questions again": the paragraph stays, it is not sent twice
+  picks = QUIZ.map(function () { return null; });
+  locked = false; S.done = false; S.step = 1; save(); draw(); window.scrollTo(0, 0);
+}
+function handIn() {
+  var gap = firstNotReady();
+  if (gap >= 0) { go(gap); return; }
+  if (blocked()) { draw(); return; }
+  tickWrite();
+  if (HAS_WRITE) saveNotebook();
+  if (HAS_WRITE && !S.sent && !PREVIEW) {
+    var P = PROMPTS[S.prompt] || PROMPTS.A, essay = S.essay.trim();
+    var text = essay + '\n\nMy prediction: ' + S.clueWhy.trim() + '\nWatching: ' + S.clues.join(', ');
+    REPORT_WRITING = { pid: 'scythe-l' + LESSON + '-' + (S.prompt === 'B' ? 'B' : 'A'), prompt: 'Scythe, Lesson ' + LESSON + ' (' + CHAPTERS + ') · ' + P.name + ': ' + P.q,
+      promptKind: (PROMPTS[S.prompt === 'B' ? 'B' : 'A'].kind || (S.prompt === 'B' ? 'argument' : 'analysis')), text: text.slice(0, 20000), words: words(essay),
+      secs: Math.round(S.writeSecs), pasted: S.pasted || 0, status: 'submitted', draftNo: 1, reportVersion: 2 };
+  }
+  finishQuiz();                    // records the attempt, then the paragraph
+  REPORT_WRITING = null;
+  if (!locked) return;
+  S.sent = true; S.done = true; S.finished = true; S.lastPicks = picks.slice();
+  S.step = STEPS.length - 1; save(); draw(); window.scrollTo(0, 0);
+}
+
+/* time spent on the writing step (told to whoever marks it) */
+var writeFrom = 0;
+function tickWrite() { if (writeFrom) { S.writeSecs += (Date.now() - writeFrom) / 1000; writeFrom = 0; } }
+function startWrite() { if (!writeFrom && !S.sent) writeFrom = Date.now(); }
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) { tickWrite(); save(); } else if (STEPS[S.step].id === 'write') startWrite();
+});
+
+/* ---------- screens ---------- */
+function quizHtml(set) {
+  return BYSET[set].map(function (q, i) {
+    var at = OFF[set] + i, p = picks[at], answered = p != null;
+    return '<div class="q"><div class="n">Question ' + (i + 1) + ' of ' + BYSET[set].length + '</div><p class="t">' + esc(q.q) + '</p>' +
+      q.options.map(function (o, j) {
+        var cls = 'btn' + (answered && j === q.answer ? ' right' : '') + (answered && j === p && j !== q.answer ? ' wrong' : '');
+        return '<button class="' + cls + '" onclick="pick(' + at + ',' + j + ')"' + (answered || locked ? ' disabled' : '') + '>' + esc(o) + '</button>';
+      }).join('') +
+      '<div class="why' + (answered ? ' show' : '') + '"><b>' + (answered && p === q.answer ? 'Yes. ' : 'Not quite. ') + '</b>' + esc(q.why) + '</div></div>';
+  }).join('');
+}
+function nbHtml() {
+  var nb = lsGet(NB_KEY), out = [];
+  if (nb && typeof nb === 'object') for (var k = 1; k < LESSON; k++) {
+    var e = nb['l' + k]; if (!e) continue;
+    (e.clues || []).forEach(function (c) { out.push('<li style="color:#8a7866"><b>L' + k + '</b> · watching: ' + esc(c) + '</li>'); });
+    if (e.prediction) out.push('<li style="color:#8a7866"><b>L' + k + '</b> · “' + esc(e.prediction) + '”</li>');
+  }
+  out = out.concat(S.clues.map(function (c) { return '<li><b>L' + LESSON + '</b> · watching: ' + esc(c) + '</li>'; }));
+  if (S.clueWhy.trim()) out.push('<li><b>L' + LESSON + '</b> · “' + esc(S.clueWhy.trim()) + '”</li>');
+  return out.length ? out.join('') : '<li style="color:#9a8a78">Nothing yet. Pick a clue above.</li>';
+}
+var VIEW = {
+  before: function () {
+    return '<div class="card"><div class="mins">Step 1 · 2 minutes</div><h2>Before you open the book</h2>' +
+      '<p class="lead">' + esc(C.before) + '</p>' +
+      '<div class="three">' + [0, 1, 2].map(function (i) { return '<input type="text" data-guess="' + i + '" placeholder="Maybe…" maxlength="60" value="' + esc(S.guess[i] || '') + '">'; }).join('') + '</div>' +
+      '<div class="read"><b>' + esc(C.readHead) + '</b> ' + esc(C.readNote) +
+      '<label><input type="checkbox" id="read"' + (S.read ? ' checked' : '') + '> ' + esc(C.readCheck) + '</label></div></div>';
+  },
+  words: function () {
+    return '<div class="card"><div class="mins">Step 2 · 6 minutes</div><h2>Words from the book</h2>' +
+      '<p class="lead">' + esc(C.wordsLead) + '</p>' +
+      WORDS.map(function (w) { return '<div class="word"><h3>' + w.w + '<span class="pos">' + w.pos + '</span></h3><p>' + esc(w.m) + '</p><p class="eg">' + esc(w.eg) + '</p></div>'; }).join('') + '</div>' +
+      '<div class="card">' + quizHtml('words') + '</div>';
+  },
+  check: function () {
+    return '<div class="card"><div class="mins">Step 3 · 5 minutes</div><h2>Read between the lines</h2>' +
+      '<p class="lead">None of these answers is printed in the chapter. Each one has to be worked out from what is there, and from what is left unsaid. Keep the book open.</p>' + quizHtml('check') + '</div>';
+  },
+  craft: function () {
+    return '<div class="card"><div class="mins">Step 4 · 4 minutes</div><h2>Craft: how the effect is built</h2>' +
+      '<div class="craft"><b>Terms for today.</b> ' + TERMS.map(function (t) { return '<b>' + t[0] + '</b>: ' + t[1]; }).join(' · ') + '.</div>' +
+      quizHtml('craft') + '</div>';
+  },
+  clues: function () {
+    var n = words(S.clueWhy), ro = S.sent ? ' disabled' : '';
+    return '<div class="card"><div class="mins">Step 5 · 2 minutes</div><h2>Detective notebook</h2>' +
+      '<p class="lead">Small things in this chapter come back later. Your notebook follows you through all 23 lessons, and your predictions get checked when the book answers them.</p>' +
+      '<p><b>Which of these will matter later?</b> Pick the ones you would bet on.</p>' +
+      '<div class="chips">' + CLUES.map(function (c) { return '<button class="chip' + (S.clues.indexOf(c) >= 0 ? ' on' : '') + '" data-clue="' + esc(c) + '"' + ro + '>' + esc(c) + '</button>'; }).join('') + '</div>' +
+      '<p><b>Make one prediction and give your evidence.</b> ' + esc(C.predictQ) + '</p>' +
+      '<textarea id="clueWhy" style="min-height:80px" maxlength="600" placeholder="I predict … because the chapter …"' + ro + '>' + esc(S.clueWhy) + '</textarea>' +
+      '<div class="count' + (n >= MIN_PREDICT ? ' ok' : '') + '" id="pcount">' + n + ' words · at least ' + MIN_PREDICT + '</div>' +
+      '<div class="book"><h4>My notebook so far</h4><ul id="nb">' + nbHtml() + '</ul></div></div>';
+  },
+  write: function () {
+    var n = words(S.essay), P = PROMPTS[S.prompt] || PROMPTS.A, ro = S.sent ? ' disabled' : '';
+    return '<div class="card"><div class="mins">Step 6 · 8 minutes</div><h2>Write one paragraph</h2>' +
+      '<p class="lead">Choose one. Your paragraph is read and marked by Dad, not by this page.</p>' +
+      '<div class="chips">' + ['A', 'B'].map(function (k) { return '<button class="chip' + (S.prompt === k ? ' on' : '') + '" data-prompt="' + k + '"' + ro + '>' + k + ' · ' + PROMPTS[k].name + '</button>'; }).join('') + '</div>' +
+      '<p><b>' + esc(P.q) + '</b></p>' +
+      '<div class="craft"><b>What a strong answer does:</b> ' + esc(P.how) + '</div>' +
+      '<textarea id="essay" style="min-height:210px" maxlength="6000" placeholder="' + (PROMPTS[S.prompt === 'B' ? 'B' : 'A'].ph || '') + '"' + ro + '>' + esc(S.essay) + '</textarea>' +
+      '<div class="count' + (n >= MIN_WORDS ? ' ok' : '') + '" id="count">' + n + ' words · aim for 80 to 120</div>' +
+      (S.sent ? '<p class="note ok">' + (S.elsewhere ? 'You already handed in a paragraph for this lesson on another device, so this one will not be sent.' : 'You already handed this paragraph in. It cannot be changed here.') + '</p>'
+        : PREVIEW ? '<p class="note">Preview: nothing on this page is recorded or handed in.</p>'
+        : noReporter() ? '<p class="note warn">This page could not connect to the homework system, so nothing can be handed in right now. Your work is saved on this device. Reload the page, then hand it in.</p>'
+        : noOne() ? '<p class="note warn">You are not signed in, so your paragraph cannot reach Dad. It is saved on this device. <a href="../homework.html">Sign in on My Homework</a>, then come back and hand it in.</p>'
+        : '<p class="note">When you press the button, your answers and your paragraph are handed in. You cannot change the paragraph afterwards, so read it through once.</p>') +
+      '</div>';
+  },
+  done: function () {
+    var got = score(), all = QUIZ.length, pct = Math.round(got / all * 100);
+    var mine = S.guess.filter(function (g) { return String(g).trim(); });
+    return '<div class="card"><div class="mins">Lesson ' + LESSON + ' complete</div><h2>' + (pct >= 80 ? 'Sharp reading.' : 'Go back and read the explanations for the ones you missed.') + '</h2>' +
+      '<div class="score"><div><b>' + got + ' / ' + all + '</b><span>questions right</span></div><div><b>' + pct + '%</b><span>' + (pct >= 80 ? 'passed' : '80% to pass') + '</span></div><div><b>' + words(S.essay) + '</b><span>words written</span></div></div>' +
+      (PREVIEW ? '<p class="note">Preview: nothing was recorded or handed in.</p>'
+        : '<p class="note ok">' + (navigator.onLine === false ? 'You are offline, so it is saved on this device and will be sent when the internet is back. ' : '') +
+          '📬 Your paragraph and your prediction are handed in. Dad will read and mark the paragraph, and it will show up on <b>My Homework</b>.</p>') +
+      '<p><b>Remember your three guesses?</b></p>' +
+      '<div class="vs"><div><h4>What you guessed</h4><ul>' + (mine.length ? mine.map(function (g) { return '<li>' + esc(g) + '</li>'; }).join('') : '<li>(nothing typed)</li>') + '</ul></div>' +
+      '<div><h4>' + esc(C.realityHead) + '</h4><ul>' + REALITY.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul></div></div>' +
+      '<p style="margin-top:14px">' + C.finishNoteHtml + '</p>' +
+      '<div class="book"><h4>My notebook so far</h4><ul>' + nbHtml() + '</ul></div>' +
+      '<div class="next">' + C.nextHtml + '</div></div>';
+  }
+};
+
+/* ---------- drawing ---------- */
+function draw() {
+  var id = STEPS[S.step].id, last = S.step === STEPS.length - 1, ready = stepReady(S.step);
+  $('steps').innerHTML = STEPS.map(function (s, i) {
+    var reach = S.done || i < STEPS.length - 1;
+    var cls = i === S.step ? 'on' : (i < STEPS.length - 1 && stepReady(i) && (S.done || i < S.step) ? 'done' : '');
+    return '<button class="' + cls + '" data-step="' + i + '"' + (reach ? '' : ' disabled') + '><b>' + s.n + '</b>' + s.label + '</button>';
+  }).join('');
+  $('bar').style.width = Math.round(S.step / (STEPS.length - 1) * 100) + '%';
+  var right;
+  if (last) right = '<a class="go" href="../homework.html">Back to My Homework</a>';
+  else if (handStep(S.step) && !S.done) right = '<button class="go" id="next"' + (ready && !blocked() ? '' : ' disabled') + '>' + (S.sent ? 'Finish →' : 'Hand in and finish →') + '</button>';
+  else right = '<button class="go" id="next"' + (ready ? '' : ' disabled') + '>Next →</button>';
+  $('main').innerHTML = VIEW[id]() +
+    '<div class="nav"><button class="go back" id="back"' + (S.step === 0 ? ' disabled' : '') + '>← Back</button>' + right + '</div>' +
+    (last ? '<p class="hint"><button class="link" id="again">Try the questions again</button></p>'
+          : '<p class="hint" id="hint"' + (ready ? ' style="display:none"' : '') + '>Finish this step to go on.</p>');
+  if (id === 'write') startWrite(); else tickWrite();
+}
+function refreshNext() {
+  var b = $('next'); if (!b) return;
+  var ready = stepReady(S.step); b.disabled = !ready || (STEPS[S.step].id === 'write' && !S.done && blocked());
+  var h = $('hint'); if (h) h.style.display = ready ? 'none' : '';
+}
+function go(i) {
+  i = Math.max(0, Math.min(STEPS.length - 1, i));
+  if (i === STEPS.length - 1 && !S.done) return;            // the finish page only after handing in
+  S.step = i; save(); draw(); window.scrollTo(0, 0);
+}
+
+document.addEventListener('click', function (e) {
+  var t = e.target.closest('button'); if (!t || t.disabled) return;
+  if (t.dataset.step != null) return go(+t.dataset.step);
+  if (t.id === 'back') return go(S.step - 1);
+  if (t.id === 'again') return resetQuiz();
+  if (t.id === 'next') {
+    if (!stepReady(S.step)) return;
+    if (handStep(S.step) && !S.done) return handIn();
+    return go(S.step + 1);
+  }
+  if (S.sent) return;                                       // handed in: the notebook and the paragraph are fixed
+  if (t.dataset.prompt) { S.prompt = t.dataset.prompt; save(); draw(); return; }
+  if (t.dataset.clue) {
+    var c = t.dataset.clue, at = S.clues.indexOf(c);
+    if (at >= 0) S.clues.splice(at, 1); else S.clues.push(c);
+    save(); t.classList.toggle('on'); $('nb').innerHTML = nbHtml(); refreshNext();
+  }
+});
+document.addEventListener('input', function (e) {
+  var t = e.target, n, c;
+  if (t.dataset.guess != null) S.guess[+t.dataset.guess] = t.value;
+  else if (t.id === 'read') S.read = t.checked;
+  else if (t.id === 'clueWhy') { S.clueWhy = t.value; $('nb').innerHTML = nbHtml(); n = words(t.value); c = $('pcount');
+    c.textContent = n + ' words · at least ' + MIN_PREDICT; c.className = 'count' + (n >= MIN_PREDICT ? ' ok' : ''); }
+  else if (t.id === 'essay') { S.essay = t.value; n = words(t.value); c = $('count');
+    c.textContent = n + ' words · aim for 80 to 120'; c.className = 'count' + (n >= MIN_WORDS ? ' ok' : ''); }
+  else return;
+  save(); refreshNext();
+});
+document.addEventListener('paste', function (e) {
+  if (e.target && e.target.id === 'essay') { try { S.pasted += ((e.clipboardData || window.clipboardData).getData('text') || '').length; save(); } catch (err) {} }
+});
+window.addEventListener('pagehide', function () { tickWrite(); save(); });
+if (typeof VIEW_EXTRA === 'object') Object.keys(VIEW_EXTRA).forEach(function (k) { VIEW[k] = VIEW_EXTRA[k]; });
+draw();
+</script>
+<script src="../JS/quiz-report.js"></script>
+<script>watchSignIn();</script>
+</body>
+</html>
