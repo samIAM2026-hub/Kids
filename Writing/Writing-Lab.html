@@ -289,6 +289,7 @@
 
 <script src="../JS/writing-review.js"></script>
 <script src="../JS/writing-kinds.js"></script>
+<script src="../JS/parent-view.js"></script>
 <script>
 /* =====================================================================
    Writing Lab — Kids/Writing/Writing-Lab.html
@@ -347,6 +348,10 @@ var K_DRAFT = 'writingLab.draft.v1';
 var WHO = { dad:'Dad', mom:'Mom' };
 var BANDS = { 6:'Outstanding for Grade 7', 5:'Strong', 4:'Solid', 3:'Developing', 2:'Weak', 1:'Barely started' };
 var PREVIEW = /(?:^|&)preview=1(?:&|$)/.test(location.search.slice(1));   // a parent looking from parent.html
+// 家长「只看不动」(Sam 2026-11-23): ?preview=1&as=warren — a parent signed in with the parent account sees that kid's
+// own list and marked pieces exactly as the kid does. Read only: no seenAt, no reading time, no writing, and
+// JS/parent-view.js drops any Firestore write that would still be tried.
+var AS_KID = PREVIEW && window.ParentView ? ParentView.AS : null;
 // Grace's Speech Studio pieces are shown here too (Speech Studio has no #w= view), so the header follows the
 // piece being shown and the signed-in kid instead of always saying "Warren · ISEE / SSAT" (Sam 2026-10-03).
 var KID_NAMES = { mbtSDgfFrOOS4xIT3eXr7pETEt33: 'Grace', paACSAD0W0bBNknKrAf3GfpHy8x1: 'Warren' };
@@ -394,6 +399,7 @@ var tick = null;
 var FB = null, ME = null;   // { db, auth } from quiz-report.js; the signed-in kid
 var MINE = null;            // this kid's writings, newest first (null = not read yet)
 var MINE_ERR = '';
+var PV_NEED = false;        // parent's view, but no parent signed in on this device
 
 /* ---------- screens ---------- */
 function show(name){
@@ -418,15 +424,24 @@ function loadMine(){
 
 function renderMine(){
   var h = '';
-  if (PREVIEW){ $('minebox').innerHTML = ''; return; }
-  if (!ME){
+  if (PREVIEW && !AS_KID){ $('minebox').innerHTML = ''; return; }
+  if (AS_KID){
+    var kid = ParentView.KIDS[AS_KID];
+    h = '<div class="msg wait noprint">👀 <b>家长预览 · 只看不动</b>：这是 ' + kid.n + ' 看到的页面。打开批改不会算 ' + kid.n +
+        ' 看过，这里也不能写或交作文。</div>';
+    if (!ME) h += PV_NEED ? '<div class="msg err">要先用家长账号登录。<a class="back" href="../homework.html?as=' + AS_KID +
+        '">去登录 →</a> 登录一次，这台设备以后打开就能直接看。</div>' : '';
+  }
+  if (AS_KID && !ME){
+    // parent's view, still connecting or no parent signed in: the banner (and the sign-in hint) is all there is
+  } else if (!ME){
     h = '<div class="msg err">You are not signed in, so your writing can\'t reach Dad or Mom. ' +
         '<a class="back" href="../homework.html">Sign in on My Homework</a> first, then come back here.</div>';
   } else if (MINE_ERR){
-    h = '<div class="msg err">' + esc(MINE_ERR) + '</div>';
+    h += '<div class="msg err">' + esc(MINE_ERR) + '</div>';
   } else if (MINE && MINE.length){
     var fresh = MINE.filter(function (w){ return w.status === 'reviewed' && !w.seenAt; }).length;
-    h = '<div class="grouphead" style="margin-top:0"><h2>My writing</h2><span class="n">' +
+    h += '<div class="grouphead" style="margin-top:0"><h2>My writing</h2><span class="n">' +
         (fresh ? fresh + ' newly marked' : MINE.length + ' handed in') + '</span></div>';
     h += MINE.slice(0, 10).map(function (w){
       var r = w.review, st = w.status !== 'reviewed' ? '<span class="st wait">⏳ Waiting to be marked</span>'
@@ -472,6 +487,7 @@ function pickPrompt(i){
 
 /* ---------- 3. writing (a first draft, or draft 2 from a marked one) ---------- */
 function openWrite(i, draft){
+  if (PREVIEW){ alert('家长预览：这里只能看，不能写或交作文。'); return; }
   round = i;
   var p = PROMPTS[i];
   cur = draft || { pid: p.id, text: '', startedAt: Date.now(), elapsed: 0, pasted: 0, draftNo: 1 };
@@ -644,7 +660,7 @@ function openView(id){
   });
   readStart(r ? w : null);   // time spent on Dad's / Mom's marks → 家长台 (no clock shown here)
   // Tell Dad / Mom it was read. The rules let a kid change only this one field.
-  if (r && !w.seenAt && FB) FB.db.collection('writings').doc(id)
+  if (r && !w.seenAt && FB && !PREVIEW) FB.db.collection('writings').doc(id)
     .update({ seenAt: firebase.firestore.FieldValue.serverTimestamp() })
     .then(function (){ w.seenAt = true; renderMine(); }).catch(function (e){ console.warn('[writing] seenAt:', e.code || e); });
 }
@@ -749,6 +765,16 @@ function finish(){ /* quiz-report.js reads solvedFirst + REPORT_WRITING after th
 
   // quiz-report.js loads after this script; once it has, follow the kid's sign-in and read their pieces.
   window.addEventListener('load', function (){
+    if (AS_KID){   // parent's view: the parent's own sign-in, reading this kid's pieces
+      renderMine();
+      ParentView.connect().then(function (c){
+        if (!c.parent){ PV_NEED = true; renderMine(); return; }
+        FB = { db: c.db, auth: c.auth };
+        ME = { uid: ParentView.KIDS[AS_KID].uid };
+        setHeader(null); loadMine();
+      }).catch(function (e){ MINE_ERR = '读不到（' + (e && (e.code || e.message)) + '）'; PV_NEED = false; renderMine(); });
+      return;
+    }
     if (!window.QuizReport || !QuizReport.ready){ renderMine(); return; }
     QuizReport.ready.then(function (fb){
       FB = fb;

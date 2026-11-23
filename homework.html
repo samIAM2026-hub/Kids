@@ -413,6 +413,7 @@
     <h1>Homework time! 📚</h1>
     <p class="lead" style="margin:10px 0 26px">Who's doing homework today?</p>
     <div class="pick" id="pickcards"></div>
+    <a class="link" id="parentin" href="?as=warren" style="display:inline-block;margin-top:22px">🔑 Parent</a>
   </div>
   <div id="pinstep" hidden>
     <div class="av" id="pinav"></div>
@@ -461,6 +462,7 @@
 <script src="JS/fs-cache.js"></script>
 <script src="JS/kid-pets.js"></script>
 <script src="JS/writing-kinds.js"></script>
+<script src="JS/parent-view.js"></script>
 <script>
 /* =====================================================================
    Kids' homework page
@@ -494,12 +496,16 @@ const firebaseConfig = {
 /* Parent mode (Sam 2026-10-23: 「家长界面最好和孩子的界面一致，有家长特殊按键的话可以标注」): homework.html?as=warren
    is this same page, showing exactly what Warren sees, opened with the parent's sign-in. Using the app name the
    parent console uses ('parent') shares its saved login. The parent-only buttons are gold and marked 🔑; nothing a
-   kid's sign-in does (pet saves, the 30-minute sign-out, "I'm done" on a link) happens in parent mode. */
+   kid's sign-in does (pet saves, the 30-minute sign-out, "I'm done" on a link) happens in parent mode.
+   2026-11-23 Sam 「只看不动」: the parent signs in right here (🔑 Parent on the sign-in screen, no detour through
+   parent.html); every Firestore write is dropped (JS/parent-view.js guard) except the gold 🔑 buttons; and every
+   page opened from here keeps ?preview=1&as=<kid>, so nothing is recorded as the kid. */
 const AS = new URLSearchParams(location.search).get('as');
 const PARENT = AS === 'grace' || AS === 'warren';
 // Named app: this sign-in is stored apart from the parent console's and the checklists' (parent mode shares the console's).
 const app = firebase.initializeApp(firebaseConfig, PARENT ? 'parent' : 'kid');
 const auth = app.auth(), db = app.firestore();
+if(PARENT) ParentView.guard(firebase);
 
 const KIDS = {
   grace:  { n:'Grace',  av:'👧', cls:'peach', uid:'mbtSDgfFrOOS4xIT3eXr7pETEt33' },
@@ -538,7 +544,8 @@ const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&l
 // A custom link (parent console → 题库 → ＋ 自定义链接) is a whole address on another site instead;
 // it opens as it is, in a new tab, so this page stays where it was underneath.
 const isUrl = h => /^https?:\/\//i.test(h || '');
-const pageUrl = href => isUrl(href) ? href : encodeURI('Quizzes/' + href);
+// Parent mode: the page opens in the parent's view too (?preview=1&as=<kid>: records nothing).
+const pageUrl = href => isUrl(href) ? href : PARENT ? ParentView.link(encodeURI('Quizzes/' + href), AS) : encodeURI('Quizzes/' + href);
 // 外站一律新标签页：iPad「添加到主屏幕」的快捷方式没有后退键，卷子页靠注入的「📋 My homework」
 // 回得来，别人的网站加不上那颗按钮 —— 同一个标签页跳过去就困在那儿了。
 const extAttr = href => isUrl(href) ? ' target="_blank" rel="noopener"' : '';
@@ -699,7 +706,8 @@ function markedCards(){
   // Open it on the page it was written on — its next draft has to be written there too (2026-09-24).
   const page = w => { const f = decodeURIComponent(w.itemId||'').split('/').pop();
     return f === 'Summer-Story-Studio.html' ? f : 'Writing-Lab.html'; };   // Speech Studio has no #w= — Writing Lab shows those
-  return MARKED.map(w=>`<a class="card marked" href="Writing/${page(w)}#w=${encodeURIComponent(w.id)}">
+  const at = w => { const u = `Writing/${page(w)}#w=${encodeURIComponent(w.id)}`; return PARENT ? ParentView.link(u, AS) : u; };
+  return MARKED.map(w=>`<a class="card marked" href="${esc(at(w))}">
     <span class="ic">📝</span>
     <div class="body"><div class="t">${who[w.review && w.review.by] || 'Dad or Mom'} marked your writing!</div>
       <div class="meta">${(k=>`<span class="wk" style="--wk:${k.color}">${esc(k.en)}</span>`)(WritingKinds.of(w))}${esc(String(w.prompt||'').slice(0,70))}${(w.draftNo||1)>1?' · draft '+w.draftNo:''}</div></div>
@@ -1687,17 +1695,59 @@ auth.onAuthStateChanged(async user=>{
   }
   afterLoad('signin').catch(console.error);
 });
-document.getElementById('switch').addEventListener('click',()=>{ if(PARENT) location.href = 'parent.html'; else auth.signOut(); });
+document.getElementById('switch').addEventListener('click',()=>{ if(PARENT) location.href = ME ? 'parent.html' : 'homework.html'; else auth.signOut(); });
 
 /* ---------- parent mode (see AS / PARENT at the top) ---------- */
+// Signed in as a kid in the parent app, or not signed in: the parent signs in right here — Google for Dad,
+// Mom's 4-digit password — the same two ways as parent.html (same 'parent' app, so that page is signed in too).
+let parentMsg = '';
+function parentGate(){
+  ME = null;
+  document.body.className = 'parentmode';
+  document.getElementById('hav').textContent = '🔑';
+  document.getElementById('hname').textContent = '家长登录';
+  document.getElementById('hdate').textContent = '登录一次，这台设备以后打开孩子的页面就能直接看';
+  document.getElementById('switch').textContent = '← 孩子登录';
+  document.getElementById('pbar').hidden = true;
+  document.querySelector('nav.tabs').hidden = true;
+  viewEl.innerHTML = `<div class="empty"><span class="e">🔑</span><b>家长登录</b> · 看 ${KIDS[AS].av} ${KIDS[AS].n} 的页面（只看不动）
+    <div style="margin-top:16px"><button class="go pbtn" id="pgoogle">用 Google 账号登录（爸爸）</button></div>
+    <div style="margin-top:16px">妈妈的密码：<input id="pmom" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off"
+      placeholder="····" style="width:7em;font-size:20px;text-align:center;padding:6px;border-radius:10px;border:2px solid #c9a227"></div>
+    <div class="err" id="perr" style="margin-top:12px">${esc(parentMsg)}</div></div>`;
+  parentMsg = '';
+  const err = document.getElementById('perr'), mom = document.getElementById('pmom'), g = document.getElementById('pgoogle');
+  g.onclick = ()=>{
+    err.textContent = ''; g.disabled = true;
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt:'select_account' });
+    auth.signInWithPopup(provider).catch(e=>{
+      if(e.code==='auth/popup-blocked') return auth.signInWithRedirect(provider);
+      g.disabled = false;
+      if(e.code!=='auth/popup-closed-by-user' && e.code!=='auth/cancelled-popup-request') err.textContent = '登录没成功：' + (e.code||e.message);
+    });
+  };
+  mom.oninput = ()=>{
+    mom.value = mom.value.replace(/\D/g,'').slice(0,4);
+    if(mom.value.length !== 4) return;
+    err.textContent = ''; mom.disabled = true;
+    auth.signInWithEmailAndPassword('mom@family.local', 'family-' + mom.value).catch(e=>{
+      const wrong = ['auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials','auth/user-not-found'].includes(e.code);
+      err.textContent = e.code==='auth/too-many-requests' ? '输错太多次了，等几分钟再试。' : wrong ? '密码不对，再试一次。' : '登录没成功：' + (e.code||e.message);
+      mom.disabled = false; mom.value = ''; mom.focus();
+    });
+  };
+}
+document.getElementById('pbar').addEventListener('click', e=>{
+  if(e.target.closest('[data-signout]')){ e.preventDefault(); auth.signOut(); }
+});
+if(PARENT) auth.getRedirectResult().catch(e=>{ parentMsg = '登录没成功：' + (e.code||e.message); });
+
 async function parentStart(user){
   signinEl.hidden = true; appEl.hidden = false;
-  if(!user || Object.values(KIDS).some(k=>k.uid===user.uid)){
-    viewEl.innerHTML = `<div class="empty"><span class="e">🔑</span>家长模式要先在家长台登录（Google 或妈妈的密码）。<br>
-      <a class="go" href="parent.html" style="margin-top:12px;display:inline-block">去家长台登录 →</a></div>`;
-    return;
-  }
+  if(!user || user.isAnonymous || Object.values(KIDS).some(k=>k.uid===user.uid)) return parentGate();
   ME = { ...KIDS[AS], key: AS };
+  document.querySelector('nav.tabs').hidden = false;
   document.body.className = ME.cls + ' parentmode';
   document.getElementById('hav').textContent = ME.av;
   document.getElementById('hname').textContent = `Hi, ${ME.n}!`;
@@ -1705,8 +1755,9 @@ async function parentStart(user){
   document.getElementById('switch').textContent = '🔑 ← 家长台';
   const other = Object.keys(KIDS).find(k=>k!==AS);
   document.getElementById('pbar').hidden = false;
-  document.getElementById('pbar').innerHTML = `🔑 <b>家长模式</b>：这就是 ${ME.n} 看到的页面。金色 🔑 按钮只有家长看得到。
-    <a href="?as=${other}">换成 ${KIDS[other].av} ${KIDS[other].n}</a>`;
+  document.getElementById('pbar').innerHTML = `👀 <b>家长预览 · 只看不动</b>：这就是 ${ME.n} 看到的页面。你在这里点开、做题、看批改，都不会记到 ${ME.n} 账上；
+    只有金色 🔑 按钮会真的改作业单。
+    <a href="?as=${other}">换成 ${KIDS[other].av} ${KIDS[other].n}</a><a href="#" data-signout>退出家长登录</a>`;
   viewEl.innerHTML = `<div class="empty"><span class="e">⏳</span>正在读 ${ME.n} 的作业…</div>`;
   try { await load(); render(); }
   catch(e){ console.error(e); viewEl.innerHTML = `<div class="empty"><span class="e">📡</span>读不到 ${ME.n} 的作业：${esc(e.code||e.message)}</div>`; }
@@ -1714,7 +1765,7 @@ async function parentStart(user){
 const todayRef = () => db.doc(`assignments/${ME.uid}/days/${iso(today)}`);
 async function parentDo(btn, work, done){
   btn.disabled = true;
-  try { await work(); await load(); render(); toast(done); }
+  try { await ParentView.writing(work); await load(); render(); toast(done); }
   catch(e){ console.error('[parent]', e); btn.disabled = false; alert('没改成：' + (e.code||e.message)); }
 }
 // 🔑 放进今天: onto today's list for this kid (the same item shape the console's 派发 writes; no longer withdrawn)
@@ -1775,7 +1826,7 @@ viewEl.addEventListener('click', e=>{
 });
 
 ['pointerdown','keydown','scroll','touchstart'].forEach(ev=>
-  window.addEventListener(ev, ()=>{ if(ME) touch(); }, { capture:true, passive:true }));
+  window.addEventListener(ev, ()=>{ if(ME && !PARENT) touch(); }, { capture:true, passive:true }));   // a parent's taps don't keep a kid signed in
 setInterval(()=>{
   // Midnight while the page just sits there (nothing hidden, nothing clicked). Not mid-popup:
   // that would throw away a card he hasn't read, or a pet name he's halfway through typing.
