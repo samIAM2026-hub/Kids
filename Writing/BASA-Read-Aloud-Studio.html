@@ -26,6 +26,9 @@
   - 2026-11-09: a piece can set its own takes / maxSecs / bitrate. Warren's two
     long performance pieces are one run-through a day, up to 4 minutes at
     16 kbps, and are also stopped by size (MAX_BYTES) so they always fit.
+  - 2026-11-23: "⏱ Your times" under the takes — every saved recording of the
+    piece, all days, with its length (last run, change from the run before,
+    shortest · longest). Read from the same rows; nothing new is stored.
 ===================================================================== -->
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
@@ -104,6 +107,21 @@
            font-size:16.5px;line-height:1.6;color:#2b6132;margin-bottom:16px}
   .allgood .big{font-size:34px;display:block;margin-bottom:5px}
 
+  .times{margin-top:16px}
+  .tsum{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 12px}
+  .tsum div{flex:1;min-width:120px;background:#f4faf3;border:2px solid #cfe3cb;border-radius:12px;padding:9px 12px;
+            font-size:13px;color:#5b5346}
+  .tsum b{display:block;font-family:ui-monospace,Menlo,monospace;font-size:21px;color:#2f4a3a;margin-top:2px}
+  .tsum .up{color:#8a5f18} .tsum .down{color:#2b6132}
+  .tlist{list-style:none;font-size:14.5px}
+  .tlist li{display:flex;gap:10px;align-items:baseline;padding:6px 2px;border-bottom:1px dashed #e6dcc4}
+  .tlist li:last-child{border-bottom:none}
+  .tlist .d{flex:1;color:#4a4339} .tlist .k{color:#8a7f6d;font-size:13px}
+  .tlist .s{font-family:ui-monospace,Menlo,monospace;font-weight:bold;color:#2f4a3a}
+  .tlist li.best .s::after{content:' ★';color:#c9973f}
+  .tmore{font-family:inherit;font-size:13.5px;background:none;border:none;color:#8a5f18;text-decoration:underline;
+         cursor:pointer;padding:6px 0 0}
+
   footer{text-align:center;margin-top:20px;font-size:14px}
   footer a{color:#5b4636}
   @media (max-width:430px){ .take .stat{margin-left:0;width:100%} }
@@ -144,6 +162,8 @@
     </div>
 
     <div id="takes"></div>
+
+    <div class="sect times" id="times" hidden></div>
 
     <div class="notice" style="margin-top:16px" id="how"></div>
   </div>
@@ -334,6 +354,56 @@ function paint(){
   $('takes').querySelectorAll('[data-dl]').forEach(b=>b.addEventListener('click',()=>download(+b.dataset.dl)));
   $('takes').querySelectorAll('[data-retry]').forEach(b=>b.addEventListener('click',()=>save(+b.dataset.retry)));
   $('takes').querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',()=>playSaved(+b.dataset.play)));
+  paintTimes();
+}
+
+/* ---------- your times (2026-11-23, Sam: 「记录时间」) ---------- */
+/* Every saved recording is one timed run-through, so the time log is just the
+   recording rows of this piece, all days, newest first. Nothing extra is stored:
+   the parent page sees the same lengths in its 「朗读录音」 tab. A re-record on the
+   same day stays in the list — every run counts as practice. */
+let TIMES_ALL = false;
+function paintTimes(){
+  const box = $('times');
+  const runs = MINE.filter(r=>r.secs > 0);
+  box.hidden = false;
+  if(!runs.length){
+    box.innerHTML = `<div class="eyebrow">⏱ Your times</div><h2 class="st">How long does it take you?</h2>
+      <p class="lead">Every recording you save is timed. Your first one will show up here. After that you can
+      see each day's time and whether you got quicker or slower.</p>`;
+    return;
+  }
+  const last = runs[0], prev = runs[1];
+  const best = runs.reduce((a,b)=> b.secs < a.secs ? b : a);
+  const longest = runs.reduce((a,b)=> b.secs > a.secs ? b : a);
+  const dayName = r => { const d = dayOf(r); if(!d) return '';
+    const [y,m,dd] = d.split('-').map(Number);
+    const s = new Date(y, m-1, dd).toLocaleDateString('en-US',{ weekday:'short', month:'short', day:'numeric' });
+    return d === todayYmd() ? `Today · ${s}` : s; };
+  let change = '';
+  if(prev){
+    const diff = last.secs - prev.secs;
+    change = diff === 0 ? 'Compared with the run before<b>same time</b>'
+      : diff < 0 ? `Compared with the run before<b class="down">${mmss(-diff)} quicker</b>`
+                 : `Compared with the run before<b class="up">${mmss(diff)} slower</b>`;
+  }
+  const shown = TIMES_ALL ? runs : runs.slice(0, 8);
+  box.innerHTML = `<div class="eyebrow">⏱ Your times</div>
+    <h2 class="st">${esc(POEM.title)} · ${runs.length} timed run${runs.length===1?'':'s'}</h2>
+    <div class="tsum">
+      <div>Last run<b>${mmss(last.secs)}</b></div>
+      ${prev ? `<div>${change}</div>` : ''}
+      ${runs.length > 1 ? `<div>Shortest · longest<b>${mmss(best.secs)} · ${mmss(longest.secs)}</b></div>` : ''}
+    </div>
+    <ul class="tlist">${shown.map(r=>`<li${runs.length>1 && r===best?' class="best"':''}>
+      <span class="d">${esc(dayName(r))}</span><span class="k">${r.createdAt?esc(new Date(r.createdAt)
+        .toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit' })):''}${takesOf(POEM)>1?` · take ${r.take}`:''}</span>
+      <span class="s">${mmss(r.secs)}</span></li>`).join('')}</ul>
+    ${runs.length > 8 ? `<button class="tmore" id="tmore">${TIMES_ALL ? 'Show fewer' : `Show all ${runs.length}`}</button>` : ''}
+    <div class="hist">Quicker isn't always better. If your time stays about the same from day to day, you know the piece well.
+      If one day is much quicker, listen back. Did you rush the pauses?</div>`;
+  const more = $('tmore');
+  if(more) more.addEventListener('click', ()=>{ TIMES_ALL = !TIMES_ALL; paintTimes(); });
 }
 
 /* ---------- recording ---------- */
