@@ -47,6 +47,8 @@
   .who{display:flex;align-items:center;gap:9px;justify-content:center;font-size:13.5px;color:#5b5346;margin-bottom:14px}
   .who b{color:#2f4a3a}
   .who a{color:#8a5f18}
+  .who.pv{display:block;text-align:center;line-height:1.7}
+  .who.pv .pk{margin:4px 3px;font-size:14px;padding:5px 13px}
 
   .notice{background:#fff6e0;border:3px solid #c9973f;border-radius:14px;padding:15px 17px;margin-bottom:16px;
           font-size:15px;line-height:1.65}
@@ -179,6 +181,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="../JS/parent-view.js"></script>
 <script>
 /* ===== the poems ===== */
 /* A new BASA poem = one more entry here. Nothing else on this page changes.
@@ -237,7 +240,13 @@ const firebaseConfig = {
   appId: '1:127899043154:web:5a49cce9a1913fbc41e68b'
 };
 const app = firebase.initializeApp(firebaseConfig, 'kid');
-const auth = app.auth(), db = app.firestore();
+const auth = app.auth();
+let db = app.firestore();
+/* 家长「只看不动」(Sam 2026-11-23): ?preview=1&as=warren — a parent signed in with the parent account
+   sees that kid's pieces, takes and times and can play them back. Nothing can be recorded or saved,
+   and JS/parent-view.js drops any Firestore write that would still be tried. */
+const PV_ON = !!(window.ParentView && ParentView.PREVIEW);        // any parent preview: never record
+const PV_AS = (PV_ON && ParentView.AS) || null;                  // which kid, if the link says (homework.html does)
 const KIDS = {
   grace:  { n:'Grace',  av:'👧', uid:'mbtSDgfFrOOS4xIT3eXr7pETEt33' },
   warren: { n:'Warren', av:'👦', uid:'paACSAD0W0bBNknKrAf3GfpHy8x1' }
@@ -327,7 +336,7 @@ function paint(){
     } else {
       const canRec = !RECORDING;
       body = `<div class="row">
-        <button class="btn" data-rec="${n}"${canRec?'':' disabled'}>${s.state==='empty' ? '⏺ Record take '+n : '⟳ Record again'}</button>
+        ${PV_ON ? '' : `<button class="btn" data-rec="${n}"${canRec?'':' disabled'}>${s.state==='empty' ? '⏺ Record take '+n : '⟳ Record again'}</button>`}
         ${s.url ? `<button class="btn ghost" data-dl="${n}">⤓ Save to this device</button>` : ''}
         ${s.state==='failed' ? `<button class="btn ghost" data-retry="${n}">↻ Try saving again</button>` : ''}
       </div>`;
@@ -411,7 +420,7 @@ let mediaStream = null, rec = null, chunks = [], startedAt = 0, tick = null, aud
 let cutShort = false;   // the size limit (not the kid, not the clock) ended this recording
 
 async function start(n){
-  if(RECORDING) return;
+  if(RECORDING || PV_ON) return;
   if(!window.MediaRecorder || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
     SLOT[n-1].err = 'This browser can’t record. Ask a parent to open this page in Safari or Chrome.';
     paint(); return;
@@ -608,13 +617,40 @@ function choosePoem(p){
   loadMine().then(paint);
 }
 
-auth.onAuthStateChanged(async user=>{
+if(PV_ON){
+  // Parent's view: the parent's own sign-in (the 'parent' app, same as parent.html), never the kid's.
+  // parent.html's links say only ?preview=1, so with no ?as= the parent picks whose studio to look at.
+  $('who').classList.add('pv');
+  $('who').textContent = 'Checking the parent sign-in…';
+  ParentView.connect().then(c=>{
+    if(!c.parent){
+      $('who').innerHTML = '👀 <b>家长预览 · 只看不动</b>';
+      $('signin').innerHTML = `<b>要先用家长账号登录。</b><a href="../homework.html?as=${PV_AS || 'warren'}">去登录 →</a>
+        登录一次，这台设备以后打开就能直接看。`;
+      $('signin').hidden = false; return;
+    }
+    db = c.db;
+    if(PV_AS) return openFor(PV_AS);
+    $('who').innerHTML = '👀 <b>家长预览 · 只看不动</b>：看谁的录音棚？ ' + Object.keys(KIDS).map(k=>
+      `<button class="pk" data-kid="${k}">${KIDS[k].av} ${esc(KIDS[k].n)}</button>`).join(' ');
+    $('who').querySelectorAll('[data-kid]').forEach(b=>b.addEventListener('click',()=>{
+      ROWS = null; $('picker').hidden = true; openFor(b.dataset.kid); }));
+  }).catch(e=>{ console.error(e); $('who').textContent = '家长预览连不上，请刷新再试。'; });
+} else auth.onAuthStateChanged(async user=>{
   if(!user){ $('who').textContent = 'Nobody is signed in yet.'; $('app').hidden = true; $('signin').hidden = false; return; }
   const key = Object.keys(KIDS).find(k=>KIDS[k].uid === user.uid);
   if(!key){ $('who').textContent = 'This sign-in isn’t Grace’s or Warren’s.'; $('signin').hidden = false; return; }
+  openFor(key);
+});
+
+function openFor(key){
   ME = Object.assign({ key }, KIDS[key]);
-  $('who').innerHTML = `${ME.av} <b>${esc(ME.n)}</b> — this is your voice being saved. <a href="../homework.html">Not you?</a>`;
+  $('who').innerHTML = PV_ON
+    ? `👀 <b>家长预览 · 只看不动</b>：这是 ${esc(ME.n)} 的录音棚。可以听录的每一遍、看时长；这里不能录，也不会改任何东西。`
+      + (PV_AS ? '' : ` <button class="pk" id="pvback">换一个孩子</button>`)
+    : `${ME.av} <b>${esc(ME.n)}</b> — this is your voice being saved. <a href="../homework.html">Not you?</a>`;
   $('signin').hidden = true; $('app').hidden = false;
+  if($('pvback')) $('pvback').addEventListener('click',()=>location.reload());
 
   const mine = POEMS.filter(p=>p.kid === ME.key);
   const list = mine.length ? mine : POEMS;
@@ -625,7 +661,7 @@ auth.onAuthStateChanged(async user=>{
       choosePoem(list.find(p=>p.id === b.dataset.p))));
   }
   choosePoem(list[0]);
-});
+}
 
 // Leaving mid-recording would lose the take; stop it cleanly instead.
 window.addEventListener('pagehide', ()=>{ if(RECORDING) stop(); });
