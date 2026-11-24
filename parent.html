@@ -832,7 +832,7 @@
   <p class="sub">这里可以看到全部题库、管理上架下架、查看两个孩子的完成记录。孩子那边看不到这个页面。</p>
   <button class="btn solid" id="signin">用 Google 账号登录</button>
   <div class="or">或者</div>
-  <label class="pinrow">妈妈输入 4 位密码
+  <label class="pinrow">爸爸 / 妈妈输入自己的 4 位密码
     <input id="mompin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="····">
   </label>
   <div class="err" id="gateerr"></div>
@@ -1073,9 +1073,11 @@ let KPICK = { grace:[], warren:[] };
 let NOTES = {}, notesLoading = '';
 
 const dayRef = (k, d) => db.doc(`assignments/${KID[k].uid}/days/${d}`);
-// Mom signs in with a 4-digit PIN instead of Google (password = 'family-' + PIN; Firebase wants 6+).
-// Rules count her as a parent because parents/{uid} exists — homework-system/add-mom.mjs.
-const MOM_EMAIL = 'mom@family.local';
+// Dad and Mom can each sign in with a 4-digit PIN (password = 'family-' + PIN; Firebase wants 6+).
+// Rules count them as parents because parents/{uid} exists — homework-system/add-parent.mjs.
+// Dad can still use Google too. The two PINs differ, so one PIN box tries both accounts.
+const MOM_EMAIL = 'mom@family.local', DAD_EMAIL = 'dad@family.local';
+const PIN_EMAIL = { dad: DAD_EMAIL, mom: MOM_EMAIL };
 const kidOf = uid => Object.keys(KID).find(k => KID[k].uid === uid);
 
 // 写作台（HOMEWORK-SYSTEM.md 2026-09-18 起）：孩子交一篇，家长在「作文」里按 ISEE / SSAT 阅卷人的
@@ -4906,14 +4908,32 @@ function showGate(msg){
   gate.hidden = false;
 }
 
-// Mom's PIN signs in as soon as the 4th digit is typed. Firebase remembers the login on this
-// device (the page never signs itself out), so she only types it again after 退出登录.
+// A parent's PIN signs in as soon as the 4th digit is typed. Firebase remembers the login on this
+// device (the page never signs itself out), so it's only typed again after 退出登录.
+// One box for both parents: try whoever signed in with a PIN here last, then the other.
+const PIN_WRONG = ['auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials','auth/user-not-found'];
+async function pinSignIn(pin){
+  let last = ''; try { last = localStorage.getItem('parent.pinWho') || ''; } catch(_){}
+  const order = last === 'mom' ? ['mom','dad'] : ['dad','mom'];
+  let err;
+  for(const who of order){
+    try {
+      await auth.signInWithEmailAndPassword(PIN_EMAIL[who], 'family-' + pin);
+      try { localStorage.setItem('parent.pinWho', who); } catch(_){}
+      return;
+    } catch(e){
+      err = e;
+      if(!PIN_WRONG.includes(e.code) && e.code !== 'auth/too-many-requests') break;
+    }
+  }
+  throw err;
+}
 function momSignIn(){
   const pin = momPin.value;
   if(!/^\d{4}$/.test(pin)) return;
   gateErr.textContent = ''; momPin.disabled = true; signinBtn.disabled = true;
-  auth.signInWithEmailAndPassword(MOM_EMAIL, 'family-' + pin).catch(e=>{
-    const wrong = ['auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials','auth/user-not-found'].includes(e.code);
+  pinSignIn(pin).catch(e=>{
+    const wrong = PIN_WRONG.includes(e.code);
     showGate(e.code==='auth/too-many-requests' ? '输错太多次了，等几分钟再试。'
            : wrong ? '密码不对，再试一次。' : '登录没成功：' + (e.code||e.message));
     momPin.focus();
@@ -4943,7 +4963,7 @@ auth.onAuthStateChanged(async user=>{
     await autoArchiveSafe();
     watchProgress();
     WR.list = null; WR.cur = ''; WR.ed = null;   // the 作文 tab reads its own collection, lazily
-    document.getElementById('whoami').textContent = user.email === MOM_EMAIL ? '👩 妈妈' : (user.email || '');
+    document.getElementById('whoami').textContent = user.email === MOM_EMAIL ? '👩 妈妈' : user.email === DAD_EMAIL ? '👨 爸爸' : (user.email || '');
     gate.hidden = true;
     render();
   } catch(e){

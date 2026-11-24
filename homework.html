@@ -1699,9 +1699,27 @@ auth.onAuthStateChanged(async user=>{
 document.getElementById('switch').addEventListener('click',()=>{ if(PARENT) location.href = ME ? 'parent.html' : 'homework.html'; else auth.signOut(); });
 
 /* ---------- parent mode (see AS / PARENT at the top) ---------- */
-// Signed in as a kid in the parent app, or not signed in: the parent signs in right here — Google for Dad,
-// Mom's 4-digit password — the same two ways as parent.html (same 'parent' app, so that page is signed in too).
+// Signed in as a kid in the parent app, or not signed in: the parent signs in right here — Dad's or Mom's
+// 4-digit password (one box tries both), or Google for Dad — the same ways as parent.html (same 'parent' app,
+// so that page is signed in too; same 'parent.pinWho' key for whose account to try first).
 let parentMsg = '';
+const PIN_WRONG = ['auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials','auth/user-not-found'];
+async function parentPinSignIn(pin){
+  let last = ''; try { last = localStorage.getItem('parent.pinWho') || ''; } catch(_){}
+  const order = last === 'mom' ? ['mom','dad'] : ['dad','mom'];
+  let err;
+  for(const who of order){
+    try {
+      await auth.signInWithEmailAndPassword(`${who}@family.local`, 'family-' + pin);
+      try { localStorage.setItem('parent.pinWho', who); } catch(_){}
+      return;
+    } catch(e){
+      err = e;
+      if(!PIN_WRONG.includes(e.code) && e.code !== 'auth/too-many-requests') break;
+    }
+  }
+  throw err;
+}
 function parentGate(){
   ME = null;
   document.body.className = 'parentmode';
@@ -1712,9 +1730,9 @@ function parentGate(){
   document.getElementById('pbar').hidden = true;
   document.querySelector('nav.tabs').hidden = true;
   viewEl.innerHTML = `<div class="empty"><span class="e">🔑</span><b>家长登录</b> · 看 ${KIDS[AS].av} ${KIDS[AS].n} 的页面（只看不动）
-    <div style="margin-top:16px"><button class="go pbtn" id="pgoogle">用 Google 账号登录（爸爸）</button></div>
-    <div style="margin-top:16px">妈妈的密码：<input id="pmom" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off"
+    <div style="margin-top:16px">爸爸 / 妈妈的 4 位密码：<input id="pmom" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off"
       placeholder="····" style="width:7em;font-size:20px;text-align:center;padding:6px;border-radius:10px;border:2px solid #c9a227"></div>
+    <div style="margin-top:16px"><button class="go pbtn" id="pgoogle">或者用 Google 账号登录（爸爸）</button></div>
     <div class="err" id="perr" style="margin-top:12px">${esc(parentMsg)}</div></div>`;
   parentMsg = '';
   const err = document.getElementById('perr'), mom = document.getElementById('pmom'), g = document.getElementById('pgoogle');
@@ -1732,8 +1750,8 @@ function parentGate(){
     mom.value = mom.value.replace(/\D/g,'').slice(0,4);
     if(mom.value.length !== 4) return;
     err.textContent = ''; mom.disabled = true;
-    auth.signInWithEmailAndPassword('mom@family.local', 'family-' + mom.value).catch(e=>{
-      const wrong = ['auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials','auth/user-not-found'].includes(e.code);
+    parentPinSignIn(mom.value).catch(e=>{
+      const wrong = PIN_WRONG.includes(e.code);
       err.textContent = e.code==='auth/too-many-requests' ? '输错太多次了，等几分钟再试。' : wrong ? '密码不对，再试一次。' : '登录没成功：' + (e.code||e.message);
       mom.disabled = false; mom.value = ''; mom.focus();
     });
